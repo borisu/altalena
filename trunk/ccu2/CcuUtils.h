@@ -17,9 +17,53 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#pragma warning( push )
+#pragma warning (disable: 4311)
+#pragma warning (disable: 4312)
+#pragma warning (disable: 4345)
+#pragma warning (disable: 4996)
+#pragma warning (disable: 4267)
+#pragma warning (disable: 4018)
+
+
+// windows
+#include <wchar.h>
+#include <WinSock2.h>
+#include <Windows.h>
+
+// console
+#include <Console.h>
+
+// std
+#include <iostream>
+#include <fstream>
+#include <strstream>
 #include <string>
+#include <strsafe.h>
+#include <vector>
+
+// boost
+#include <boost/noncopyable.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/variant/variant.hpp>
+#include <boost/assign/list_of.hpp>
+#include <boost/archive/text_woarchive.hpp>
+#include <boost/archive/text_wiarchive.hpp>
+#include <boost/archive/tmpdir.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/serialization/export.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/static_assert.hpp>
+#include <boost/tokenizer.hpp>
+#include <boost/bind.hpp>
+
+// Kent CSP
+#include <cppcsp/cppcsp.h>
 
 
+#pragma warning( pop )
 
 
 #define _QUOTE(x) # x

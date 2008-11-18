@@ -36,24 +36,12 @@ enum CcuMessageId
 	CCU_MSG_ACK,
 	CCU_MSG_NACK,
 
-// 	CCU_MSG_ALLOCATE_NEW_CONNECTION,
-// 	CCU_MSG_ALLOCATE_NEW_CONNECTION_SUCCESS,
-// 	
-// 	CCU_MSG_ALLOCATE_NEW_CONNECTION_FAILURE,
-// 	CCU_MSG_MODIFY_CONNECTION,
-// 
-// 	CCU_MSG_BRIDGE_CONNECTIONS,
-// 	CCU_MSG_BRIDGE_CONNECTIONS_SUCCESS,
-// 	CCU_MSG_BRIDGE_CONNECTIONS_FAILURE,
-// 
-// 	CCU_CLOSE_CONNECTION,
-// 	CCU_CLOSE_CONNECTION_SUCCESS,
-// 
-// 
-// 
-// 	CCU_MSG_RTP_SESSIONS_ESTABLISHED,
-// 	CCU_MSG_RTP_SESSIONS_FAILURE,
-
+	CCU_MSG_PING,
+	CCU_MSG_PONG,
+	CCU_MSG_PROC_SHUTDOWN_REQ,
+	CCU_MSG_PROC_SHUTDOWN_ACK,
+	CCU_MSG_PROC_READY,
+	CCU_MSG_PROC_FAILURE,
 
 	CCU_MSG_USER_DEFINED = 5000
 
@@ -203,3 +191,93 @@ BOOST_CLASS_EXPORT(CcuMsgNack);
 
 #pragma endregion Simpletons
 
+
+#pragma region Process_Management_Events
+
+class CcuMsgPing : 
+	public CcuMessage
+{
+private:
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMessage);
+	}
+public:
+
+	CcuMsgPing():
+	  CcuMessage(CCU_MSG_PING, NAME(CCU_MSG_PING)){};
+};
+BOOST_CLASS_EXPORT(CcuMsgPing);
+
+class CcuMsgPong : 
+	public CcuMsgResponse
+{
+private:
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMsgResponse);
+	}
+public:
+	CcuMsgPong():
+	  CcuMsgResponse(CCU_MSG_PONG, NAME(CCU_MSG_PONG)){};
+};
+BOOST_CLASS_EXPORT(CcuMsgPong);
+
+class CcuMsgShutdownReq: 
+	public CcuMessage
+{
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMessage);
+	}
+public:
+
+	CcuMsgShutdownReq():
+	  CcuMessage(CCU_MSG_PROC_SHUTDOWN_REQ, NAME(CCU_MSG_PROC_SHUTDOWN_REQ)){};
+
+};
+BOOST_CLASS_EXPORT(CcuMsgShutdownReq);
+
+class CcuMsgShutdownAck: 
+	public CcuMsgResponse
+{
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMsgResponse);
+	}
+public:
+	CcuMsgShutdownAck():
+	  CcuMsgResponse(CCU_MSG_PROC_SHUTDOWN_ACK, NAME(CCU_MSG_PROC_SHUTDOWN_ACK)){};
+};
+BOOST_CLASS_EXPORT(CcuMsgShutdownAck);
+
+class CcuMsgProcReady:
+	public CcuMessage
+{
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMessage);
+	}
+
+public:
+	CcuMsgProcReady():
+	  CcuMessage(CCU_MSG_PROC_READY, 
+		  NAME(CCU_MSG_PROC_READY)){}
+};
+BOOST_CLASS_EXPORT(CcuMsgProcReady);
+
+class CcuMsgProcFailure:
+	public CcuMessage
+{
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMessage);
+	}
+public:
+	CcuMsgProcFailure():
+	  CcuMessage(CCU_MSG_PROC_FAILURE, 
+		  NAME(CCU_MSG_PROC_FAILURE)){}
+};
+BOOST_CLASS_EXPORT(CcuMsgProcFailure);
+
+#pragma endregion
