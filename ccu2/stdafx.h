@@ -10,59 +10,13 @@
 #endif						
 
 
-
 #include <stdio.h>
 #include <tchar.h>
 
 
-
-
 // TODO: reference additional headers your program requires here
-
 #include "CcuUtils.h"
 
-#pragma warning( push )
-#pragma warning (disable: 4311)
-#pragma warning (disable: 4312)
-#pragma warning (disable: 4345)
-#pragma warning (disable: 4996)
-#pragma warning (disable: 4267)
-#pragma warning (disable: 4018)
-
-#include <wchar.h>
-#include <string.h>
-#include <WinSock2.h>
-#include <Windows.h>
-#include <Mq.h>
-#include <iostream>
-#include <signal.h>
-#include <strsafe.h>
-#include <fstream>
-#include <strstream>
-
-// boost
-#include <boost/noncopyable.hpp>
-#include <boost/thread/thread.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/variant/variant.hpp>
-#include <boost/assign/list_of.hpp>
-#include <boost/archive/text_woarchive.hpp>
-#include <boost/archive/text_wiarchive.hpp>
-#include <boost/archive/tmpdir.hpp>
-#include <boost/archive/xml_wiarchive.hpp>
-#include <boost/archive/xml_woarchive.hpp>
-#include <boost/serialization/export.hpp>
-#include <boost/serialization/nvp.hpp>
-#include <boost/static_assert.hpp>
-#include <boost/tokenizer.hpp>
-#include <boost/bind.hpp>
-
-
-
-
-
-// Kent CSP
-#include "cppcsp/cppcsp.h"
 
 // ReSip
 #include "resip/stack/SdpContents.hxx"
@@ -93,9 +47,9 @@
 #include "rutil/Data.hxx"
 #include "rutil/Subsystem.hxx"
 
-#include "Console.h"
 
 #include "json_spirit.h"
+
 #include "CmdLine.h"
 
 
