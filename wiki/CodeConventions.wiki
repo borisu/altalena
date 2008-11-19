@@ -14,3 +14,7 @@ Where possible always use wide characters API .
 = Message =
 
 Default constructor
+
+projects name - small letters
+
+classes - Camel conventions
