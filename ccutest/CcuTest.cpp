@@ -34,10 +34,10 @@
 #include "AisTest.h"
 #include "JsonConfigurationTest.h"
 #include "ImsFactory.h"
-#include "JSONConfiguration.h"
 #include "ProcAIS.h"
 #include "VcsFactory.h"
 #include "RtpRelay.h"
+#include "ConfigurationFactory.h"
 
 #pragma TODO("Outsource system starter to a different file")
 
@@ -131,14 +131,14 @@ public:
 	{
 		START_FORKING_REGION;
 
-		JSONConfiguration conf;
-		conf.InitFromFile(L"conf.json");
-
+		CcuConfigurationPtr conf = 
+			ConfigurationFactory::CreateJsonConfiguration(L"conf.json");
+		
 		//
 		// Start RTP relay
 		//
 		DECLARE_NAMED_HANDLE_PAIR(rtp_pair);
-		FORK(RtpRelayFactory::CreateProcRtpRelay(rtp_pair, conf.DefaultIp()));
+		FORK(RtpRelayFactory::CreateProcRtpRelay(rtp_pair, conf->DefaultIp()));
 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), rtp_pair)));
 		assert(CCU_SUCCESS(Ping(RTP_RELAY_Q)));
 
@@ -146,7 +146,7 @@ public:
 		// Start IMS 
 		//
 		DECLARE_NAMED_HANDLE_PAIR(ims_pair);
-		FORK(ImsFactory::CreateProcIms(ims_pair, conf.DefaultIp()));
+		FORK(ImsFactory::CreateProcIms(ims_pair, conf->DefaultIp()));
 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), ims_pair)));
 		assert(CCU_SUCCESS(Ping(IMS_Q)));
 
@@ -162,9 +162,9 @@ public:
 		//
 		// Start VCS
 		//
-		CcuMediaData vcs_media = CcuMediaData(conf.DefaultIp().ip_addr,5060);
+		CcuMediaData vcs_media = CcuMediaData(conf->DefaultIp().ip_addr,5060);
 		DECLARE_NAMED_HANDLE_PAIR(vcs_pair);
-		FORK(VcsFactory::CreateProcVcs(vcs_pair,conf));
+		FORK(VcsFactory::CreateProcVcs(vcs_pair,*conf));
 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), vcs_pair)));
 		assert(CCU_SUCCESS(Ping(VCS_Q)));
 

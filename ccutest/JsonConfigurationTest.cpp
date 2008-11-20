@@ -18,10 +18,10 @@
 */
 
 #include "StdAfx.h"
-#include "JsonConfigurationTest.h"
+#include "ConfigurationFactory.h"
 
 using namespace std;
-#include "JSONConfiguration.h"
+
 
 JsonConfigurationTest::JsonConfigurationTest(void)
 {
@@ -34,13 +34,9 @@ JsonConfigurationTest::~JsonConfigurationTest(void)
 void
 JsonConfigurationTest::test()
 {
-
 	
 
-	JSONConfiguration conf;
-
-
-	assert(conf.InitFromFile(L"conf.json") == CCU_API_SUCCESS);
+	assert(ConfigurationFactory.CreateJsonConfiguration(L"conf.json") == CCU_API_SUCCESS);
 
 
 }
