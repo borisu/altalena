@@ -12,6 +12,8 @@ Please report any problem to administrator if you experiencing problems on other
 
  # Install Subversion client - I use [http://tortoisesvn.tigris.org/ Tortoise Svn]
 
+ # Check out resiprocate-1.4.1 source from [http://svn.resiprocate.org/rep/resiprocate/tags/resiprocate-1.4.1 this subversion link]
+
 In following examples I will refer to "c:\altalena" as project root, path "c:\altalena" and <project root> will be used interchangeably.
 
 
