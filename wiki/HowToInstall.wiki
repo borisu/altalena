@@ -1,8 +1,15 @@
-#summary One-sentence summary of this page.
+#summary Installation guidelines.
 
 = Introduction =
 
-Add your content here.
+The project was compiled and tested on Windows XP SP2 machine.
+
+Please report any problem to administrator if you experiencing problems on other windows version, or you are interested to port it to a different platform.
+
+= Prerequisites =
+
+# install subversion client - I use [http://tortoisesvn.tigris.org/ Tortoise Svn]
+
 
 
 = Details =
