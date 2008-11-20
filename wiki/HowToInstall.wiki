@@ -2,15 +2,16 @@
 
 = Introduction =
 
-The project was compiled and tested on Windows XP SP2 machine.
+The project was compiled and tested on Windows XP SP2 machine. Though the OS of cause is proprietary, the project itself uses only open source third party libraries.
 
-Please report any problem to administrator if you experiencing problems on other windows version, or you are interested to port it to a different platform.
+Please report any problem to [borisusun@gmail.com administrator] if you experiencing problems compiling the project on other windows version, or you are interested to port it to a different platform.
 
 In following examples I will refer to "c:\altalena" as project root, path "c:\altalena" and <project root> will be used interchangeably.
 
 The following procedure assumes that you have "clean" machine with no prerequisites installed. It goes without saying, that you may hack project definitions if you'd like to change according it to your file system structure.
 
 = Prerequisites =
+
 
  # Install Microsoft Visual Studio 2005
 
@@ -19,6 +20,8 @@ The following procedure assumes that you have "clean" machine with no prerequisi
  # Check out in <project root>\resip directory, resiprocate-1.4.1 source from [http://svn.resiprocate.org/rep/resiprocate/tags/resiprocate-1.4.1 this subversion link]
 
  # Check out in <project root>\kentcsp Kent CSP library from [http://projects.cs.kent.ac.uk/projects/cppcsp/svn/cppcsp2/trunk/ this subversion link]
+
+ # Download boost library package [http://www.boost.org/users/news/version_1_37_0 boost 1.37.0] will do just fine.
 
 
 = Details =
