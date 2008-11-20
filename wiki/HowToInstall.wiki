@@ -12,7 +12,7 @@ Please report any problem to administrator if you experiencing problems on other
 
  # Install Subversion client - I use [http://tortoisesvn.tigris.org/ Tortoise Svn]
 
-
+In following examples I will refer to "c:\altalena" as project root, path "c:\altalena" and <project root> will be used interchangeably.
 
 
 
