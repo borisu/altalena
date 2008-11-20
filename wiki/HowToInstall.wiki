@@ -10,7 +10,7 @@ In following examples I will refer to "c:\altalena" as project root, path "c:\al
 
 The following procedure assumes that you have "clean" machine with no prerequisites installed. It goes without saying, that you may hack project definitions if you'd like to change according it to your file system structure.
 
-= Prerequisites =
+= Setup =
 
 
  # Install Microsoft Visual Studio 2005
@@ -18,11 +18,5 @@ The following procedure assumes that you have "clean" machine with no prerequisi
  # Check out in <project root>\resip directory, resiprocate-1.4.1 source from [http://svn.resiprocate.org/rep/resiprocate/tags/resiprocate-1.4.1 this subversion link]
  # Check out in <project root>\kentcsp Kent CSP C++CSP2 v2.0.4 library from [http://projects.cs.kent.ac.uk/projects/cppcsp/svn/cppcsp2/trunk/ this subversion link]
  # Download boost library package [http://www.boost.org/users/news/version_1_37_0 boost 1.37.0] will do just fine. Unpackage it into <project root>\boost
+ # Checkout altalena code with secondary 3rd party libraries - see instructions here http://code.google.com/p/altalena/source/checkout. Write to administrator if you want to become a member of development team.
 
-
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
