@@ -15,7 +15,7 @@ In following examples I will refer to "c:\altalena" as project root, path "c:\al
 
  # Install Subversion client - I use [http://tortoisesvn.tigris.org/ Tortoise Svn]
 
- # Check out in <project root> directory, resiprocate-1.4.1 source from [http://svn.resiprocate.org/rep/resiprocate/tags/resiprocate-1.4.1 this subversion link]
+ # Check out in <project root>\resip directory, resiprocate-1.4.1 source from [http://svn.resiprocate.org/rep/resiprocate/tags/resiprocate-1.4.1 this subversion link]
 
 
 
