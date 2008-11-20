@@ -204,6 +204,14 @@
 				RelativePath=".\SipSessionHandlerAdapter.h"
 				>
 			</File>
+			<File
+				RelativePath=".\SipStackFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SipStackFactory.h"
+				>
+			</File>
 			<Filter
 				Name="uac"
 				>
