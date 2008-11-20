@@ -325,6 +325,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ConfigurationFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ConfigurationFactory.h"
+				>
+			</File>
+			<File
 				RelativePath=".\JSONConfiguration.cpp"
 				>
 			</File>
