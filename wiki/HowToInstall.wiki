@@ -6,15 +6,17 @@ The project was compiled and tested on Windows XP SP2 machine.
 
 Please report any problem to administrator if you experiencing problems on other windows version, or you are interested to port it to a different platform.
 
+In following examples I will refer to "c:\altalena" as project root, path "c:\altalena" and <project root> will be used interchangeably.
+
+
 = Prerequisites =
 
  # Install Microsoft Visual Studio 2005
 
  # Install Subversion client - I use [http://tortoisesvn.tigris.org/ Tortoise Svn]
 
- # Check out resiprocate-1.4.1 source from [http://svn.resiprocate.org/rep/resiprocate/tags/resiprocate-1.4.1 this subversion link]
+ # Check out in <project root> directory, resiprocate-1.4.1 source from [http://svn.resiprocate.org/rep/resiprocate/tags/resiprocate-1.4.1 this subversion link]
 
-In following examples I will refer to "c:\altalena" as project root, path "c:\altalena" and <project root> will be used interchangeably.
 
 
 
