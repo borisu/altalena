@@ -34,7 +34,7 @@
 
 // TODO: reference additional headers your program requires here
 
-#include "..\ccu2\CcuUtils.h"
+#include "CcuUtils.h"
 
 #pragma warning( push )
 #pragma warning (disable: 4355)
