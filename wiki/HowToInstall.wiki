@@ -8,6 +8,7 @@ Please report any problem to administrator if you experiencing problems on other
 
 In following examples I will refer to "c:\altalena" as project root, path "c:\altalena" and <project root> will be used interchangeably.
 
+The following procedure assumes that you have "clean" machine with no prerequisites installed. It goes without saying, that you may hack project definitions if you'd like to change according it to your file system structure.
 
 = Prerequisites =
 
