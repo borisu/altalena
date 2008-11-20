@@ -8,7 +8,7 @@ Please report any problem to administrator if you experiencing problems on other
 
 = Prerequisites =
 
-# install subversion client - I use [http://tortoisesvn.tigris.org/ Tortoise Svn]
+ # Install subversion client - I use [http://tortoisesvn.tigris.org/ Tortoise Svn]
 
 
 
