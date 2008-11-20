@@ -8,7 +8,11 @@ Please report any problem to administrator if you experiencing problems on other
 
 = Prerequisites =
 
- # Install subversion client - I use [http://tortoisesvn.tigris.org/ Tortoise Svn]
+ # Install Microsoft Visual Studio 2005
+
+ # Install Subversion client - I use [http://tortoisesvn.tigris.org/ Tortoise Svn]
+
+
 
 
 
