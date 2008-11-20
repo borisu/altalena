@@ -89,17 +89,7 @@ typedef
 map<AppDialogHandle,SipDialogContextPtr> ResipHandlesMap;
 
 
-class ICallHandlerCreator
-{
-public:
-	virtual LpHandlePair CreateCallHandler(
-		IN LpHandlePair stack_pair, 
-		IN int stack_handle,
-		IN CcuMediaData offered_media) = 0;
 
-};
 
-typedef 
-shared_ptr <ICallHandlerCreator> ICallHandlerCreatorPtr;
 
 
