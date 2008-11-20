@@ -1,4 +1,4 @@
-#summary Installation guidelines.
+#summary Development Environment Setup Guidelines.
 
 = Introduction =
 
