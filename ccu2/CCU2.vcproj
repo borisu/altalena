@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/Zm200&#x0D;&#x0A;"
 				Optimization="0"
-				AdditionalIncludeDirectories=""
+				AdditionalIncludeDirectories="..\..\resip;..\..\json\json_spirit_v2.06\json_spirit\"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -310,6 +310,10 @@
 			</File>
 			<File
 				RelativePath=".\CmdLine.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Console.h"
 				>
 			</File>
 		</Filter>
