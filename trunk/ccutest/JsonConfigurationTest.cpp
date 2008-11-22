@@ -19,6 +19,7 @@
 
 #include "StdAfx.h"
 #include "ConfigurationFactory.h"
+#include "JsonConfigurationTest.h"
 
 using namespace std;
 
@@ -36,7 +37,9 @@ JsonConfigurationTest::test()
 {
 	
 
-	assert(ConfigurationFactory.CreateJsonConfiguration(L"conf.json") == CCU_API_SUCCESS);
+	assert(
+		ConfigurationFactory::CreateJsonConfiguration(L"conf.json") 
+		!= CcuConfigurationPtr((CcuConfiguration*)NULL));
 
 
 }
