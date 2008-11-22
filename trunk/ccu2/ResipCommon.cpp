@@ -56,7 +56,9 @@ operator<<(std::wostream& strm,
 {
 #pragma TODO("Efficiency warning")
 	stringstream  stream;
-	msg.encode(stream);
+	throw;
+// 	ResipFastOStream os(stream);
+// 	msg.encode(&os);
 	return strm << StringToWString(stream.str());
 }
 

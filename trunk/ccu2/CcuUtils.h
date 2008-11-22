@@ -24,6 +24,8 @@
 #pragma warning (disable: 4996)
 #pragma warning (disable: 4267)
 #pragma warning (disable: 4018)
+#pragma warning (disable: 4099)
+
 
 
 // windows
@@ -32,7 +34,7 @@
 #include <Windows.h>
 
 // console
-#include <Console.h>
+#include "Console.h"
 
 // std
 #include <iostream>
@@ -60,7 +62,7 @@
 #include <boost/bind.hpp>
 
 // Kent CSP
-#include <cppcsp/cppcsp.h>
+#include <cppcsp.h>
 
 
 #pragma warning( pop )

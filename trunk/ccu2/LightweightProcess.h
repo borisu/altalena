@@ -99,7 +99,7 @@ public:
 	void TransactionTimeout(long val);
 
 	CcuApiErrorCode TerminatePendingTransaction(
-		IN exception e);
+		IN std::exception e);
 
 	CcuApiErrorCode SendReadyMessage();
 

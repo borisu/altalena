@@ -176,7 +176,7 @@ LightweightProcess::run()
 	{
 		real_run();
 	} 
-	catch (exception e)
+	catch (std::exception e)
 	{
 		LogWarn("Exception in process" << e.what());
 	}
@@ -286,7 +286,7 @@ LightweightProcess::Join(BucketPtr bucket)
 
 
 CcuApiErrorCode
-LightweightProcess::TerminatePendingTransaction(IN exception e)
+LightweightProcess::TerminatePendingTransaction(IN std::exception e)
 {
 	_transactionTerminator->Send(new CcuMsgShutdownReq());
 
@@ -417,7 +417,7 @@ LightweightProcess::WaitForTxnResponse(
 			BOOL res = HandleOOBMessage(_transactionTerminator->Wait(Seconds(0),err_code));
 			if (res == FALSE)
 			{
-				throw exception("Transaction was terminated");
+				throw std::exception("Transaction was terminated");
 			} 
 			else 
 			{

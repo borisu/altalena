@@ -136,7 +136,7 @@ public:
 	};
 
 };
-BOOST_IS_ABSTRACT(CcuMsgStackMixin)
+BOOST_IS_ABSTRACT(CcuMsgStackMixin);
 
 class CcuMsgCallOffered:
 	public CcuMsgStackMixin, public CcuMessage
