@@ -39,6 +39,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="-Zm120"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\ccu2;&quot;..\emiplib-0.16.1\include&quot;;&quot;..\jthread-1.2.1\src&quot;;&quot;..\jrtplib-3.7.1\src&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
