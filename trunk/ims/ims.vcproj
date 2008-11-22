@@ -39,6 +39,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="-Zm120"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;..\jthread-1.2.1\src&quot;;&quot;..\jrtplib-3.7.1\src&quot;;&quot;..\emiplib-0.16.1\include&quot;;..\ccu2;..\rtprelay"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
