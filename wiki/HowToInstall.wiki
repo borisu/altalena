@@ -18,5 +18,6 @@ The following procedure assumes that you have "clean" machine with no prerequisi
  # Check out in <project root>\resip directory, resiprocate-1.4.1 source from [http://svn.resiprocate.org/rep/resiprocate/tags/resiprocate-1.4.1 this subversion link]
  # Check out in <project root>\kentcsp Kent CSP C++CSP2 v2.0.4 library from [http://projects.cs.kent.ac.uk/projects/cppcsp/svn/cppcsp2/trunk/ this subversion link]
  # Download boost library package [http://www.boost.org/users/news/version_1_37_0 boost 1.37.0] will do just fine. Unpackage it into <project root>\boost
- # Download [http://www.codeproject.com/KB/recipes/JSON_Spirit/json_spirit_v2_06.zip json spirit source library] V2.06 and install into <project root>\json 
+ # Download [http://www.codeproject.com/KB/recipes/JSON_Spirit/json_spirit_v2_06.zip json spirit source library] V2.06 and install into <project root>\json
+ # Download [http://downloads.us.xiph.org/releases/speex/speex_win32_1.0.4_setup.exe speex]. Solution assumes that it has been installed in C:\Program Files\Speex otherwise go to Tools->Options and change its directories  
  # Checkout altalena code with secondary 3rd party libraries in <project root>\altalena- see instructions here http://code.google.com/p/altalena/source/checkout. Write to administrator if you want to become a member of development team.
