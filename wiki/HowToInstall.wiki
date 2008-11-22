@@ -2,7 +2,7 @@
 
 = Introduction =
 
-The project was compiled and tested on Windows XP SP2 machine. Though the OS of cause is proprietary, the project itself uses only open source third party libraries.
+The project was compiled and tested on Windows XP SP2 machine. Though the OS and IDE is proprietary, the project itself uses only open source third party libraries.
 
 Please report any problem to [borisusun@gmail.com administrator] if you experiencing problems compiling the project on other windows version, or you are interested to port it to a different platform.
 
@@ -19,4 +19,3 @@ The following procedure assumes that you have "clean" machine with no prerequisi
  # Check out in <project root>\kentcsp Kent CSP C++CSP2 v2.0.4 library from [http://projects.cs.kent.ac.uk/projects/cppcsp/svn/cppcsp2/trunk/ this subversion link]
  # Download boost library package [http://www.boost.org/users/news/version_1_37_0 boost 1.37.0] will do just fine. Unpackage it into <project root>\boost
  # Checkout altalena code with secondary 3rd party libraries - see instructions here http://code.google.com/p/altalena/source/checkout. Write to administrator if you want to become a member of development team.
-
