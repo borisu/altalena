@@ -63,7 +63,7 @@ CcuLightweightProcessTest::test()
 
 	FORK(f);
 
-	f->TerminatePendingTransaction(exception("cool"));
+	f->TerminatePendingTransaction(std::exception("cool"));
 
 	
 	END_FORKING_REGION;
