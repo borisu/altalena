@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "Ccu.h"
+
 class CcuLightweightProcessTest
 {
 public:
@@ -26,4 +28,12 @@ public:
 	virtual ~CcuLightweightProcessTest(void);
 
 	void test();
+
+	void test_txn_termination();
+
+	void test_func_runner();
+
+	CcuApiErrorCode throw_std(void);
+
+
 };

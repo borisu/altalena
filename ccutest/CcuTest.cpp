@@ -101,18 +101,23 @@ int _tmain(int argc, _TCHAR* argv[])
 	//////////////////////////////////////////////////////////////////////////
 
 
-	
-	//ProcPipeIPCDispatcherTest().test();
-	//RTPRelayTest(CcuMediaData(ip,port)).test();
-	//VcsTest(CcuMediaData(ip,port)).test();
-	//ImsTest(CcuMediaData(ip,port)).test();
-	//CcuFacadeTest().test();
-	//AisTest(CcuMediaData(ip,port)).test();
-	//JsonConfigurationTest().test();
+	LpHandleTest().test();
+	return 0;
 
+	start_test_system();
+
+	return 0;
+
+	ProcPipeIPCDispatcherTest().test();
+	RTPRelayTest(CcuMediaData(ip,port)).test();
+	VcsTest(CcuMediaData(ip,port)).test();
+	ImsTest(CcuMediaData(ip,port)).test();
+	CcuLightweightProcessTest().test();
+	AisTest(CcuMediaData(ip,port)).test();
+	JsonConfigurationTest().test();
 	LpHandleTest().test();
 
-	//start_test_system();
+	
 	
 
 	End_CPPCSP();

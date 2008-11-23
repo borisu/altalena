@@ -52,9 +52,8 @@ CcuLightweightProcessTest::~CcuLightweightProcessTest(void)
 }
 
 void
-CcuLightweightProcessTest::test()
+CcuLightweightProcessTest::test_txn_termination()
 {
-
 	DECLARE_NAMED_HANDLE_PAIR(pair);
 
 	START_FORKING_REGION;
@@ -65,7 +64,41 @@ CcuLightweightProcessTest::test()
 
 	f->TerminatePendingTransaction(std::exception("cool"));
 
-	
+
 	END_FORKING_REGION;
+}
+
+CcuApiErrorCode
+CcuLightweightProcessTest::throw_std()
+{
+	throw std::exception();
+
+	return CCU_API_FAILURE;
+}
+
+void
+CcuLightweightProcessTest::test_func_runner()
+{
+
+		ProcFuncRunner<CcuApiErrorCode,CcuLightweightProcessTest> 
+			*test_proc = new ProcFuncRunner<CcuApiErrorCode,CcuLightweightProcessTest>(		
+				bind<CcuApiErrorCode>(&CcuLightweightProcessTest::throw_std, _1),
+				this,
+				__FUNCTIONW__);
+
+		test_proc->_res = CCU_API_FAILURE;
+
+		Run(test_proc);
+
+		assert(test_proc->_res == CCU_API_FAILURE);
+
+
+}
+
+void
+CcuLightweightProcessTest::test()
+{
+	test_func_runner();
+	test_txn_termination();
 
 }
