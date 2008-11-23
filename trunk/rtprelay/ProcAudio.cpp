@@ -61,21 +61,11 @@ ProcAudio::real_run()
 	START_FORKING_REGION;
 
 
-	DECLARE_NAMED_HANDLE_PAIR(audio_pair);
+
 	DECLARE_NAMED_HANDLE_PAIR(ipc_pair);
-
-
 	FORK(new ProcPipeIPCDispatcher(ipc_pair,RTP_RELAY_Q));
 	if (CCU_FAILURE(WaitTillReady(Seconds(5), ipc_pair)))
 	{
-		return;
-	}
-
-	FORK(new ProcAudio(audio_pair, _mediaData));
-	if (CCU_FAILURE(WaitTillReady(Seconds(5), audio_pair)))
-	{
-		Shutdown(Time(Seconds(5)),audio_pair);
-		Shutdown(Time(Seconds(5)),ipc_pair);
 		return;
 	}
 
