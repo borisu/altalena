@@ -153,17 +153,14 @@ LpHandle::Send(IN CcuMsgPtr message)
 		message->source.proc_id = GetCurrCcuProcId();
 	}
 	
-	try {
-		_channel.writer() << message;
-		if (_interruptor != NULL)
-		{
-			_interruptor->SignalDataIn();
-		}
-	}catch(PoisonException e)
+	
+	_channel.writer() << message;
+	if (_interruptor != NULL)
 	{
-		LogWarn("Cannot send, the channel is >>POISONED<<.");
-		return CCU_API_FAILURE;
+		_interruptor->SignalDataIn();
 	}
+	
+	return CCU_API_SUCCESS;
 }
 
 CcuMsgPtr
@@ -290,7 +287,15 @@ CcuMsgPtr
 LpHandle::Wait()
 {
 	CcuMsgPtr ptr;
-	_channel.reader() >> ptr;
+	try 
+	{
+		_channel.reader() >> ptr;
+	} catch(PoisonException p)
+	{
+		LogWarn("Cannot read the channel is >>poisoned<<.");
+		return CCU_NULL_MSG;
+	}
+	
 
 	if (_interruptor != NULL)
 	{

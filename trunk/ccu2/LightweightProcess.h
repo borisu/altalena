@@ -203,17 +203,27 @@ private:
 protected:
 	void run()
 	{
-		_res = _function(_instance);
+		try 
+		{
+			_res = _function(_instance);
+		} 
+		catch (std::exception e)
+		{
+			LogWarn(">>Exception<< while running proc=[" << _name <<"] e=[" << e.what() << "]");
+		}
 	}
 public:
 
-	ProcFuncRunner(boost::function<T(Y *)> funct,Y *instance)
+	ProcFuncRunner(boost::function<T(Y *)> funct,Y *instance, wstring name = L"")
 		:_function(funct),
-		_instance(instance)
+		_instance(instance),
+		_name(name)
 	{
 	}
 
 	typename T _res;
+
+	wstring _name;
 };
 
 #pragma endregion
