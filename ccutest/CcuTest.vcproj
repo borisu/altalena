@@ -201,6 +201,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LpHandleTest.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ProcPipeIPCDispatcherTest.cpp"
 				>
 			</File>
@@ -256,6 +260,10 @@
 			</File>
 			<File
 				RelativePath=".\JsonConfigurationTest.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LpHandleTest.h"
 				>
 			</File>
 			<File
