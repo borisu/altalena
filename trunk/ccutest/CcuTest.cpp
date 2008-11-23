@@ -38,6 +38,7 @@
 #include "VcsFactory.h"
 #include "RtpRelay.h"
 #include "ConfigurationFactory.h"
+#include "LpHandleTest.h"
 
 #pragma TODO("Outsource system starter to a different file")
 
@@ -109,7 +110,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	//AisTest(CcuMediaData(ip,port)).test();
 	//JsonConfigurationTest().test();
 
-	start_test_system();
+	LpHandleTest().test();
+
+	//start_test_system();
 	
 
 	End_CPPCSP();
