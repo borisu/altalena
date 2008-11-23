@@ -28,13 +28,18 @@ using namespace std;
 using namespace boost;
 using namespace boost::serialization;
 
-#define	RTP_RELAY_Q					2
-#define IMS_Q						3
-#define	VCS_Q						4
-#define	COMMANDER_Q					5
-#define	IPC_DISPATCHER_Q			6
-#define	AIS_Q						7
-#define LAST_WELL_KNOWN_Q_MARKER    100
+enum CcuWellKnownProcesses
+{
+	RTP_RELAY_Q,			
+	RTP_RELAY_IPC_Q,			
+	IMS_Q,						
+	VCS_Q,						
+	COMMANDER_Q,					
+	IPC_DISPATCHER_Q,			
+	AIS_Q,						
+	LAST_WELL_KNOWN_Q_MARKER    
+
+};
 
 
 #define IsWellKnownPid(x)  ((x) < LAST_WELL_KNOWN_Q_MARKER)
