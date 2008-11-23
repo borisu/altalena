@@ -121,14 +121,21 @@ LpHandle::HandleInterruptor(InterruptorPtr interruptor)
 	_interruptor = interruptor;
 }
 
-
 void 
+LpHandle::Poison()
+{
+	_channel.reader().poison();
+	_channel.writer().poison();
+}
+
+
+CcuApiErrorCode 
 LpHandle::Send(IN CcuMessage *message)
 {
 	return Send(CcuMsgPtr(message));
 }
 
-void 
+CcuApiErrorCode 
 LpHandle::Send(IN CcuMsgPtr message)
 {
 	// someone send to owner
@@ -146,11 +153,16 @@ LpHandle::Send(IN CcuMsgPtr message)
 		message->source.proc_id = GetCurrCcuProcId();
 	}
 	
-	
-	_channel.writer() << message;
-	if (_interruptor != NULL)
+	try {
+		_channel.writer() << message;
+		if (_interruptor != NULL)
+		{
+			_interruptor->SignalDataIn();
+		}
+	}catch(PoisonException e)
 	{
-		_interruptor->SignalDataIn();
+		LogWarn("Cannot send, the channel is >>POISONED<<.");
+		return CCU_API_FAILURE;
 	}
 }
 

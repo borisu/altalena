@@ -127,8 +127,6 @@ ProcSipStack::Init()
 	catch (BaseException& e)
 	{
 		LogWarn("Caught >>exception<< while starting msg=[" << e.getMessage() << "]");
-
-		_outbound->Send(new CcuMsgProcFailure());
 		return CCU_API_FAILURE;
 	}
 
@@ -176,8 +174,15 @@ ProcSipStack::ShutDown()
 
 	_shutDownFlag = true;
 
-	_dumUac->Shutdown();
-	_dumUas->forceShutdown(NULL);
+	if (_dumUas)
+	{
+		_dumUac->Shutdown();
+	}
+	if (_dumUas)
+	{
+		_dumUas->forceShutdown(NULL);
+	}
+	
 	_stack.shutdown();
 }
 
@@ -187,9 +192,6 @@ ProcSipStack::ShutDown(CcuMsgPtr req)
 	FUNCTRACKER;
 
 	ShutDown();
-
-// 	CcuMsgInterProcess *ptr = boost::shared_dynamic_cast<CcuMsgInterProcess>(req).get();
-// 	ptr->handle->SendToThisProcess(new CcuMsgShutdownSuccess());
 
 }
 

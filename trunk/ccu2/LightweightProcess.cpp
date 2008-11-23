@@ -185,6 +185,8 @@ LightweightProcess::run()
 		LogWarn("Exception in process");
 	}
 
+	_inbound->Poison();
+
 	_bucket->flush();
 
 	tl_procMap->erase(fiber);

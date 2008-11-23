@@ -217,7 +217,7 @@ ProcPipeIPCDispatcher::real_run()
 
 	LogInfo("Successfully started overlapped comm on pipe=[" << _pipeName <<"], listening...");
 
-	_outbound->Send(new CcuMsgProcReady());
+	I_AM_READY;
 
 	while (_shutdown_flag == FALSE)
 	{

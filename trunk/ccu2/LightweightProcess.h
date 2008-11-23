@@ -147,9 +147,9 @@ public:
 
 	LpHandlePair _pair;
 
-	LpHandlePtr &_inbound;
+	LpHandlePtr _inbound;
 
-	LpHandlePtr &_outbound;
+	LpHandlePtr _outbound;
 
 
 	friend class ScopedRTPConnectionGuard;

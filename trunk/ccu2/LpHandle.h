@@ -134,10 +134,10 @@ public:
 	virtual void FirstChanceOOBMsgHandler(
 		IN IFirstChanceOOBMsgHandler *handler);
 
-	virtual void Send(
+	virtual CcuApiErrorCode Send(
 		IN CcuMsgPtr message);
 
-	virtual void Send(
+	virtual CcuApiErrorCode Send(
 		IN CcuMessage *message);
 	
 	virtual CcuMsgPtr Wait();
@@ -167,6 +167,8 @@ public:
 
 	virtual void OwnerProcName(
 		IN const wstring &val);
+
+	virtual void Poison();
 
 private:
 
