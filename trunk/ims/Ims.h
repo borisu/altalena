@@ -64,6 +64,7 @@ class CcuMsgAllocateImsSessionAck:
 	{
 		SERIALIZE_BASE_CLASS(CcuMessage);
 		SERIALIZE_FIELD(playback_handle);
+		SERIALIZE_FIELD(ims_media);
 	}
 public:
 	CcuMsgAllocateImsSessionAck():
@@ -72,6 +73,8 @@ public:
 	  playback_handle(CCU_UNDEFINED){};
 
 	  int playback_handle;
+
+	  CcuMediaData ims_media;
 };
 BOOST_CLASS_EXPORT(CcuMsgAllocateImsSessionAck)
 

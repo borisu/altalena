@@ -47,32 +47,38 @@ ImsSession::~ImsSession(void)
 
 
 CcuApiErrorCode
-ImsSession::PlayFile(
-					 IN CcuMediaData destination, 
+ImsSession::PlayFile(IN CcuMediaData destination, 
 					 IN const wstring &file_name)
 {
 	
-	CcuApiErrorCode res = 
-		AllocateIMSConnection(destination, file_name,_imsSessionHandle);
-
-	if (CCU_FAILURE(res))
+	CcuApiErrorCode res = CCU_API_SUCCESS;
+	if (_imsSessionHandle == CCU_UNDEFINED)
 	{
-		return res;
+		
+		res = AllocateIMSConnection(destination, file_name);
+		if (CCU_FAILURE(res))
+		{
+			return res;
+		}
 	}
-
-	res = SyncStreamFile(_imsSessionHandle);
+	
+	res = SyncStreamFile();
 
 	return res;
 
 }
 
 CcuApiErrorCode
-ImsSession::AllocateIMSConnection(
-									  IN CcuMediaData remote_end, 
-									  IN const wstring &file_name, 
-									  OUT CcuConnectionId &connection_id)
+ImsSession::AllocateIMSConnection(IN CcuMediaData remote_end, 
+								  IN const wstring &file_name)
 {
 	FUNCTRACKER;
+
+	if (_imsSessionHandle != CCU_UNDEFINED)
+	{
+		return CCU_API_SUCCESS;
+	}
+
 	CcuMsgPtr response = CCU_NULL_MSG;
 
 	CcuMsgAllocateImsSessionReq *msg = new CcuMsgAllocateImsSessionReq();
@@ -105,7 +111,8 @@ ImsSession::AllocateIMSConnection(
 			shared_ptr<CcuMsgAllocateImsSessionAck> ack = 
 				shared_polymorphic_cast<CcuMsgAllocateImsSessionAck>(response);
 
-			connection_id = ack->playback_handle;
+			_imsSessionHandle = ack->playback_handle;
+			_imsMediaData = ack->ims_media;
 
 			break;
 
@@ -126,13 +133,13 @@ ImsSession::AllocateIMSConnection(
 
 
 CcuApiErrorCode
-ImsSession::SyncStreamFile(IN CcuConnectionId connection_id)
+ImsSession::SyncStreamFile()
 {
 	FUNCTRACKER;
 	CcuMsgPtr response = CCU_NULL_MSG;
 
 	CcuMsgStartPlayReq *msg = new CcuMsgStartPlayReq();
-	msg->playback_handle = connection_id;
+	msg->playback_handle = _imsSessionHandle;
 	msg->send_provisional = false;
 
 	EventsSet map;
@@ -146,7 +153,21 @@ ImsSession::SyncStreamFile(IN CcuConnectionId connection_id)
 		Time(Seconds(60)),
 		L"Synchronous Streaming File TXN");
 
+#pragma  TODO ("Make Ims session reusable")
+
+	_imsSessionHandle = CCU_UNDEFINED;
+
 	return res;
 
 }
 
+
+CcuMediaData ImsSession::ImsMediaData() const 
+{ 
+	return _imsMediaData; 
+}
+
+void ImsSession::ImsMediaData(IN CcuMediaData val) 
+{ 
+	_imsMediaData = val; 
+}
