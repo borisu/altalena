@@ -91,11 +91,16 @@ ProcVcs::real_run()
 	// confirm login agents in parallel
 	for (AgentsList::iterator iter = agents.begin(); iter!=agents.end(); iter++)
 	{
+		// dummy variable
+		CcuApiErrorCode res = CCU_API_SUCCESS;
+		
 		// the syntax from hell
 		ProcFuncRunner<CcuApiErrorCode,ProcVcs> *agent_login_proc 
 			= new  ProcFuncRunner<CcuApiErrorCode,ProcVcs>(		
-					bind<CcuApiErrorCode>(&ProcVcs::InitalLogin, _1, *iter, stack_pair),
-					this);
+					bind<CcuApiErrorCode>(&ProcVcs::InitialLogin, _1, *iter, stack_pair),
+					this,
+					res,
+					__FUNCTIONW__);
 
 		proclist.push_back(agent_login_proc);
 
@@ -227,7 +232,7 @@ ProcVcs::ProcessStackMessage(CcuMsgPtr ptr)
 }
 
 CcuApiErrorCode
-ProcVcs::InitalLogin(Agent agent, LpHandlePair stack_pair)
+ProcVcs::InitialLogin(Agent agent, LpHandlePair stack_pair)
 {
 	FUNCTRACKER;
 
@@ -241,7 +246,7 @@ ProcVcs::InitalLogin(Agent agent, LpHandlePair stack_pair)
 		return res;
 	}
 
-	res = call.PlayFile(L"..\\sounds\\welcome.wav");	
+	res = call.PlayFile(L".\\sounds\\welcome.wav");	
 	if (CCU_FAILURE(res))
 	{
 		LogWarn("Error playing welcome res=[" << res << "]");

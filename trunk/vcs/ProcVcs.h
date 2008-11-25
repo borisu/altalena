@@ -78,7 +78,7 @@ public:
 	virtual void real_run();
 
 	virtual CcuApiErrorCode 
-		InitalLogin(Agent agent, LpHandlePair stack_pair);
+		InitialLogin(Agent agent, LpHandlePair stack_pair);
 
 	virtual ~ProcVcs(void);
 
