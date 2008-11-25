@@ -214,14 +214,15 @@ protected:
 	}
 public:
 
-	ProcFuncRunner(boost::function<T(Y *)> funct,Y *instance, wstring name = L"")
+	ProcFuncRunner(boost::function<T(Y *)> funct,Y *instance, T res, wstring name = L"")
 		:_function(funct),
 		_instance(instance),
-		_name(name)
+		_name(name),
+		_res(res)
 	{
 	}
 
-	typename T _res;
+	typename T &_res;
 
 	wstring _name;
 };

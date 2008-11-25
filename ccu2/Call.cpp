@@ -83,7 +83,7 @@ Call::HagupCall()
 		return CCU_API_SUCCESS;
 	}
 
-	CcuMsgHangupCallRequest *msg = new CcuMsgHangupCallRequest(_stackCallHandle);
+	CcuMsgHangupCallReq *msg = new CcuMsgHangupCallReq(_stackCallHandle);
 
 	_stackPair.inbound->Send(msg);
 
@@ -124,8 +124,8 @@ Call::AcceptCall(IN CcuMediaData local_media)
 	{
 	case CCU_MSG_CALL_CONNECTED:
 		{
-			shared_ptr<CcuMsgMakeCallSuccess> make_call_sucess = 
-				dynamic_pointer_cast<CcuMsgMakeCallSuccess>(response);
+			shared_ptr<CcuMsgMakeCallAck> make_call_sucess = 
+				dynamic_pointer_cast<CcuMsgMakeCallAck>(response);
 
 			_stackCallHandle = make_call_sucess->stack_call_handle;
 
@@ -147,16 +147,18 @@ Call::MakeCall(IN wstring destination_uri,
 {
 	FUNCTRACKER;
 
+	_localMedia = local_media;
+
 	CcuMsgPtr response = CCU_NULL_MSG;
 
-	CcuMsgMakeCallRequest *msg = new CcuMsgMakeCallRequest();
+	CcuMsgMakeCallReq *msg = new CcuMsgMakeCallReq();
 	msg->local_media = local_media;
 	msg->destination_uri = destination_uri;
 	msg->call_handler_inbound = _handlerHandle;
 
 	EventsSet map;
-	map.insert(CCU_MSG_MAKE_CALL_SUCCESS);
-	map.insert(CCU_MSG_MAKE_CALL_FAILURE);
+	map.insert(CCU_MSG_MAKE_CALL_ACK);
+	map.insert(CCU_MSG_MAKE_CALL_NACK);
 
 	CcuApiErrorCode res = _parentProcess.DoRequestResponseTransaction(
 		_stackPair.inbound,
@@ -173,10 +175,10 @@ Call::MakeCall(IN wstring destination_uri,
 
 	switch (response->message_id)
 	{
-	case CCU_MSG_MAKE_CALL_SUCCESS:
+	case CCU_MSG_MAKE_CALL_ACK:
 		{
-			shared_ptr<CcuMsgMakeCallSuccess> make_call_sucess = 
-				dynamic_pointer_cast<CcuMsgMakeCallSuccess>(response);
+			shared_ptr<CcuMsgMakeCallAck> make_call_sucess = 
+				dynamic_pointer_cast<CcuMsgMakeCallAck>(response);
 
 			_stackCallHandle = make_call_sucess->stack_call_handle;
 
@@ -184,7 +186,7 @@ Call::MakeCall(IN wstring destination_uri,
 
 			break;
 		}
-	case CCU_MSG_MAKE_CALL_FAILURE:
+	case CCU_MSG_MAKE_CALL_NACK:
 		{
 			res = CCU_API_SERVER_FAILURE;
 			break;
@@ -204,8 +206,21 @@ Call::RemoteMedia() const
 }
 
 void 
-Call::RemoteMedia(CcuMediaData val) 
+Call::RemoteMedia(CcuMediaData &val) 
 { 
 	_remoteMedia = val; 
+}
+
+
+CcuMediaData 
+Call::LocalMedia() const 
+{ 
+	return _localMedia; 
+}
+
+void 
+Call::LocalMedia(CcuMediaData &val) 
+{ 
+	_localMedia = val; 
 }
 
