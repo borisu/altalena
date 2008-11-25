@@ -50,7 +50,6 @@ struct RtpReceiveMsg
 };
 
 
-
 class RTPConnection:
 	public UIDOwner
 {
@@ -63,9 +62,9 @@ public:
 
 	virtual CcuApiErrorCode Init(); 
 
-	virtual CcuApiErrorCode AddDestination(IN long ipaddr, IN UINT port);
+	virtual CcuApiErrorCode AddDestination(IN long remoteIpAddr, IN UINT remotePort);
 
-	virtual CcuApiErrorCode SetDestination(IN long ipaddr, IN UINT port);
+	virtual CcuApiErrorCode SetDestination(IN long remoteIpaddr, IN UINT remotePort);
 
 	virtual void Destroy();
 
@@ -80,13 +79,17 @@ public:
 
 	virtual int ConnectionId();
 
-	UINT Port() const;
+	UINT Port();
+
+	const CcuMediaDataList& DestinationsList();
 
 private:
 
 	virtual CcuApiErrorCode Send(RTPPacket *packet);
 
-	UINT _port;
+	int _localPort;
+
+	CcuMediaDataList _destinationsList;
 	
 	RTPSession _rtpSession;
 

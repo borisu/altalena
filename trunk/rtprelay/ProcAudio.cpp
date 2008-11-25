@@ -234,6 +234,10 @@ ProcAudio::BridgeConnections(CcuMsgPtr ptr)
 	if (_connMap.find(request->connection_id1) == _connMap.end() || 
 		_connMap.find(request->connection_id2) == _connMap.end())
 	{
+		
+		LogWarn("One of the bridged connection was not found conn1=[" 
+			<< request->connection_id1 <<"], conn2=[" << request->connection_id2 << "].");
+
 		SendResponse(ptr, 
 			new CcuMsgRtpBridgeConnectionsNack());
 
@@ -251,8 +255,25 @@ ProcAudio::BridgeConnections(CcuMsgPtr ptr)
 
 	_receiverInbound->Send(msg);
 
-	LogDebug(">>Bridged<< new connection1=[" << conn1->ConnectionId() << "] " << 
-		"and connection1=[" << conn2->ConnectionId() << "]");
+	LogDebug(">>Bridged<< Full-Duplex, new connection1=[" << conn1->ConnectionId() << "] " << 
+		"and connection1=[" << conn2->ConnectionId() << "]  ");
+
+#pragma TODO ("Log correctly more than one destination")
+
+	CcuMediaData remote1;
+	if (!conn1->DestinationsList().empty())
+	{
+		remote1 =*conn1->DestinationsList().begin();
+	}
+
+	CcuMediaData remote2;
+	if (!conn2->DestinationsList().empty())
+	{
+		remote2 =*conn2->DestinationsList().begin();
+	}
+
+	 
+	LogDebug("Data Flow " << remote1 << " <-network-> [local:" << conn1->Port()<<  "<== Rtp Relay ==>" << "local:" << conn2->Port()<<  "] <- network ->" << remote2);
 
 	SendResponse(ptr, 
 		new CcuMsgRtpBridgeConnectionsAck());
@@ -284,7 +305,7 @@ ProcAudio::AllocateAudioConnection(CcuMsgPtr ptr)
 		if (conn->Init() == CCU_API_SUCCESS )
 		{
 			if (ac_msg->remote_end.IsValid() &&
-				conn->AddDestination(ac_msg->remote_end.ip_addr,ac_msg->remote_end.port ) != CCU_API_SUCCESS)
+				conn->SetDestination(ac_msg->remote_end.ip_addr,ac_msg->remote_end.port ) != CCU_API_SUCCESS)
 			{
 
 				LogWarn(" Error adding destination " << ac_msg->remote_end);

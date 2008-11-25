@@ -65,8 +65,8 @@ RtpReceiveMsg::TimingInfo(MIPTime *t, rtp_uint32_t *timestamp)
 }
 
 
-RTPConnection::RTPConnection(UINT port):
-_port(port),
+RTPConnection::RTPConnection(UINT localPort):
+_localPort(localPort),
 _rtpSession(NULL)
 {
 	
@@ -90,7 +90,7 @@ RTPConnection::Init()
 	
 
 
-	transmissionParams.SetPortbase(_port);
+	transmissionParams.SetPortbase(_localPort);
 	sessionParams.SetOwnTimestampUnit(1.0/((double)CCU_DEFAULT_RTP_SAMPLING_RATE));
 	sessionParams.SetMaximumPacketSize(CCU_MAX_RTP_PACKET_SIZE);
 	sessionParams.SetAcceptOwnPackets(true);
@@ -101,7 +101,7 @@ RTPConnection::Init()
 	int status = _rtpSession.Create(sessionParams,&transmissionParams);
 	if (status < 0)
 	{
-		LogWarn("Cannot create RTP session on port=[" << _port << "] API error=[" <<  status  <<"] check rtperrors.h for description.");
+		LogWarn("Cannot create RTP session on port=[" << _localPort << "] API error=[" <<  status  <<"] check rtperrors.h for description.");
 		return CCU_API_FAILURE;
 	}
 
@@ -110,26 +110,30 @@ RTPConnection::Init()
 }
 
 CcuApiErrorCode 
-RTPConnection::AddDestination(long ipaddr, UINT port)
+RTPConnection::AddDestination(long remoteIpAddr, UINT remotePort)
 {
 	
 	int status = _rtpSession.AddDestination(
-		RTPIPv4Address(ntohl(ipaddr),port));
+		RTPIPv4Address(ntohl(remoteIpAddr),remotePort));
 
 	if (status < 0)
 	{
-		LogWarn("Cannot add destination to RTP session on port=[" << _port << "] error=[" <<  status  <<"] dest ip=[" << ipaddr << "] dest port=[" << port << "]" );
+		LogWarn("Cannot add destination to RTP session on port=[" << _localPort << "] error=[" <<  status  <<"] dest ip=[" << remoteIpAddr << "] dest port=[" << remotePort << "]" );
 		return CCU_API_FAILURE;
 	}
 
+	_destinationsList.push_back(
+		CcuMediaData(remoteIpAddr,remotePort));
+
+	
 	return CCU_API_SUCCESS;
 
 }
 
 UINT 
-RTPConnection::Port() const 
+RTPConnection::Port()
 { 
-	return _port; 
+	return _localPort; 
 }
 
 void
@@ -236,22 +240,34 @@ RTPConnection::Poll(RtpPacketsList &packetsList, size_t overflow)
 }
 
 CcuApiErrorCode
-RTPConnection::SetDestination(IN long ipaddr, IN UINT port)
+RTPConnection::SetDestination(IN long remoteIpAddr, IN UINT remotePort)
 {
 	_rtpSession.ClearDestinations();
 
 	int status = 	
-		_rtpSession.AddDestination(RTPIPv4Address(ntohl(ipaddr),port));
+		_rtpSession.AddDestination(RTPIPv4Address(ntohl(remoteIpAddr),remotePort));
 
 	if (status < 0)
 	{
-		LogWarn("Cannot add destination to RTP session on port=[" << _port << "] error=[" <<  status  <<"] dest ip=[" << ipaddr << "] dest port=[" << port << "]" );
+		LogWarn("Cannot add destination to RTP error=[" <<  status  <<"] dest ip=[" << remoteIpAddr << "] dest port=[" << remotePort << "]" );
 		return CCU_API_FAILURE;
 	}
+
+	_destinationsList.clear();
+	_destinationsList.push_back(
+		CcuMediaData(remoteIpAddr,remotePort));
 
 	return CCU_API_SUCCESS;
 
 }
+
+const CcuMediaDataList& 
+RTPConnection::DestinationsList()
+{
+
+	return _destinationsList;
+}
+
 
 
 
@@ -284,6 +300,7 @@ RTPConnection::Send(RTPPacket *packet)
 
 	return CCU_API_SUCCESS;
 }
+
 
 RTPConnection::~RTPConnection(void)
 {
