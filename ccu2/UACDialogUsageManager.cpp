@@ -217,13 +217,32 @@ UACDialogUsageManager::onConnected(IN ClientInviteSessionHandle is, IN const Sip
 {
 	FUNCTRACKER;
 
-	ResipHandlesMap::iterator iter = _resipHandlesMap.find(is->getAppDialog());
+	ResipHandlesMap::iterator iter = 
+		_resipHandlesMap.find(is->getAppDialog());
+
+	if (iter == _resipHandlesMap.end())
+	{
+		LogWarn("Received >>Connected<< on unexistent call... ending session");
+		is->end();
+		return;
+	}
+
 
 	SipDialogContextPtr ctx_ptr = (*iter).second;
 
+	CcuMsgMakeCallAck *ack = 
+		new CcuMsgMakeCallAck(ctx_ptr->stack_handle);
+
+	const resip::SdpContents sdp = 
+		is->getRemoteSdp();
+
+	CcuMediaData data = 
+		CreateMediaData(sdp);
+	ack->remote_media = data;
+
 	_ccu_stack.SendResponse(
 		ctx_ptr->orig_request,
-		new CcuMsgMakeCallAck(ctx_ptr->stack_handle));
+		ack);
 }
 
 void 

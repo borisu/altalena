@@ -75,3 +75,16 @@ stack_handle(CCU_UNDEFINED)
 
 }
 
+CcuMediaData 
+CreateMediaData(const SdpContents& sdp)
+{
+	const SdpContents::Session &s = sdp.session();
+	const Data &addr_data = s.connection().getAddress();
+	const string addr = addr_data.c_str();
+
+	const SdpContents::Session::Medium &medium = s.media().front();
+	int port = medium.port();
+
+	return CcuMediaData(addr,port);
+}
+

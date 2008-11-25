@@ -89,6 +89,9 @@ typedef
 map<AppDialogHandle,SipDialogContextPtr> ResipHandlesMap;
 
 
+CcuMediaData 
+CreateMediaData(const SdpContents& sdp);
+
 
 
 

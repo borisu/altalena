@@ -37,17 +37,21 @@ public:
 		IN CcuMediaData destination, 
 		IN const wstring &file_name);
 
+	CcuMediaData ImsMediaData() const;
+
+	void ImsMediaData(IN CcuMediaData val);
+
 private:
 
 	CcuApiErrorCode	AllocateIMSConnection(
 		IN CcuMediaData remote_end, 
-		IN const wstring &file_name, 
-		OUT CcuConnectionId &connection_id);
+		IN const wstring &file_name);
 
-	CcuApiErrorCode	SyncStreamFile(
-		IN CcuConnectionId connection_id);
+	CcuApiErrorCode	SyncStreamFile();
 
 	CcuConnectionId _imsSessionHandle;
+
+	CcuMediaData _imsMediaData;
 
 	LightweightProcess &_facade;
 };
