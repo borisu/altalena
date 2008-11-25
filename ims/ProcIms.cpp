@@ -151,7 +151,7 @@ ProcIms::real_run()
 				SendResponse(ptr,new CcuMsgShutdownAck());
 				continue;
 			}
-		case CCU_MSG_STREAMING_STOPPED:
+		case CCU_MSG_STREAMING_STOPPED_EVT:
 			{
 				//UponPlaybackStopped();
 				break;
@@ -243,7 +243,7 @@ ProcIms::AllocatePlaybackSession(CcuMsgPtr msg)
 
 	}
 
-	CcuMsgAddStreamingObject *str_req = new CcuMsgAddStreamingObject();
+	CcuMsgAddStreamingObjectReq *str_req = new CcuMsgAddStreamingObjectReq();
 	str_req->obj = obj;
 
 	StreamingCtx ctx(obj,msg);
@@ -278,7 +278,7 @@ ProcIms::StartPlayback(CcuMsgPtr msg)
 		return;
 	}
 
-	CcuMsgAddStreamingObject *strm_req = new CcuMsgAddStreamingObject();
+	CcuMsgAddStreamingObjectReq *strm_req = new CcuMsgAddStreamingObjectReq();
 	strm_req->id = (*iter).first; 
 	strm_req->obj = (*iter).second.streaming_object;
 
@@ -343,8 +343,8 @@ ProcStreamingObjectRemover::real_run()
 {
 	
 	
-	CcuMsgRemoveStreamingObject *msg = 
-		new CcuMsgRemoveStreamingObject();
+	CcuMsgRemoveStreamingObjectReq *msg = 
+		new CcuMsgRemoveStreamingObjectReq();
 
 	msg->handle = _streamHandle;
 
