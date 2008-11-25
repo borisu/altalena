@@ -46,6 +46,12 @@ wostream& operator << (wostream &ostream, const CcuMediaData &ptr)
 	return ostream << "ip_addr=[" << dest << "] port=[" << dec << ptr.port  << "]";
 }
 
+int operator == (const CcuMediaData &right,const CcuMediaData &left)
+{
+	return (
+		(right.ip_addr	== left.ip_addr) && 
+		(right.port		== left.port));
+}
 
 Agent::Agent()
 {

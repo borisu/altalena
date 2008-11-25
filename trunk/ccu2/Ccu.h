@@ -163,8 +163,16 @@ public:
 		return ipstr;
 	}
 
+	friend int operator == (const CcuMediaData &right,const CcuMediaData &left);
+
 };
 BOOST_CLASS_EXPORT(CcuMediaData);
+
+typedef 
+list<CcuMediaData> CcuMediaDataList;
+
+
+
 
 wostream& operator << (wostream &ostream, const CcuMediaData *ptr);
 

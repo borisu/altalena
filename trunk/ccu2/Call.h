@@ -31,23 +31,31 @@ enum CallEvts
 	CCU_MSG_CALL_OFFERED_ACK,
 	CCU_MSG_CALL_OFFERED_NACK,
 	CCU_MSG_CALL_CONNECTED,
+	CCU_MSG_CALL_HANG_UP_EVT,
 	CCU_MSG_CALL_TERMINATED,
 
-	CCU_MSG_MAKE_CALL_REQUEST,
-	CCU_MSG_MAKE_CALL_SUCCESS,
-	CCU_MSG_MAKE_CALL_FAILURE,
-	CCU_MSG_HANGUP_CALL_REQUEST,
+	CCU_MSG_MAKE_CALL_REQ,
+	CCU_MSG_MAKE_CALL_ACK,
+	CCU_MSG_MAKE_CALL_NACK,
+	CCU_MSG_HANGUP_CALL_REQ,
 };
 
 //
 // CALL RELATED
 //
-class CcuMsgMakeCallRequest : 
+class CcuMsgMakeCallReq : 
 	public CcuMessage
 {
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_FIELD(destination_uri);
+		SERIALIZE_FIELD(on_behalf_of);
+		SERIALIZE_FIELD(local_media);
+	}
 public:
-	CcuMsgMakeCallRequest():
-	  CcuMessage(CCU_MSG_MAKE_CALL_REQUEST, NAME(CCU_MSG_MAKE_CALL_REQUEST)){};
+	CcuMsgMakeCallReq():
+	  CcuMessage(CCU_MSG_MAKE_CALL_REQ, NAME(CCU_MSG_MAKE_CALL_REQ)){};
 
 	  wstring destination_uri;
 
@@ -60,53 +68,69 @@ public:
 	  LpHandlePtr call_handler_inbound;
 
 };
-BOOST_CLASS_EXPORT(CcuMsgMakeCallRequest);
+BOOST_CLASS_EXPORT(CcuMsgMakeCallReq);
 
-class CcuMsgMakeCallSuccess: 
+class CcuMsgMakeCallAck: 
 	public CcuMessage
 {
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_FIELD(stack_call_handle);
+		SERIALIZE_FIELD(remote_media);
+	}
 public:
 
-	CcuMsgMakeCallSuccess(): 
-	  CcuMessage(CCU_MSG_MAKE_CALL_SUCCESS, NAME(CCU_MSG_MAKE_CALL_SUCCESS)),
+	CcuMsgMakeCallAck(): 
+	  CcuMessage(CCU_MSG_MAKE_CALL_ACK, NAME(CCU_MSG_MAKE_CALL_ACK)),
 		  stack_call_handle(CCU_UNDEFINED){};
 
-	  CcuMsgMakeCallSuccess(int handle):
-	  CcuMessage(CCU_MSG_MAKE_CALL_SUCCESS, NAME(CCU_MSG_MAKE_CALL_SUCCESS)),
+	  CcuMsgMakeCallAck(int handle):
+	  CcuMessage(CCU_MSG_MAKE_CALL_ACK, NAME(CCU_MSG_MAKE_CALL_ACK)),
 		  stack_call_handle(handle){};
 
 	  int stack_call_handle;
 
 	  CcuMediaData remote_media;
 };
-BOOST_CLASS_EXPORT(CcuMsgMakeCallSuccess);
+BOOST_CLASS_EXPORT(CcuMsgMakeCallAck);
 
-class CcuMsgMakeCallFailure: 
+class CcuMsgMakeCallNack: 
 	public CcuMessage
 {
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_FIELD(stack_call_handle);
+	}
 public:
-	CcuMsgMakeCallFailure():
-	  CcuMessage(CCU_MSG_MAKE_CALL_FAILURE, NAME(CCU_MSG_MAKE_CALL_FAILURE)){};
+	CcuMsgMakeCallNack():
+	  CcuMessage(CCU_MSG_MAKE_CALL_NACK, NAME(CCU_MSG_MAKE_CALL_NACK)){};
 
 	  unsigned long stack_call_handle;
 };
-BOOST_CLASS_EXPORT(CcuMsgMakeCallFailure);
+BOOST_CLASS_EXPORT(CcuMsgMakeCallNack);
 
-class CcuMsgHangupCallRequest: 
+class CcuMsgHangupCallReq: 
 	public CcuMessage
 {
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_FIELD(stack_call_handle);
+	}
 public:
-	CcuMsgHangupCallRequest():
-	  CcuMessage(CCU_MSG_HANGUP_CALL_REQUEST, NAME(CCU_MSG_HANGUP_CALL_REQUEST)),
+	CcuMsgHangupCallReq():
+	  CcuMessage(CCU_MSG_HANGUP_CALL_REQ, NAME(CCU_MSG_HANGUP_CALL_REQ)),
 		  stack_call_handle(CCU_UNDEFINED){};
 
-	  CcuMsgHangupCallRequest(int handle):
-	  CcuMessage(CCU_MSG_HANGUP_CALL_REQUEST, NAME(CCU_MSG_HANGUP_CALL_REQUEST)),
+	  CcuMsgHangupCallReq(int handle):
+	  CcuMessage(CCU_MSG_HANGUP_CALL_REQ, NAME(CCU_MSG_HANGUP_CALL_REQ)),
 		  stack_call_handle(handle){};
 
 	  unsigned long stack_call_handle;
 };
-BOOST_CLASS_EXPORT(CcuMsgHangupCallRequest);
+BOOST_CLASS_EXPORT(CcuMsgHangupCallReq);
 
 class  CcuMsgStackMixin 
 {
@@ -203,6 +227,22 @@ public:
 };
 BOOST_CLASS_EXPORT(CcuMsgNewCallConnected);
 
+class CcuMsgCallHangupEvt:
+	public CcuMsgStackMixin,public CcuMessage
+{
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
+		SERIALIZE_BASE_CLASS(CcuMessage);
+	}
+
+public:
+	CcuMsgCallHangupEvt():CcuMessage(CCU_MSG_CALL_HANG_UP_EVT, 
+		NAME(CCU_MSG_CALL_HANG_UP_EVT)){}
+
+};
+BOOST_CLASS_EXPORT(CcuMsgCallHangupEvt);
+
 #pragma endregion Sip_Stack_Events
 
 class Call 
@@ -233,8 +273,13 @@ public:
 	CcuApiErrorCode HagupCall();
 
 	CcuMediaData RemoteMedia() const;
+	void RemoteMedia(CcuMediaData &val);
 
-	void RemoteMedia(CcuMediaData val);
+	CcuMediaData LocalMedia() const;
+	void LocalMedia(CcuMediaData &val);
+
+
+	
 
 protected:
 
@@ -247,6 +292,8 @@ protected:
 	int _stackCallHandle;
 
 	CcuMediaData _remoteMedia;
+
+	CcuMediaData _localMedia;
 
 	LightweightProcess &_parentProcess;
 

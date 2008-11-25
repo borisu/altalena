@@ -137,8 +137,8 @@ ProcSipStack::UponHangupCall(CcuMsgPtr ptr)
 {
 	FUNCTRACKER;
 
-	shared_ptr<CcuMsgHangupCallRequest> hangup_msg = 
-		dynamic_pointer_cast<CcuMsgHangupCallRequest>(ptr);
+	shared_ptr<CcuMsgHangupCallReq> hangup_msg = 
+		dynamic_pointer_cast<CcuMsgHangupCallReq>(ptr);
 
 	CcuStackHandle handle = hangup_msg->stack_call_handle;
 
@@ -204,7 +204,7 @@ ProcSipStack::UponMakeCall(CcuMsgPtr ptr)
 
 	if (res != CCU_API_SUCCESS)
 	{
-		SendResponse(ptr, new CcuMsgMakeCallFailure());
+		SendResponse(ptr, new CcuMsgMakeCallNack());
 	}
 
 }
@@ -270,7 +270,7 @@ ProcSipStack::ProcessCcuMessages()
 
 		switch (msg->message_id)
 		{
-		case CCU_MSG_MAKE_CALL_REQUEST:
+		case CCU_MSG_MAKE_CALL_REQ:
 			{
 				UponMakeCall(msg);
 				break;
@@ -288,7 +288,7 @@ ProcSipStack::ProcessCcuMessages()
 				SendResponse(msg, new CcuMsgShutdownAck());
 				break;
 			}
-		case CCU_MSG_HANGUP_CALL_REQUEST:
+		case CCU_MSG_HANGUP_CALL_REQ:
 			{
 				UponHangupCall(msg);
 				break;

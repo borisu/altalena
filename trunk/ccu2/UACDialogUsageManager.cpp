@@ -106,13 +106,13 @@ UACDialogUsageManager::MakeCall(IN CcuMsgPtr ptr)
 
 	try {
 
-		CcuMsgMakeCallRequest *req  = 
-			boost::shared_dynamic_cast<CcuMsgMakeCallRequest>(ptr).get();
+		CcuMsgMakeCallReq *req  = 
+			boost::shared_dynamic_cast<CcuMsgMakeCallReq>(ptr).get();
 
+		//
+		// prepare headers
+		//
 		NameAddr name_addr(WStringToString(req->destination_uri).c_str());
-
-
-		
 		SharedPtr<UserProfile> user_profile;
 		if (!req->on_behalf_of.empty())
 		{
@@ -123,6 +123,9 @@ UACDialogUsageManager::MakeCall(IN CcuMsgPtr ptr)
 		}
 		
 
+		//
+		// prepare sdp
+		//
 		string sdpStr = CreateSdp(req->local_media);
 
 		Data data_buffer(sdpStr.c_str());
@@ -130,8 +133,10 @@ UACDialogUsageManager::MakeCall(IN CcuMsgPtr ptr)
 		Mime type("application", "sdp");
 		SdpContents sdp(&header, type);
 
-		LogInfo("send sip:invite proxy=[" << req->destination_uri <<"] username=[" << req->on_behalf_of <<"]");
-
+		
+		//
+		// create context
+		//
 		SipDialogContextPtr ctx_ptr = 
 			SipDialogContextPtr(new SipDialogContext());
 
@@ -190,13 +195,15 @@ UACDialogUsageManager::onTerminated(IN InviteSessionHandle is , IN InviteSession
 
 	LogInfo("The resip dialog handle=[" << is.getId() <<"] >>terminated<< with reason=[" << reason <<"]." );
 
-	ResipHandlesMap::iterator iter = _resipHandlesMap.find(is->getAppDialog());
-	if (iter == _resipHandlesMap.end())
-	{
-		return;
-	}
+	SipDialogContextPtr ctx_ptr = ((UACAppDialogSet*)(is->getAppDialogSet().get()))->_ptr;
 
-	SipDialogContextPtr ctx_ptr = (*iter).second;
+	
+	CcuMsgHangupCallReq *hang_up_evt = 
+		new CcuMsgHangupCallReq();
+	hang_up_evt->stack_call_handle = ctx_ptr->stack_handle;
+
+	ctx_ptr->call_handler_inbound->Send(hang_up_evt);
+
 	//
 	// remove from maps
 	//
@@ -216,7 +223,7 @@ UACDialogUsageManager::onConnected(IN ClientInviteSessionHandle is, IN const Sip
 
 	_ccu_stack.SendResponse(
 		ctx_ptr->orig_request,
-		new CcuMsgMakeCallSuccess(ctx_ptr->stack_handle));
+		new CcuMsgMakeCallAck(ctx_ptr->stack_handle));
 }
 
 void 

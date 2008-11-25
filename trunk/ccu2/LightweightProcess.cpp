@@ -178,13 +178,9 @@ LightweightProcess::run()
 	} 
 	catch (std::exception e)
 	{
-		LogWarn("Exception in process" << e.what());
+		LogWarn("Exception in process=[" << Name() << "] what=[" << e.what() << "]");
 	}
-	catch (...)
-	{
-		LogWarn("Exception in process");
-	}
-
+	
 	_inbound->Poison();
 
 	_bucket->flush();
