@@ -39,6 +39,7 @@
 #include "RtpRelay.h"
 #include "ConfigurationFactory.h"
 #include "LpHandleTest.h"
+#include "CallWithRtpManagmentTest.h"
 
 #pragma TODO("Outsource system starter to a different file")
 
@@ -101,12 +102,15 @@ int _tmain(int argc, _TCHAR* argv[])
 	//////////////////////////////////////////////////////////////////////////
 
 
-	LpHandleTest().test();
+	
+	
+
+	//start_test_system();
+	//return 0;
+
+	CallWithRtpManagmentTest().test();
 	return 0;
 
-	start_test_system();
-
-	return 0;
 
 	ProcPipeIPCDispatcherTest().test();
 	RTPRelayTest(CcuMediaData(ip,port)).test();
@@ -116,10 +120,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	AisTest(CcuMediaData(ip,port)).test();
 	JsonConfigurationTest().test();
 	LpHandleTest().test();
-
 	
-	
-
 	End_CPPCSP();
 	
 }

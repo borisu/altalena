@@ -80,17 +80,20 @@ void
 CcuLightweightProcessTest::test_func_runner()
 {
 
-		ProcFuncRunner<CcuApiErrorCode,CcuLightweightProcessTest> 
+		
+	CcuApiErrorCode res = CCU_API_FAILURE;
+
+	ProcFuncRunner<CcuApiErrorCode,CcuLightweightProcessTest> 
 			*test_proc = new ProcFuncRunner<CcuApiErrorCode,CcuLightweightProcessTest>(		
 				bind<CcuApiErrorCode>(&CcuLightweightProcessTest::throw_std, _1),
 				this,
+				res,
 				__FUNCTIONW__);
 
-		test_proc->_res = CCU_API_FAILURE;
 
-		Run(test_proc);
+	Run(test_proc);
 
-		assert(test_proc->_res == CCU_API_FAILURE);
+	assert(res == CCU_API_FAILURE);
 
 
 }

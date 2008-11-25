@@ -66,7 +66,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="ws2_32.lib Winmm.lib ws2_32.lib Iphlpapi.lib libboost_thread-vc80-mt-gd-1_34_1.lib Mqrt.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\SOLUTIONS\CCU2\rtprelay\rtprelay\Debug;C:\SOLUTIONS\CCU2\debug;C:\utils\resiprocate\contrib\db\build_win32\Debug_static;&quot;C:\Program Files\boost\boost_1_34_1\lib\&quot;;c:\utils\resiprocate\contrib\popt\win32\lib;c:\utils\resiprocate\resip\;c:\utils\resiprocate\contrib\pcre\Debug;c:\utils\resiprocate\resip\stack\Debug;c:\utils\resiprocate\resip\dum\Debug;c:\utils\resiprocate\contrib\ares\Debug;C:\utils\resiprocate\rutil\Debug"
+				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -185,6 +185,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CallWithRtpManagmentTest.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\CcuLpTest.cpp"
 				>
 			</File>
@@ -206,6 +210,14 @@
 			</File>
 			<File
 				RelativePath=".\ProcPipeIPCDispatcherTest.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ProcRTPRelayStub.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ProcStackStub.cpp"
 				>
 			</File>
 			<File
@@ -240,6 +252,12 @@
 				RelativePath=".\VcsTest.cpp"
 				>
 			</File>
+			<Filter
+				Name="Resource Files"
+				Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
+				UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+				>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -248,6 +266,10 @@
 			>
 			<File
 				RelativePath=".\AisTest.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CallWithRtpManagmentTest.h"
 				>
 			</File>
 			<File
@@ -271,6 +293,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ProcRTPRelayStub.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ProcStackStub.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ProcTestStub.h"
 				>
 			</File>
@@ -286,12 +316,6 @@
 				RelativePath=".\VcsTest.h"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
 		</Filter>
 		<File
 			RelativePath=".\conf.json"
