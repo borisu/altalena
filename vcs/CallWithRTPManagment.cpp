@@ -54,6 +54,12 @@ CallWithRTPManagment::MakeCall(IN const wstring &destination_uri)
 	}
 
 	_callerRtpSession.ModifyRTPConnection(RemoteMedia());
+	if (CCU_FAILURE(res))
+	{
+		LogWarn("Error modifying RTP connection res=[" << res << "], hanging up the session");
+		HagupCall();
+		return res;
+	}
 
 	return CCU_API_SUCCESS;
 }
