@@ -19,17 +19,16 @@
 
 #pragma once
 
-#include "CcuMessage.h"
 #include "Ccu.h"
 #include "StreamingObject.h"
 #include "LightweightProcess.h"
 
 enum CcuImsEvents
 {
-	CCU_MSG_STREAMER_ADD = CCU_MSG_USER_DEFINED + 1,
-	CCU_MSG_STREAMER_REMOVE,	
+	CCU_MSG_STREAMER_ADD_REQ = CCU_MSG_USER_DEFINED + 1,
+	CCU_MSG_STREAMER_REMOVE_REQ,	
 	CCU_MSG_STREAMER_REMOVE_ACK,
-	CCU_MSG_STREAMING_STOPPED,
+	CCU_MSG_STREAMING_STOPPED_EVT,
 };
 
 using namespace std;
@@ -37,13 +36,18 @@ using namespace std;
 typedef
 set<StreamingObject*> StreamingObjectSet;
 
-class CcuMsgAddStreamingObject
+class CcuMsgAddStreamingObjectReq
 	: public CcuMessage
 {
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_FIELD(id);
+	}
 public:
 
-	CcuMsgAddStreamingObject():
-	CcuMessage(CCU_MSG_STREAMER_ADD, NAME(CCU_MSG_STREAMER_ADD)),
+	CcuMsgAddStreamingObjectReq():
+	CcuMessage(CCU_MSG_STREAMER_ADD_REQ, NAME(CCU_MSG_STREAMER_ADD_REQ)),
 		obj(NULL){};
 
 	StreamingObject *obj;
@@ -51,23 +55,34 @@ public:
 	CcuConnectionId id;
 
 };
+BOOST_CLASS_EXPORT(CcuMsgAddStreamingObjectReq)
 
-class CcuMsgRemoveStreamingObject
+class CcuMsgRemoveStreamingObjectReq
 	: public CcuMessage
 {
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_FIELD(handle);
+	}
 public:
 
-	CcuMsgRemoveStreamingObject():
-	CcuMessage(CCU_MSG_STREAMER_REMOVE, NAME(CCU_MSG_STREAMER_REMOVE)),
+	CcuMsgRemoveStreamingObjectReq():
+	CcuMessage(CCU_MSG_STREAMER_REMOVE_REQ, NAME(CCU_MSG_STREAMER_REMOVE_REQ)),
 		handle(CCU_UNDEFINED){};
 
 	int handle;
 };
+BOOST_CLASS_EXPORT(CcuMsgRemoveStreamingObjectReq)
 
 
 class CcuMsgRemoveStreamingObjectAck
 	: public CcuMessage
 {
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMessage);
+	}
 public:
 
 	CcuMsgRemoveStreamingObjectAck():
@@ -76,20 +91,27 @@ public:
 
 	  StreamingObject *obj;
 };
+BOOST_CLASS_EXPORT(CcuMsgRemoveStreamingObjectAck)
 
 class CcuMsgStreamingStopped
 	: public CcuMessage
 {
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_FIELD(error);
+	}
 public:
 
 	CcuMsgStreamingStopped():
-	CcuMessage(CCU_MSG_STREAMING_STOPPED, NAME(CCU_MSG_STREAMING_STOPPED)),
+	CcuMessage(CCU_MSG_STREAMING_STOPPED_EVT, NAME(CCU_MSG_STREAMING_STOPPED_EVT)),
 		obj(NULL){};
 
 	StreamingObject *obj;
 
 	CcuApiErrorCode error;
 };
+BOOST_CLASS_EXPORT(CcuMsgStreamingStopped)
 
 class ProcStreamer :
 	public LightweightProcess

@@ -57,12 +57,12 @@ ProcStreamer::real_run()
 		{
 			switch (ptr->message_id)
 			{
-			case CCU_MSG_STREAMER_ADD:
+			case CCU_MSG_STREAMER_ADD_REQ:
 				{
 					AddStreamingObject(ptr);
 					break;
 				}
-			case CCU_MSG_STREAMER_REMOVE:
+			case CCU_MSG_STREAMER_REMOVE_REQ:
 				{
 					RemoveStreamingObject(ptr);
 					break;
@@ -111,8 +111,8 @@ ProcStreamer::real_run()
 void
 ProcStreamer::AddStreamingObject(CcuMsgPtr req)
 {
-	shared_ptr<CcuMsgAddStreamingObject> add_req 
-		= dynamic_pointer_cast<CcuMsgAddStreamingObject> (req);
+	shared_ptr<CcuMsgAddStreamingObjectReq> add_req 
+		= dynamic_pointer_cast<CcuMsgAddStreamingObjectReq> (req);
 
 	_streamingObjectsSet.insert(add_req->obj);
 }
@@ -120,8 +120,8 @@ ProcStreamer::AddStreamingObject(CcuMsgPtr req)
 void 
 ProcStreamer::RemoveStreamingObject(CcuMsgPtr req)
 {
-	shared_ptr<CcuMsgAddStreamingObject> remove_req 
-		= dynamic_pointer_cast<CcuMsgAddStreamingObject> (remove_req);
+	shared_ptr<CcuMsgAddStreamingObjectReq> remove_req 
+		= dynamic_pointer_cast<CcuMsgAddStreamingObjectReq> (remove_req);
 
 	_streamingObjectsSet.erase(remove_req->obj);
 
