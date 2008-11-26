@@ -31,26 +31,17 @@ wostream& operator << (wostream &ostream,  CcuMediaData *ptr)
 		return ostream << "NULL";
 	} 
 
-	char buffer[CCU_MAX_IP_LEN];
-	buffer[0] = '\0';
-
-	return ostream << ptr->ipporttoa(buffer, CCU_MAX_IP_LEN);
+	return ostream << ptr->ipporttos();
 }
 
 wostream& operator << (wostream &ostream, const CcuMediaData &ptr)
 {
-	in_addr temp;
-	temp.S_un.S_addr = ptr.ip_addr;
-	char * dest = ::inet_ntoa(temp); 
-
-	return ostream << "ip_addr=[" << dest << "] port=[" << dec << ptr.port  << "]";
+	return ostream << ptr.ipporttos();
 }
 
 int operator == (const CcuMediaData &right,const CcuMediaData &left)
 {
-	return (
-		(right.ip_addr	== left.ip_addr) && 
-		(right.port		== left.port));
+	return memcmp(&right.addr,&left.addr,sizeof(left.addr)) == 0;
 }
 
 Agent::Agent()

@@ -154,8 +154,8 @@ public:
 		CcuMsgStackMixin *req = dynamic_cast<CcuMsgStackMixin*>(msg);
 
 		stack_call_handle	= req->stack_call_handle;
-		local_media			= local_media.ip_addr == CCU_UNDEFINED ? req->local_media : local_media;
-		remote_media		= remote_media.ip_addr == CCU_UNDEFINED ? req->remote_media : remote_media;
+		local_media			= local_media.is_valid()  ? req->local_media : local_media;
+		remote_media		= remote_media.is_valid() ? req->remote_media : remote_media;
 
 	};
 

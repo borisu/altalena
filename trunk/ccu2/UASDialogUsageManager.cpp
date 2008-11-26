@@ -42,7 +42,7 @@ _ccu_stack(ccu_stack)
 	string uasUri = "sip:VCS@" + _ipAddr.ipporttos();
 	_uasAor		= NameAddrPtr(new NameAddr(uasUri.c_str()));
 
-	addTransport(UDP,_ipAddr.port);
+	addTransport(UDP,_ipAddr.port());
 
 	_uasMasterProfile = SharedPtr<MasterProfile>(new MasterProfile());
 	setMasterProfile(_uasMasterProfile);
@@ -164,7 +164,7 @@ UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, co
 	{
 		ServerInviteSessionHandle sis = _defaultHandlersMap[is->getAppDialog()];
 		// default port
-		string sdpStr = CreateSdp(CcuMediaData(_ipAddr.ip_addr, 60555));
+		string sdpStr = CreateSdp(CcuMediaData(_ipAddr.sockaddr().sin_addr, 60555));
 
 		Data data_buffer(sdpStr.c_str());
 
