@@ -69,10 +69,9 @@ CallWithRTPManagment::PlayFile(IN const wstring &file_name)
 {
 	FUNCTRACKER;
 
-	ImsSession ims_session(_parentProcess);
-
+	
+	// allocate Rtp Relay connection for Ims
 	CcuRtpSession ims_rtp_session(_parentProcess);
-
 	CcuApiErrorCode res = ims_rtp_session.AllocateRTPConnection();
 	if (CCU_FAILURE(res))
 	{
@@ -80,6 +79,24 @@ CallWithRTPManagment::PlayFile(IN const wstring &file_name)
 		return res;
 	}
 
+	// allocate Ims session
+	ImsSession ims_session(_parentProcess);
+	ims_session.AllocateIMSConnection(ims_rtp_session.LocalMediaData(),file_name);
+	if (CCU_FAILURE(res))
+	{
+		LogWarn("Error allocating IMS connection res=[" << res << "]");
+		return res;
+	}
+
+	// though Ims doesn't care, update the remote end of its Rtp connection
+	ims_rtp_session.ModifyRTPConnection(ims_session.ImsMediaData());
+	if (CCU_FAILURE(res))
+	{
+		LogWarn("Error modifying RTP connection res=[" << res << "]");
+		return res;
+	}
+	
+	// bridge caller connection
 	res = _callerRtpSession.BridgeRTPConnection(ims_rtp_session);
 	if (CCU_FAILURE(res))
 	{

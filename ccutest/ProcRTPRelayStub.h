@@ -5,6 +5,25 @@
 #define DUMMY_RTP_ADDRESS "127.0.0.1"
 #define DUMMY_RTP_PORT 111
 
+
+struct MockRtpConnection
+{
+	MockRtpConnection();
+
+	CcuMediaData local;
+
+	CcuMediaData remote;
+
+	MockRtpConnection(const MockRtpConnection& other);
+};
+
+typedef 
+map<int, MockRtpConnection> MockRtpConnectionsMap;
+
+typedef 
+map<int, int> RtpBridgesMap;
+
+
 class ProcRTPRelayStub: 
 	public LightweightProcess
 {
@@ -22,4 +41,11 @@ public:
 	virtual void BridgeConnections(IN CcuMsgPtr ptr);
 
 	virtual void ModifyConnection(IN CcuMsgPtr ptr);
+
+	MockRtpConnectionsMap _mockConnections;
+
+	RtpBridgesMap _rtpBridges;
+
+	int _rtpHandleCounter;
+
 };

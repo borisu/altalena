@@ -1,7 +1,8 @@
 #include "StdAfx.h"
 #include "CallWithRtpManagmentTest.h"
 #include "ProcStackStub.h"
-#include "ProcRTPRelayStub.h"
+#include "ProcRtpRelayStub.h"
+#include "ProcImsStub.h"
 #include "CallWithRTPManagment.h"
 
 
@@ -44,6 +45,9 @@ CallWithRtpTester::real_run()
 	DECLARE_NAMED_HANDLE_PAIR(stack_stub_pair);
 	FORK(new ProcStackStub(stack_stub_pair));
 
+	DECLARE_NAMED_HANDLE_PAIR(ims_stub_pair);
+	FORK(new ProcImsStub(ims_stub_pair));
+
 
 	// test make call
 	CallWithRTPManagment call(stack_stub_pair,*this);
@@ -54,9 +58,13 @@ CallWithRtpTester::real_run()
 
 	assert(call.LocalMedia() == 
 		CcuMediaData(DUMMY_RTP_ADDRESS, (int)DUMMY_RTP_PORT));
+
+	assert(CCU_SUCCESS(call.PlayFile(L"dummy.wav")));
+
 	
 	Shutdown(Seconds(5),stack_stub_pair);
 	Shutdown(Seconds(5),rtp_stub_pair);
+	Shutdown(Seconds(5),ims_stub_pair);
 
 	END_FORKING_REGION
 

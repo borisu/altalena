@@ -50,6 +50,18 @@ StreamingObject::~StreamingObject(void)
 }
 
 
+CcuMediaData 
+StreamingObject::RemoteMediaData() const 
+{ 
+	return _remoteMediaData; 
+}
+
+void 
+StreamingObject::RemoteMediaData(CcuMediaData val) 
+{ 
+	_remoteMediaData = val; 
+}
+
 ImsHandleId
 StreamingObject::ImsHandle()
 {
@@ -126,7 +138,6 @@ StreamingObject::Init(PortManager &portManager)
 {
 	
 	CcuApiErrorCode res = CCU_API_SUCCESS;
-	int port = CCU_UNDEFINED;
 
 	do {
 
@@ -248,6 +259,8 @@ StreamingObject::Init(PortManager &portManager)
 			break;
 		}
 
+		_port = port_candidate;
+
 
 		// Instruct the RTP session to send data to destination.
 		status = _rtpSession.AddDestination(RTPIPv4Address(_remoteMediaData.ip_addr,_remoteMediaData.port));
@@ -305,9 +318,10 @@ StreamingObject::Init(PortManager &portManager)
 
 	} while (false);
 
-	if (CCU_FAILURE(res) &&  port != CCU_UNDEFINED)
+	if (CCU_FAILURE(res) &&  _port != CCU_UNDEFINED)
 	{
-		portManager.MarkAvailable(port);
+		portManager.MarkAvailable(_port);
+		_port = CCU_UNDEFINED;
 	}
 
 	return res;

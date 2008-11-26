@@ -1,8 +1,20 @@
 #include "StdAfx.h"
 #include "ProcRTPRelayStub.h"
 
+MockRtpConnection::MockRtpConnection()
+{
+
+}
+
+MockRtpConnection::MockRtpConnection(const MockRtpConnection& other)
+{
+	this->local = other.local;
+	this->remote = other.remote;
+}
+
 ProcRTPRelayStub::ProcRTPRelayStub(LpHandlePair pair):
-LightweightProcess(pair,RTP_RELAY_Q,__FUNCTIONW__)
+LightweightProcess(pair,RTP_RELAY_Q,__FUNCTIONW__),
+_rtpHandleCounter(CCU_UNDEFINED)
 {
 }
 
@@ -88,7 +100,16 @@ ProcRTPRelayStub::AllocateAudioConnection(IN CcuMsgPtr ptr)
 	CcuMsgRtpAllocateConnectionAck *ack = 
 		new CcuMsgRtpAllocateConnectionAck();
 
-	ack->connection_media = CcuMediaData(DUMMY_RTP_ADDRESS,DUMMY_RTP_PORT);
+	MockRtpConnection rtpConnection;
+	rtpConnection.local = CcuMediaData(DUMMY_RTP_ADDRESS,DUMMY_RTP_PORT);
+
+	
+	int  handle = ++_rtpHandleCounter;
+
+	_mockConnections[handle] = rtpConnection;
+
+	ack->connection_media = rtpConnection.local;
+	ack->connection_id = handle;
 
 	SendResponse(ptr,ack);
 
@@ -98,12 +119,36 @@ ProcRTPRelayStub::AllocateAudioConnection(IN CcuMsgPtr ptr)
 void
 ProcRTPRelayStub::CloseAudioConnection(IN CcuMsgPtr ptr)
 {
+	shared_ptr<CcuMsgRtpCloseConnectionReq> request =
+		shared_dynamic_cast<CcuMsgRtpCloseConnectionReq> (ptr);
+
+	_mockConnections.erase(request->connection_id);
+	_rtpBridges.erase(request->connection_id);
 	
 }
 
 void
 ProcRTPRelayStub::BridgeConnections(IN CcuMsgPtr ptr)
 {
+	shared_ptr<CcuMsgRtpBridgeConnectionsReq> request =
+		shared_dynamic_cast<CcuMsgRtpBridgeConnectionsReq> (ptr);
+
+	if (_mockConnections.find(request->connection_id1) == _mockConnections.end() || 
+		_mockConnections.find(request->connection_id2) == _mockConnections.end())
+	{
+
+		LogWarn("One of the bridged connection was not found conn1=[" 
+			<< request->connection_id1 <<"], conn2=[" << request->connection_id2 << "].");
+
+		SendResponse(ptr, 
+			new CcuMsgRtpBridgeConnectionsNack());
+
+		return;
+	}
+	
+	_rtpBridges[request->connection_id1] = request->connection_id2 ;
+	_rtpBridges[request->connection_id2] = request->connection_id1 ;
+
 	SendResponse(ptr, 
 		new CcuMsgRtpBridgeConnectionsAck());
 }
@@ -111,6 +156,19 @@ ProcRTPRelayStub::BridgeConnections(IN CcuMsgPtr ptr)
 void
 ProcRTPRelayStub:: ModifyConnection(IN CcuMsgPtr ptr)
 {
+	shared_ptr<CcuMsgModifyConnectionReq> request =
+		shared_dynamic_cast<CcuMsgModifyConnectionReq> (ptr);
+
+	MockRtpConnectionsMap::iterator iter = _mockConnections.find(request->connection_id);
+	if ( iter == _mockConnections.end())
+	{
+		SendResponse(ptr, 
+			new CcuMsgNack());
+		return;
+	}
+
+	(*iter).second.remote = request->remote_media_data;
+
 	SendResponse(ptr, 
 		new CcuMsgAck());
 }

@@ -81,7 +81,7 @@ public:
 
 	UINT Port();
 
-	const CcuMediaDataList& DestinationsList();
+	CcuMediaDataList& DestinationsList();
 
 private:
 

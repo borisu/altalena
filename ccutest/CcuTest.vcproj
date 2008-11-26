@@ -209,11 +209,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ProcImsStub.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ProcPipeIPCDispatcherTest.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\ProcRTPRelayStub.cpp"
+				RelativePath=".\ProcRtpRelayStub.cpp"
 				>
 			</File>
 			<File
@@ -289,11 +293,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ProcImsStub.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ProcPipeIPCDispatcherTest.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ProcRTPRelayStub.h"
+				RelativePath=".\ProcRtpRelayStub.h"
 				>
 			</File>
 			<File

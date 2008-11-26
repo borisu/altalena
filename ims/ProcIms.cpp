@@ -227,15 +227,15 @@ ProcIms::AllocatePlaybackSession(CcuMsgPtr msg)
 	shared_ptr<CcuMsgAllocateImsSessionReq> req  =
 		dynamic_pointer_cast<CcuMsgAllocateImsSessionReq> (msg);
 
-	StreamingObject *obj = 
+	StreamingObject *streaming_obj = 
 		new StreamingObject(req->remote_media_data,req->file_name, 0);
 
-	if (CCU_FAILURE(obj->Init(_portManager)))
+	if (CCU_FAILURE(streaming_obj->Init(_portManager)))
 	{
 		CcuMsgAllocateImsSessionNack *nack = 
 			new CcuMsgAllocateImsSessionNack();
 
-		delete obj;
+		delete streaming_obj;
 
 		SendResponse(req,nack);
 
@@ -244,9 +244,9 @@ ProcIms::AllocatePlaybackSession(CcuMsgPtr msg)
 	}
 
 	CcuMsgAddStreamingObjectReq *str_req = new CcuMsgAddStreamingObjectReq();
-	str_req->obj = obj;
+	str_req->obj = streaming_obj;
 
-	StreamingCtx ctx(obj,msg);
+	StreamingCtx ctx(streaming_obj,msg);
 
 	int handle = GetNewImsHandle();
 	_streamingObjectSet.insert(pair<ImsHandleId,StreamingCtx>(handle,ctx));
@@ -255,6 +255,7 @@ ProcIms::AllocatePlaybackSession(CcuMsgPtr msg)
 		new CcuMsgAllocateImsSessionAck();
 
 	ack->playback_handle = handle;
+	ack->ims_media = CcuMediaData("127.0.0.1", streaming_obj->Port());
 
 	SendResponse(req,ack);
 
@@ -280,7 +281,11 @@ ProcIms::StartPlayback(CcuMsgPtr msg)
 
 	CcuMsgAddStreamingObjectReq *strm_req = new CcuMsgAddStreamingObjectReq();
 	strm_req->id = (*iter).first; 
-	strm_req->obj = (*iter).second.streaming_object;
+	StreamingObject *streaming_object = (*iter).second.streaming_object;
+	strm_req->obj = streaming_object;
+
+
+	LogDebug("Started >>streaming<< to dest=[" << streaming_object->RemoteMediaData().ipporttos() << "]")
 
 
 	_streamerInbound->Send(strm_req);

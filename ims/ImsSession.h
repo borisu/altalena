@@ -33,6 +33,10 @@ public:
 
 	virtual ~ImsSession (void);
 
+	CcuApiErrorCode	AllocateIMSConnection(
+		IN CcuMediaData remote_end, 
+		IN const wstring &file_name);
+
 	virtual CcuApiErrorCode PlayFile(
 		IN CcuMediaData destination, 
 		IN const wstring &file_name);
@@ -43,9 +47,7 @@ public:
 
 private:
 
-	CcuApiErrorCode	AllocateIMSConnection(
-		IN CcuMediaData remote_end, 
-		IN const wstring &file_name);
+	
 
 	CcuApiErrorCode	SyncStreamFile();
 
