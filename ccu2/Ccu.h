@@ -49,118 +49,142 @@ typedef long CcuConnectionId;
 
 #define CCU_MAX_IP_LEN 64
 
+namespace boost {
+	namespace serialization {
+		template<class Archive>
+		void serialize(Archive & ar, sockaddr_in & g, const unsigned int version)
+		{
+			ar & make_nvp("sockadr_in",make_binary_object(&g,sizeof(sockaddr_in)));
+		}
+	}
+}
+
+
 class CcuMediaData
 {
 private:
 
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_FIELD(ip_addr);
-		SERIALIZE_FIELD(port);
+		SERIALIZE_FIELD(saddr);
+		SERIALIZE_FIELD(addr);
 	}
 
+	sockaddr_in addr;
+
+	string saddr;
+
+	
 public:
 
-	long ip_addr;
-
-	int port;
 
 	CcuMediaData(wstring s, int p_port)
 	{
-		ip_addr = ::inet_addr(WStringToString(s).c_str());
-		port = p_port;
-
+		addr.sin_family = AF_INET;
+		addr.sin_port = ::htons(p_port);
+		addr.sin_addr.s_addr = ::inet_addr(WStringToString(s).c_str());
+		
+		saddr = ipporttos();
 	}
 
 	CcuMediaData(string s, int p_port)
 	{
-		ip_addr = ::inet_addr(s.c_str());
-		port = p_port;
-
+		addr.sin_family = AF_INET;
+		addr.sin_port = ::htons(p_port);
+		addr.sin_addr.s_addr = ::inet_addr(s.c_str());
+		
+		saddr = ipporttos();
 	}
 
 	CcuMediaData(char *ip, int p_port)
 	{
-		ip_addr = ::inet_addr(ip);
-		port = p_port;
+		addr.sin_family = AF_INET;
+		addr.sin_port = ::htons(p_port);
+		addr.sin_addr.s_addr = ::inet_addr(ip);
 
+		saddr = ipporttos();
 	}
 
-	CcuMediaData(DWORD p_ip_addr, int p_port)
-	{
-		ip_addr = p_ip_addr;
-		port = p_port;
+ 	CcuMediaData(in_addr p_in_addr, int p_port)
+ 	{
+ 		addr.sin_family = AF_INET;;
+		addr.sin_addr = p_in_addr;
+		addr.sin_port = ::htons(p_port);
+ 		
 
-	}
+		saddr = ipporttos();
+ 	}
 
 	CcuMediaData()
 	{
-		ip_addr = INADDR_NONE;
-		port = CCU_UNDEFINED;
+		addr.sin_addr.s_addr = INADDR_NONE;
+		addr.sin_port = CCU_UNDEFINED;
 	}
 
-	bool IsValid()
+	bool is_valid()
 	{
-		return (ip_addr != INADDR_NONE && 
-			port != CCU_UNDEFINED);
+		return (addr.sin_addr.s_addr != INADDR_NONE );
 	}
 
 	CcuMediaData(const CcuMediaData &x)
 	{
-		ip_addr = x.ip_addr;
-
-		port = x.port;
+		addr = x.addr;
+		saddr = x.saddr;
 	}
 
-	string ipporttos() 
+	int port()
+	{
+		return ::ntohs(addr.sin_port);
+	}
+
+	sockaddr_in sockaddr()
+	{
+		return addr;
+	}
+
+	string ipporttos() const
 	{
 		
+		if (!saddr.empty())
+		{
+			return saddr;
+		}
+
 		char buffer[CCU_MAX_IP_LEN];
 		buffer[0] = '\0';
 		return string(ipporttoa(buffer, CCU_MAX_IP_LEN));
 	}
 
-	string iptos() 
+	string iptos() const
 	{
 
 		return string(iptoa());
 	}
 
-	string porttos()
+	string porttos() const
 	{
 		char buffer[10];
 		buffer[0] = '\0';
-		if ( _itoa_s(port,buffer,10,10)!=0)
+
+		if ( _itoa_s(::ntohs(addr.sin_port),buffer,10,10) != 0)
 		{
-			return "";
+			return "NONE";
 		}
 
 		return string(buffer);
 	}
 
-	char *ipporttoa(char *buffer, int len) 
+	char *ipporttoa(char *buffer, int len) const
 	{
-		int curr_len = 0;
+		char* ipstr = ::inet_ntoa(addr.sin_addr); 
 
-		in_addr temp;
-		::ZeroMemory(&temp,sizeof(temp));
-		temp.S_un.S_addr = ip_addr;
-		char * ipstr = ::inet_ntoa(temp); 
-
-		sprintf_s(buffer,len,"%s:%d",ipstr, port);
+		sprintf_s(buffer,len,"%s:%d", ipstr, ::ntohs(addr.sin_port));
 		return buffer;
 	}
 
-	char *iptoa() 
+	char *iptoa() const
 	{
-		int curr_len = 0;
-
-		in_addr temp;
-		::ZeroMemory(&temp,sizeof(temp));
-		temp.S_un.S_addr = ip_addr;
-		char * ipstr = ::inet_ntoa(temp); 
-		
-		return ipstr;
+		return ::inet_ntoa(addr.sin_addr); 
 	}
 
 	friend int operator == (const CcuMediaData &right,const CcuMediaData &left);
@@ -170,8 +194,6 @@ BOOST_CLASS_EXPORT(CcuMediaData);
 
 typedef 
 list<CcuMediaData> CcuMediaDataList;
-
-
 
 
 wostream& operator << (wostream &ostream, const CcuMediaData *ptr);
