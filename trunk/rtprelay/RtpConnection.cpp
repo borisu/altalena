@@ -261,7 +261,7 @@ RTPConnection::SetDestination(IN long remoteIpAddr, IN UINT remotePort)
 
 }
 
-const CcuMediaDataList& 
+CcuMediaDataList& 
 RTPConnection::DestinationsList()
 {
 

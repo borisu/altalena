@@ -231,6 +231,19 @@ ProcAudio::BridgeConnections(CcuMsgPtr ptr)
 	shared_ptr<CcuMsgRtpBridgeConnectionsReq> request =
 		shared_dynamic_cast<CcuMsgRtpBridgeConnectionsReq> (ptr);
 
+	if (request->connection_id1 == 
+		request->connection_id2)
+	{
+		LogWarn(">>Cannot<< bridge connection to itself, conn1=[" 
+			<< request->connection_id1 <<"], conn2=[" << request->connection_id2 << "].");
+
+		SendResponse(ptr, 
+			new CcuMsgRtpBridgeConnectionsNack());
+
+		return;
+
+	}
+
 	if (_connMap.find(request->connection_id1) == _connMap.end() || 
 		_connMap.find(request->connection_id2) == _connMap.end())
 	{

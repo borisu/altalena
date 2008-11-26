@@ -15,8 +15,15 @@ enum RtpReceiverEvents
 };
 
 
-typedef std::set<RTPConnection*> ConnectionSet;
-typedef std::map<RTPConnection*,RTPConnection*> ConnectionMap;
+typedef 
+std::set<RTPConnection*> ConnectionSet;
+
+typedef 
+std::map<RTPConnection*,RTPConnection*> ConnectionBridgesMap;
+
+typedef 
+std::set<RTPConnection*> HaveToLogConnectionSet;
+
 
 
 //
@@ -113,8 +120,10 @@ public:
 
 private:
 
-	ConnectionMap _bridges;
+	ConnectionBridgesMap _bridges;
 
 	ConnectionSet _connections;
+
+	HaveToLogConnectionSet _haveToLogSet;
 
 };

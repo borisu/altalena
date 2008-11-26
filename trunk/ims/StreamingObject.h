@@ -46,10 +46,14 @@ public:
 
 	int Port() const;
 
+	CcuMediaData RemoteMediaData() const;
+
+	void RemoteMediaData(CcuMediaData val);
+
 private:
 
 	CcuMediaData  _remoteMediaData;
-
+	
 	wstring _fileName;
 
 	ImsHandleId _handleId;

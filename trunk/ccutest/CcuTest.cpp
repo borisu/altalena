@@ -106,10 +106,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 
 	start_test_system();
-	return 0;
-// 
-// 	CallWithRtpManagmentTest().test();
-// 	return 0;
+ 	return 0;
+  
+//  	CallWithRtpManagmentTest().test();
+//  	return 0;
 
 
 	ProcPipeIPCDispatcherTest().test();
