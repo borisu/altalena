@@ -164,7 +164,8 @@ SimpleRTPStreamer::SyncPlay(string file_name, CcuMediaData data)
 	RETURN_ON_FAILURE(checkError(status));
 
 	// Instruct the RTP session to send data to ourselves.
-	status = rtpSession.AddDestination(RTPIPv4Address(ntohl(data.ip_addr),data.port));
+	status = rtpSession.AddDestination(
+		RTPIPv4Address(data.iaddr_ho(),data.port_ho()));
 	RETURN_ON_FAILURE(checkError(status));
 
 	// Tell the RTP component to use this RTPSession object.

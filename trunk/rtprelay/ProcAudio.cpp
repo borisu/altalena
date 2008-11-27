@@ -317,8 +317,8 @@ ProcAudio::AllocateAudioConnection(CcuMsgPtr ptr)
 
 		if (conn->Init() == CCU_API_SUCCESS )
 		{
-			if (ac_msg->remote_end.IsValid() &&
-				conn->SetDestination(ac_msg->remote_end.ip_addr,ac_msg->remote_end.port ) != CCU_API_SUCCESS)
+			if (ac_msg->remote_end.is_valid() &&
+				conn->SetDestination(ac_msg->remote_end) != CCU_API_SUCCESS)
 			{
 
 				LogWarn(" Error adding destination " << ac_msg->remote_end);
@@ -365,7 +365,7 @@ ProcAudio::AllocateAudioConnection(CcuMsgPtr ptr)
 
 	success->connection_id = conn->ConnectionId();
 	success->connection_media = CcuMediaData(
-		_mediaData.ip_addr,
+		_mediaData.inaddr(),
 		curr_port_slot_candidate);
 
 	SendResponse(ptr, success);

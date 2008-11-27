@@ -40,6 +40,7 @@
 #include "ConfigurationFactory.h"
 #include "LpHandleTest.h"
 #include "CallWithRtpManagmentTest.h"
+#include "SimpleRTPStreamer.h"
 
 #pragma TODO("Outsource system starter to a different file")
 
@@ -101,7 +102,11 @@ int _tmain(int argc, _TCHAR* argv[])
 	//
 	//////////////////////////////////////////////////////////////////////////
 
+	SimpleRTPStreamer r;
+	r.SyncPlay("C:\\SOLUTIONS\\altalena\\ccutest\\sounds\\welcome.wav", 
+		CcuMediaData("192.168.150.3",6555));
 
+	return 0;
 	
 	
 
@@ -171,7 +176,8 @@ public:
 		//
 		// Start VCS
 		//
-		CcuMediaData vcs_media = CcuMediaData(conf->DefaultIp().ip_addr,5060);
+		CcuMediaData vcs_media = CcuMediaData(
+			conf->DefaultIp().inaddr(),5060);
 		DECLARE_NAMED_HANDLE_PAIR(vcs_pair);
 		FORK(VcsFactory::CreateProcVcs(vcs_pair,*conf));
 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), vcs_pair)));

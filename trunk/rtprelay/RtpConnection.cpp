@@ -110,20 +110,22 @@ RTPConnection::Init()
 }
 
 CcuApiErrorCode 
-RTPConnection::AddDestination(long remoteIpAddr, UINT remotePort)
+RTPConnection::AddDestination(IN CcuMediaData &data)
 {
 	
 	int status = _rtpSession.AddDestination(
-		RTPIPv4Address(ntohl(remoteIpAddr),remotePort));
+		RTPIPv4Address(
+		data.iaddr_ho(),
+		data.port_ho()));
 
 	if (status < 0)
 	{
-		LogWarn("Cannot add destination to RTP session on port=[" << _localPort << "] error=[" <<  status  <<"] dest ip=[" << remoteIpAddr << "] dest port=[" << remotePort << "]" );
+		LogWarn("Cannot add destination to RTP session on port=[" << _localPort << "] error=[" <<  status  <<"] dest ip=[" << data.ipporttos() << "]" );
 		return CCU_API_FAILURE;
 	}
 
-	_destinationsList.push_back(
-		CcuMediaData(remoteIpAddr,remotePort));
+
+	_destinationsList.push_back(data);
 
 	
 	return CCU_API_SUCCESS;
@@ -240,22 +242,21 @@ RTPConnection::Poll(RtpPacketsList &packetsList, size_t overflow)
 }
 
 CcuApiErrorCode
-RTPConnection::SetDestination(IN long remoteIpAddr, IN UINT remotePort)
+RTPConnection::SetDestination(IN CcuMediaData &data)
 {
 	_rtpSession.ClearDestinations();
 
 	int status = 	
-		_rtpSession.AddDestination(RTPIPv4Address(ntohl(remoteIpAddr),remotePort));
+		_rtpSession.AddDestination(RTPIPv4Address(data.iaddr_ho(), data.port_ho()));
 
 	if (status < 0)
 	{
-		LogWarn("Cannot add destination to RTP error=[" <<  status  <<"] dest ip=[" << remoteIpAddr << "] dest port=[" << remotePort << "]" );
+		LogWarn("Cannot add destination to RTP error=[" <<  status  <<"] dest ip=[" << data.ipporttos() <<  "]" );
 		return CCU_API_FAILURE;
 	}
 
 	_destinationsList.clear();
-	_destinationsList.push_back(
-		CcuMediaData(remoteIpAddr,remotePort));
+	_destinationsList.push_back(data);
 
 	return CCU_API_SUCCESS;
 
