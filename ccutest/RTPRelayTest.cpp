@@ -86,7 +86,7 @@ ProcRTPTester::test_early_media()
 
 	assert (CCU_SUCCESS(
 		session1.AllocateRTPConnection(
-				CcuMediaData(g_localAddr.ip_addr, 60010)))) ;
+				CcuMediaData(g_localAddr.inaddr(), 60010)))) ;
 
 
 	//
@@ -97,7 +97,7 @@ ProcRTPTester::test_early_media()
 	
 	assert (CCU_SUCCESS(
 		session2.AllocateRTPConnection(	
-			CcuMediaData(g_localAddr.ip_addr, 60012))));
+			CcuMediaData(g_localAddr.inaddr(), 60012))));
 
 	//
 	// Bridge Connections
@@ -155,12 +155,12 @@ ProcRTPTester::test_late_media()
 	CcuMediaData remote_end2;
 
 	
-	assert(CCU_SUCCESS(session2.AllocateRTPConnection(CcuMediaData(g_localAddr.ip_addr, 60012))));
+	assert(CCU_SUCCESS(session2.AllocateRTPConnection(CcuMediaData(g_localAddr.inaddr(), 60012))));
 
 	//
 	// Modify first connection
 	//
-	assert(CCU_SUCCESS(session1.ModifyRTPConnection(CcuMediaData(g_localAddr.ip_addr, 60010))));
+	assert(CCU_SUCCESS(session1.ModifyRTPConnection(CcuMediaData(g_localAddr.inaddr(), 60010))));
 	
 
 

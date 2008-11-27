@@ -121,7 +121,7 @@ public:
 		addr.sin_port = CCU_UNDEFINED;
 	}
 
-	bool is_valid()
+	bool is_valid() const
 	{
 		return (addr.sin_addr.s_addr != INADDR_NONE );
 	}
@@ -132,12 +132,32 @@ public:
 		saddr = x.saddr;
 	}
 
-	int port()
+	int port_ho() const
 	{
 		return ::ntohs(addr.sin_port);
 	}
 
-	sockaddr_in sockaddr()
+	int port_no() const
+	{
+		return addr.sin_port;
+	}
+
+	in_addr inaddr()
+	{
+		return addr.sin_addr;
+	}
+
+	long iaddr_ho() const
+	{
+		return ::ntohl(addr.sin_addr.s_addr);
+	}
+
+	long iaddr_no() const
+	{
+		return addr.sin_addr.s_addr;
+	}
+
+	sockaddr_in sockaddr() const
 	{
 		return addr;
 	}
@@ -152,6 +172,7 @@ public:
 
 		char buffer[CCU_MAX_IP_LEN];
 		buffer[0] = '\0';
+
 		return string(ipporttoa(buffer, CCU_MAX_IP_LEN));
 	}
 
@@ -166,9 +187,9 @@ public:
 		char buffer[10];
 		buffer[0] = '\0';
 
-		if ( _itoa_s(::ntohs(addr.sin_port),buffer,10,10) != 0)
+		if ( _itoa_s(port_ho(),buffer,10,10) != 0)
 		{
-			return "NONE";
+			return "INVALID";
 		}
 
 		return string(buffer);
@@ -177,8 +198,8 @@ public:
 	char *ipporttoa(char *buffer, int len) const
 	{
 		char* ipstr = ::inet_ntoa(addr.sin_addr); 
-
 		sprintf_s(buffer,len,"%s:%d", ipstr, ::ntohs(addr.sin_port));
+
 		return buffer;
 	}
 

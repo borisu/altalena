@@ -263,7 +263,10 @@ StreamingObject::Init(PortManager &portManager)
 
 
 		// Instruct the RTP session to send data to destination.
-		status = _rtpSession.AddDestination(RTPIPv4Address(_remoteMediaData.ip_addr,_remoteMediaData.port));
+		status = _rtpSession.AddDestination(
+			RTPIPv4Address(
+			_remoteMediaData.iaddr_ho(),
+			_remoteMediaData.port_ho()));
 		if ( status != 0)
 		{
 			LogWarn("Error adding destination dest=[" << _remoteMediaData << "] description=[" << RTPGetErrorString(status) << "]");

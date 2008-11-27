@@ -82,7 +82,7 @@ ProcRtpReceiver::ModifyConnection(IN RTPConnection *connection,
 								  IN CcuMediaData &media_data)
 {
 	_haveToLogSet.insert(connection);
-	connection->SetDestination(media_data.ip_addr,media_data.port);
+	connection->SetDestination(media_data);
 }
 
 
