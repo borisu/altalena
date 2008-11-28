@@ -67,7 +67,8 @@ RtpReceiveMsg::TimingInfo(MIPTime *t, rtp_uint32_t *timestamp)
 
 RTPConnection::RTPConnection(UINT localPort):
 _localPort(localPort),
-_rtpSession(NULL)
+_rtpSession(NULL),
+_previousTimestamp(CCU_UNDEFINED)
 {
 	
 }
@@ -230,6 +231,7 @@ RTPConnection::Poll(RtpPacketsList &packetsList, size_t overflow)
 				if (setTimingInfo)
 					rtpMsg.TimingInfo(timingInfWallclock, timingInfTimestamp);
 				rtpMsg.sourceID = SourceID(pPack, srcData);
+				
 
 				
 
@@ -287,12 +289,37 @@ CcuApiErrorCode
 RTPConnection::Send(RTPPacket *packet)
 {
 
+	// to get over the library limitation that 
+	// receives only timestamp incremental and
+	// not exact timestamp value (exactly what 
+	// i need to relay the packet). I use this 
+	// trick to calculate the incremental which
+	// will bring me to exact timestamp value
+
+
+	
+	
+	unsigned int timestamp_increment  = 0;
+
+	if (_previousTimestamp == CCU_UNDEFINED)
+	{
+		timestamp_increment = packet->GetTimestamp();
+	} 
+	else
+	{
+		timestamp_increment = packet->GetTimestamp() - _previousTimestamp;
+	}
+
+	_previousTimestamp = packet->GetTimestamp();
+	
+#pragma TODO ("it may not work with reordering of packets because of unsigned conversions") 
+
 	int status = _rtpSession.SendPacket(
 		packet->GetPayloadData(),
 		packet->GetPayloadLength(),
 		packet->GetPayloadType(),
 		packet->HasMarker(),
-		0);
+		timestamp_increment);
 
 	if (status < 0)
 	{
