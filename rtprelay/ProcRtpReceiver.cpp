@@ -246,7 +246,7 @@ ProcRtpReceiver::real_run()
 				CcuMediaData remote_dest; 
 				if (!destination->DestinationsList().empty())
 				{
-					remote_dest = source->DestinationsList().front();
+					remote_dest = destination->DestinationsList().front();
 				}
 				
 				LogDebug("New RTP packet >>arrived<< at BRIDGED connection" 

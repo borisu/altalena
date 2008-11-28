@@ -124,7 +124,7 @@ JSONConfiguration::InitDb()
 	//
 	const wstring default_ip_str = find_str(root_obj, L"default_ip" );
 
-	_vcsMediaData = CcuMediaData(default_ip_str,5060);
+	_defaultIp = CcuMediaData(default_ip_str,5060);
 
 
 	//
@@ -134,7 +134,7 @@ JSONConfiguration::InitDb()
 	const wstring vcs_ip_str = find_str(root_obj, L"vcs_sip_ip" );
 	const int vcs_ip_int = find_int(root_obj, L"vcs_sip_port" );
 
-	_defaultIp = CcuMediaData(vcs_ip_str,vcs_ip_int);
+	_vcsMediaData = CcuMediaData(vcs_ip_str,vcs_ip_int);
 
 
 	return CCU_API_SUCCESS;

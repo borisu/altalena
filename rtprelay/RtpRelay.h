@@ -20,6 +20,7 @@
 
 #include "Ccu.h"
 #include "LightweightProcess.h"
+#include "CcuRtpSession.h"
 
 enum RtpMessages
 {

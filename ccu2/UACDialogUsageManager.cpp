@@ -74,8 +74,8 @@ UACDialogUsageManager::CreateSdp(IN CcuMediaData &data)
 		"s=CCU\r\n"
 		"c=IN IP4 "  + data.iptos() + "\r\n"
 		"t=0 0\r\n"
-		"m=audio " + data.porttos() + " RTP/AVP 8 101\r\n"
-		"a=rtpmap:8 pcma/8000\r\n"
+		"m=audio " + data.porttos() + " RTP/AVP 0 101\r\n"
+		"a=rtpmap:0 pcmu/8000\r\n"
 		"a=rtpmap:101 telephone-event/8000\r\n"
 		"a=fmtp:101 0-15\r\n";
 

@@ -113,4 +113,6 @@ private:
 	
 	RTPSession _rtpSession;
 
+	unsigned int _previousTimestamp;
+
 };

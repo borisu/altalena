@@ -102,11 +102,11 @@ int _tmain(int argc, _TCHAR* argv[])
 	//
 	//////////////////////////////////////////////////////////////////////////
 
-	SimpleRTPStreamer r;
-	r.SyncPlay("C:\\SOLUTIONS\\altalena\\ccutest\\sounds\\welcome.wav", 
-		CcuMediaData("192.168.150.3",6555));
-
-	return 0;
+// 	SimpleRTPStreamer r;
+// 	r.SyncPlay("C:\\SOLUTIONS\\altalena\\ccutest\\sounds\\welcome.wav", 
+// 		CcuMediaData("192.168.150.3",6555));
+// 
+// 	return 0;
 	
 	
 
@@ -172,6 +172,26 @@ public:
 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), ais_pair)));
 		assert(CCU_SUCCESS(Ping(AIS_Q)));
 
+
+
+// 		ImsSession s(*this);
+// 
+// 		CcuRtpSession r1(*this);
+// 		r1.AllocateRTPConnection();
+// 
+// 		CcuRtpSession r2(*this);
+// 		r2.AllocateRTPConnection();
+// 		r2.ModifyRTPConnection(CcuMediaData("10.0.0.138",5555));
+// 
+// 
+// 		r1.BridgeRTPConnection(r2);
+// 
+// 		
+// 
+// 		s.PlayFile(r1.LocalMediaData(),L"sounds\\welcome.wav");
+// 
+// 
+// 		::Sleep(INFINITE);
 
 		//
 		// Start VCS
