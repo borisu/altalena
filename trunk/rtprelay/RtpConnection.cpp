@@ -150,7 +150,7 @@ void
 RTPConnection::Poll(RtpPacketsList &packetsList, size_t overflow)
 {
 	
-	int res = _rtpSession.Poll();
+	int res = _rtpSession.Poll(true);
 	if ( res != 0)
 	{
 		LogWarn("Error polling connection stack res=[" << res << "] description=[" << RTPGetErrorString(res) << "]");
@@ -297,29 +297,29 @@ RTPConnection::Send(RTPPacket *packet)
 	// will bring me to exact timestamp value
 
 
+	int status = _rtpSession.RelayPacket(*packet);
 	
-	
-	unsigned int timestamp_increment  = 0;
-
-	if (_previousTimestamp == CCU_UNDEFINED)
-	{
-		timestamp_increment = packet->GetTimestamp();
-	} 
-	else
-	{
-		timestamp_increment = packet->GetTimestamp() - _previousTimestamp;
-	}
-
-	_previousTimestamp = packet->GetTimestamp();
-	
-#pragma TODO ("it may not work with reordering of packets because of unsigned conversions") 
-
-	int status = _rtpSession.SendPacket(
-		packet->GetPayloadData(),
-		packet->GetPayloadLength(),
-		packet->GetPayloadType(),
-		packet->HasMarker(),
-		timestamp_increment);
+// 	unsigned int timestamp_increment  = 0;
+// 
+// 	if (_previousTimestamp == CCU_UNDEFINED)
+// 	{
+// 		timestamp_increment = packet->GetTimestamp();
+// 	} 
+// 	else
+// 	{
+// 		timestamp_increment = packet->GetTimestamp() - _previousTimestamp;
+// 	}
+// 
+// 	_previousTimestamp = packet->GetTimestamp();
+// 	
+// #pragma TODO ("it may not work with reordering of packets because of unsigned conversions") 
+// 
+// 	int status = _rtpSession.SendPacket(
+// 		packet->GetPayloadData(),
+// 		packet->GetPayloadLength(),
+// 		packet->GetPayloadType(),
+// 		packet->HasMarker(),
+// 		timestamp_increment);
 
 	if (status < 0)
 	{
