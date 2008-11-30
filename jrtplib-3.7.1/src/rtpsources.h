@@ -107,14 +107,14 @@ public:
 	 *  packet is one of our own packets. The flag \c acceptownpackets indicates whether own packets should be 
 	 *  accepted or ignored.
 	 */
-	int ProcessRawPacket(RTPRawPacket *rawpack,RTPTransmitter *trans,bool acceptownpackets);
+	int ProcessRawPacket(RTPRawPacket *rawpack,RTPTransmitter *trans,bool acceptownpackets, bool relaymode);
 
 	/** Processes a raw packet \c rawpack.
 	 *  Processes a raw packet \c rawpack. Every transmitter in the array \c trans of length \c numtrans
 	 *  is used to check if the packet is from our own session. The flag \c acceptownpackets indicates
 	 *  whether own packets should be accepted or ignored.
 	 */
-	int ProcessRawPacket(RTPRawPacket *rawpack,RTPTransmitter *trans[],int numtrans,bool acceptownpackets);
+	int ProcessRawPacket(RTPRawPacket *rawpack,RTPTransmitter *trans[],int numtrans,bool acceptownpackets, bool relaymode);
 
 	/** Processes an RTPPacket instance \c rtppack which was received at time \c receivetime and 
 	 *  which originated from \c senderaddres.

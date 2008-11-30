@@ -549,6 +549,25 @@ void RTPSession::LeaveAllMulticastGroups()
 	rtptrans->LeaveAllMulticastGroups();
 }
 
+int RTPSession::RelayPacket(RTPPacket &packet)
+{
+	int status;
+
+	if (!created)
+		return ERR_RTP_SESSION_NOTCREATED;
+
+	if (packet.GetRawPacket() == NULL)
+		return ERR_RTP_COLLISIONLIST_BADADDRESS; 
+	
+
+	status = rtptrans->SendRTPData(packet.GetRawPacket()->GetData(),packet.GetRawPacket()->GetDataLength()) < 0;
+	
+		
+	return status;
+	
+
+}
+
 int RTPSession::SendPacket(const void *data,size_t len)
 {
 	int status;
@@ -819,7 +838,7 @@ void RTPSession::DeleteTransmissionInfo(RTPTransmissionInfo *inf)
 	RTPDelete(inf,GetMemoryManager());
 }
 
-int RTPSession::Poll()
+int RTPSession::Poll(bool relaymode)
 {
 	int status;
 	
@@ -829,7 +848,7 @@ int RTPSession::Poll()
 		return ERR_RTP_SESSION_USINGPOLLTHREAD;
 	if ((status = rtptrans->Poll()) < 0)
 		return status;
-	return ProcessPolledData();
+	return ProcessPolledData(relaymode);
 }
 
 int RTPSession::WaitForIncomingData(const RTPTime &delay,bool *dataavailable)
@@ -1189,7 +1208,7 @@ int RTPSession::SetLocalNote(const void *s,size_t len)
 	return status;
 }
 
-int RTPSession::ProcessPolledData()
+int RTPSession::ProcessPolledData(bool relaymode)
 {
 	RTPRawPacket *rawpack;
 	int status;
@@ -1202,7 +1221,7 @@ int RTPSession::ProcessPolledData()
 		// since our sources instance also uses the scheduler (analysis of incoming packets)
 		// we'll lock it
 		SCHED_LOCK
-		if ((status = sources.ProcessRawPacket(rawpack,rtptrans,acceptownpackets)) < 0)
+		if ((status = sources.ProcessRawPacket(rawpack,rtptrans,acceptownpackets,relaymode)) < 0)
 		{
 			SCHED_UNLOCK
 			SOURCES_UNLOCK
@@ -1280,7 +1299,13 @@ int RTPSession::ProcessPolledData()
 				}
 			}
 		}
-		RTPDelete(rawpack,GetMemoryManager());
+
+		// in relay mode the buffer will be deleted
+		// after being relayed
+		if (!relaymode)
+		{
+			RTPDelete(rawpack,GetMemoryManager());
+		}
 	}
 
 	SCHED_LOCK
