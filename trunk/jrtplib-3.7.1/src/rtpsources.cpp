@@ -152,7 +152,7 @@ void RTPSources::SentRTPPacket()
 		sendercount++;
 }
 
-int RTPSources::ProcessRawPacket(RTPRawPacket *rawpack,RTPTransmitter *rtptrans,bool acceptownpackets)
+int RTPSources::ProcessRawPacket(RTPRawPacket *rawpack,RTPTransmitter *rtptrans,bool acceptownpackets, bool relaymode)
 {
 	RTPTransmitter *transmitters[1];
 	int num;
@@ -162,10 +162,10 @@ int RTPSources::ProcessRawPacket(RTPRawPacket *rawpack,RTPTransmitter *rtptrans,
 		num = 0;
 	else
 		num = 1;
-	return ProcessRawPacket(rawpack,transmitters,num,acceptownpackets);
+	return ProcessRawPacket(rawpack,transmitters,num,acceptownpackets,relaymode);
 }
 
-int RTPSources::ProcessRawPacket(RTPRawPacket *rawpack,RTPTransmitter *rtptrans[],int numtrans,bool acceptownpackets)
+int RTPSources::ProcessRawPacket(RTPRawPacket *rawpack,RTPTransmitter *rtptrans[],int numtrans,bool acceptownpackets, bool relaymode)
 {
 	int status;
 	
@@ -174,7 +174,7 @@ int RTPSources::ProcessRawPacket(RTPRawPacket *rawpack,RTPTransmitter *rtptrans[
 		RTPPacket *rtppack;
 		
 		// First, we'll see if the packet can be parsed
-		rtppack = RTPNew(GetMemoryManager(),RTPMEM_TYPE_CLASS_RTPPACKET) RTPPacket(*rawpack,GetMemoryManager());
+		rtppack = RTPNew(GetMemoryManager(),RTPMEM_TYPE_CLASS_RTPPACKET) RTPPacket(*rawpack,relaymode,GetMemoryManager());
 		if (rtppack == 0)
 			return ERR_RTP_OUTOFMEM;
 		if ((status = rtppack->GetCreationError()) < 0)

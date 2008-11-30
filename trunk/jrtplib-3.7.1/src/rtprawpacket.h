@@ -57,7 +57,7 @@ public:
 	 */
 	RTPRawPacket(uint8_t *data,size_t datalen,RTPAddress *address,RTPTime &recvtime,bool rtp,RTPMemoryManager *mgr = 0);
 	~RTPRawPacket();
-	
+
 	/** Returns the pointer to the data which is contained in this packet. */
 	uint8_t *GetData()														{ return packetdata; }
 

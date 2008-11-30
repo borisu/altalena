@@ -65,16 +65,26 @@ void RTPPacket::Clear()
 	externalbuffer = false;
 }
 
-RTPPacket::RTPPacket(RTPRawPacket &rawpack,RTPMemoryManager *mgr) : RTPMemoryObject(mgr),receivetime(rawpack.GetReceiveTime())
+RTPPacket::RTPPacket(RTPRawPacket &rawpack, bool relaymode, RTPMemoryManager *mgr) : RTPMemoryObject(mgr),receivetime(rawpack.GetReceiveTime())
+,_relaymode(relaymode)
 {
+	if (relaymode)
+	{
+		_rawpack = &rawpack;
+	} else 
+	{
+		_rawpack = NULL;
+	}
 	Clear();
-	error = ParseRawPacket(rawpack);
+	error = ParseRawPacket(rawpack, relaymode);
 }
 
 RTPPacket::RTPPacket(uint8_t payloadtype,const void *payloaddata,size_t payloadlen,uint16_t seqnr,
 		  uint32_t timestamp,uint32_t ssrc,bool gotmarker,uint8_t numcsrcs,const uint32_t *csrcs,
 		  bool gotextension,uint16_t extensionid,uint16_t extensionlen_numwords,const void *extensiondata,
 		  size_t maxpacksize, RTPMemoryManager *mgr) : RTPMemoryObject(mgr),receivetime(0,0)
+		  ,_rawpack(NULL)
+		  ,_relaymode(false)
 {
 	Clear();
 	error = BuildPacket(payloadtype,payloaddata,payloadlen,seqnr,timestamp,ssrc,gotmarker,numcsrcs,
@@ -85,6 +95,8 @@ RTPPacket::RTPPacket(uint8_t payloadtype,const void *payloaddata,size_t payloadl
 		  uint32_t timestamp,uint32_t ssrc,bool gotmarker,uint8_t numcsrcs,const uint32_t *csrcs,
 		  bool gotextension,uint16_t extensionid,uint16_t extensionlen_numwords,const void *extensiondata,
 		  void *buffer,size_t buffersize, RTPMemoryManager *mgr) : RTPMemoryObject(mgr),receivetime(0,0)
+		  ,_rawpack(NULL)
+		  ,_relaymode(false)
 {
 	Clear();
 	if (buffer == 0)
@@ -96,7 +108,7 @@ RTPPacket::RTPPacket(uint8_t payloadtype,const void *payloaddata,size_t payloadl
 		                    csrcs,gotextension,extensionid,extensionlen_numwords,extensiondata,buffer,buffersize);
 }
 
-int RTPPacket::ParseRawPacket(RTPRawPacket &rawpack)
+int RTPPacket::ParseRawPacket(RTPRawPacket &rawpack, bool relaymode)
 {
 	uint8_t *packetbytes;
 	size_t packetlen;
@@ -194,6 +206,13 @@ int RTPPacket::ParseRawPacket(RTPRawPacket &rawpack)
 	RTPPacket::payload = packetbytes+payloadoffset;
 	RTPPacket::packetlength = packetlen;
 	RTPPacket::payloadlength = payloadlength;
+
+
+	// in relay mode we save the buffer in order to relay it as it is
+	if (relaymode)
+	{
+		return 0;
+	}
 
 	// We'll zero the data of the raw packet, since we're using it here now!
 	rawpack.ZeroData();

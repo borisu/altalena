@@ -134,6 +134,8 @@ public:
 	/** Leaves all multicast groups. */
 	void LeaveAllMulticastGroups();
 
+	int RelayPacket(RTPPacket &packet);
+
 	/** Sends the RTP packet with payload \c data which has length \c len.
 	 *  Sends the RTP packet with payload \c data which has length \c len.
 	 *  The used payload type, marker and timestamp increment will be those that have been set 
@@ -226,7 +228,7 @@ public:
 	/** If you're not using the poll thread, this function must be called regularly to process incoming data
 	 *  and to send RTCP data when necessary.
 	 */
-	int Poll();
+	int Poll(bool relaymode = false);
 
 	/** Waits at most a time \c delay until incoming data has been detected. 
 	 *  Waits at most a time \c delay until incoming data has been detected. Only works when you're not 
@@ -501,7 +503,7 @@ protected:
 private:
 	int InternalCreate(const RTPSessionParams &sessparams);
 	int CreateCNAME(uint8_t *buffer,size_t *bufferlength,bool resolve);
-	int ProcessPolledData();
+	int ProcessPolledData(bool relaymode = false);
 	int ProcessRTCPCompoundPacket(RTCPCompoundPacket &rtcpcomppack,RTPRawPacket *pack);
 	
 	RTPTransmitter *rtptrans;
