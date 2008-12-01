@@ -181,6 +181,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\RelayMemoryManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\RtpConnection.cpp"
 				>
 			</File>
@@ -228,6 +232,10 @@
 			</File>
 			<File
 				RelativePath=".\ProcRTPReceiver.h"
+				>
+			</File>
+			<File
+				RelativePath=".\RelayMemoryManager.h"
 				>
 			</File>
 			<File

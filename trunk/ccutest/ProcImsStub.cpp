@@ -81,7 +81,7 @@ ProcImsStub::AllocatePlaybackSession(CcuMsgPtr msg)
 
 	ack->playback_handle = handle;
 
-	ack->ims_media = CcuMediaData(IMS_DUMMY_IP,IMS_DUMMY_PORT);
+	ack->ims_media = CnxInfo(IMS_DUMMY_IP,IMS_DUMMY_PORT);
 
 	SendResponse(req,ack);
 

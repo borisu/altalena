@@ -549,18 +549,18 @@ void RTPSession::LeaveAllMulticastGroups()
 	rtptrans->LeaveAllMulticastGroups();
 }
 
-int RTPSession::RelayPacket(RTPPacket &packet)
+int RTPSession::RelayPacket(RTPRawPacket *packet)
 {
 	int status;
 
 	if (!created)
 		return ERR_RTP_SESSION_NOTCREATED;
 
-	if (packet.GetRawPacket() == NULL)
-		return ERR_RTP_COLLISIONLIST_BADADDRESS; 
+	if (packet == NULL)
+		return ERR_RTP_PACKET_INVALIDPACKET; 
 	
 
-	status = rtptrans->SendRTPData(packet.GetRawPacket()->GetData(),packet.GetRawPacket()->GetDataLength()) < 0;
+	status = rtptrans->SendRTPData(packet->GetData(),packet->GetDataLength()) < 0;
 	
 		
 	return status;

@@ -31,7 +31,7 @@ VcsFactory::~VcsFactory(void)
 
 
 LightweightProcess*
-VcsFactory::CreateProcVcs(LpHandlePair pair, CcuMediaData data)
+VcsFactory::CreateProcVcs(LpHandlePair pair, CnxInfo data)
 {
 	return new ProcVcs(pair, data);
 

@@ -61,7 +61,7 @@ public:
 
 	  wstring on_behalf_of;
 
-	  CcuMediaData local_media;
+	  CnxInfo local_media;
 
 #pragma TODO ("TODO:This should support IPC IpcAddress instead of handle")
 
@@ -91,7 +91,7 @@ public:
 
 	  int stack_call_handle;
 
-	  CcuMediaData remote_media;
+	  CnxInfo remote_media;
 };
 BOOST_CLASS_EXPORT(CcuMsgMakeCallAck);
 
@@ -145,17 +145,17 @@ public:
 
 	int stack_call_handle;
 
-	CcuMediaData local_media;
+	CnxInfo local_media;
 
-	CcuMediaData remote_media;
+	CnxInfo remote_media;
 
 	virtual void copy_data_on_response(IN CcuMessage *msg)
 	{
 		CcuMsgStackMixin *req = dynamic_cast<CcuMsgStackMixin*>(msg);
 
 		stack_call_handle	= req->stack_call_handle;
-		local_media			= local_media.is_valid()  ? req->local_media : local_media;
-		remote_media		= remote_media.is_valid() ? req->remote_media : remote_media;
+		local_media			= local_media.is_ip_valid()  ? req->local_media : local_media;
+		remote_media		= remote_media.is_ip_valid() ? req->remote_media : remote_media;
 
 	};
 
@@ -255,28 +255,28 @@ public:
 	Call(
 		IN LpHandlePair _stackPair, 
 		IN int stack_handle,
-		IN CcuMediaData offered_media,
+		IN CnxInfo offered_media,
 		IN LightweightProcess &facade);
 
 	virtual ~Call(void);
 
 	CcuApiErrorCode AcceptCall(
-		IN CcuMediaData local_data);
+		IN CnxInfo local_data);
 
 	CcuApiErrorCode RejectCall();
 
 	CcuApiErrorCode MakeCall(
 		IN wstring destination_uri, 
-		IN CcuMediaData local_media);
+		IN CnxInfo local_media);
 
 	
 	CcuApiErrorCode HagupCall();
 
-	CcuMediaData RemoteMedia() const;
-	void RemoteMedia(CcuMediaData &val);
+	CnxInfo RemoteMedia() const;
+	void RemoteMedia(CnxInfo &val);
 
-	CcuMediaData LocalMedia() const;
-	void LocalMedia(CcuMediaData &val);
+	CnxInfo LocalMedia() const;
+	void LocalMedia(CnxInfo &val);
 
 
 	
@@ -291,9 +291,9 @@ protected:
 
 	int _stackCallHandle;
 
-	CcuMediaData _remoteMedia;
+	CnxInfo _remoteMedia;
 
-	CcuMediaData _localMedia;
+	CnxInfo _localMedia;
 
 	LightweightProcess &_parentProcess;
 
@@ -310,7 +310,7 @@ public:
 	virtual LpHandlePair CreateCallHandler(
 		IN LpHandlePair stack_pair, 
 		IN int stack_handle,
-		IN CcuMediaData offered_media) = 0;
+		IN CnxInfo offered_media) = 0;
 
 };
 

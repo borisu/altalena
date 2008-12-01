@@ -52,7 +52,7 @@ StreamingCtx::StreamingCtx(const StreamingCtx &other)
 }
 
 
-ProcIms::ProcIms(LpHandlePair pair, CcuMediaData local_media)
+ProcIms::ProcIms(LpHandlePair pair, CnxInfo local_media)
 :LightweightProcess(pair,IMS_Q,__FUNCTIONW__),
 _localMedia(local_media),
 _portManager(CCU_DEFAULT_IMS_TOP_PORT,CCU_DEFAULT_IMS_BOTTOM_PORT)
@@ -255,7 +255,7 @@ ProcIms::AllocatePlaybackSession(CcuMsgPtr msg)
 		new CcuMsgAllocateImsSessionAck();
 
 	ack->playback_handle = handle;
-	ack->ims_media = CcuMediaData("127.0.0.1", streaming_obj->Port());
+	ack->ims_media = CnxInfo("127.0.0.1", streaming_obj->Port());
 
 	SendResponse(req,ack);
 

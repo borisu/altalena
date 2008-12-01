@@ -118,11 +118,11 @@ int _tmain(int argc, _TCHAR* argv[])
 
 
 	ProcPipeIPCDispatcherTest().test();
-	RTPRelayTest(CcuMediaData(ip,port)).test();
-	VcsTest(CcuMediaData(ip,port)).test();
-	ImsTest(CcuMediaData(ip,port)).test();
+	RTPRelayTest(CnxInfo(ip,port)).test();
+	VcsTest(CnxInfo(ip,port)).test();
+	ImsTest(CnxInfo(ip,port)).test();
 	CcuLightweightProcessTest().test();
-	AisTest(CcuMediaData(ip,port)).test();
+	AisTest(CnxInfo(ip,port)).test();
 	JsonConfigurationTest().test();
 	LpHandleTest().test();
 	
@@ -152,7 +152,7 @@ public:
 		// Start RTP relay
 		//
 		DECLARE_NAMED_HANDLE_PAIR(rtp_pair);
-		FORK(RtpRelayFactory::CreateProcRtpRelay(rtp_pair, conf->DefaultIp()));
+		FORK(RtpRelayFactory::CreateProcRtpRelay(rtp_pair, conf.get()));
 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), rtp_pair)));
 		assert(CCU_SUCCESS(Ping(RTP_RELAY_Q)));
 
@@ -160,7 +160,7 @@ public:
 		// Start IMS 
 		//
 		DECLARE_NAMED_HANDLE_PAIR(ims_pair);
-		FORK(ImsFactory::CreateProcIms(ims_pair, conf->DefaultIp()));
+		FORK(ImsFactory::CreateProcIms(ims_pair, conf->DefaultCnxInfo()));
 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), ims_pair)));
 		assert(CCU_SUCCESS(Ping(IMS_Q)));
 
@@ -172,32 +172,11 @@ public:
 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), ais_pair)));
 		assert(CCU_SUCCESS(Ping(AIS_Q)));
 
-
-
-// 		ImsSession s(*this);
-// 
-// 		CcuRtpSession r1(*this);
-// 		r1.AllocateRTPConnection();
-// 
-// 		CcuRtpSession r2(*this);
-// 		r2.AllocateRTPConnection();
-// 		r2.ModifyRTPConnection(CcuMediaData("10.0.0.138",5555));
-// 
-// 
-// 		r1.BridgeRTPConnection(r2);
-// 
-// 		
-// 
-// 		s.PlayFile(r1.LocalMediaData(),L"sounds\\welcome.wav");
-// 
-// 
-// 		::Sleep(INFINITE);
-
 		//
 		// Start VCS
 		//
-		CcuMediaData vcs_media = CcuMediaData(
-			conf->DefaultIp().inaddr(),5060);
+		CnxInfo vcs_media = CnxInfo(
+			conf->DefaultCnxInfo().inaddr(),5060);
 		DECLARE_NAMED_HANDLE_PAIR(vcs_pair);
 		FORK(VcsFactory::CreateProcVcs(vcs_pair,*conf));
 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), vcs_pair)));

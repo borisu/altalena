@@ -11,6 +11,6 @@ public:
 
 	static LightweightProcess *CreateSipStack(
 		IN LpHandlePair stack_pair, 
-		IN CcuMediaData sip_stack_data,
+		IN CnxInfo sip_stack_data,
 		IN ICallHandlerCreatorPtr handler_creator);
 };

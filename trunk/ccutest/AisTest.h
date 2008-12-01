@@ -24,7 +24,7 @@
 class AisTest
 {
 public:
-	AisTest(const CcuMediaData &local_addr);
+	AisTest(const CnxInfo &local_addr);
 
 	void test();
 	

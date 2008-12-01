@@ -21,6 +21,7 @@
 #include "Ccu.h"
 #include "LightweightProcess.h"
 #include "CcuRtpSession.h"
+#include "CcuConfiguration.h"
 
 enum RtpMessages
 {
@@ -54,7 +55,7 @@ public:
 	CcuMsgRtpAllocateNewConnectionReq():
 	  CcuMessage(CCU_MSG_ALLOCATE_NEW_CONNECTION_REQ, NAME(CCU_MSG_ALLOCATE_NEW_CONNECTION_REQ)){};
 
-	  CcuMediaData remote_end;
+	  CnxInfo remote_end;
 };
 BOOST_CLASS_EXPORT(CcuMsgRtpAllocateNewConnectionReq);
 
@@ -75,7 +76,7 @@ public:
 	CcuMsgRtpAllocateConnectionAck():
 	  CcuMessage(CCU_MSG_ALLOCATE_NEW_CONNECTION_ACK, NAME(CCU_MSG_ALLOCATE_NEW_CONNECTION_ACK)){};
 
-	  CcuMediaData connection_media;
+	  CnxInfo connection_media;
 
 	  int connection_id;
 };
@@ -113,7 +114,7 @@ public:
 
 	  CcuConnectionId connection_id;
 
-	  CcuMediaData remote_media_data;
+	  CnxInfo remote_media_data;
 };
 BOOST_CLASS_EXPORT(CcuMsgModifyConnectionReq);
 
@@ -198,7 +199,9 @@ class RtpRelayFactory
 public:
 	RtpRelayFactory(void);
 
-	static LightweightProcess *CreateProcRtpRelay(LpHandlePair pair, CcuMediaData data);
+	static LightweightProcess* CreateProcRtpRelay(LpHandlePair pair, CnxInfo data);
+
+	static LightweightProcess* CreateProcRtpRelay(IN LpHandlePair pair, IN CcuConfiguration *conf);
 
 	virtual ~RtpRelayFactory(void);
 

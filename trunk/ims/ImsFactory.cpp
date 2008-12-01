@@ -32,7 +32,7 @@ ImsFactory::~ImsFactory(void)
 
 
 LightweightProcess *
-ImsFactory::CreateProcIms(LpHandlePair pair, CcuMediaData data)
+ImsFactory::CreateProcIms(LpHandlePair pair, CnxInfo data)
 {
 	return new ProcIms(pair, data);
 

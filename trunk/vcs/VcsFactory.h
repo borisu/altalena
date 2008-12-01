@@ -28,7 +28,7 @@ public:
 	VcsFactory(void);
 	virtual ~VcsFactory(void);
 
-	static LightweightProcess *CreateProcVcs(LpHandlePair pair, CcuMediaData data);
+	static LightweightProcess *CreateProcVcs(LpHandlePair pair, CnxInfo data);
 
 	static LightweightProcess *CreateProcVcs(LpHandlePair pair, CcuConfiguration  &conf);
 

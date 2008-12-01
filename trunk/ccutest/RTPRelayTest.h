@@ -6,7 +6,7 @@
 class RTPRelayTest
 {
 public:
-	RTPRelayTest(CcuMediaData local_addr);
+	RTPRelayTest(CnxInfo local_addr);
 	~RTPRelayTest(void);
 
 	void test();

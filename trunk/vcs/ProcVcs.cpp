@@ -25,7 +25,7 @@
 #include "SipStackFactory.h"
 
 
-ProcVcs::ProcVcs(IN LpHandlePair pair, IN CcuMediaData sip_stack_media)
+ProcVcs::ProcVcs(IN LpHandlePair pair, IN CnxInfo sip_stack_media)
 :LightweightProcess(pair,VCS_Q,	__FUNCTIONW__),
 _sipStackData(sip_stack_media),
 _conf(NULL)
@@ -35,7 +35,7 @@ _conf(NULL)
 ProcVcs::ProcVcs(IN LpHandlePair pair, IN CcuConfiguration &conf)
 :LightweightProcess(pair,VCS_Q,	__FUNCTIONW__),
 _conf(&conf),
-_sipStackData(conf.VcsMediaData())
+_sipStackData(conf.VcsCnxInfo())
 {
 }
 
@@ -273,7 +273,7 @@ LpHandlePair
 VcsCallHandlerCreator::CreateCallHandler(
 	IN LpHandlePair stack_pair, 
 	IN int stack_handle,
-	IN CcuMediaData offered_media)
+	IN CnxInfo offered_media)
 {
 	
 	DECLARE_NAMED_HANDLE_PAIR(new_handler_pair);

@@ -41,11 +41,11 @@ CcuRtpSession::~CcuRtpSession(void)
 CcuApiErrorCode
 CcuRtpSession::AllocateRTPConnection()
 {
-	return AllocateRTPConnection(CcuMediaData());
+	return AllocateRTPConnection(CnxInfo());
 }
 
 CcuApiErrorCode
-CcuRtpSession::AllocateRTPConnection(IN CcuMediaData remote_end)
+CcuRtpSession::AllocateRTPConnection(IN CnxInfo remote_end)
 {
 	FUNCTRACKER;
 
@@ -102,7 +102,7 @@ CcuRtpSession::AllocateRTPConnection(IN CcuMediaData remote_end)
 }
 
 CcuApiErrorCode
-CcuRtpSession::ModifyRTPConnection(IN CcuMediaData media_data)
+CcuRtpSession::ModifyRTPConnection(IN CnxInfo media_data)
 {
 	FUNCTRACKER;
 
@@ -258,14 +258,14 @@ CcuRtpSession::CloseRTPConnection()
 }
 
 
-CcuMediaData 
+CnxInfo 
 CcuRtpSession::LocalMediaData() const 
 { 
 	return _localMediaData; 
 }
 
 void 
-CcuRtpSession::LocalMediaData(CcuMediaData val) 
+CcuRtpSession::LocalMediaData(CnxInfo val) 
 { 
 	_localMediaData = val; 
 }

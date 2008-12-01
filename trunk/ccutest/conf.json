@@ -1,11 +1,18 @@
 {
-    "default_ip": "10.0.0.2",
-    "vcs_sip_ip": "10.0.0.2",
-    "vcs_sip_port": 5062,
+    "default_ip": "192.168.100.232",
+    
+    "vcs_sip_ip": "192.168.100.232",
+    "vcs_sip_port": 5060,
+    
+    
+	"rtp_relay_ip":	"192.168.100.232",
+	"rtp_relay_top_port" : 62000,
+	"rtp_relay_bottom_port" : 61000,
+    
     "agents": [
         {
             "name": "agent1",
-            "media_address": "sip:24001@10.0.0.1:5060" 
+            "media_address": "sip:24001@192.168.150.3:5060" 
         } 
     ] 
 }

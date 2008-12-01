@@ -42,7 +42,7 @@ class ProcIms :
 	public LightweightProcess
 {
 public:
-	ProcIms(LpHandlePair pair, CcuMediaData local_media);
+	ProcIms(LpHandlePair pair, CnxInfo local_media);
 
 	void real_run();
 
@@ -60,7 +60,7 @@ public:
 
 private:
 
-	CcuMediaData _localMedia;
+	CnxInfo _localMedia;
 
 	LpHandlePtr _streamerInbound;
 

@@ -21,6 +21,7 @@
 #include "LightweightProcess.h"
 #include "RTPConnection.h"
 #include "PortManager.h"
+#include "CcuConfiguration.h"
 
 using namespace std;
 
@@ -33,7 +34,11 @@ public:
 
 	ProcAudio(
 		IN LpHandlePair pair, 
-		IN CcuMediaData data);
+		IN CnxInfo data);
+
+	ProcAudio(
+		IN LpHandlePair pair, 
+		IN CcuConfiguration *conf);
 
 	virtual ~ProcAudio(void);
 	
@@ -49,7 +54,7 @@ private:
 
 	void ModifyConnection(IN CcuMsgPtr ptr);
 
-	CcuMediaData _mediaData;
+	CnxInfo _mediaData;
 
 	RTPConnectionMap _connMap;
 
@@ -58,6 +63,10 @@ private:
 	LpHandlePtr _receiverOutbound;
 
 	PortManager _portManager;
+
+	CcuConfiguration *_conf;
+
+	RelayMemoryManager _memManager;
 };
 
 class ProcRTPConnectionRemover :
@@ -82,5 +91,7 @@ private:
 	PortManager &_portsManager;
 
 	RTPConnection *_rtpConn;
+
+	
 
 };

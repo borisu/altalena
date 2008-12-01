@@ -60,7 +60,7 @@ namespace boost {
 }
 
 
-class CcuMediaData
+class CnxInfo
 {
 private:
 
@@ -78,7 +78,7 @@ private:
 public:
 
 
-	CcuMediaData(wstring s, int p_port)
+	CnxInfo(wstring s, int p_port)
 	{
 		addr.sin_family = AF_INET;
 		addr.sin_port = ::htons(p_port);
@@ -87,7 +87,7 @@ public:
 		saddr = ipporttos();
 	}
 
-	CcuMediaData(string s, int p_port)
+	CnxInfo(string s, int p_port)
 	{
 		addr.sin_family = AF_INET;
 		addr.sin_port = ::htons(p_port);
@@ -96,7 +96,7 @@ public:
 		saddr = ipporttos();
 	}
 
-	CcuMediaData(char *ip, int p_port)
+	CnxInfo(char *ip, int p_port)
 	{
 		addr.sin_family = AF_INET;
 		addr.sin_port = ::htons(p_port);
@@ -105,7 +105,7 @@ public:
 		saddr = ipporttos();
 	}
 
- 	CcuMediaData(in_addr p_in_addr, int p_port)
+ 	CnxInfo(in_addr p_in_addr, int p_port)
  	{
  		addr.sin_family = AF_INET;;
 		addr.sin_addr = p_in_addr;
@@ -115,18 +115,23 @@ public:
 		saddr = ipporttos();
  	}
 
-	CcuMediaData()
+	CnxInfo()
 	{
 		addr.sin_addr.s_addr = INADDR_NONE;
 		addr.sin_port = CCU_UNDEFINED;
 	}
 
-	bool is_valid() const
+	bool is_ip_valid() const
 	{
 		return (addr.sin_addr.s_addr != INADDR_NONE );
 	}
 
-	CcuMediaData(const CcuMediaData &x)
+	bool is_port_valid() const
+	{
+		return (addr.sin_port != CCU_UNDEFINED);
+	}
+
+	CnxInfo(const CnxInfo &x)
 	{
 		addr = x.addr;
 		saddr = x.saddr;
@@ -208,18 +213,18 @@ public:
 		return ::inet_ntoa(addr.sin_addr); 
 	}
 
-	friend int operator == (const CcuMediaData &right,const CcuMediaData &left);
+	friend int operator == (const CnxInfo &right,const CnxInfo &left);
 
 };
-BOOST_CLASS_EXPORT(CcuMediaData);
+BOOST_CLASS_EXPORT(CnxInfo);
 
 typedef 
-list<CcuMediaData> CcuMediaDataList;
+list<CnxInfo> CcuMediaDataList;
 
 
-wostream& operator << (wostream &ostream, const CcuMediaData *ptr);
+wostream& operator << (wostream &ostream, const CnxInfo *ptr);
 
-wostream& operator << (wostream &ostream, const CcuMediaData &ptr);
+wostream& operator << (wostream &ostream, const CnxInfo &ptr);
 
 
 //

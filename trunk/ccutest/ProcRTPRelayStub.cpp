@@ -101,7 +101,7 @@ ProcRTPRelayStub::AllocateAudioConnection(IN CcuMsgPtr ptr)
 		new CcuMsgRtpAllocateConnectionAck();
 
 	MockRtpConnection rtpConnection;
-	rtpConnection.local = CcuMediaData(DUMMY_RTP_ADDRESS,DUMMY_RTP_PORT);
+	rtpConnection.local = CnxInfo(DUMMY_RTP_ADDRESS,DUMMY_RTP_PORT);
 
 	
 	int  handle = ++_rtpHandleCounter;

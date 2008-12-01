@@ -22,10 +22,18 @@
 #include "RtpRelay.h"
 #include "ProcAudio.h"
 
-LightweightProcess *
-RtpRelayFactory::CreateProcRtpRelay(IN LpHandlePair pair, IN CcuMediaData data)
+LightweightProcess*
+RtpRelayFactory::CreateProcRtpRelay(IN LpHandlePair pair, IN CnxInfo data)
 {
 
 	return new ProcAudio(pair,data);
+
+}
+
+LightweightProcess*
+RtpRelayFactory::CreateProcRtpRelay(IN LpHandlePair pair, IN CcuConfiguration *conf)
+{
+
+	return new ProcAudio(pair,conf);
 
 }

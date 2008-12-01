@@ -36,7 +36,7 @@ class UACDialogUsageManager :
 public:
 	UACDialogUsageManager(
 		IN SipStack &sipStack,
-		IN CcuMediaData data,
+		IN CnxInfo data,
 		IN CcuHandlesMap &ccu_handles_map,
 		IN LightweightProcess &ccu_stack);
 
@@ -46,7 +46,7 @@ public:
 
 	virtual CcuApiErrorCode HangupCall(SipDialogContextPtr ptr);
 
-	virtual string CreateSdp(IN CcuMediaData &data);
+	virtual string CreateSdp(IN CnxInfo &data);
 
 	virtual void onNewSession(
 		IN ClientInviteSessionHandle s, 

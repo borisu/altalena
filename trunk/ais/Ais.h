@@ -45,7 +45,7 @@ public:
 
 	AgentInfo(const AgentInfo &other);
 
-	CcuMediaData media_address;
+	CnxInfo media_address;
 
 	wstring name;
 

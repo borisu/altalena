@@ -47,7 +47,7 @@ ImsSession::~ImsSession(void)
 
 
 CcuApiErrorCode
-ImsSession::PlayFile(IN CcuMediaData destination, 
+ImsSession::PlayFile(IN CnxInfo destination, 
 					 IN const wstring &file_name)
 {
 	
@@ -69,7 +69,7 @@ ImsSession::PlayFile(IN CcuMediaData destination,
 }
 
 CcuApiErrorCode
-ImsSession::AllocateIMSConnection(IN CcuMediaData remote_end, 
+ImsSession::AllocateIMSConnection(IN CnxInfo remote_end, 
 								  IN const wstring &file_name)
 {
 	FUNCTRACKER;
@@ -162,12 +162,12 @@ ImsSession::SyncStreamFile()
 }
 
 
-CcuMediaData ImsSession::ImsMediaData() const 
+CnxInfo ImsSession::ImsMediaData() const 
 { 
 	return _imsMediaData; 
 }
 
-void ImsSession::ImsMediaData(IN CcuMediaData val) 
+void ImsSession::ImsMediaData(IN CnxInfo val) 
 { 
 	_imsMediaData = val; 
 }

@@ -21,9 +21,9 @@
 #include "AisTest.h"
 #include "ProcAIS.h"
 
-static CcuMediaData g_localAddr;
+static CnxInfo g_localAddr;
 
-AisTest::AisTest(const CcuMediaData &local_addr)
+AisTest::AisTest(const CnxInfo &local_addr)
 {
 	g_localAddr = local_addr;
 }

@@ -66,8 +66,8 @@ CcuConfiguration::AddAgent(const Agent &agent)
 
 }
 
-CcuMediaData
-CcuConfiguration::DefaultIp()
+CnxInfo
+CcuConfiguration::DefaultCnxInfo()
 {
 	mutex::scoped_lock lock(_mutex);
 
@@ -75,11 +75,39 @@ CcuConfiguration::DefaultIp()
 
 }
 
-CcuMediaData
-CcuConfiguration::VcsMediaData()
+CnxInfo
+CcuConfiguration::VcsCnxInfo()
 {
 	mutex::scoped_lock lock(_mutex);
 
 	return _vcsMediaData;
 
 }
+
+int
+CcuConfiguration::RtpRelayTopPort()
+{
+	mutex::scoped_lock lock(_mutex);
+
+	return _rtpRelayTopPort;
+
+}
+
+int
+CcuConfiguration::RtpRelayBottomPort()
+{
+	mutex::scoped_lock lock(_mutex);
+
+	return _rtpRelayBottomPort;
+
+}
+
+CnxInfo
+CcuConfiguration::RtpRelayIp()
+{
+	mutex::scoped_lock lock(_mutex);
+
+	return _rtpRelayIp;
+
+}
+

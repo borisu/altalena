@@ -10,9 +10,9 @@ struct MockRtpConnection
 {
 	MockRtpConnection();
 
-	CcuMediaData local;
+	CnxInfo local;
 
-	CcuMediaData remote;
+	CnxInfo remote;
 
 	MockRtpConnection(const MockRtpConnection& other);
 };

@@ -37,7 +37,7 @@ class UASDialogUsageManager:
 public:
 	UASDialogUsageManager(
 		IN SipStack &stack, 
-		IN CcuMediaData ipAddr,
+		IN CnxInfo ipAddr,
 		IN ICallHandlerCreatorPtr call_handler_creator,
 		IN CcuHandlesMap &ccu_handles_map,
 		IN LightweightProcess &ccu_stack);
@@ -62,12 +62,12 @@ public:
 
 	virtual void onConnected(InviteSessionHandle, const SipMessage& msg);
 
-	string CreateSdp(CcuMediaData &data);
+	string CreateSdp(CnxInfo &data);
 
 private:
 
 	
-	CcuMediaData _ipAddr;
+	CnxInfo _ipAddr;
 
 	SharedPtr<MasterProfile> _uasMasterProfile;
 

@@ -30,7 +30,7 @@ class StreamingObject : public UIDOwner
 {
 public:
 	StreamingObject(
-		IN const CcuMediaData &media_data, 
+		IN const CnxInfo &media_data, 
 		IN const wstring &file_name, 
 		IN ImsHandleId handle_id);
 
@@ -46,13 +46,13 @@ public:
 
 	int Port() const;
 
-	CcuMediaData RemoteMediaData() const;
+	CnxInfo RemoteMediaData() const;
 
-	void RemoteMediaData(CcuMediaData val);
+	void RemoteMediaData(CnxInfo val);
 
 private:
 
-	CcuMediaData  _remoteMediaData;
+	CnxInfo  _remoteMediaData;
 	
 	wstring _fileName;
 

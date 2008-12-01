@@ -91,11 +91,11 @@ public:
 
 	ProcSipStack(
 		IN LpHandlePair pair, 
-		IN CcuMediaData data);
+		IN CnxInfo data);
 
 	ProcSipStack(
 		IN LpHandlePair pair, 
-		IN CcuMediaData data,
+		IN CnxInfo data,
 		IN ICallHandlerCreatorPtr handler_creator);
 
 	virtual ~ProcSipStack(void);
@@ -116,7 +116,7 @@ public:
 
 	virtual void ShutDown();
 
-	CcuMediaData _ipAddr;
+	CnxInfo _ipAddr;
 
 	Time _retryTimeout;
 
