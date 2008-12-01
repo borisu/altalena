@@ -83,7 +83,7 @@ public:
 
 	  RTPConnection *rtp_connection_source;
 
-	  CcuMediaData remote_media_data;
+	  CnxInfo remote_media_data;
 	  
 };
 
@@ -104,7 +104,7 @@ public:
 
 	void ModifyConnection(
 		IN RTPConnection *connection, 
-		IN CcuMediaData &media_data);
+		IN CnxInfo &media_data);
 
 	void RemoveFromCollections(
 		IN RTPConnection *connection);

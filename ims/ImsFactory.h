@@ -32,7 +32,7 @@ class ImsFactory
 public:
 	ImsFactory(void);
 
-	static LightweightProcess *CreateProcIms(LpHandlePair pair, CcuMediaData data);
+	static LightweightProcess *CreateProcIms(LpHandlePair pair, CnxInfo data);
 
 	static ImsSessionPtr CreateImsSession();
 

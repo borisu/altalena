@@ -95,7 +95,7 @@ SimpleRTPStreamer::playTime()
 }
 
 CcuApiErrorCode
-SimpleRTPStreamer::SyncPlay(string file_name, CcuMediaData data)
+SimpleRTPStreamer::SyncPlay(string file_name, CnxInfo data)
 {
 
 	WSADATA dat;

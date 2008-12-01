@@ -54,7 +54,7 @@ ResipInterruptor::SignalDataOut()
 }
 
 ProcSipStack::ProcSipStack(IN LpHandlePair pair, 
-						   IN CcuMediaData data):
+						   IN CnxInfo data):
 LightweightProcess(pair,__FUNCTIONW__),
 _shutDownFlag(false),
 _callHandlerCreator(ICallHandlerCreatorPtr((ICallHandlerCreator*)NULL)),
@@ -67,7 +67,7 @@ _ipAddr(data)
 }
 
 ProcSipStack::ProcSipStack(IN LpHandlePair pair, 
-						   IN CcuMediaData data,
+						   IN CnxInfo data,
 						   IN ICallHandlerCreatorPtr handler_creator):
 LightweightProcess(pair,__FUNCTIONW__),
 _shutDownFlag(false),

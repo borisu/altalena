@@ -53,7 +53,7 @@ public:
 	virtual LpHandlePair CreateCallHandler(
 		IN LpHandlePair stack_pair, 
 		IN int stack_handle,
-		IN CcuMediaData offered_media);
+		IN CnxInfo offered_media);
 
 private:
 
@@ -71,7 +71,7 @@ public:
 
 #pragma TODO("Leave only ctor that receives configuration object as a parameter")
 
-	ProcVcs(IN LpHandlePair pair, IN CcuMediaData sip_stack_media);
+	ProcVcs(IN LpHandlePair pair, IN CnxInfo sip_stack_media);
 
 	ProcVcs(IN LpHandlePair pair, IN CcuConfiguration &conf);
 
@@ -95,7 +95,7 @@ protected:
 
 private:
 
-	CcuMediaData _sipStackData;
+	CnxInfo _sipStackData;
 
 	CcuConfiguration *_conf;
 

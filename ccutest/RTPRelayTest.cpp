@@ -23,9 +23,9 @@
 #include "CcuRTPSession.h"
 
 
-static CcuMediaData g_localAddr;
+static CnxInfo g_localAddr;
 
-RTPRelayTest::RTPRelayTest(CcuMediaData local_addr)
+RTPRelayTest::RTPRelayTest(CnxInfo local_addr)
 {
 	g_localAddr = local_addr;
 
@@ -82,22 +82,22 @@ ProcRTPTester::test_early_media()
 	// Allocate first connection
 	//
 	CcuRtpSession session1(*this);
-	CcuMediaData remote_end1;
+	CnxInfo remote_end1;
 
 	assert (CCU_SUCCESS(
 		session1.AllocateRTPConnection(
-				CcuMediaData(g_localAddr.inaddr(), 60010)))) ;
+				CnxInfo(g_localAddr.inaddr(), 60010)))) ;
 
 
 	//
 	// Allocate second connection
 	//
 	CcuRtpSession session2(*this);
-	CcuMediaData remote_end2;
+	CnxInfo remote_end2;
 	
 	assert (CCU_SUCCESS(
 		session2.AllocateRTPConnection(	
-			CcuMediaData(g_localAddr.inaddr(), 60012))));
+			CnxInfo(g_localAddr.inaddr(), 60012))));
 
 	//
 	// Bridge Connections
@@ -142,7 +142,7 @@ ProcRTPTester::test_late_media()
 	// Allocate first connection
 	//
 	CcuRtpSession session1(*this);
-	CcuMediaData remote_end1;
+	CnxInfo remote_end1;
 	
 
 	// early media
@@ -152,15 +152,15 @@ ProcRTPTester::test_late_media()
 	// Allocate first connection
 	//
 	CcuRtpSession session2(*this);
-	CcuMediaData remote_end2;
+	CnxInfo remote_end2;
 
 	
-	assert(CCU_SUCCESS(session2.AllocateRTPConnection(CcuMediaData(g_localAddr.inaddr(), 60012))));
+	assert(CCU_SUCCESS(session2.AllocateRTPConnection(CnxInfo(g_localAddr.inaddr(), 60012))));
 
 	//
 	// Modify first connection
 	//
-	assert(CCU_SUCCESS(session1.ModifyRTPConnection(CcuMediaData(g_localAddr.inaddr(), 60010))));
+	assert(CCU_SUCCESS(session1.ModifyRTPConnection(CnxInfo(g_localAddr.inaddr(), 60010))));
 	
 
 

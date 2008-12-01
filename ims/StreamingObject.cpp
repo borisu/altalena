@@ -25,7 +25,7 @@
 #define CCU_IMS_DEFAULT_CHANNEL_NUMBER 1
 
 
-StreamingObject::StreamingObject(IN const CcuMediaData &remote_media_data, 
+StreamingObject::StreamingObject(IN const CnxInfo &remote_media_data, 
 								 IN const wstring &file_name,
 								 IN ImsHandleId handle_id):
 _remoteMediaData(remote_media_data),
@@ -50,14 +50,14 @@ StreamingObject::~StreamingObject(void)
 }
 
 
-CcuMediaData 
+CnxInfo 
 StreamingObject::RemoteMediaData() const 
 { 
 	return _remoteMediaData; 
 }
 
 void 
-StreamingObject::RemoteMediaData(CcuMediaData val) 
+StreamingObject::RemoteMediaData(CnxInfo val) 
 { 
 	_remoteMediaData = val; 
 }

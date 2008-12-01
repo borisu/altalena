@@ -22,9 +22,9 @@
 #include "ImsFactory.h"
 
 
-static CcuMediaData g_localAddr;
+static CnxInfo g_localAddr;
 
-ImsTest::ImsTest(CcuMediaData local_addr)
+ImsTest::ImsTest(CnxInfo local_addr)
 {
 	g_localAddr = local_addr;
 }
@@ -67,7 +67,7 @@ ImsTester::real_run()
 
 	CcuConnectionId id = CCU_UNDEFINED;
 	
-	assert(CCU_SUCCESS(ims_session->PlayFile(CcuMediaData("192.168.100.231", 5666), L"C:\\SOUNDS\\welcome.wav")));
+	assert(CCU_SUCCESS(ims_session->PlayFile(CnxInfo("192.168.100.231", 5666), L"C:\\SOUNDS\\welcome.wav")));
 	
 
 	END_FORKING_REGION;	

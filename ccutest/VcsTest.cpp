@@ -24,9 +24,9 @@
 #include "ImsFactory.h"
 #include "RtpRelay.h"
 
-static CcuMediaData g_localAddr;
+static CnxInfo g_localAddr;
 
-VcsTest::VcsTest(CcuMediaData local_addr)
+VcsTest::VcsTest(CnxInfo local_addr)
 {
 	g_localAddr = local_addr;
 }
@@ -93,7 +93,7 @@ ProcVcsTester::real_run()
  	//
  	// Start VCS
  	//
- 	CcuMediaData vcs_media = CcuMediaData(g_localAddr.inaddr(),5060);
+ 	CnxInfo vcs_media = CnxInfo(g_localAddr.inaddr(),5060);
  	DECLARE_NAMED_HANDLE_PAIR(vcs_pair);
  	FORK(VcsFactory::CreateProcVcs(vcs_pair,vcs_media));
  	assert(CCU_SUCCESS(WaitTillReady(Seconds(5), vcs_pair)));

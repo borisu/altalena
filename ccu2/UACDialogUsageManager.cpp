@@ -33,7 +33,7 @@
 
 UACDialogUsageManager::UACDialogUsageManager(
 	IN SipStack &sipStack,
-	IN CcuMediaData data,
+	IN CnxInfo data,
 	IN CcuHandlesMap &ccu_handles_map,
 	IN LightweightProcess &ccu_stack):
 DialogUsageManager(sipStack),
@@ -65,7 +65,7 @@ _ccu_stack(ccu_stack)
 
 #pragma TODO ("Transfer to SIP common and make return sdp instead of string")
 string
-UACDialogUsageManager::CreateSdp(IN CcuMediaData &data)
+UACDialogUsageManager::CreateSdp(IN CnxInfo &data)
 {
 
 	string empty_str = "";
@@ -236,7 +236,7 @@ UACDialogUsageManager::onConnected(IN ClientInviteSessionHandle is, IN const Sip
 	const resip::SdpContents sdp = 
 		is->getRemoteSdp();
 
-	CcuMediaData data = 
+	CnxInfo data = 
 		CreateMediaData(sdp);
 	ack->remote_media = data;
 

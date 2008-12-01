@@ -30,25 +30,25 @@ public:
 	virtual ~CcuRtpSession(void);
 
 	CcuApiErrorCode	AllocateRTPConnection(
-		IN  CcuMediaData remote_end);
+		IN  CnxInfo remote_end);
 
 	CcuApiErrorCode	AllocateRTPConnection();
 
 	CcuApiErrorCode	ModifyRTPConnection(
-		IN CcuMediaData media_data);
+		IN CnxInfo media_data);
 
 	CcuApiErrorCode	BridgeRTPConnection(
 		IN const CcuRtpSession &other);
 
 	CcuApiErrorCode CloseRTPConnection(); 
 
-	CcuMediaData LocalMediaData() const;
+	CnxInfo LocalMediaData() const;
 
-	void LocalMediaData(CcuMediaData val);
+	void LocalMediaData(CnxInfo val);
 
 private:
 
-	CcuMediaData _localMediaData;
+	CnxInfo _localMediaData;
 	
 	CcuConnectionId _connectionId;
 

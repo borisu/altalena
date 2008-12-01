@@ -32,16 +32,32 @@
 #define CCU_RTP_PORT_RANGE_END		6010
 
 
-ProcAudio::ProcAudio(IN LpHandlePair pair, IN CcuMediaData data)
+ProcAudio::ProcAudio(IN LpHandlePair pair, IN CnxInfo data)
 :LightweightProcess(pair,
 					RTP_RELAY_Q,
 					__FUNCTIONW__),
 _receiverInbound(new LpHandle()),
 _receiverOutbound(new LpHandle()),
 _mediaData(data),
+_conf(NULL),
 _portManager(CCU_RTP_PORT_RANGE_END,CCU_RTP_PORT_RANGE_START)
 {
 	
+	FUNCTRACKER;
+}
+
+
+ProcAudio::ProcAudio(IN LpHandlePair pair, IN CcuConfiguration *conf)
+:LightweightProcess(pair,
+					RTP_RELAY_Q,
+					__FUNCTIONW__),
+_receiverInbound(new LpHandle()),
+_receiverOutbound(new LpHandle()),
+_conf(conf),
+_mediaData(conf->RtpRelayIp()),
+_portManager(conf->RtpRelayTopPort(),conf->RtpRelayBottomPort())
+{
+
 	FUNCTRACKER;
 }
 
@@ -273,13 +289,13 @@ ProcAudio::BridgeConnections(CcuMsgPtr ptr)
 
 #pragma TODO ("Log correctly more than one destination")
 
-	CcuMediaData remote1;
+	CnxInfo remote1;
 	if (!conn1->DestinationsList().empty())
 	{
 		remote1 =*conn1->DestinationsList().begin();
 	}
 
-	CcuMediaData remote2;
+	CnxInfo remote2;
 	if (!conn2->DestinationsList().empty())
 	{
 		remote2 =*conn2->DestinationsList().begin();
@@ -313,11 +329,11 @@ ProcAudio::AllocateAudioConnection(CcuMsgPtr ptr)
 	while(curr_port_slot_candidate != CCU_UNDEFINED)
 	{
 			
-		conn = 	new RTPConnection(curr_port_slot_candidate);
+		conn = 	new RTPConnection(curr_port_slot_candidate, &_memManager);
 
 		if (conn->Init() == CCU_API_SUCCESS )
 		{
-			if (ac_msg->remote_end.is_valid() &&
+			if (ac_msg->remote_end.is_ip_valid() &&
 				conn->SetDestination(ac_msg->remote_end) != CCU_API_SUCCESS)
 			{
 
@@ -364,7 +380,7 @@ ProcAudio::AllocateAudioConnection(CcuMsgPtr ptr)
 		*success = new CcuMsgRtpAllocateConnectionAck();
 
 	success->connection_id = conn->ConnectionId();
-	success->connection_media = CcuMediaData(
+	success->connection_media = CnxInfo(
 		_mediaData.inaddr(),
 		curr_port_slot_candidate);
 

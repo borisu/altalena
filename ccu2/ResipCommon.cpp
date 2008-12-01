@@ -75,7 +75,7 @@ stack_handle(CCU_UNDEFINED)
 
 }
 
-CcuMediaData 
+CnxInfo 
 CreateMediaData(const SdpContents& sdp)
 {
 	const SdpContents::Session &s = sdp.session();
@@ -85,6 +85,6 @@ CreateMediaData(const SdpContents& sdp)
 	const SdpContents::Session::Medium &medium = s.media().front();
 	int port = medium.port();
 
-	return CcuMediaData(addr,port);
+	return CnxInfo(addr,port);
 }
 

@@ -21,11 +21,10 @@
 
 #include "Ccu.h"
 #include "UIDOwner.h"
+#include "RelayMemoryManager.h"
 
 using namespace std;
 using namespace boost;
-
-#pragma message("TODO: take this definitions into special file")
 
 typedef ::real_t	rtp_real_t;
 typedef ::uint64_t  rtp_uint64_t;
@@ -34,40 +33,39 @@ typedef ::uint8_t   rtp_uint8_t;
 typedef ::int64_t   rtp_int64_t;
 
 
-typedef shared_ptr<RTPPacket> RTPPacketPtr;
-
-struct RtpReceiveMsg;
-
-typedef list<RtpReceiveMsg> RtpPacketsList;
-
-struct RtpReceiveMsg
+struct RtpReceiveMsg :
+	public boost::noncopyable, public RTPMemoryObject
 {
 
-	RtpReceiveMsg(RTPPacket *p);
+	RtpReceiveMsg(RTPPacket *p, RelayMemoryManager *mngr = NULL);
 
 	RtpReceiveMsg(const RtpReceiveMsg &p);
 
-	RTPPacketPtr pPack;
+	~RtpReceiveMsg();
 
-	const rtp_uint8_t *pCName;
+	RTPPacket *rtp_packet;
+
+	const rtp_uint8_t *cname;
 
 	MIPTime jitter;
 
-	rtp_real_t timestampUnit;
+	rtp_real_t timestamp_unit;
 
-	rtp_uint64_t sourceID;
+	rtp_uint64_t source_id;
 
-	MIPTime m_timingInfWallclock;
+	MIPTime timing_info_wallclock;
 
-	rtp_uint32_t m_timingInfTimestamp;
+	rtp_uint32_t timing_info_timestamp;
 
-	bool m_timingInfoSet;
+	bool timing_info_set;
 
 	void TimingInfo(MIPTime t, rtp_uint32_t timestamp);
 
 	bool TimingInfo(MIPTime *t, rtp_uint32_t *timestamp);
 
 };
+
+typedef list<RtpReceiveMsg*> RtpPacketsList;
 
 
 class RTPConnection:
@@ -76,21 +74,23 @@ class RTPConnection:
 	
 public:
 
-	RTPConnection(UINT port);
+	RTPConnection(UINT port, RelayMemoryManager *mngr = NULL);
 
 	virtual ~RTPConnection(void);
 
 	virtual CcuApiErrorCode Init(); 
 
-	virtual CcuApiErrorCode AddDestination(IN CcuMediaData &data);
+	virtual CcuApiErrorCode AddDestination(IN CnxInfo &data);
 
-	virtual CcuApiErrorCode SetDestination(IN CcuMediaData &data);
+	virtual CcuApiErrorCode SetDestination(IN CnxInfo &data);
 
 	virtual void Destroy();
 
-	virtual void Poll(OUT RtpPacketsList &packetsList, IN size_t overflow);
+	virtual CcuApiErrorCode Poll(OUT RtpPacketsList &packetsList, IN size_t overflow, IN bool relay_mode);
 
-	virtual void Send(IN RtpPacketsList &packetsList);
+	virtual void Send(IN RtpPacketsList &packetsList, bool releasePacket);
+
+	
 
 	virtual rtp_uint64_t SourceID(IN const RTPPacket *pPack, IN const RTPSourceData *pSourceData) const
 	{
@@ -114,5 +114,7 @@ private:
 	RTPSession _rtpSession;
 
 	unsigned int _previousTimestamp;
+
+	RelayMemoryManager *_memMngr;
 
 };

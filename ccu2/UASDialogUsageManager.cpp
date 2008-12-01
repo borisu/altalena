@@ -29,7 +29,7 @@
 
 UASDialogUsageManager::UASDialogUsageManager(
 	IN SipStack &resip_stack, 
-	IN CcuMediaData ip_addr,
+	IN CnxInfo ip_addr,
 	IN ICallHandlerCreatorPtr call_handler_creator,
 	IN CcuHandlesMap &ccu_handles_map,
 	IN LightweightProcess &ccu_stack):
@@ -96,7 +96,7 @@ UASDialogUsageManager::UponCallOfferedAck(CcuMsgPtr req, SipDialogContextPtr ptr
 }
 
 string
-UASDialogUsageManager::CreateSdp(CcuMediaData &data)
+UASDialogUsageManager::CreateSdp(CnxInfo &data)
 {
 
 	string empty_str = "";
@@ -164,7 +164,7 @@ UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, co
 	{
 		ServerInviteSessionHandle sis = _defaultHandlersMap[is->getAppDialog()];
 		// default port
-		string sdpStr = CreateSdp(CcuMediaData(_ipAddr.inaddr(), 60555));
+		string sdpStr = CreateSdp(CnxInfo(_ipAddr.inaddr(), 60555));
 
 		Data data_buffer(sdpStr.c_str());
 
@@ -196,7 +196,7 @@ UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, co
 	LpHandlePair pair = _callHandlerCreator->CreateCallHandler(
 		_ccu_stack._pair,
 		ctx_ptr->stack_handle,
-		CcuMediaData(addr,port));
+		CnxInfo(addr,port));
 
 	ctx_ptr->call_handler_inbound = pair.inbound;
 

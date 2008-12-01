@@ -22,53 +22,59 @@
 #include "RTPConnection.h"
 
 
-#define CCU_MAX_RTP_PACKET_SIZE		  64000
-#define CCU_DEFAULT_RTP_SAMPLING_RATE 8000
+#define CCU_MAX_RTP_PACKET_SIZE			64000
+#define CCU_DEFAULT_RTP_SAMPLING_RATE	8000
+
+#define RTPMEM_TYPE_RTP_MSG_RECEIVE		5000
 
 
-
-RtpReceiveMsg::RtpReceiveMsg(RTPPacket *p):
-pPack(p),
-pCName(NULL),
+RtpReceiveMsg::RtpReceiveMsg(RTPPacket *rtpPacket, RelayMemoryManager *memMngr):
+RTPMemoryObject(memMngr),
+rtp_packet(rtpPacket),
+cname(NULL),
 jitter(0),
-timestampUnit(0),
-sourceID (-1),
-m_timingInfWallclock (-1),
-m_timingInfTimestamp (-1),
-m_timingInfoSet (false)
+timestamp_unit(0),
+source_id (CCU_UNDEFINED),
+timing_info_wallclock (CCU_UNDEFINED),
+timing_info_timestamp (CCU_UNDEFINED),
+timing_info_set(false)
 {
 
-}
-
-RtpReceiveMsg::RtpReceiveMsg(const RtpReceiveMsg &p)
-{
-	pPack = p.pPack;
-	pCName = p.pCName;
-	jitter = p.jitter;
-	timestampUnit = p.timestampUnit;
-	sourceID = p.sourceID;
-	m_timingInfWallclock = p.m_timingInfWallclock;
-	m_timingInfTimestamp = p.m_timingInfTimestamp;
-	m_timingInfoSet = p.m_timingInfoSet;
 }
 
 void 
 RtpReceiveMsg::TimingInfo(MIPTime t, rtp_uint32_t timestamp)
 {
-	m_timingInfWallclock = t; m_timingInfTimestamp = timestamp; m_timingInfoSet = true; 
+	timing_info_wallclock = t; 
+	timing_info_timestamp = timestamp; 
+	timing_info_set = true; 
 }
 
 bool 
 RtpReceiveMsg::TimingInfo(MIPTime *t, rtp_uint32_t *timestamp) 
 { 
-	if (!m_timingInfoSet) return false; *t = m_timingInfWallclock; *timestamp = m_timingInfTimestamp; return true; 
+	if (!timing_info_set) 
+	{
+		return false; 
+	};
+
+	*t = timing_info_wallclock; 
+	*timestamp = timing_info_timestamp;
+
+	return true; 
+}
+
+RtpReceiveMsg::~RtpReceiveMsg()
+{
+	RTPDelete(rtp_packet,GetMemoryManager());
 }
 
 
-RTPConnection::RTPConnection(UINT localPort):
+RTPConnection::RTPConnection(UINT localPort, RelayMemoryManager *mngr ):
 _localPort(localPort),
-_rtpSession(NULL),
-_previousTimestamp(CCU_UNDEFINED)
+_rtpSession(mngr),
+_previousTimestamp(CCU_UNDEFINED),
+_memMngr(mngr)
 {
 	
 }
@@ -111,7 +117,7 @@ RTPConnection::Init()
 }
 
 CcuApiErrorCode 
-RTPConnection::AddDestination(IN CcuMediaData &data)
+RTPConnection::AddDestination(IN CnxInfo &data)
 {
 	
 	int status = _rtpSession.AddDestination(
@@ -146,22 +152,32 @@ RTPConnection::Destroy()
 	
 }
 
-void
-RTPConnection::Poll(RtpPacketsList &packetsList, size_t overflow)
+CcuApiErrorCode
+RTPConnection::Poll(OUT RtpPacketsList &packetsList, IN size_t overflow, IN bool relayMode)
 {
 	
-	int res = _rtpSession.Poll(true);
+	//
+	// The code of the function was mostly cut and paste
+	// from 'bool MIPRTPComponent::processNewPackets(int64_t iteration)'.
+	// See it for reference.
+	//
+	int res = _rtpSession.Poll(relayMode);
 	if ( res != 0)
 	{
 		LogWarn("Error polling connection stack res=[" << res << "] description=[" << RTPGetErrorString(res) << "]");
-		return;
+		return CCU_API_FAILURE;
 	}
 
+	//
+	// Mostly for synchronization purposes,
+	// Not so relevant in our single threaded
+	// model, but I left it in any case.
+	//
 	res = _rtpSession.BeginDataAccess();
 	if ( res != 0)
 	{
 		LogWarn("Cannot begin data access res=[" << res << "] description=[" << RTPGetErrorString(res) << "]");
-		return;
+		return CCU_API_FAILURE;
 	}
 
 
@@ -171,22 +187,31 @@ RTPConnection::Poll(RtpPacketsList &packetsList, size_t overflow)
 		{
 			RTPSourceData *srcData = _rtpSession.GetCurrentSourceInfo();
 
-			size_t cnameLength;
-			const rtp_uint8_t *pCName = srcData->SDES_GetCNAME(&cnameLength);
-			rtp_uint32_t jitterSamples = srcData->INF_GetJitter();
-			rtp_real_t jitterSeconds = 0;
-			rtp_real_t tsUnit;
-			rtp_real_t tsUnitEstimation;
-			bool setTimingInfo = false;
-			rtp_uint32_t timingInfTimestamp = 0;
-			MIPTime timingInfWallclock(0);
+			
+			//
+			// Get common data of the source 
+			// (Not particular to certain RTP packet).
+			//
+			size_t				cname_length		= 0;
+			const rtp_uint8_t	*cname				= srcData->SDES_GetCNAME(&cname_length);
+			rtp_uint32_t		jitter_samples		= srcData->INF_GetJitter();
+			rtp_real_t			jitter_seconds		= 0;
+			rtp_real_t			ts_unit				= 0;
+			rtp_real_t			ts_unit_ustimation	= 0;
+			bool				setTimingInfo		= false;
+			rtp_uint32_t		timingInfTimestamp	= 0;
+			MIPTime				timingInfWallclock(0);
 
-			if ((tsUnit = (rtp_real_t)srcData->GetTimestampUnit()) > 0)
-				jitterSeconds = (rtp_real_t)jitterSamples*tsUnit;
+			if ((ts_unit = (rtp_real_t)srcData->GetTimestampUnit()) > 0)
+			{
+				jitter_seconds = (rtp_real_t)jitter_samples*ts_unit;
+			}
 			else
 			{
-				if ((tsUnitEstimation = (rtp_real_t)srcData->INF_GetEstimatedTimestampUnit()) > 0)
-					jitterSeconds = (rtp_real_t)jitterSamples*tsUnitEstimation;
+				if ((ts_unit_ustimation = (rtp_real_t)srcData->INF_GetEstimatedTimestampUnit()) > 0)
+				{
+					jitter_seconds = (rtp_real_t)jitter_samples*ts_unit_ustimation;
+				}
 			}
 
 			if (srcData->SR_HasInfo())
@@ -203,48 +228,44 @@ RTPConnection::Poll(RtpPacketsList &packetsList, size_t overflow)
 			}
 
 			RTPPacket *pPack = NULL;
-			
-
 			while ((pPack = _rtpSession.GetNextPacket()) != 0)
 			{
-				//
 				// overflow => discard packet
-				//
 				if (packetsList.size() > overflow)
 				{
+					RTPDelete(pPack, _memMngr);
 					continue;
 				}
 
-				_ASSERT(pPack != NULL);
-#ifndef DEBUG
-				if (pPack == NULL)
-				{
-					continue;
-				}
-#endif
-				
-				RtpReceiveMsg rtpMsg(pPack); 
+				RtpReceiveMsg *rtpMsg = RTPNew(_memMngr, RTPMEM_TYPE_RTP_MSG_RECEIVE) RtpReceiveMsg(pPack,_memMngr); 
 
-				rtpMsg.jitter = MIPTime(jitterSeconds);
-				if (tsUnit > 0)
-					rtpMsg.timestampUnit = tsUnit;
+				// some strange calculations
+				// which I don't fully understand
+
+				rtpMsg->jitter = MIPTime(jitter_seconds);
+
+				if (ts_unit > 0)
+					rtpMsg->timestamp_unit = ts_unit;
+
 				if (setTimingInfo)
-					rtpMsg.TimingInfo(timingInfWallclock, timingInfTimestamp);
-				rtpMsg.sourceID = SourceID(pPack, srcData);
-				
+					rtpMsg->TimingInfo(timingInfWallclock, timingInfTimestamp);
 
-				
+				rtpMsg->source_id = SourceID(pPack, srcData);
 
 				packetsList.push_back(rtpMsg);
 			}
+
 		} while (_rtpSession.GotoNextSourceWithData());
 	}
+
 	_rtpSession.EndDataAccess();
+
+	return CCU_API_SUCCESS;
 
 }
 
 CcuApiErrorCode
-RTPConnection::SetDestination(IN CcuMediaData &data)
+RTPConnection::SetDestination(IN CnxInfo &data)
 {
 	_rtpSession.ClearDestinations();
 
@@ -275,51 +296,36 @@ RTPConnection::DestinationsList()
 
 
 void
-RTPConnection::Send(RtpPacketsList &packetsList)
+RTPConnection::Send(RtpPacketsList &packetsList, bool releasePacket)
 {
 
 	for(RtpPacketsList::iterator i = packetsList.begin(); i!=packetsList.end(); i++)
 	{
-		RtpReceiveMsg *msg = &(*i);
-		Send(msg->pPack.get());
+		RtpReceiveMsg *msg = (*i);
+		Send(msg->rtp_packet);
+
+		if (!releasePacket)
+		{
+			continue;
+		}
+
+		i = packetsList.erase(i);
+		RTPDelete(msg, _memMngr);
+
+		if ( i == packetsList.end())
+		{
+			break;
+		}
 	}
+
 }
 
 CcuApiErrorCode
 RTPConnection::Send(RTPPacket *packet)
 {
 
-	// to get over the library limitation that 
-	// receives only timestamp incremental and
-	// not exact timestamp value (exactly what 
-	// i need to relay the packet). I use this 
-	// trick to calculate the incremental which
-	// will bring me to exact timestamp value
+	int status = _rtpSession.RelayPacket(packet->GetRawPacket());
 
-
-	int status = _rtpSession.RelayPacket(*packet);
-	
-// 	unsigned int timestamp_increment  = 0;
-// 
-// 	if (_previousTimestamp == CCU_UNDEFINED)
-// 	{
-// 		timestamp_increment = packet->GetTimestamp();
-// 	} 
-// 	else
-// 	{
-// 		timestamp_increment = packet->GetTimestamp() - _previousTimestamp;
-// 	}
-// 
-// 	_previousTimestamp = packet->GetTimestamp();
-// 	
-// #pragma TODO ("it may not work with reordering of packets because of unsigned conversions") 
-// 
-// 	int status = _rtpSession.SendPacket(
-// 		packet->GetPayloadData(),
-// 		packet->GetPayloadLength(),
-// 		packet->GetPayloadType(),
-// 		packet->HasMarker(),
-// 		timestamp_increment);
 
 	if (status < 0)
 	{

@@ -84,7 +84,7 @@ ProcStackStub::UponMakeCall(CcuMsgPtr ptr)
 
 	ack->stack_call_handle = handle_counter ++;
 
-	ack->remote_media = CcuMediaData(DUMMY_STACK_REMOTE_IP,(int)DUMMY_STACK_REMOTE_PORT);
+	ack->remote_media = CnxInfo(DUMMY_STACK_REMOTE_IP,(int)DUMMY_STACK_REMOTE_PORT);
 
 	SendResponse(ptr,ack);
 

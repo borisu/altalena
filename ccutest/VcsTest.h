@@ -6,7 +6,7 @@ class VcsTest
 {
 public:
 
-	VcsTest(CcuMediaData local_addr);
+	VcsTest(CnxInfo local_addr);
 
 	 void test();
 
@@ -14,7 +14,7 @@ public:
 
 private:
 
-	CcuMediaData _localAddr;
+	CnxInfo _localAddr;
 };
 
 

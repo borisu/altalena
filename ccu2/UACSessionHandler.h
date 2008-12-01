@@ -19,7 +19,7 @@ class UACSessionHandler :
 	RegistrationSessionMap _registrationMap;
 
 public:
-	UACSessionHandler(CcuMediaData data);
+	UACSessionHandler(CnxInfo data);
 
 	virtual ~UACSessionHandler(void);
 

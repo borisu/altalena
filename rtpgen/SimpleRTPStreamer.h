@@ -34,7 +34,7 @@ public:
 
 	virtual CcuApiErrorCode SyncPlay(
 		IN string file_name, 
-		IN CcuMediaData data);
+		IN CnxInfo data);
 
 	long playTime();
 

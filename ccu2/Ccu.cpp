@@ -24,7 +24,7 @@
 using namespace std;
 using namespace csp;
 
-wostream& operator << (wostream &ostream,  CcuMediaData *ptr)
+wostream& operator << (wostream &ostream,  CnxInfo *ptr)
 {
 	if (ptr == NULL)
 	{
@@ -34,12 +34,12 @@ wostream& operator << (wostream &ostream,  CcuMediaData *ptr)
 	return ostream << ptr->ipporttos();
 }
 
-wostream& operator << (wostream &ostream, const CcuMediaData &ptr)
+wostream& operator << (wostream &ostream, const CnxInfo &ptr)
 {
 	return ostream << ptr.ipporttos();
 }
 
-int operator == (const CcuMediaData &right,const CcuMediaData &left)
+int operator == (const CnxInfo &right,const CnxInfo &left)
 {
 	return memcmp(&right.addr,&left.addr,sizeof(left.addr)) == 0;
 }

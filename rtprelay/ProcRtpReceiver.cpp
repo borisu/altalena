@@ -2,7 +2,7 @@
 #include "ProcRtpReceiver.h"
 #include "CcuLogger.h"
 
-#define CCU_DEFAULT_RTP_POLL_TIME 20
+#define CCU_DEFAULT_RTP_POLL_TIME 10
 
 
 
@@ -19,7 +19,6 @@ ProcRtpReceiver::~ProcRtpReceiver(void)
 void
 ProcRtpReceiver::AddConnection(RTPConnection *connection)
 {
-	
 	_connections.insert(connection);
 	_haveToLogSet.insert(connection);
 }
@@ -27,37 +26,23 @@ ProcRtpReceiver::AddConnection(RTPConnection *connection)
 void
 ProcRtpReceiver::RemoveConnection(RTPConnection *connection)
 {
-
 	RemoveFromCollections(connection);
 }
 
 void
 ProcRtpReceiver::RemoveFromCollections(RTPConnection *connection)
 {
-	ConnectionSet::iterator i = 
-		_connections.find(connection);
-	if (i != _connections.end())
-	{
-		_connections.erase(i);
-	}
 	
-	RTPConnection *counterpart_connection= NULL;
+	// remove connection from main collection
+	_connections.erase(connection);
+	
+	
+	// remove its bridge connection
+	_bridges.erase(connection);
+	
 
-	ConnectionBridgesMap::iterator j = 
-		_bridges.find(connection);
-	if (j != _bridges.end())
-	{
-		_bridges.erase(j);
-	}
-
-	HaveToLogConnectionSet::iterator k = 
-		_haveToLogSet.find(connection);
-
-	if (k != _haveToLogSet.end())
-	{
-		_haveToLogSet.erase(k);
-	}
-
+	// if we had to log it remove it also
+	_haveToLogSet.erase(connection);
 
 }
 
@@ -79,7 +64,7 @@ ProcRtpReceiver::BridgeConnections(RTPConnection *connection_source,
 
 void
 ProcRtpReceiver::ModifyConnection(IN RTPConnection *connection, 
-								  IN CcuMediaData &media_data)
+								  IN CnxInfo &media_data)
 {
 	_haveToLogSet.insert(connection);
 	connection->SetDestination(media_data);
@@ -92,6 +77,8 @@ void
 ProcRtpReceiver::real_run()
 {
 	
+	::SetThreadPriority(::GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);
+
 	I_AM_READY;
 
 	bool shutdown_flag = false;
@@ -120,7 +107,6 @@ ProcRtpReceiver::real_run()
 					break;
 
 				}
-#pragma message ("TODO: add_msg?")
 			case CCU_MSG_RTPRECEIVER_REMOVE:
 				{
 					shared_ptr<CcuMsgRtpReceiverRemove> add_msg
@@ -176,27 +162,27 @@ ProcRtpReceiver::real_run()
 			i != _connections.end(); 
 			i++)
 		{
-			RTPConnection *source = (*i);
+			RTPConnection *source_connection = (*i);
 			RTPConnection *destination = NULL;
 
-			ConnectionBridgesMap::iterator bi = _bridges.find(source);
+			ConnectionBridgesMap::iterator bi = _bridges.find(source_connection);
 			if (bi!=_bridges.end())
 			{
 				destination = (*bi).second;
 			}
 
 			packetsList.clear();
-			source->Poll(packetsList,overflow);
+			source_connection->Poll(packetsList,overflow,true);
 
 			bool have_to_log =	
 				// we still didn't log first packet
-				(_haveToLogSet.find(source) != _haveToLogSet.end()) && 
+				(_haveToLogSet.find(source_connection) != _haveToLogSet.end()) && 
 				// and we have something to log
 				(!packetsList.empty());
 
 			if (have_to_log)
 			{
-				_haveToLogSet.erase(source);
+				_haveToLogSet.erase(source_connection);
 			}
 
 			
@@ -208,21 +194,21 @@ ProcRtpReceiver::real_run()
 					//
 					// log packet packet which arrived to nowhere...
 					//
-					RtpReceiveMsg msg_to_log = *packetsList.begin();
+					RtpReceiveMsg &msg_to_log = **packetsList.begin();
 
 
-					CcuMediaData remote_dest; 
-					if (!source->DestinationsList().empty())
+					CnxInfo remote_dest; 
+					if (!source_connection->DestinationsList().empty())
 					{
-						remote_dest = (source->DestinationsList()).front();
+						remote_dest = (source_connection->DestinationsList()).front();
 					}
 
 					LogDebug("New RTP packet >>arrived<< at NON-BRIDGED connection" 
-						"id=[" << source->GetObjectUid() << "]," 
+						"id=[" << source_connection->GetObjectUid() << "]," 
 						"from=[" << remote_dest.ipporttos() << "],"
-						"at local_port=[" << source->Port() << "]," 
-						"ssrc=[" << msg_to_log.sourceID << "],"
-						"timestamp=[" << msg_to_log.timestampUnit << "]");
+						"at local_port=[" << source_connection->Port() << "]," 
+						"ssrc=[" << msg_to_log.source_id << "],"
+						"timestamp=[" << msg_to_log.timestamp_unit << "]");
 
 				}
 				
@@ -241,9 +227,9 @@ ProcRtpReceiver::real_run()
 			//
 			if (have_to_log)
 			{
-				RtpReceiveMsg msg_to_log = *packetsList.begin();
+				RtpReceiveMsg &msg_to_log = **packetsList.begin();
 
-				CcuMediaData remote_dest; 
+				CnxInfo remote_dest; 
 				if (!destination->DestinationsList().empty())
 				{
 					remote_dest = destination->DestinationsList().front();
@@ -251,17 +237,17 @@ ProcRtpReceiver::real_run()
 				
 				LogDebug("New RTP packet >>arrived<< at BRIDGED connection" 
 					"from=[" << remote_dest.ipporttos() << "],"
-					"id=[" << source->GetObjectUid() << "]," 
-					"at local_port=[" << source->Port() << "]," 
-					"ssrc=[" << msg_to_log.sourceID << "],"
-					"timestamp=[" << msg_to_log.timestampUnit << "]," 
+					"id=[" << source_connection->GetObjectUid() << "]," 
+					"at local_port=[" << source_connection->Port() << "]," 
+					"ssrc=[" << msg_to_log.source_id << "],"
+					"timestamp=[" << msg_to_log.timestamp_unit << "]," 
 					"and ===> to conn=[" << destination->GetObjectUid()<< "],"
 					"to remote_dest=[" << remote_dest.ipporttos() << "],");
 
 			}
 			
 			
-			destination->Send(packetsList);
+			destination->Send(packetsList, true);
 
 		} // for
 		

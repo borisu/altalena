@@ -124,18 +124,30 @@ JSONConfiguration::InitDb()
 	//
 	const wstring default_ip_str = find_str(root_obj, L"default_ip" );
 
-	_defaultIp = CcuMediaData(default_ip_str,5060);
+	_defaultIp = CnxInfo(default_ip_str,5060);
 
 
 	//
-	// vcs ip
+	// vcs 
 	//
 
 	const wstring vcs_ip_str = find_str(root_obj, L"vcs_sip_ip" );
 	const int vcs_ip_int = find_int(root_obj, L"vcs_sip_port" );
 
-	_vcsMediaData = CcuMediaData(vcs_ip_str,vcs_ip_int);
+	_vcsMediaData = CnxInfo(vcs_ip_str,vcs_ip_int);
 
+
+	// rtp 
+
+	const wstring rtp_relay_ip_str = find_str(root_obj, L"rtp_relay_ip" );
+
+	const int rtp_relay_top_port_int = find_int(root_obj, L"rtp_relay_top_port" );
+	const int rtp_relay_bottom_port_int = find_int(root_obj, L"rtp_relay_bottom_port" );
+
+	_rtpRelayIp = CnxInfo(vcs_ip_str,CCU_UNDEFINED);
+
+	_rtpRelayTopPort = rtp_relay_top_port_int;
+	_rtpRelayBottomPort = rtp_relay_bottom_port_int;
 
 	return CCU_API_SUCCESS;
 

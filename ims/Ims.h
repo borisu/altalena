@@ -51,7 +51,7 @@ public:
 	  CcuMessage(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST, 
 		  NAME(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST)){};
 
-	  CcuMediaData remote_media_data;
+	  CnxInfo remote_media_data;
 
 	  wstring file_name;
 };
@@ -74,7 +74,7 @@ public:
 
 	  int playback_handle;
 
-	  CcuMediaData ims_media;
+	  CnxInfo ims_media;
 };
 BOOST_CLASS_EXPORT(CcuMsgAllocateImsSessionAck)
 

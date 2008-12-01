@@ -25,7 +25,7 @@ class ImsTest
 {
 public:
 	
-	ImsTest(CcuMediaData local_addr);
+	ImsTest(CnxInfo local_addr);
 
 	void test();
 	

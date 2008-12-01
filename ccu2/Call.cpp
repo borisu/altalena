@@ -36,7 +36,7 @@ _handlerHandle(new LpHandle())
 Call::Call(
 	 IN LpHandlePair stack_pair, 
 	 IN int stack_handle,
-	 IN CcuMediaData offered_media,
+	 IN CnxInfo offered_media,
 	 IN LightweightProcess &parent_process):
  _stackPair(stack_pair),
  _stackCallHandle(stack_handle),
@@ -93,7 +93,7 @@ Call::HagupCall()
 }
 
 CcuApiErrorCode
-Call::AcceptCall(IN CcuMediaData local_media)
+Call::AcceptCall(IN CnxInfo local_media)
 {
 	FUNCTRACKER;
 
@@ -143,7 +143,7 @@ Call::AcceptCall(IN CcuMediaData local_media)
 
 CcuApiErrorCode
 Call::MakeCall(IN wstring destination_uri, 
-			   IN CcuMediaData local_media)
+			   IN CnxInfo local_media)
 {
 	FUNCTRACKER;
 
@@ -199,27 +199,27 @@ Call::MakeCall(IN wstring destination_uri,
 	return res;
 }
 
-CcuMediaData 
+CnxInfo 
 Call::RemoteMedia() const 
 { 
 	return _remoteMedia; 
 }
 
 void 
-Call::RemoteMedia(CcuMediaData &val) 
+Call::RemoteMedia(CnxInfo &val) 
 { 
 	_remoteMedia = val; 
 }
 
 
-CcuMediaData 
+CnxInfo 
 Call::LocalMedia() const 
 { 
 	return _localMedia; 
 }
 
 void 
-Call::LocalMedia(CcuMediaData &val) 
+Call::LocalMedia(CnxInfo &val) 
 { 
 	_localMedia = val; 
 }

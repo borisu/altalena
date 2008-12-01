@@ -36,9 +36,15 @@ public:
 
 	virtual void AddAgent(IN const Agent &agent);
 
-	virtual CcuMediaData DefaultIp();
+	virtual int RtpRelayBottomPort();
 
-	virtual CcuMediaData VcsMediaData();
+	virtual int RtpRelayTopPort();
+
+	virtual CnxInfo DefaultCnxInfo();
+
+	virtual CnxInfo VcsCnxInfo();
+
+	virtual CnxInfo RtpRelayIp();
 
 protected:
 
@@ -51,9 +57,15 @@ protected:
 
 	AgentsList _agentsList;
 
-	CcuMediaData _defaultIp;
+	CnxInfo _defaultIp;
 
-	CcuMediaData _vcsMediaData;
+	CnxInfo _vcsMediaData;
+
+	CnxInfo _rtpRelayIp;
+
+	int _rtpRelayTopPort;
+
+	int _rtpRelayBottomPort;
 
 };
 

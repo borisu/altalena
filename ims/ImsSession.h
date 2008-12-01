@@ -34,16 +34,16 @@ public:
 	virtual ~ImsSession (void);
 
 	CcuApiErrorCode	AllocateIMSConnection(
-		IN CcuMediaData remote_end, 
+		IN CnxInfo remote_end, 
 		IN const wstring &file_name);
 
 	virtual CcuApiErrorCode PlayFile(
-		IN CcuMediaData destination, 
+		IN CnxInfo destination, 
 		IN const wstring &file_name);
 
-	CcuMediaData ImsMediaData() const;
+	CnxInfo ImsMediaData() const;
 
-	void ImsMediaData(IN CcuMediaData val);
+	void ImsMediaData(IN CnxInfo val);
 
 private:
 
@@ -53,7 +53,7 @@ private:
 
 	CcuConnectionId _imsSessionHandle;
 
-	CcuMediaData _imsMediaData;
+	CnxInfo _imsMediaData;
 
 	LightweightProcess &_facade;
 };

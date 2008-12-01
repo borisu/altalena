@@ -54,10 +54,10 @@ CallWithRtpTester::real_run()
 	assert(CCU_SUCCESS(call.MakeCall(L"xxx@example.com")));
 
 	assert(call.RemoteMedia() == 
-		CcuMediaData(DUMMY_STACK_REMOTE_IP, (int)DUMMY_STACK_REMOTE_PORT));
+		CnxInfo(DUMMY_STACK_REMOTE_IP, (int)DUMMY_STACK_REMOTE_PORT));
 
 	assert(call.LocalMedia() == 
-		CcuMediaData(DUMMY_RTP_ADDRESS, (int)DUMMY_RTP_PORT));
+		CnxInfo(DUMMY_RTP_ADDRESS, (int)DUMMY_RTP_PORT));
 
 	assert(CCU_SUCCESS(call.PlayFile(L"dummy.wav")));
 

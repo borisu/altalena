@@ -134,7 +134,7 @@ public:
 	/** Leaves all multicast groups. */
 	void LeaveAllMulticastGroups();
 
-	int RelayPacket(RTPPacket &packet);
+	int RelayPacket(RTPRawPacket *packet);
 
 	/** Sends the RTP packet with payload \c data which has length \c len.
 	 *  Sends the RTP packet with payload \c data which has length \c len.
