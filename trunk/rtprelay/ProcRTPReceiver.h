@@ -126,4 +126,6 @@ private:
 
 	HaveToLogConnectionSet _haveToLogSet;
 
+	HANDLE _ioPort;
+
 };

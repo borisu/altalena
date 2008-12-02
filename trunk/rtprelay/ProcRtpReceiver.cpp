@@ -70,14 +70,31 @@ ProcRtpReceiver::ModifyConnection(IN RTPConnection *connection,
 	connection->SetDestination(media_data);
 }
 
-
-
-
 void
 ProcRtpReceiver::real_run()
 {
 	
-	::SetThreadPriority(::GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);
+	BOOL os_res = ::SetThreadPriority(::GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);
+	if (os_res == FALSE)
+	{
+		LogSysError("::SetThreadPriority");
+		throw;
+	}
+
+
+	_ioPort = ::CreateIoCompletionPort(
+		INVALID_HANDLE_VALUE,
+		NULL,
+		0,
+		1);
+
+	if (_ioPort == NULL)
+	{
+		LogSysError("::CreateIoCompletionPort");
+		throw;
+	}
+
+
 
 	I_AM_READY;
 

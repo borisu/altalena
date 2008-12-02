@@ -71,7 +71,7 @@ RTPAddress *RTPIPv4Address::CreateCopy(RTPMemoryManager *mgr) const
 	return a;
 }
 
-#ifdef RTPDEBUG
+
 std::string RTPIPv4Address::GetAddressString() const
 {
 	char str[24];
@@ -80,4 +80,4 @@ std::string RTPIPv4Address::GetAddressString() const
 	                             (int)(ip&0xFF),(int)port);
 	return std::string(str);
 }
-#endif // RTPDEBUG
+
