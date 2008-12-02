@@ -105,7 +105,7 @@ RTPConnection::Init()
 	
 
 
-	int status = _rtpSession.Create(sessionParams,&transmissionParams);
+	int status = _rtpSession.Create(sessionParams,&transmissionParams,RTPTransmitter::IPv4UDPProto);
 	if (status < 0)
 	{
 		LogWarn("Cannot create RTP session on port=[" << _localPort << "] API error=[" <<  status  <<"] check rtperrors.h for description.");

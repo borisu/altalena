@@ -192,59 +192,59 @@ public:
 	RTPUDPv4Transmitter(RTPMemoryManager *mgr);
 	~RTPUDPv4Transmitter();
 
-	int Init(bool treadsafe);
-	int Create(size_t maxpacksize,const RTPTransmissionParams *transparams);
-	void Destroy();
-	RTPTransmissionInfo *GetTransmissionInfo();
+	virtual int Init(bool treadsafe);
+	virtual int Create(size_t maxpacksize,const RTPTransmissionParams *transparams);
+	virtual void Destroy();
+	virtual RTPTransmissionInfo *GetTransmissionInfo();
 
-	int GetLocalHostName(uint8_t *buffer,size_t *bufferlength);
-	bool ComesFromThisTransmitter(const RTPAddress *addr);
-	size_t GetHeaderOverhead()							{ return RTPUDPV4TRANS_HEADERSIZE; }
+	virtual int GetLocalHostName(uint8_t *buffer,size_t *bufferlength);
+	virtual bool ComesFromThisTransmitter(const RTPAddress *addr);
+	virtual size_t GetHeaderOverhead()							{ return RTPUDPV4TRANS_HEADERSIZE; }
 	
-	int Poll();
-	int WaitForIncomingData(const RTPTime &delay,bool *dataavailable = 0);
-	int AbortWait();
+	virtual int Poll();
+	virtual int WaitForIncomingData(const RTPTime &delay,bool *dataavailable = 0);
+	virtual int AbortWait();
 	
-	int SendRTPData(const void *data,size_t len);	
-	int SendRTCPData(const void *data,size_t len);
+	virtual int SendRTPData(const void *data,size_t len);	
+	virtual int SendRTCPData(const void *data,size_t len);
 
-	int AddDestination(const RTPAddress &addr);
-	int DeleteDestination(const RTPAddress &addr);
-	void ClearDestinations();
+	virtual int AddDestination(const RTPAddress &addr);
+	virtual int DeleteDestination(const RTPAddress &addr);
+	virtual void ClearDestinations();
 
-	bool SupportsMulticasting();
-	int JoinMulticastGroup(const RTPAddress &addr);
-	int LeaveMulticastGroup(const RTPAddress &addr);
-	void LeaveAllMulticastGroups();
+	virtual bool SupportsMulticasting();
+	virtual int JoinMulticastGroup(const RTPAddress &addr);
+	virtual int LeaveMulticastGroup(const RTPAddress &addr);
+	virtual void LeaveAllMulticastGroups();
 
-	int SetReceiveMode(RTPTransmitter::ReceiveMode m);
-	int AddToIgnoreList(const RTPAddress &addr);
-	int DeleteFromIgnoreList(const RTPAddress &addr);
-	void ClearIgnoreList();
-	int AddToAcceptList(const RTPAddress &addr);
-	int DeleteFromAcceptList(const RTPAddress &addr);
-	void ClearAcceptList();
-	int SetMaximumPacketSize(size_t s);	
+	virtual int SetReceiveMode(RTPTransmitter::ReceiveMode m);
+	virtual int AddToIgnoreList(const RTPAddress &addr);
+	virtual int DeleteFromIgnoreList(const RTPAddress &addr);
+	virtual void ClearIgnoreList();
+	virtual int AddToAcceptList(const RTPAddress &addr);
+	virtual int DeleteFromAcceptList(const RTPAddress &addr);
+	virtual void ClearAcceptList();
+	virtual int SetMaximumPacketSize(size_t s);	
 	
-	bool NewDataAvailable();
-	RTPRawPacket *GetNextPacket();
+	virtual bool NewDataAvailable();
+	virtual RTPRawPacket *GetNextPacket();
 #ifdef RTPDEBUG
-	void Dump();
+	virtual void Dump();
 #endif // RTPDEBUG
-private:
-	int CreateLocalIPList();
-	bool GetLocalIPList_Interfaces();
-	void GetLocalIPList_DNS();
-	void AddLoopbackAddress();
-	void FlushPackets();
-	int PollSocket(bool rtp);
-	int ProcessAddAcceptIgnoreEntry(uint32_t ip,uint16_t port);
-	int ProcessDeleteAcceptIgnoreEntry(uint32_t ip,uint16_t port);
+protected:
+	virtual int CreateLocalIPList();
+	virtual bool GetLocalIPList_Interfaces();
+	virtual void GetLocalIPList_DNS();
+	virtual void AddLoopbackAddress();
+	virtual void FlushPackets();
+	virtual int PollSocket(bool rtp);
+	virtual int ProcessAddAcceptIgnoreEntry(uint32_t ip,uint16_t port);
+	virtual int ProcessDeleteAcceptIgnoreEntry(uint32_t ip,uint16_t port);
 #ifdef RTP_SUPPORT_IPV4MULTICAST
-	bool SetMulticastTTL(uint8_t ttl);
+	virtual bool SetMulticastTTL(uint8_t ttl);
 #endif // RTP_SUPPORT_IPV4MULTICAST
-	bool ShouldAcceptData(uint32_t srcip,uint16_t srcport);
-	void ClearAcceptIgnoreInfo();
+	virtual bool ShouldAcceptData(uint32_t srcip,uint16_t srcport);
+	virtual void ClearAcceptIgnoreInfo();
 	
 	bool init;
 	bool created;
@@ -289,9 +289,9 @@ private:
 #else
 	int abortdesc[2];
 #endif // WIN32
-	int CreateAbortDescriptors();
-	void DestroyAbortDescriptors();
-	void AbortWaitInternal();
+	virtual int CreateAbortDescriptors();
+	virtual void DestroyAbortDescriptors();
+	virtual void AbortWaitInternal();
 #ifdef RTP_SUPPORT_THREAD
 	JMutex mainmutex,waitmutex;
 	int threadsafe;

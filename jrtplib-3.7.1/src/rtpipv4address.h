@@ -78,9 +78,9 @@ public:
 	RTPAddress *CreateCopy(RTPMemoryManager *mgr) const;
 	bool IsSameAddress(const RTPAddress *addr) const;
 	bool IsFromSameHost(const RTPAddress *addr) const;
-#ifdef RTPDEBUG
+
 	std::string GetAddressString() const;
-#endif // RTPDEBUG
+
 private:
 	uint32_t ip;
 	uint16_t port;

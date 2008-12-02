@@ -174,8 +174,7 @@ private:
 	JMutex m_chainMutex;
 	bool m_stopLoop;
 
-#pragma message (">>> CCU2 3rd party changes <<<")
-#pragma message ("TODO: Check if RTP_SUPPORT_THREAD or similar can be used.")
+
 public:
 
 	bool m_clientThread;

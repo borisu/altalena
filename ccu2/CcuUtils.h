@@ -31,6 +31,7 @@
 // windows
 #include <wchar.h>
 #include <WinSock2.h>
+#include <Mstcpip.h>
 #include <Windows.h>
 
 // console
