@@ -80,9 +80,6 @@
 
 #include <iostream>
 
-#define RTPUDPV4TRANS_MAXPACKSIZE							65535
-#define RTPUDPV4TRANS_IFREQBUFSIZE							8192
-
 #define RTPUDPV4TRANS_IS_MCASTADDR(x)							(((x)&0xF0000000) == 0xE0000000)
 
 #define RTPUDPV4TRANS_MCASTMEMBERSHIP(socket,type,mcastip,status)	{\
