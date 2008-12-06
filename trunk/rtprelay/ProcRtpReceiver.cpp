@@ -222,7 +222,7 @@ ProcRtpReceiver::real_run()
 
 					LogDebug("New RTP packet >>arrived<< at NON-BRIDGED connection" 
 						"id=[" << source_connection->GetObjectUid() << "]," 
-						"from=[" << remote_dest.ipporttos() << "],"
+						"from=[" << remote_dest.ipporttows() << "],"
 						"at local_port=[" << source_connection->Port() << "]," 
 						"ssrc=[" << msg_to_log.source_id << "],"
 						"timestamp=[" << msg_to_log.timestamp_unit << "]");
@@ -253,13 +253,13 @@ ProcRtpReceiver::real_run()
 				}
 				
 				LogDebug("New RTP packet >>arrived<< at BRIDGED connection" 
-					"from=[" << remote_dest.ipporttos() << "],"
+					"from=[" << remote_dest.ipporttows() << "],"
 					"id=[" << source_connection->GetObjectUid() << "]," 
 					"at local_port=[" << source_connection->Port() << "]," 
 					"ssrc=[" << msg_to_log.source_id << "],"
 					"timestamp=[" << msg_to_log.timestamp_unit << "]," 
 					"and ===> to conn=[" << destination->GetObjectUid()<< "],"
-					"to remote_dest=[" << remote_dest.ipporttos() << "],");
+					"to remote_dest=[" << remote_dest.ipporttows() << "],");
 
 			}
 			

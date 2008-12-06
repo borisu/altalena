@@ -72,8 +72,17 @@ private:
 
 	sockaddr_in addr;
 
+	wstring wsaddr;
+
 	string saddr;
 
+	wstring wsaddrport;
+
+	string saddrport;
+
+	string sport;
+
+	wstring wsport;
 	
 public:
 
@@ -84,7 +93,7 @@ public:
 		addr.sin_port = ::htons(p_port);
 		addr.sin_addr.s_addr = ::inet_addr(WStringToString(s).c_str());
 		
-		saddr = ipporttos();
+		init_strings();
 	}
 
 	CnxInfo(string s, int p_port)
@@ -93,7 +102,7 @@ public:
 		addr.sin_port = ::htons(p_port);
 		addr.sin_addr.s_addr = ::inet_addr(s.c_str());
 		
-		saddr = ipporttos();
+		init_strings();
 	}
 
 	CnxInfo(char *ip, int p_port)
@@ -102,7 +111,7 @@ public:
 		addr.sin_port = ::htons(p_port);
 		addr.sin_addr.s_addr = ::inet_addr(ip);
 
-		saddr = ipporttos();
+		init_strings();
 	}
 
  	CnxInfo(in_addr p_in_addr, int p_port)
@@ -112,7 +121,7 @@ public:
 		addr.sin_port = ::htons(p_port);
  		
 
-		saddr = ipporttos();
+		init_strings();
  	}
 
 	CnxInfo()
@@ -135,6 +144,8 @@ public:
 	{
 		addr = x.addr;
 		saddr = x.saddr;
+
+		init_strings();
 	}
 
 	int port_ho() const
@@ -169,49 +180,67 @@ public:
 
 	string ipporttos() const
 	{
-		
-		if (!saddr.empty())
-		{
-			return saddr;
-		}
+		return saddrport;
+	}
 
-		char buffer[CCU_MAX_IP_LEN];
-		buffer[0] = '\0';
-
-		return string(ipporttoa(buffer, CCU_MAX_IP_LEN));
+	wstring ipporttows() const
+	{
+		return wsaddrport;
 	}
 
 	string iptos() const
 	{
-
-		return string(iptoa());
+		return saddr;
 	}
 
 	string porttos() const
 	{
+		return	sport;
+	}
+
+	const char *ipporttoa(char *buffer, int len) const
+	{
+		return saddrport.c_str();
+	}
+
+	const char *iptoa() const
+	{
+		return saddr.c_str();
+	}
+
+private:
+
+	void init_strings()
+	{
+		// convert port
 		char buffer[10];
 		buffer[0] = '\0';
 
 		if ( _itoa_s(port_ho(),buffer,10,10) != 0)
 		{
-			return "INVALID";
+			sport = "INVALID";
+		} 
+		else
+		{
+			sport = buffer;
 		}
 
-		return string(buffer);
+		// convert address
+		saddr = string(::inet_ntoa(addr.sin_addr));
+
+		// build full address
+		saddrport.append(saddr);
+		saddr.append(":");
+		saddr.append(sport);
+
+		wsport = StringToWString(sport);
+		wsaddr = StringToWString(saddr);
+		wsaddrport = StringToWString(saddrport);
+
+
+
 	}
 
-	char *ipporttoa(char *buffer, int len) const
-	{
-		char* ipstr = ::inet_ntoa(addr.sin_addr); 
-		sprintf_s(buffer,len,"%s:%d", ipstr, ::ntohs(addr.sin_port));
-
-		return buffer;
-	}
-
-	char *iptoa() const
-	{
-		return ::inet_ntoa(addr.sin_addr); 
-	}
 
 	friend int operator == (const CnxInfo &right,const CnxInfo &left);
 

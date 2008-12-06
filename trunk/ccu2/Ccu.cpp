@@ -31,12 +31,12 @@ wostream& operator << (wostream &ostream,  CnxInfo *ptr)
 		return ostream << "NULL";
 	} 
 
-	return ostream << ptr->ipporttos();
+	return ostream << ptr->ipporttows();
 }
 
 wostream& operator << (wostream &ostream, const CnxInfo &ptr)
 {
-	return ostream << ptr.ipporttos();
+	return ostream << ptr.ipporttows();
 }
 
 int operator == (const CnxInfo &right,const CnxInfo &left)
