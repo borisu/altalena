@@ -108,7 +108,7 @@
 
 using namespace std;
 
-wostream& operator << (wostream &ostream, const string &ptr);
+//wostream& operator << (wostream &ostream, const string &ptr);
 
 wstring 
 StringToWString(const string& s);

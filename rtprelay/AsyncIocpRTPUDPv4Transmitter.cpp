@@ -283,7 +283,7 @@ AsyncIocpRTPUDPv4Transmitter::Create(
 		{
 #pragma warning (suppress : 4244)
 			RTPIPv4Address a(*it);
-			LogDebug(a.GetAddressString());;
+			LogDebug(StringToWString(a.GetAddressString()));;
 
 		}
 

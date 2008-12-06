@@ -127,7 +127,7 @@ RTPConnection::AddDestination(IN CnxInfo &data)
 
 	if (status < 0)
 	{
-		LogWarn("Cannot add destination to RTP session on port=[" << _localPort << "] error=[" <<  status  <<"] dest ip=[" << data.ipporttos() << "]" );
+		LogWarn("Cannot add destination to RTP session on port=[" << _localPort << "] error=[" <<  status  <<"] dest ip=[" << data.ipporttows() << "]" );
 		return CCU_API_FAILURE;
 	}
 
@@ -164,7 +164,8 @@ RTPConnection::Poll(OUT RtpPacketsList &packetsList, IN size_t overflow, IN bool
 	int res = _rtpSession.Poll(relayMode);
 	if ( res != 0)
 	{
-		LogWarn("Error polling connection stack res=[" << res << "] description=[" << RTPGetErrorString(res) << "]");
+		LogWarn("Error polling connection stack res=[" << res << "] description=[" << 
+			StringToWString(RTPGetErrorString(res)) << "]");
 		return CCU_API_FAILURE;
 	}
 
@@ -176,7 +177,8 @@ RTPConnection::Poll(OUT RtpPacketsList &packetsList, IN size_t overflow, IN bool
 	res = _rtpSession.BeginDataAccess();
 	if ( res != 0)
 	{
-		LogWarn("Cannot begin data access res=[" << res << "] description=[" << RTPGetErrorString(res) << "]");
+		LogWarn("Cannot begin data access res=[" << res << "] description=[" << 
+			StringToWString(RTPGetErrorString(res)) << "]");
 		return CCU_API_FAILURE;
 	}
 
@@ -274,7 +276,7 @@ RTPConnection::SetDestination(IN CnxInfo &data)
 
 	if (status < 0)
 	{
-		LogWarn("Cannot add destination to RTP error=[" <<  status  <<"] dest ip=[" << data.ipporttos() <<  "]" );
+		LogWarn("Cannot add destination to RTP error=[" <<  status  <<"] dest ip=[" << data.ipporttows() <<  "]" );
 		return CCU_API_FAILURE;
 	}
 

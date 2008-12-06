@@ -205,6 +205,7 @@ static RTPErrorInfo ErrorDescriptions[]=
 	{ 0,0 }
 };
 
+
 std::string RTPGetErrorString(int errcode)
 {
 	int i;
