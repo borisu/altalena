@@ -39,6 +39,14 @@ using namespace std;
 using namespace boost;
 
 
+//
+// Some classes are not csp-fibers and need to be 
+// interrupted by setting some event or any other
+// OS related measure while they are waiting. This 
+// class represents the interface which wraps the OS 
+// related facility which used to interrupt such a
+// process and inform it that new message has arrived
+//
 class Interruptor
 {
 public:
@@ -51,6 +59,8 @@ public:
 typedef 
 shared_ptr<Interruptor> InterruptorPtr;
 
+// use this interruptor if you want to receive messages 
+// by waiting on specific HANDLE by means of WaitForMultipleObjects 
 class SemaphoreInterruptor
 	:public Interruptor, boost::noncopyable
 {
@@ -74,6 +84,36 @@ private:
 
 typedef 
 shared_ptr<SemaphoreInterruptor> SemaphoreInterruptorPtr;
+
+
+// use this interruptor if you want to receive messages 
+// by waiting on io completion port by  means of  GetQueuedCompletionStatus  
+class IocpInterruptor
+	:public Interruptor, boost::noncopyable
+{
+public:
+
+	IocpInterruptor(IN HANDLE iocpHandle, IN DWORD dwCompletionKey);
+
+	virtual ~IocpInterruptor();
+
+	virtual void SignalDataIn();
+
+	virtual void SignalDataOut();
+
+	virtual HANDLE Handle();
+
+private:
+
+	HANDLE _iocpHandle;
+
+	ULONG_PTR _dwCompletionKey;
+
+};
+
+typedef 
+shared_ptr<IocpInterruptor> IocpInterruptorPtr;
+
 
 typedef 
 BufferedAny2OneChannel<CcuMsgPtr> CcuChannel;

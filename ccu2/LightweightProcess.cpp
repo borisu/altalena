@@ -589,14 +589,14 @@ LightweightProcess::GetInboundMessage()
 	return _inbound->Wait();
 }
 
+#pragma region InterruptibleBySemaphore
+
 InterruptibleBySemaphore::InterruptibleBySemaphore(LpHandlePtr interruptible_channel)
 :_sim(new SemaphoreInterruptor())
 {
 	interruptible_channel->HandleInterruptor(shared_dynamic_cast<Interruptor>(_sim));
 
 }
-
-
 
 HANDLE
 InterruptibleBySemaphore::MsgHandle()
@@ -608,6 +608,26 @@ InterruptibleBySemaphore::~InterruptibleBySemaphore()
 {
 	
 }
+
+#pragma endregion InterruptibleBySemaphore
+
+#pragma region InterruptibleByIocp
+
+InterruptibleByIocp::InterruptibleByIocp(
+	IN LpHandlePtr interruptible_channel, 
+	IN HANDLE iocpHandle, 
+	IN DWORD completion_key)
+:_int(new IocpInterruptor(iocpHandle,completion_key))
+{
+	interruptible_channel->HandleInterruptor(shared_dynamic_cast<Interruptor>(_int));
+}
+
+InterruptibleByIocp::~InterruptibleByIocp()
+{
+
+}
+
+#pragma endregion InterruptibleByIocp
 
 int
 GetCurrCcuProcId()

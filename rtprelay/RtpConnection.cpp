@@ -20,6 +20,7 @@
 #include "StdAfx.h"
 #include "CcuLogger.h"
 #include "RTPConnection.h"
+#include "AsyncIocpRTPUDPv4Transmitter.h"
 
 
 #define CCU_MAX_RTP_PACKET_SIZE			64000
@@ -102,10 +103,17 @@ RTPConnection::Init()
 	sessionParams.SetMaximumPacketSize(CCU_MAX_RTP_PACKET_SIZE);
 	sessionParams.SetAcceptOwnPackets(true);
 	sessionParams.SetUsePollThread(false);
+
+
 	
+	AsyncIocpRTPUDPv4Transmitter *atrans = 
+		new AsyncIocpRTPUDPv4Transmitter(_memMngr, _iocpPort);
+	
+	int status = _rtpSession.Create(
+			sessionParams,
+			&transmissionParams,
+			atrans);
 
-
-	int status = _rtpSession.Create(sessionParams,&transmissionParams,RTPTransmitter::IPv4UDPProto);
 	if (status < 0)
 	{
 		LogWarn("Cannot create RTP session on port=[" << _localPort << "] API error=[" <<  status  <<"] check rtperrors.h for description.");

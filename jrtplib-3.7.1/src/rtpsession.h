@@ -88,6 +88,14 @@ public:
 	 */
 	int Create(const RTPSessionParams &sessparams,const RTPTransmissionParams *transparams = 0, RTPTransmitter::TransmissionProtocol proto = RTPTransmitter::IPv4UDPProto);
 
+	/** Creates an RTP session.
+	*  This function creates an RTP session with parameters \c sessparams, which will use a created transmitter 
+	*  Parameters for this transmitter can be specified as well. If \c
+	*  proto is of type RTPTransmitter::UserDefinedProto, the NewUserDefinedTransmitter function must
+	*  be implemented.
+	*/
+	int Create(const RTPSessionParams &sessparams,const RTPTransmissionParams *transparams , RTPTransmitter *transmitter);
+
 	/** Creates an RTP session using \c transmitter as transmission component.
 	 *  This function creates an RTP session with parameters \c sessparams, which will use the
 	 *  transmission component \c transmitter. Initialization and destruction of the transmitter

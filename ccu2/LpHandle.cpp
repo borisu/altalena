@@ -87,6 +87,46 @@ SemaphoreInterruptor::SignalDataIn()
 
 }
 
+
+IocpInterruptor::IocpInterruptor(IN HANDLE iocpHandle, IN DWORD dwCompletionKey)
+:_iocpHandle(iocpHandle),
+_dwCompletionKey(dwCompletionKey)
+{
+	
+
+}
+
+void
+IocpInterruptor::SignalDataIn()
+{
+	
+	ULONG dwNumberOfBytesTransferred = 0;
+	
+
+	BOOL res = ::PostQueuedCompletionStatus(
+		_iocpHandle,		//A handle to an I/O completion port to which the I/O completion packet is to be posted.
+		dwNumberOfBytesTransferred,	//The value to be returned through the lpNumberOfBytesTransferred parameter of the GetQueuedCompletionStatus function.
+		_dwCompletionKey,	//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
+		NULL	//The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
+		);
+
+
+	if (res == FALSE)
+	{
+		LogSysError("::PostQueuedCompletionStatus");
+		throw;
+	}
+
+}
+
+void
+IocpInterruptor::SignalDataOut()
+{
+
+}
+
+
+
 CcuHandleDirection 
 LpHandle::Direction() const 
 { 
