@@ -92,6 +92,7 @@ RTPSession::~RTPSession()
 	Destroy();
 }
 
+
 int RTPSession::Create(const RTPSessionParams &sessparams,const RTPTransmissionParams *transparams /* = 0 */,
 		       RTPTransmitter::TransmissionProtocol protocol)
 {
@@ -147,6 +148,48 @@ int RTPSession::Create(const RTPSessionParams &sessparams,const RTPTransmissionP
 	deletetransmitter = true;
 	return InternalCreate(sessparams);
 }
+
+int RTPSession::Create(
+					   const RTPSessionParams &sessparams,
+					   const RTPTransmissionParams *transparams, 
+					   RTPTransmitter *transmitter)
+{
+	int status;
+
+	if (created)
+		return ERR_RTP_SESSION_ALREADYCREATED;
+
+	usingpollthread = sessparams.IsUsingPollThread();
+	useSR_BYEifpossible = sessparams.GetSenderReportForBYE();
+	sentpackets = false;
+
+	// Check max packet size
+
+	if ((maxpacksize = sessparams.GetMaximumPacketSize()) < RTP_MINPACKETSIZE)
+		return ERR_RTP_SESSION_MAXPACKETSIZETOOSMALL;
+
+	// Initialize the transmission component
+
+	rtptrans = transmitter;
+
+	if (rtptrans == 0)
+		return ERR_RTP_OUTOFMEM;
+	if ((status = rtptrans->Init(usingpollthread)) < 0)
+	{
+		RTPDelete(rtptrans,GetMemoryManager());
+		return status;
+	}
+	if ((status = rtptrans->Create(maxpacksize,transparams)) < 0)
+	{
+		RTPDelete(rtptrans,GetMemoryManager());
+		return status;
+	}
+
+	deletetransmitter = true;
+	return InternalCreate(sessparams);
+
+}
+
 
 int RTPSession::Create(const RTPSessionParams &sessparams,RTPTransmitter *transmitter)
 {

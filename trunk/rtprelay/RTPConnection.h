@@ -117,4 +117,6 @@ private:
 
 	RelayMemoryManager *_memMngr;
 
+	HANDLE _iocpPort;
+
 };
