@@ -67,6 +67,8 @@ private:
 	CcuConfiguration *_conf;
 
 	RelayMemoryManager _memManager;
+
+	HANDLE	_rtpReceiverIocpHandle;
 };
 
 class ProcRTPConnectionRemover :

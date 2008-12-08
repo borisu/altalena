@@ -32,10 +32,9 @@
 
 #include "rtpipv4address.h"
 #include "rtpmemorymanager.h"
-#ifdef RTPDEBUG
-	#include "rtpdefines.h" 
-	#include <stdio.h>
-#endif // RTPDEBUG
+#include "rtpdefines.h" 
+#include <stdio.h>
+
 
 #include "rtpdebug.h"
 

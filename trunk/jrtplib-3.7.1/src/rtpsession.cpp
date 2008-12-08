@@ -881,6 +881,24 @@ void RTPSession::DeleteTransmissionInfo(RTPTransmissionInfo *inf)
 	RTPDelete(inf,GetMemoryManager());
 }
 
+#ifdef WIN32
+int 
+RTPSession::AsyncPoll(bool relaymode , bool rtp, LPWSAOVERLAPPED ovlap)
+{
+	int status;
+
+	if (!created)
+		return ERR_RTP_SESSION_NOTCREATED;
+	if (usingpollthread)
+		return ERR_RTP_SESSION_USINGPOLLTHREAD;
+	if ((status = rtptrans->AsyncPoll(rtp, ovlap)) < 0)
+		return status;
+	return ProcessPolledData(relaymode);
+
+}
+#endif
+
+
 int RTPSession::Poll(bool relaymode)
 {
 	int status;

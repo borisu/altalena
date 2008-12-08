@@ -40,7 +40,8 @@ _receiverInbound(new LpHandle()),
 _receiverOutbound(new LpHandle()),
 _mediaData(data),
 _conf(NULL),
-_portManager(CCU_RTP_PORT_RANGE_END,CCU_RTP_PORT_RANGE_START)
+_portManager(CCU_RTP_PORT_RANGE_END,CCU_RTP_PORT_RANGE_START),
+_rtpReceiverIocpHandle(NULL)
 {
 	
 	FUNCTRACKER;
@@ -55,7 +56,8 @@ _receiverInbound(new LpHandle()),
 _receiverOutbound(new LpHandle()),
 _conf(conf),
 _mediaData(conf->RtpRelayIp()),
-_portManager(conf->RtpRelayTopPort(),conf->RtpRelayBottomPort())
+_portManager(conf->RtpRelayTopPort(),conf->RtpRelayBottomPort()),
+_rtpReceiverIocpHandle(NULL)
 {
 
 	FUNCTRACKER;
@@ -91,7 +93,9 @@ ProcAudio::real_run()
 	_receiverInbound  = receiver_pair.inbound;
 	_receiverOutbound = receiver_pair.outbound;
 
-	FORK(new ProcRtpReceiver(receiver_pair));
+	ProcRtpReceiver *receiver = new ProcRtpReceiver(receiver_pair);
+	_rtpReceiverIocpHandle = receiver->IocpHandle();
+	FORK(receiver);
 	if (CCU_FAILURE(WaitTillReady(Seconds(5), receiver_pair)))
 	{
 		return;
@@ -331,7 +335,7 @@ ProcAudio::AllocateAudioConnection(CcuMsgPtr ptr)
 			
 		conn = 	new RTPConnection(curr_port_slot_candidate, &_memManager);
 
-		if (conn->Init() == CCU_API_SUCCESS )
+		if (conn->Init(_rtpReceiverIocpHandle) == CCU_API_SUCCESS )
 		{
 			if (ac_msg->remote_end.is_ip_valid() &&
 				conn->SetDestination(ac_msg->remote_end) != CCU_API_SUCCESS)
@@ -354,6 +358,7 @@ ProcAudio::AllocateAudioConnection(CcuMsgPtr ptr)
 		{
 			delete conn;
 			conn = NULL;
+			curr_port_slot_candidate = _portManager.GetNextCandidate();
 		}
 		
 	} 

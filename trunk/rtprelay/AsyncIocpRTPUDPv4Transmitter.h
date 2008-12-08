@@ -23,6 +23,8 @@
 
 using namespace boost;
 
+
+
 class AsyncIocpRTPUDPv4Transmitter :
 	public RTPUDPv4Transmitter
 {
@@ -34,21 +36,13 @@ public:
 
 	virtual int Create(	IN size_t maximumpacketsize, IN const RTPTransmissionParams *transparams);
 
-	virtual DWORD RtpIocpKey() const;
+	virtual int AsyncPoll(BOOL rtp, LPWSAOVERLAPPED ovlap);
 
-	virtual DWORD RtcpIocpKey() const;
-
-	virtual int	PollSocket(IN bool rtp);
-
-	virtual int	IssueAsyncRead(IN bool rtp);
+	virtual int	IssueAsyncRead(IN BOOL rtp, IN LPWSAOVERLAPPED lpOverlapped);
 	
 private:
 
 	HANDLE _iocpHandle;
-
-	DWORD _rtpIocpKey;
-	
-	DWORD _rtcpIocpKey;
 
 	char _rtpPacketBuffer[RTPUDPV4TRANS_MAXPACKSIZE];
 
@@ -62,19 +56,8 @@ private:
 
 	struct sockaddr _rtcpFrom;
 
-	WSAOVERLAPPED _rtpOverlapped;
+	bool _ioRtpPending;
 
-	WSAOVERLAPPED _rtcpOverlapped;
-
-	static int GenerateNewIocpKey();
-
-	static int _keyCounter;
-
-	BOOL  _lastRtpReadResult;
-
-	BOOL  _lastRtcpReadResult;
-
-	
-
+	bool _ioRtcpPending;
 
 };

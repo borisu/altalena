@@ -29,22 +29,13 @@ typedef
 std::list<::uint32_t> IpAddrList; 
 
 
-int AsyncIocpRTPUDPv4Transmitter::_keyCounter = 0; 
-
-int AsyncIocpRTPUDPv4Transmitter::GenerateNewIocpKey()
-{
-	return _keyCounter++;
-}
-
 AsyncIocpRTPUDPv4Transmitter::AsyncIocpRTPUDPv4Transmitter(
 	IN RTPMemoryManager *mgr, 
 	IN HANDLE iocpHandle)
 :RTPUDPv4Transmitter(mgr),
 _iocpHandle(iocpHandle),
-_rtpIocpKey(CCU_UNDEFINED),
-_rtcpIocpKey(CCU_UNDEFINED),
-_lastRtpReadResult(FALSE),
-_lastRtcpReadResult(FALSE)
+_ioRtpPending(false),
+_ioRtcpPending(false)
 {
 	::SecureZeroMemory(&_rtpFrom, sizeof(_rtpFrom));
 	::SecureZeroMemory(&_rtcpFrom, sizeof(_rtcpFrom));
@@ -67,8 +58,6 @@ AsyncIocpRTPUDPv4Transmitter::Create(
 							IN size_t maximumpacketsize,
 							IN const RTPTransmissionParams *transparams)
 {
-
-#pragma TODO ("Unlike other transmitters this one is not multi threaded and built for Win32 API.")
 
 	const RTPUDPv4TransmissionParams *params = NULL;
 	const RTPUDPv4TransmissionParams defaultparams;
@@ -129,9 +118,8 @@ AsyncIocpRTPUDPv4Transmitter::Create(
 
 	// Associate sockets with io completion ports
 	// rtp:
-	_rtpIocpKey = GenerateNewIocpKey();
 	if ( _iocpHandle != 
-		::CreateIoCompletionPort((HANDLE)rtpsock, _iocpHandle, _rtpIocpKey, 0))
+		::CreateIoCompletionPort((HANDLE)rtpsock, _iocpHandle, 0, 0))
 	{
 		LogSysError("::CreateIoCompletionPort");
 		::closesocket(rtpsock);
@@ -140,9 +128,8 @@ AsyncIocpRTPUDPv4Transmitter::Create(
 	}
 
 	// rtcp
-	_rtcpIocpKey = GenerateNewIocpKey();
 	if ( _iocpHandle != 
-		::CreateIoCompletionPort((HANDLE)rtpsock, _iocpHandle, _rtcpIocpKey, 0))
+		::CreateIoCompletionPort((HANDLE)rtcpsock, _iocpHandle, 0, 0))
 	{
 		LogSysError("::CreateIoCompletionPort");
 		::closesocket(rtpsock);
@@ -165,7 +152,7 @@ AsyncIocpRTPUDPv4Transmitter::Create(
 		&lpcbBytesReturned,
 		NULL,
 		NULL);
-	if (status = SOCKET_ERROR)
+	if (status == SOCKET_ERROR)
 	{
 		LogSysError("::WSAIoctl");
 		::closesocket(rtpsock);
@@ -185,7 +172,7 @@ AsyncIocpRTPUDPv4Transmitter::Create(
 		NULL,
 		NULL);
 
-	if (status = SOCKET_ERROR)
+	if (status == SOCKET_ERROR)
 	{
 		LogSysError("::WSAIoctl");
 		::closesocket(rtpsock);
@@ -221,8 +208,6 @@ AsyncIocpRTPUDPv4Transmitter::Create(
 		::closesocket(rtcpsock);
 		return ERR_RTP_UDPV4TRANS_CANTSETRTCPRECEIVEBUF;
 	}
-
-#pragma TODO ("Check if 0 send buffer improve socket performance")
 
 	size = params->GetRTCPSendBuffer();
 	if (::setsockopt(rtcpsock,SOL_SOCKET,SO_SNDBUF,(const char *)&size,sizeof(int)) != 0)
@@ -333,14 +318,13 @@ AsyncIocpRTPUDPv4Transmitter::Create(
 
 
 int
-AsyncIocpRTPUDPv4Transmitter::IssueAsyncRead(IN bool rtp)
+AsyncIocpRTPUDPv4Transmitter::IssueAsyncRead(IN BOOL rtp, IN LPWSAOVERLAPPED lpOverlapped)
 {
 
 	SOCKET s		             = rtp ? rtpsock : rtcpsock;
 	LPWSABUF buf	             = rtp ? &_rtpWsaBufStruct : &_rtpWsaBufStruct;
-	BOOL &read_res			     = rtp ? _lastRtpReadResult : _lastRtcpReadResult;
 	struct sockaddr* src_addr    = rtp ? &_rtpFrom : &_rtcpFrom;
-	LPWSAOVERLAPPED lpOverlapped = rtp ? &_rtpOverlapped : &_rtcpOverlapped;
+	bool &io_pending			 = rtp ? _ioRtpPending : _ioRtcpPending;	
 
 	int src_addr_size =  sizeof(src_addr);
 	int res = ::WSARecvFrom(
@@ -358,40 +342,37 @@ AsyncIocpRTPUDPv4Transmitter::IssueAsyncRead(IN bool rtp)
 	if ((SOCKET_ERROR != res) || 
 		(::WSAGetLastError() == WSA_IO_PENDING))
 	{
-		read_res = TRUE;
-		return ERR_RTP_UDPV4TRANS_CANNOTSTART_OVERLAPPPED;
+		io_pending = true;
+		return 0;
 	};
 
-	read_res = FALSE;
 	LogSysError("::WSARecvFrom");
 
-	return 0;
+	return ERR_RTP_UDPV4TRANS_CANNOTSTART_OVERLAPPPED;
 }
 
 int
-AsyncIocpRTPUDPv4Transmitter::PollSocket(IN bool rtp)
+AsyncIocpRTPUDPv4Transmitter::AsyncPoll(IN BOOL rtp, IN LPWSAOVERLAPPED ovlap)
 {
-	BOOL &read_res = rtp ? _lastRtpReadResult : _lastRtcpReadResult;
-	if (read_res == FALSE)
-	{
-		return IssueAsyncRead(rtp);
-	}
-
 	SOCKET sock					 = rtp ? rtpsock : rtcpsock;
-	LPWSAOVERLAPPED lpOverlapped = rtp ? &_rtpOverlapped : &_rtcpOverlapped;
 	LPWSABUF buf				 = rtp ? &_rtpWsaBufStruct : &_rtpWsaBufStruct;
 	struct sockaddr_in *src_addr = (sockaddr_in *) (rtp ? &_rtpFrom : &_rtcpFrom);
+	bool &io_pending			 = rtp ? _ioRtpPending : _ioRtcpPending;	
 
+	if (!io_pending)
+	{
+		return ERR_RTP_UDPV4TRANS_CANNOTFINSIH_OVERLAPPPED;
+	}
+
+	io_pending = false;
 
 	RTPTime curtime = RTPTime::CurrentTime();
-	
-
-	DWORD recvlen = 0;
-	DWORD flags	  = 0;
+	DWORD recvlen	= 0;
+	DWORD flags		= 0;
 
 	BOOL res = ::WSAGetOverlappedResult(
 		sock,			// A descriptor identifying the socket. This is the same socket that was specified when the overlapped operation was started by a call to WSARecv, WSARecvFrom, WSASend, WSASendTo, or WSAIoctl.
-		lpOverlapped,   // A pointer to a WSAOVERLAPPED structure that was specified when the overlapped operation was started. This parameter must not be a NULL pointer.
+		ovlap,			// A pointer to a WSAOVERLAPPED structure that was specified when the overlapped operation was started. This parameter must not be a NULL pointer.
 		&recvlen,		// A pointer to a 32-bit variable that receives the number of bytes that were actually transferred by a send or receive operation, or by WSAIoctl. This parameter must not be a NULL pointer.
 		FALSE,			// A flag that specifies whether the function should wait for the pending overlapped operation to complete. If TRUE, the function does not return until the operation has been completed. If FALSE and the operation is still pending, the function returns FALSE and the WSAGetLastError function returns WSA_IO_INCOMPLETE. The fWait parameter may be set to TRUE only if the overlapped operation selected the event-based completion notification.	
 		&flags);		// A pointer to a 32-bit variable that will receive one or more flags that supplement the completion status. If the overlapped operation was initiated through WSARecv or WSARecvFrom, this parameter will contain the results value for lpFlags parameter. This parameter must not be a NULL pointer.
@@ -421,7 +402,6 @@ AsyncIocpRTPUDPv4Transmitter::PollSocket(IN bool rtp)
 		return ERR_RTP_OUTOFMEM;
 	}
 
-
 	RTPRawPacket *pack = RTPNew(GetMemoryManager(),RTPMEM_TYPE_CLASS_RTPRAWPACKET) RTPRawPacket(datacopy,recvlen,addr,curtime,rtp,GetMemoryManager());
 	if (pack == 0)
 	{
@@ -431,25 +411,12 @@ AsyncIocpRTPUDPv4Transmitter::PollSocket(IN bool rtp)
 	}
 
 	rawpacketlist.push_back(pack);
+	return 0;
 
-	return IssueAsyncRead(rtp);
-}
-
-DWORD 
-AsyncIocpRTPUDPv4Transmitter::RtpIocpKey() const 
-{ 
-	return _rtpIocpKey; 
-}
-
-DWORD 
-AsyncIocpRTPUDPv4Transmitter::RtcpIocpKey() const 
-{ 
-	return _rtcpIocpKey; 
 }
 
 
 AsyncIocpRTPUDPv4Transmitter::~AsyncIocpRTPUDPv4Transmitter(void)
 {
-	
-	
+	_iocpHandle = NULL;
 }

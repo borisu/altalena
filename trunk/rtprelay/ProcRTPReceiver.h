@@ -116,6 +116,8 @@ public:
 		IN RTPConnection *connection_source,
 		IN RTPConnection *connection_destination);
 
+	HANDLE IocpHandle() const;
+
 	virtual ~ProcRtpReceiver(void);
 
 private:
@@ -126,6 +128,7 @@ private:
 
 	HaveToLogConnectionSet _haveToLogSet;
 
-	HANDLE _ioPort;
-
+	HANDLE _iocpHandle;
+	
+	
 };

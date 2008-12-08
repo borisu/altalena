@@ -27,6 +27,7 @@
 #define CCU_DEFAULT_RTP_SAMPLING_RATE	8000
 
 #define RTPMEM_TYPE_RTP_MSG_RECEIVE		5000
+#define RTPMEM_TYPE_RTP_MSG_OVERLAPPED	5001
 
 
 RtpReceiveMsg::RtpReceiveMsg(RTPPacket *rtpPacket, RelayMemoryManager *memMngr):
@@ -80,6 +81,11 @@ _memMngr(mngr)
 	
 }
 
+rtp_uint64_t 
+RTPConnection::SourceID(IN const RTPPacket *pPack, IN const RTPSourceData *pSourceData) const
+{
+	return (rtp_uint64_t)(pPack->GetSSRC());
+}
 
 int
 RTPConnection::ConnectionId()
@@ -89,34 +95,68 @@ RTPConnection::ConnectionId()
 
 
 CcuApiErrorCode 
-RTPConnection::Init()
+RTPConnection::Init(HANDLE iocpHandle)
 {
 	
 	
 	RTPUDPv4TransmissionParams transmissionParams;
 	RTPSessionParams sessionParams;
 	
-
-
 	transmissionParams.SetPortbase(_localPort);
 	sessionParams.SetOwnTimestampUnit(1.0/((double)CCU_DEFAULT_RTP_SAMPLING_RATE));
 	sessionParams.SetMaximumPacketSize(CCU_MAX_RTP_PACKET_SIZE);
 	sessionParams.SetAcceptOwnPackets(true);
 	sessionParams.SetUsePollThread(false);
 
-
-	
-	AsyncIocpRTPUDPv4Transmitter *atrans = 
-		new AsyncIocpRTPUDPv4Transmitter(_memMngr, _iocpPort);
+	// transmitter will be deleted by RtpSession object
+	AsyncIocpRTPUDPv4Transmitter *_iocpAtrans = 
+		new AsyncIocpRTPUDPv4Transmitter(_memMngr, iocpHandle);
 	
 	int status = _rtpSession.Create(
 			sessionParams,
 			&transmissionParams,
-			atrans);
+			_iocpAtrans);
 
 	if (status < 0)
 	{
 		LogWarn("Cannot create RTP session on port=[" << _localPort << "] API error=[" <<  status  <<"] check rtperrors.h for description.");
+		return CCU_API_FAILURE;
+	}
+
+	return CCU_API_SUCCESS;
+	
+}
+
+CcuApiErrorCode 
+RTPConnection::IssueAsyncIoReq()
+{
+	if (_iocpAtrans == NULL)
+	{
+		LogWarn("Tried to issue request on empty transmitter. Dear developer have called the 'Init' function?");
+		return CCU_API_FAILURE;
+	}
+
+	// rtp:
+	RtpOverlapped *rtp_ovlap = RTPNew(_memMngr, RTPMEM_TYPE_RTP_MSG_OVERLAPPED) RtpOverlapped; 
+	::SecureZeroMemory(rtp_ovlap , sizeof(RtpOverlapped));
+	rtp_ovlap->ctx = this;
+
+	if (_iocpAtrans->IssueAsyncRead(TRUE, &rtp_ovlap->oOverlap) < 0)
+	{
+		LogWarn("Cannot issue read request for rtp socket");
+		RTPDelete(rtp_ovlap , _memMngr);
+		return CCU_API_FAILURE;
+	}
+
+	// rtcp:
+	RtpOverlapped *rtcp_ovlap = RTPNew(_memMngr, RTPMEM_TYPE_RTP_MSG_OVERLAPPED) RtpOverlapped; 
+	::SecureZeroMemory(rtcp_ovlap , sizeof(RtpOverlapped));
+	rtcp_ovlap->ctx = this;
+
+	if (_iocpAtrans->IssueAsyncRead(FALSE, &rtcp_ovlap->oOverlap) < 0)
+	{
+		LogWarn("Cannot issue read request for rtcp socket");
+		RTPDelete(rtcp_ovlap , _memMngr);
 		return CCU_API_FAILURE;
 	}
 
@@ -161,7 +201,7 @@ RTPConnection::Destroy()
 }
 
 CcuApiErrorCode
-RTPConnection::Poll(OUT RtpPacketsList &packetsList, IN size_t overflow, IN bool relayMode)
+RTPConnection::Poll(OUT RtpPacketsList &packetsList, IN size_t overflow, IN BOOL relayMode, RtpOverlapped *ovlap)
 {
 	
 	//
@@ -169,7 +209,7 @@ RTPConnection::Poll(OUT RtpPacketsList &packetsList, IN size_t overflow, IN bool
 	// from 'bool MIPRTPComponent::processNewPackets(int64_t iteration)'.
 	// See it for reference.
 	//
-	int res = _rtpSession.Poll(relayMode);
+	int res = _rtpSession.AsyncPoll(relayMode, ovlap->rtp, &ovlap->oOverlap);
 	if ( res != 0)
 	{
 		LogWarn("Error polling connection stack res=[" << res << "] description=[" << 

@@ -285,7 +285,7 @@ ProcIms::StartPlayback(CcuMsgPtr msg)
 	strm_req->obj = streaming_object;
 
 
-	LogDebug("Started >>streaming<< to dest=[" << streaming_object->RemoteMediaData().ipporttos() << "]")
+	LogDebug("Started >>streaming<< to dest=[" << streaming_object->RemoteMediaData().ipporttows() << "]")
 
 
 	_streamerInbound->Send(strm_req);

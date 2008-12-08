@@ -172,36 +172,6 @@ private:
 
 };
 
-#pragma region InterruptibleBySemaphore
-
-class InterruptibleBySemaphore
-{
-public:
-	InterruptibleBySemaphore(LpHandlePtr interruptible_channel);
-
-	~InterruptibleBySemaphore();
-
-	virtual HANDLE MsgHandle();
-
-private:
-	SemaphoreInterruptorPtr _sim;
-};
-
-class InterruptibleByIocp
-{
-public:
-	InterruptibleByIocp(
-		IN LpHandlePtr interruptible_channel, 
-		IN HANDLE iocpHandle, 
-		IN DWORD completion_key);
-
-	~InterruptibleByIocp();
-
-private:
-
-	IocpInterruptorPtr _int;
-};
-
 #pragma endregion
 
 #pragma region ProcFuncRunner

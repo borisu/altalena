@@ -235,8 +235,14 @@ public:
 
 	/** If you're not using the poll thread, this function must be called regularly to process incoming data
 	 *  and to send RTCP data when necessary.
+	 *  relay mode indicates that original buffer should be preserved
+	 *  to relay it later
 	 */
 	int Poll(bool relaymode = false);
+
+#ifdef WIN32
+	int AsyncPoll(bool relaymode , bool rtp, LPWSAOVERLAPPED ovlap);
+#endif
 
 	/** Waits at most a time \c delay until incoming data has been detected. 
 	 *  Waits at most a time \c delay until incoming data has been detected. Only works when you're not 

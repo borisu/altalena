@@ -31,8 +31,8 @@ bool checkError(bool returnValue, const MIPComponent &component)
 	if (returnValue == true)
 		return true;
 
-	LogWarn("An error occured in component: " << (component.getComponentName()) << endl);
-	LogWarn("Error description: " << component.getErrorString() << endl);
+	LogWarn("An error occured in component: " << StringToWString(component.getComponentName()) << endl);
+	LogWarn("Error description: " << StringToWString(component.getErrorString()) << endl);
 
 	return false;
 }
@@ -43,7 +43,7 @@ bool checkError(int status)
 		return true;
 	
 	LogWarn("An error occured in the RTP component: " << endl);
-	LogWarn("Error description: " << RTPGetErrorString(status) << endl);
+	LogWarn("Error description: " << StringToWString(RTPGetErrorString(status)) << endl);
 	
 	return false;
 }
@@ -54,8 +54,8 @@ bool checkError(bool returnValue, const MIPComponentChain &chain)
 	if (returnValue == true)
 		return true;
 
-	LogWarn ("An error occured in chain: " << chain.getName() << endl);
-	LogWarn ("Error description: " << chain.getErrorString() << endl);
+	LogWarn ("An error occured in chain: " << StringToWString(chain.getName()) << endl);
+	LogWarn ("Error description: " << StringToWString(chain.getErrorString()) << endl);
 
 	return false;
 }
@@ -73,8 +73,8 @@ private:
 			return;
 
 		LogWarn( "An error occured in the background thread." << endl);
-		LogWarn( "    Component: " << (errorComponent) << endl);
-		LogWarn( "    Error description: " << (errorDescription) << endl);
+		LogWarn( "    Component: " << StringToWString(errorComponent) << endl);
+		LogWarn( "    Error description: " << StringToWString(errorDescription) << endl);
 	}	
 };
 
@@ -195,7 +195,7 @@ SimpleRTPStreamer::SyncPlay(string file_name, CnxInfo data)
 	RETURN_ON_FAILURE(checkError(returnValue, chain));
 	
 	
-	LogDebug("Started >>streaming<< file=[" << (file_name) << "] to=[" << data << "]")
+	LogDebug("Started >>streaming<< file=[" << StringToWString(file_name) << "] to=[" << data << "]")
 	long start = ::GetCurrentTime();
 	returnValue = chain.start();
 	RETURN_ON_FAILURE(checkError(returnValue, chain));

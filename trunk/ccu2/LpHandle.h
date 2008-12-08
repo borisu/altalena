@@ -101,8 +101,6 @@ public:
 
 	virtual void SignalDataOut();
 
-	virtual HANDLE Handle();
-
 private:
 
 	HANDLE _iocpHandle;
