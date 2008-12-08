@@ -22,6 +22,7 @@
 #include "Ccu.h"
 #include "UIDOwner.h"
 #include "RelayMemoryManager.h"
+#include "AsyncIocpRTPUDPv4Transmitter.h"
 
 using namespace std;
 using namespace boost;
@@ -31,6 +32,19 @@ typedef ::uint64_t  rtp_uint64_t;
 typedef ::uint32_t  rtp_uint32_t;
 typedef ::uint8_t   rtp_uint8_t;
 typedef ::int64_t   rtp_int64_t;
+
+
+class RTPConnection;
+
+typedef struct 
+{ 
+	WSAOVERLAPPED oOverlap; 
+
+	RTPConnection *ctx;			
+
+	BOOL rtp;
+
+} RtpOverlapped; 
 
 
 struct RtpReceiveMsg :
@@ -78,7 +92,7 @@ public:
 
 	virtual ~RTPConnection(void);
 
-	virtual CcuApiErrorCode Init(); 
+	virtual CcuApiErrorCode Init(HANDLE iocpHandle);
 
 	virtual CcuApiErrorCode AddDestination(IN CnxInfo &data);
 
@@ -86,17 +100,14 @@ public:
 
 	virtual void Destroy();
 
-	virtual CcuApiErrorCode Poll(OUT RtpPacketsList &packetsList, IN size_t overflow, IN bool relay_mode);
+	virtual CcuApiErrorCode IssueAsyncIoReq();
+
+	virtual CcuApiErrorCode Poll(OUT RtpPacketsList &packetsList, IN size_t overflow, IN BOOL relay_mode, IN RtpOverlapped *ovlap);
 
 	virtual void Send(IN RtpPacketsList &packetsList, bool releasePacket);
 
+	virtual rtp_uint64_t SourceID(IN const RTPPacket *pPack, IN const RTPSourceData *pSourceData) const;
 	
-
-	virtual rtp_uint64_t SourceID(IN const RTPPacket *pPack, IN const RTPSourceData *pSourceData) const
-	{
-		return (rtp_uint64_t)(pPack->GetSSRC());
-	}
-
 	virtual int ConnectionId();
 
 	UINT Port();
@@ -106,6 +117,8 @@ public:
 private:
 
 	virtual CcuApiErrorCode Send(RTPPacket *packet);
+
+	AsyncIocpRTPUDPv4Transmitter *_iocpAtrans;
 
 	int _localPort;
 
@@ -117,6 +130,5 @@ private:
 
 	RelayMemoryManager *_memMngr;
 
-	HANDLE _iocpPort;
 
 };

@@ -55,8 +55,7 @@ typedef struct
 
 
 class ProcPipeIPCDispatcher :
-	public LightweightProcess,
-	public InterruptibleBySemaphore
+	public LightweightProcess
 {
 public:
 
@@ -97,6 +96,8 @@ private:
 	PipeDictionary _pipesDict;
 
 	BOOL _shutdown_flag;
+
+	SemaphoreInterruptorPtr _intPtr;
 
 	
 };

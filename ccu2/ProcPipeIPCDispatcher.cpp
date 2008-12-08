@@ -30,9 +30,9 @@ ProcPipeIPCDispatcher::ProcPipeIPCDispatcher(
 	LpHandlePair pair,
 	CcuProcId qId):
 LightweightProcess(pair,__FUNCTIONW__),
-InterruptibleBySemaphore(pair.inbound),
 _qId(qId),
-_shutdown_flag(FALSE)
+_shutdown_flag(FALSE),
+_intPtr(new SemaphoreInterruptor())
 {
 	FUNCTRACKER;
 
@@ -41,6 +41,8 @@ _shutdown_flag(FALSE)
 	_pipesDict[IMS_Q] = L"\\\\.\\pipe\\IMS";
 	_pipesDict[AIS_Q] = L"\\\\.\\pipe\\AIS";
 
+	pair.inbound->HandleInterruptor(dynamic_pointer_cast<Interruptor>(_intPtr));
+	
 	init();
 	 
 }
@@ -49,11 +51,13 @@ ProcPipeIPCDispatcher::ProcPipeIPCDispatcher(
 	LpHandlePair pair,
 	wstring pipe_name):
 LightweightProcess(pair),
-InterruptibleBySemaphore(pair.inbound),
 _qId(0),
-_shutdown_flag(FALSE)
+_shutdown_flag(FALSE),
+_intPtr(new SemaphoreInterruptor())
 {
 	FUNCTRACKER;
+
+	pair.inbound->HandleInterruptor(dynamic_pointer_cast<Interruptor>(_intPtr));
 
 	init();
 
@@ -75,6 +79,8 @@ ProcPipeIPCDispatcher::init()
 	::ZeroMemory(
 		_pipeStructs,
 		CCU_MAX_IPC_CONNECTIONS * sizeof(_pipeStructs[0]));
+
+
 	
 }
 
@@ -163,7 +169,7 @@ ProcPipeIPCDispatcher::real_run()
 	
 
 	// Create pipe instances and issue asynchronous connect request
-	_hEvents[CCU_EVENT_HANDLE] = MsgHandle();
+	_hEvents[CCU_EVENT_HANDLE] = _intPtr->Handle();
 	for (int i = CCU_EVENT_HANDLE + 1; i < CCU_IPC_NUM_OF_EVENTS; i++) 
 	{ 
 

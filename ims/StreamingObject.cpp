@@ -77,13 +77,13 @@ StreamingObject::Process()
 	string error_message;
 
 #pragma TODO("Do we have to do poll for transmitting only connection?")	
-
-	int status = _rtpSession.Poll();
-	if (status != 0)
-	{
-		LogWarn(">>Error<< polling RTPSession res=[" << status << "] msg=[" << RTPGetErrorString(status) << "]");
-		return CCU_API_FAILURE;
-	}
+	int status = 0;
+// 	int status = _rtpSession.Poll();
+// 	if (status != 0)
+// 	{
+// 		LogWarn(">>Error<< polling RTPSession res=[" << status << "] msg=[" << RTPGetErrorString(status) << "]");
+// 		return CCU_API_FAILURE;
+// 	}
 
 	MIPSystemMessage startMsg(MIPSYSTEMMESSAGE_TYPE_ISTIME);
 	_chain.process(
@@ -96,7 +96,7 @@ StreamingObject::Process()
 
 	if (error)
 	{
-		LogWarn(">>Error<< streaming object component=[" << error_component << "] msg=[" << error_message << "]");
+		LogWarn(">>Error<< streaming object component=[" << StringToWString(error_component) << "] msg=[" << StringToWString(error_message) << "]");
 	}
 
 	if (error)
@@ -151,7 +151,7 @@ StreamingObject::Init(PortManager &portManager)
 		
 		if (!mipBoolRetValue)
 		{
-			LogWarn("Cannot read file=[" << _fileName << "] err=[" <<  _sndFileInput.getErrorString() << "]");
+			LogWarn("Cannot read file=[" <<_fileName << "] err=[" <<  StringToWString(_sndFileInput.getErrorString()) << "]");
 			res = CCU_API_FAILURE;
 			break;
 		}
@@ -165,7 +165,7 @@ StreamingObject::Init(PortManager &portManager)
 		mipBoolRetValue = _sampConv.init(samplingRate, numChannels);
 		if (!mipBoolRetValue)
 		{
-			LogWarn("Cannot init sample converter sampling rate=[" << samplingRate<< "] channels=[" << numChannels <<"]  err=[" <<  _sampConv.getErrorString() << "]" );
+			LogWarn("Cannot init sample converter sampling rate=[" <<  samplingRate << "] channels=[" << numChannels <<"]  err=[" <<  StringToWString(_sampConv.getErrorString()) << "]" );
 			res = CCU_API_FAILURE;
 			break;
 		}
@@ -178,7 +178,7 @@ StreamingObject::Init(PortManager &portManager)
 		mipBoolRetValue = _sampEnc.init(destType);
 		if (!mipBoolRetValue)
 		{
-			LogWarn("Cannot init sample encoder dest type=[" << destType << "] err=[" <<  _sampEnc.getErrorString() << "]");
+			LogWarn("Cannot init sample encoder dest type=[" << destType << "] err=[" <<  StringToWString(_sampEnc.getErrorString()) << "]");
 			res = CCU_API_FAILURE;
 			break;
 		}
@@ -187,7 +187,7 @@ StreamingObject::Init(PortManager &portManager)
 		mipBoolRetValue = _uLawEnc.init();
 		if (!mipBoolRetValue)
 		{
-			LogWarn("Cannot create U-LAW encoder err=[" <<  _uLawEnc.getErrorString() << "]");
+			LogWarn("Cannot create U-LAW encoder err=[" <<  StringToWString(_uLawEnc.getErrorString()) << "]");
 			res = CCU_API_FAILURE;
 			break;
 		}
@@ -197,7 +197,7 @@ StreamingObject::Init(PortManager &portManager)
 		mipBoolRetValue = _rtpEnc.init();
 		if (!mipBoolRetValue)
 		{
-			LogWarn("Cannot create U-LAW encoder err=[" <<  _rtpEnc.getErrorString() << "]");
+			LogWarn("Cannot create U-LAW encoder err=[" <<  StringToWString(_rtpEnc.getErrorString()) << "]");
 			res = CCU_API_FAILURE;
 			break;
 		}
@@ -245,7 +245,7 @@ StreamingObject::Init(PortManager &portManager)
 				}
 			default:
 				{
-					LogWarn("Cannot create RTP Session status=[" << status << "] desc=[" <<  RTPGetErrorString(status) << "]");
+					LogWarn("Cannot create RTP Session status=[" << status << "] desc=[" << StringToWString(RTPGetErrorString(status)) << "]");
 
 					res = CCU_API_FAILURE;
 					break;
@@ -269,7 +269,7 @@ StreamingObject::Init(PortManager &portManager)
 			_remoteMediaData.port_ho()));
 		if ( status != 0)
 		{
-			LogWarn("Error adding destination dest=[" << _remoteMediaData << "] description=[" << RTPGetErrorString(status) << "]");
+			LogWarn("Error adding destination dest=[" << _remoteMediaData << "] description=[" << StringToWString(RTPGetErrorString(status)) << "]");
 			res = CCU_API_FAILURE;
 			break;
 		}
@@ -278,7 +278,7 @@ StreamingObject::Init(PortManager &portManager)
 		status = _rtpComp.init(&_rtpSession);
 		if (mipBoolRetValue == false)
 		{
-			LogWarn("Error initiating RTP component description=[" << RTPGetErrorString(status) << "]");
+			LogWarn("Error initiating RTP component description=[" << StringToWString(RTPGetErrorString(status)) << "]");
 			res = CCU_API_FAILURE;
 			break;
 		}
