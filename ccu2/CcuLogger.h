@@ -141,10 +141,10 @@ extern volatile CcuLogLevel g_LogLevel;
 void
 CcuSetLogLevel(CcuLogLevel log_level);
 
-#define SCOPED_LOG(x, color){ \
+#define SCOPED_LOG(level ,x, color){ \
 	mutex::scoped_lock scoped_lock(g_loggerMutex);\
-if (g_logMask & CCU_LOG_MASK_CONSOLE)  { std::cout << color;(std::wcout)  << PREFIX  << x << endl; }\
-	if (g_logMask & CCU_LOG_MASK_DEBUGVIEW) { std::cout << color;(dbgout) << PREFIX  << x << endl; }\
+if (g_logMask & CCU_LOG_MASK_CONSOLE)  { std::cout << color;(std::wcout)  << PREFIX  << level << x << endl; }\
+	if (g_logMask & CCU_LOG_MASK_DEBUGVIEW) { std::cout << color;(dbgout) << PREFIX  << level << x << endl; }\
 }
 
 #define SCOPED_LOG_RAW(x){ \
@@ -153,11 +153,11 @@ if (g_logMask & CCU_LOG_MASK_CONSOLE)  { std::cout << color;(std::wcout)  << PRE
 	if (g_logMask & CCU_LOG_MASK_DEBUGVIEW) { (dbgout) << x << endl; }\
 }
 
-#define LogTrace(x) if (g_LogLevel >= CCU_LOG_LEVEL_TRACE) SCOPED_LOG(x,con::bg_black)
-#define LogDebug(x) if (g_LogLevel >= CCU_LOG_LEVEL_DEBUG) SCOPED_LOG(x,con::bg_black)
-#define LogInfo(x)  if (g_LogLevel >= CCU_LOG_LEVEL_INFO) SCOPED_LOG(x,con::bg_black)
-#define LogWarn(x)  if (g_LogLevel >= CCU_LOG_LEVEL_WARN) SCOPED_LOG(x,con::bg_red)
-#define LogCrit(x)	if (g_LogLevel >= CCU_LOG_LEVEL_CRITICAL) SCOPED_LOG(x,con::bg_red)
+#define LogTrace(x) if (g_LogLevel >= CCU_LOG_LEVEL_TRACE) SCOPED_LOG(L"[TRACE]\t",	 x, con::bg_black)
+#define LogDebug(x) if (g_LogLevel >= CCU_LOG_LEVEL_DEBUG) SCOPED_LOG(L"[DEBUG]\t",	 x, con::bg_black)
+#define LogInfo(x)  if (g_LogLevel >= CCU_LOG_LEVEL_INFO) SCOPED_LOG(L"[INFO]\t",	 x, con::bg_black)
+#define LogWarn(x)  if (g_LogLevel >= CCU_LOG_LEVEL_WARN) SCOPED_LOG(L"[WARN]\t",	 x, con::bg_red)
+#define LogCrit(x)	if (g_LogLevel >= CCU_LOG_LEVEL_CRITICAL) SCOPED_LOG(L"[CRIT]\t",x, con::bg_red)
 
 
 #define LogTraceRaw(x) if (g_LogLevel >= CCU_LOG_LEVEL_TRACE) SCOPED_LOG_RAW(x)

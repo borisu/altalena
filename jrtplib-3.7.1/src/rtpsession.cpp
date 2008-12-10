@@ -592,24 +592,6 @@ void RTPSession::LeaveAllMulticastGroups()
 	rtptrans->LeaveAllMulticastGroups();
 }
 
-int RTPSession::RelayPacket(RTPRawPacket *packet)
-{
-	int status;
-
-	if (!created)
-		return ERR_RTP_SESSION_NOTCREATED;
-
-	if (packet == NULL)
-		return ERR_RTP_PACKET_INVALIDPACKET; 
-	
-
-	status = rtptrans->SendRTPData(packet->GetData(),packet->GetDataLength()) < 0;
-	
-		
-	return status;
-	
-
-}
 
 int RTPSession::SendPacket(const void *data,size_t len)
 {
@@ -891,9 +873,27 @@ RTPSession::AsyncPoll(bool relaymode , bool rtp, LPWSAOVERLAPPED ovlap)
 		return ERR_RTP_SESSION_NOTCREATED;
 	if (usingpollthread)
 		return ERR_RTP_SESSION_USINGPOLLTHREAD;
+
 	if ((status = rtptrans->AsyncPoll(rtp, ovlap)) < 0)
 		return status;
+
 	return ProcessPolledData(relaymode);
+
+}
+
+int RTPSession::AsyncRelayRtpPacket(LPWSABUF buf,LPWSAOVERLAPPED ovlap)
+{
+	int status;
+
+	if (!created)
+		return ERR_RTP_SESSION_NOTCREATED;
+
+	if (buf == NULL )
+		return ERR_RTP_PACKET_INVALIDPACKET; 
+
+	status = rtptrans->AsyncSendRTPData(buf,ovlap);
+
+	return status;
 
 }
 #endif

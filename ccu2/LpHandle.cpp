@@ -121,7 +121,6 @@ IocpInterruptor::SignalDataIn()
 		LogSysError("::PostQueuedCompletionStatus");
 		throw;
 	}
-
 }
 
 void

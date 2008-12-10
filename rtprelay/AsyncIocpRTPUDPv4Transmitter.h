@@ -20,9 +20,7 @@
 #pragma once
 
 #include "rtpudpv4transmitter.h"
-
-using namespace boost;
-
+#include "RtpOverlapped.h"
 
 
 class AsyncIocpRTPUDPv4Transmitter :
@@ -30,34 +28,50 @@ class AsyncIocpRTPUDPv4Transmitter :
 {
 public:
 
-	AsyncIocpRTPUDPv4Transmitter(IN RTPMemoryManager *mgr, IN HANDLE iocpHandle);
+	AsyncIocpRTPUDPv4Transmitter(
+		IN RTPMemoryManager *mgr, 
+		IN HANDLE iocpHandle);
 
 	~AsyncIocpRTPUDPv4Transmitter(void);
 
-	virtual int Create(	IN size_t maximumpacketsize, IN const RTPTransmissionParams *transparams);
+	virtual int Create(
+		IN size_t maximumpacketsize, 
+		IN const RTPTransmissionParams *transparams);
 
-	virtual int AsyncPoll(BOOL rtp, LPWSAOVERLAPPED ovlap);
+	virtual int AsyncPoll(
+		IN BOOL rtp, 
+		IN LPWSAOVERLAPPED ovlap);
 
-	virtual int	IssueAsyncRead(IN BOOL rtp, IN LPWSAOVERLAPPED lpOverlapped);
-	
+	virtual int AsyncSendRTPData(
+		IN LPWSABUF buf, 
+		IN LPWSAOVERLAPPED ovlap);	
+
+	virtual int AsyncSendRTCPData(
+		IN LPWSABUF buf, 
+		IN LPWSAOVERLAPPED ovlap);
+
+	virtual int	IssueAsyncRead(
+		IN BOOL rtp, 
+		IN LPWSAOVERLAPPED lpOverlapped);
+
 private:
 
 	HANDLE _iocpHandle;
 
-	char _rtpPacketBuffer[RTPUDPV4TRANS_MAXPACKSIZE];
+	char _rtpReadPacketBuffer[RTPUDPV4TRANS_MAXPACKSIZE];
 
-	char _rtcpPacketBuffer[RTPUDPV4TRANS_MAXPACKSIZE];
+	char _rtcpReadPacketBuffer[RTPUDPV4TRANS_MAXPACKSIZE];
 
-	WSABUF _rtpWsaBufStruct;
+	WSABUF _rtpReadWsaBufStruct;
 
-	WSABUF _rtcpWsaBufStruct;
+	WSABUF _rtcpReadWsaBufStruct;
 
 	struct sockaddr _rtpFrom;
 
 	struct sockaddr _rtcpFrom;
 
-	bool _ioRtpPending;
+	bool _ioRtpReadOpPending;
 
-	bool _ioRtcpPending;
+	bool _ioRtcpReadOpPending;
 
 };
