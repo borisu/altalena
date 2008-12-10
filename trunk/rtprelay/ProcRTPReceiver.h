@@ -3,6 +3,7 @@
 #include "LightweightProcess.h"
 #include "Ccu.h"
 #include "RTPConnection.h"
+#include "RelayMemoryManager.h"
 
 
 enum RtpReceiverEvents
@@ -97,10 +98,9 @@ public:
 	void real_run();
 
 	ProcRtpReceiver(
-		IN LpHandlePair pair);
+		IN LpHandlePair pair, IN RelayMemoryManager *mngr);
 
-	void AddConnection(
-		IN RTPConnection *connection);
+	void AddConnection(CcuMsgPtr ptr);
 
 	void ModifyConnection(
 		IN RTPConnection *connection, 
@@ -116,11 +116,24 @@ public:
 		IN RTPConnection *connection_source,
 		IN RTPConnection *connection_destination);
 
+	void ProcessCcuMessage(
+		OUT BOOL &shutdown_flag);
+
+	void ProccessWriteCompletion(
+		IN RtpOverlapped *ovlap
+		);
+
+	void ProccessReadCompletion(
+		IN RtpOverlapped *ovlap
+		);
+
 	HANDLE IocpHandle() const;
 
 	virtual ~ProcRtpReceiver(void);
 
 private:
+
+	RelayMemoryManager* GetMemoryManager();
 
 	ConnectionBridgesMap _bridges;
 
@@ -129,6 +142,8 @@ private:
 	HaveToLogConnectionSet _haveToLogSet;
 
 	HANDLE _iocpHandle;
+
+	RelayMemoryManager *_mngr;
 	
 	
 };

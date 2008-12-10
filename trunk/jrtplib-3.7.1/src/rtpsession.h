@@ -142,7 +142,9 @@ public:
 	/** Leaves all multicast groups. */
 	void LeaveAllMulticastGroups();
 
-	int RelayPacket(RTPRawPacket *packet);
+#ifdef WIN32	
+	int AsyncRelayRtpPacket(LPWSABUF buf, LPWSAOVERLAPPED ovlap);
+#endif 
 
 	/** Sends the RTP packet with payload \c data which has length \c len.
 	 *  Sends the RTP packet with payload \c data which has length \c len.

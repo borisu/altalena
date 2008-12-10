@@ -33,6 +33,7 @@ enum CallEvts
 	CCU_MSG_CALL_CONNECTED,
 	CCU_MSG_CALL_HANG_UP_EVT,
 	CCU_MSG_CALL_TERMINATED,
+	CCU_MSG_CALL_DTMF_EVT,
 
 	CCU_MSG_MAKE_CALL_REQ,
 	CCU_MSG_MAKE_CALL_ACK,
@@ -243,6 +244,23 @@ public:
 };
 BOOST_CLASS_EXPORT(CcuMsgCallHangupEvt);
 
+
+class CcuMsgCallDtmfEvt:
+	public CcuMsgStackMixin,public CcuMessage
+{
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
+		SERIALIZE_BASE_CLASS(CcuMessage);
+	}
+
+public:
+	CcuMsgCallDtmfEvt():CcuMessage(CCU_MSG_CALL_DTMF_EVT, 
+		NAME(CCU_MSG_CALL_DTMF_EVT)){}
+
+};
+BOOST_CLASS_EXPORT(CcuMsgCallDtmfEvt);
+
 #pragma endregion Sip_Stack_Events
 
 class Call 
@@ -278,12 +296,7 @@ public:
 	CnxInfo LocalMedia() const;
 	void LocalMedia(CnxInfo &val);
 
-
-	
-
-protected:
-
-	void real_run();
+	void CallHandler();
 
 protected:
 
@@ -298,6 +311,7 @@ protected:
 	LightweightProcess &_parentProcess;
 
 	LpHandlePtr _handlerHandle;
+
 	
 };
 

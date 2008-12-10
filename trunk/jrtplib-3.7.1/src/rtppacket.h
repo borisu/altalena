@@ -80,8 +80,13 @@ public:
 
 	virtual ~RTPPacket()																
 	{ 
+		//	This delete for the case that RTPPacket was created 
 		if (packet && !externalbuffer) RTPDeleteByteArray(packet,GetMemoryManager());
-	    if (_relaymode) 
+
+
+	    // This delete for the case that RTPPacket originated from RawPacket
+		// received from wire in relay mode.
+		if (_relaymode) 
 		{ 
 			_rawpack->ZeroData(); 
 			RTPDelete(_rawpack,GetMemoryManager());

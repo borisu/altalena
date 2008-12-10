@@ -34,21 +34,21 @@ AsyncIocpRTPUDPv4Transmitter::AsyncIocpRTPUDPv4Transmitter(
 	IN HANDLE iocpHandle)
 :RTPUDPv4Transmitter(mgr),
 _iocpHandle(iocpHandle),
-_ioRtpPending(false),
-_ioRtcpPending(false)
+_ioRtpReadOpPending(false),
+_ioRtcpReadOpPending(false)
 {
 	::SecureZeroMemory(&_rtpFrom, sizeof(_rtpFrom));
 	::SecureZeroMemory(&_rtcpFrom, sizeof(_rtcpFrom));
 	
-	::SecureZeroMemory(&_rtpWsaBufStruct, sizeof(_rtpWsaBufStruct));
-	::SecureZeroMemory(_rtpPacketBuffer, RTPUDPV4TRANS_MAXPACKSIZE);
-	_rtpWsaBufStruct.buf = _rtpPacketBuffer;
-	_rtpWsaBufStruct.len = RTPUDPV4TRANS_MAXPACKSIZE;
+	::SecureZeroMemory(&_rtpReadWsaBufStruct, sizeof(_rtpReadWsaBufStruct));
+	::SecureZeroMemory(_rtpReadPacketBuffer, RTPUDPV4TRANS_MAXPACKSIZE);
+	_rtpReadWsaBufStruct.buf = _rtpReadPacketBuffer;
+	_rtpReadWsaBufStruct.len = RTPUDPV4TRANS_MAXPACKSIZE;
 
-	::SecureZeroMemory(&_rtcpWsaBufStruct, sizeof(_rtcpWsaBufStruct));
-	::SecureZeroMemory(_rtcpPacketBuffer, RTPUDPV4TRANS_MAXPACKSIZE);
-	_rtcpWsaBufStruct.buf = _rtcpPacketBuffer;
-	_rtpWsaBufStruct.len = RTPUDPV4TRANS_MAXPACKSIZE;
+	::SecureZeroMemory(&_rtcpReadWsaBufStruct, sizeof(_rtcpReadWsaBufStruct));
+	::SecureZeroMemory(_rtcpReadPacketBuffer, RTPUDPV4TRANS_MAXPACKSIZE);
+	_rtcpReadWsaBufStruct.buf = _rtcpReadPacketBuffer;
+	_rtpReadWsaBufStruct.len = RTPUDPV4TRANS_MAXPACKSIZE;
 }
 
 
@@ -321,22 +321,30 @@ int
 AsyncIocpRTPUDPv4Transmitter::IssueAsyncRead(IN BOOL rtp, IN LPWSAOVERLAPPED lpOverlapped)
 {
 
+	
 	SOCKET s		             = rtp ? rtpsock : rtcpsock;
-	LPWSABUF buf	             = rtp ? &_rtpWsaBufStruct : &_rtpWsaBufStruct;
-	struct sockaddr* src_addr    = rtp ? &_rtpFrom : &_rtcpFrom;
-	bool &io_pending			 = rtp ? _ioRtpPending : _ioRtcpPending;	
+	LPWSABUF buf	             = rtp ? &_rtpReadWsaBufStruct : &_rtpReadWsaBufStruct;
+	struct sockaddr &from_addr   = rtp ? _rtpFrom : _rtcpFrom;
+	bool &io_pending			 = rtp ? _ioRtpReadOpPending : _ioRtcpReadOpPending;	
 
-	int src_addr_size =  sizeof(src_addr);
+	if (io_pending)
+	{
+		LogCrit("Transmitter do not support simultneous requests");
+		throw;
+	}
+
+	int src_addr_size =  sizeof(from_addr);
+	DWORD flags = 0;
 	int res = ::WSARecvFrom(
-		s,			// A descriptor identifying a socket.
-		buf,		// A pointer to an array of WSABUF structures.
-		1,			// The number of WSABUF structures in the lpBuffers array.
-		NULL,		// A pointer to the number of bytes received by this call if the WSARecvFrom operation completes immediately. If the lpOverlapped parameter is non-NULL, this parameter is optional and can be set to NULL.
-		NULL,				// A pointer to flags used to modify the behavior of the WSARecvFrom function call.
-		src_addr,			// An optional pointer to a buffer that will hold the source address upon the completion of the overlapped operation.
-		&src_addr_size,		// A pointer to the size, in bytes, of the "from" buffer required only if lpFrom is specified.
-		lpOverlapped,		// A pointer to a WSAOVERLAPPED structure (ignored for nonoverlapped sockets).
-		NULL		// A pointer to the completion routine called when the WSARecvFrom operation has been completed (ignored for nonoverlapped sockets).
+		s,				// A descriptor identifying a socket.
+		buf,			// A pointer to an array of WSABUF structures.
+		1,				// The number of WSABUF structures in the lpBuffers array.
+		NULL,			// A pointer to the number of bytes received by this call if the WSARecvFrom operation completes immediately. If the lpOverlapped parameter is non-NULL, this parameter is optional and can be set to NULL.
+		&flags,			// A pointer to flags used to modify the behavior of the WSARecvFrom function call.
+		&from_addr,		// An optional pointer to a buffer that will hold the source address upon the completion of the overlapped operation.
+		&src_addr_size, // A pointer to the size, in bytes, of the "from" buffer required only if lpFrom is specified.
+		lpOverlapped,	// A pointer to a WSAOVERLAPPED structure (ignored for nonoverlapped sockets).
+		NULL			// A pointer to the completion routine called when the WSARecvFrom operation has been completed (ignored for nonoverlapped sockets).
 		);
 
 	if ((SOCKET_ERROR != res) || 
@@ -355,9 +363,9 @@ int
 AsyncIocpRTPUDPv4Transmitter::AsyncPoll(IN BOOL rtp, IN LPWSAOVERLAPPED ovlap)
 {
 	SOCKET sock					 = rtp ? rtpsock : rtcpsock;
-	LPWSABUF buf				 = rtp ? &_rtpWsaBufStruct : &_rtpWsaBufStruct;
+	LPWSABUF buf				 = rtp ? &_rtpReadWsaBufStruct : &_rtpReadWsaBufStruct;
 	struct sockaddr_in *src_addr = (sockaddr_in *) (rtp ? &_rtpFrom : &_rtcpFrom);
-	bool &io_pending			 = rtp ? _ioRtpPending : _ioRtcpPending;	
+	bool &io_pending			 = rtp ? _ioRtpReadOpPending : _ioRtcpReadOpPending;	
 
 	if (!io_pending)
 	{
@@ -384,24 +392,28 @@ AsyncIocpRTPUDPv4Transmitter::AsyncPoll(IN BOOL rtp, IN LPWSAOVERLAPPED ovlap)
 	}
 
 	if (receivemode != RTPTransmitter::AcceptAll && 
-		!ShouldAcceptData(ntohl(src_addr->sin_addr.s_addr),ntohs(src_addr->sin_port)))
+		!ShouldAcceptData(::ntohl(src_addr->sin_addr.s_addr),::ntohs(src_addr->sin_port)))
 	{
 		return 0;
 	}			
 	
-	RTPIPv4Address *addr = RTPNew(GetMemoryManager(),RTPMEM_TYPE_CLASS_RTPADDRESS) RTPIPv4Address(ntohl(src_addr->sin_addr.s_addr),ntohs(src_addr->sin_port));
+	RTPIPv4Address *addr = 
+		RTPNew(GetMemoryManager(),RTPMEM_TYPE_CLASS_RTPADDRESS) RTPIPv4Address(::ntohl(src_addr->sin_addr.s_addr),::ntohs(src_addr->sin_port));
 	if (addr == 0)
 	{
 		return ERR_RTP_OUTOFMEM;
 	}
 
-	::uint8_t *datacopy = RTPNew(GetMemoryManager(),(rtp)?RTPMEM_TYPE_BUFFER_RECEIVEDRTPPACKET:RTPMEM_TYPE_BUFFER_RECEIVEDRTCPPACKET) ::uint8_t[recvlen];
+	::uint8_t *datacopy = 
+		RTPNew(GetMemoryManager(),(rtp)?RTPMEM_TYPE_BUFFER_RECEIVEDRTPPACKET:RTPMEM_TYPE_BUFFER_RECEIVEDRTCPPACKET) ::uint8_t[recvlen];
 	if (datacopy == 0)
 	{
 		RTPDelete(addr,GetMemoryManager());
 		return ERR_RTP_OUTOFMEM;
 	}
+	::memcpy(datacopy,buf->buf,recvlen);
 
+#pragma warning (suppress : 4800)
 	RTPRawPacket *pack = RTPNew(GetMemoryManager(),RTPMEM_TYPE_CLASS_RTPRAWPACKET) RTPRawPacket(datacopy,recvlen,addr,curtime,rtp,GetMemoryManager());
 	if (pack == 0)
 	{
@@ -412,6 +424,66 @@ AsyncIocpRTPUDPv4Transmitter::AsyncPoll(IN BOOL rtp, IN LPWSAOVERLAPPED ovlap)
 
 	rawpacketlist.push_back(pack);
 	return 0;
+
+}
+
+int AsyncIocpRTPUDPv4Transmitter::AsyncSendRTCPData(IN LPWSABUF buf, IN LPWSAOVERLAPPED ovlap)
+{
+	throw;
+}
+
+int AsyncIocpRTPUDPv4Transmitter::AsyncSendRTPData(IN LPWSABUF buf, IN LPWSAOVERLAPPED ovlap)
+{
+	if (!init)
+	{
+		return ERR_RTP_UDPV4TRANS_NOTINIT;
+	}
+
+	if (!created)
+	{
+		return ERR_RTP_UDPV4TRANS_NOTCREATED;
+	}
+
+	if (buf->len > maxpacksize)
+	{
+		return ERR_RTP_UDPV4TRANS_SPECIFIEDSIZETOOBIG;
+	}
+
+	destinations.GotoFirstElement();
+	while (destinations.HasCurrentElement())
+	{
+		
+
+		const struct sockaddr *lpTo	= 
+			(const struct sockaddr *)destinations.GetCurrentElement().GetRTPSockAddr();
+
+		int iToLen = sizeof(struct sockaddr_in);
+	
+		int res  = ::WSASendTo(
+			rtpsock,		// A descriptor identifying a (possibly connected) socket.
+			buf,			// A pointer to an array of WSABUF structures. Each WSABUF structure contains a pointer to a buffer and the length of the buffer, in bytes. For a Winsock application, once the WSASendTo function is called, the system owns these buffers and the application may not access them. This array must remain valid for the duration of the send operation.
+			1,				// The number of WSABUF structures in the lpBuffers array.
+			NULL,			// A pointer to the number of bytes sent by this call if the I/O operation completes immediately. If the lpOverlapped parameter is non-NULL, this parameter is optional and can be set to NULL. 
+			0, 				// The flags used to modify the behavior of the WSASendTo function call.
+			lpTo,			// An optional pointer to the address of the target socket in the SOCKADDR structure.
+			iToLen,			// The size, in bytes, of the address in the lpTo parameter.
+			ovlap,			// A pointer to a WSAOVERLAPPED structure (ignored for nonoverlapped sockets).
+			NULL			// A pointer to the completion routine called when the send operation has been completed (ignored for nonoverlapped sockets).
+			);
+
+		if ((res == SOCKET_ERROR) && 
+			(WSA_IO_PENDING != ::GetLastError())) 
+		{
+			LogSysError("::WSASendTo");
+		}
+
+		destinations.GotoNextElement();
+	}
+
+	return 0;
+
+	
+	
 
 }
 

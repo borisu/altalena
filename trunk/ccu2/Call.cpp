@@ -44,18 +44,18 @@ Call::Call(
  _parentProcess(parent_process),
  _handlerHandle(new LpHandle())
 {
+
+	START_FORKING_REGION;
+
+	
+	
+	END_FORKING_REGION;
 	
 }
 
 Call::~Call(void)
 {
 	HagupCall();
-}
-
-void
-Call::real_run()
-{
-
 }
 
 CcuApiErrorCode

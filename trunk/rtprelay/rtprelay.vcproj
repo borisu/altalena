@@ -165,7 +165,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\AsyncIocpRTPUDPv4Transmitter.cpp"
+				RelativePath=".\AsyncIocpRtpUdpv4Transmitter.cpp"
 				>
 			</File>
 			<File
@@ -223,7 +223,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\AsyncIocpRTPUDPv4Transmitter.h"
+				RelativePath=".\AsyncIocpRtpUdpv4Transmitter.h"
 				>
 			</File>
 			<File
@@ -239,7 +239,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ProcRTPReceiver.h"
+				RelativePath=".\ProcRtpReceiver.h"
 				>
 			</File>
 			<File
@@ -251,7 +251,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\RTPConnection.h"
+				RelativePath=".\RtpConnection.h"
+				>
+			</File>
+			<File
+				RelativePath=".\RtpOverlapped.h"
 				>
 			</File>
 			<File

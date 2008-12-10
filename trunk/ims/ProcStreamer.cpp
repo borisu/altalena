@@ -22,7 +22,7 @@
 #include "CcuLogger.h"
 
 
-#define CCU_DEFAULT_POLLING_TIME_MS 20 
+#define CCU_DEFAULT_POLLING_TIME_MS 20
 
 ProcStreamer::ProcStreamer(LpHandlePair pair, LpHandlePtr ims_inbound):
 LightweightProcess(pair, __FUNCTIONW__),
@@ -41,20 +41,62 @@ ProcStreamer::real_run()
 {
 	FUNCTRACKER;
 
+	BOOL os_res = ::SetThreadPriority(::GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);
+	if (os_res == FALSE)
+	{
+		LogSysError("::SetThreadPriority");
+		throw;
+	}
+
 	I_AM_READY;
 
 	// polling loop
 	bool shutdownFlag = FALSE;
+
+	long check_point		= 0;
+	long prev_check_point   = 0;
+
 	while (shutdownFlag != TRUE)
 	{
 		CcuApiErrorCode res = CCU_API_SUCCESS;
 
-		CcuMsgPtr ptr = _inbound->Wait(
-			MilliSeconds(CCU_DEFAULT_POLLING_TIME_MS),
-			res);
+		// we should hit the check point once in 
+		// polling period. If not - adapt sleeping 
+		// time.
+		check_point = ::GetTickCount();
+		long working_period = check_point-prev_check_point;
+		long delta  = working_period - CCU_DEFAULT_POLLING_TIME_MS;
 
-		if (res != CCU_API_TIMEOUT)
+		int sleep_time = CCU_DEFAULT_POLLING_TIME_MS;
+
+		// it took exactly polling period
+		if (delta == 0)
 		{
+			sleep_time = CCU_DEFAULT_POLLING_TIME_MS;
+		} 
+		// it took more than polling period
+		else if( delta > 0 )
+		{
+			sleep_time = delta < CCU_DEFAULT_POLLING_TIME_MS ? CCU_DEFAULT_POLLING_TIME_MS - delta : 0;
+		}
+		// it took less than polling period
+		else if (delta < 0)
+		{
+			sleep_time = CCU_DEFAULT_POLLING_TIME_MS + ::abs(delta);
+		}
+
+
+		//LogDebug(" wp:" << working_period);
+		prev_check_point = check_point;
+	
+		::Sleep(sleep_time);
+		
+		   
+
+		if (InboundPending())
+		{
+			CcuMsgPtr ptr = GetInboundMessage();
+
 			switch (ptr->message_id)
 			{
 			case CCU_MSG_STREAMER_ADD_REQ:

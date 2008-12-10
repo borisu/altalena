@@ -133,10 +133,6 @@ public:
 	/** Checks for incoming data and stores it. */
 	virtual int Poll() = 0;
 
-#ifdef WIN32
-	virtual int AsyncPoll(BOOL rtp, LPWSAOVERLAPPED ovlap) { throw; };
-#endif
-
 	/** Waits until incoming data is detected.
 	 *  Waits at most a time \c delay until incoming data has been detected. If \c dataavailable is not NULL, 
 	 *  it should be set to \c true if data was actually read and to \c false otherwise.
@@ -151,6 +147,19 @@ public:
 
 	/** Send a packet with length \c len containing \c data to all RTCP addresses of the current destination list. */
 	virtual int SendRTCPData(const void *data,size_t len) = 0;
+
+#ifdef WIN32
+
+	/** Checks for incoming data and stores it. */
+	virtual int AsyncPoll(BOOL rtp, LPWSAOVERLAPPED ovlap) {throw;};
+
+	/** Send a packet with length \c len containing \c data	to all RTP addresses of the current destination list. */
+	virtual int AsyncSendRTPData(LPWSABUF buf, LPWSAOVERLAPPED ovlap) {throw;};	
+
+	/** Send a packet with length \c len containing \c data to all RTCP addresses of the current destination list. */
+	virtual int AsyncSendRTCPData(LPWSABUF buf, LPWSAOVERLAPPED ovlap) {throw;};
+
+#endif 
 
 	/** Adds the address specified by \c addr to the list of destinations. */
 	virtual int AddDestination(const RTPAddress &addr) = 0;

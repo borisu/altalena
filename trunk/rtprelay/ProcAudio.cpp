@@ -93,7 +93,7 @@ ProcAudio::real_run()
 	_receiverInbound  = receiver_pair.inbound;
 	_receiverOutbound = receiver_pair.outbound;
 
-	ProcRtpReceiver *receiver = new ProcRtpReceiver(receiver_pair);
+	ProcRtpReceiver *receiver = new ProcRtpReceiver(receiver_pair,&_memManager);
 	_rtpReceiverIocpHandle = receiver->IocpHandle();
 	FORK(receiver);
 	if (CCU_FAILURE(WaitTillReady(Seconds(5), receiver_pair)))

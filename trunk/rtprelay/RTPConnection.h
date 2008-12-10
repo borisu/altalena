@@ -34,18 +34,6 @@ typedef ::uint8_t   rtp_uint8_t;
 typedef ::int64_t   rtp_int64_t;
 
 
-class RTPConnection;
-
-typedef struct 
-{ 
-	WSAOVERLAPPED oOverlap; 
-
-	RTPConnection *ctx;			
-
-	BOOL rtp;
-
-} RtpOverlapped; 
-
 
 struct RtpReceiveMsg :
 	public boost::noncopyable, public RTPMemoryObject
@@ -100,14 +88,14 @@ public:
 
 	virtual void Destroy();
 
-	virtual CcuApiErrorCode IssueAsyncIoReq();
+	virtual CcuApiErrorCode IssueAsyncIoReq(IN BOOL rtp);
 
 	virtual CcuApiErrorCode Poll(OUT RtpPacketsList &packetsList, IN size_t overflow, IN BOOL relay_mode, IN RtpOverlapped *ovlap);
 
-	virtual void Send(IN RtpPacketsList &packetsList, bool releasePacket);
+	virtual void AsyncRelayRtpPacket(IN RtpPacketsList &packetsList, bool releasePacket);
 
 	virtual rtp_uint64_t SourceID(IN const RTPPacket *pPack, IN const RTPSourceData *pSourceData) const;
-	
+
 	virtual int ConnectionId();
 
 	UINT Port();
@@ -116,7 +104,9 @@ public:
 
 private:
 
-	virtual CcuApiErrorCode Send(RTPPacket *packet);
+	virtual CcuApiErrorCode AsyncRelayRtpPacket(RTPPacket *packet);
+
+	RelayMemoryManager *GetMemoryManager();
 
 	AsyncIocpRTPUDPv4Transmitter *_iocpAtrans;
 
