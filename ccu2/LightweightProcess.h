@@ -175,9 +175,10 @@ private:
 #pragma endregion
 
 #pragma region ProcFuncRunner
+
 template <class T, class Y>
 class ProcFuncRunner: 
-	public CSProcess
+	public LightweightProcess
 {
 private:
 
@@ -186,30 +187,63 @@ private:
 	typename Y* _instance;
 
 protected:
-	void run()
+
+	void real_run()
 	{
-		try 
-		{
-			_res = _function(_instance);
-		} 
-		catch (std::exception e)
-		{
-			LogWarn(">>Exception<< while running proc=[" << _name <<"] e=[" << e.what() << "]");
-		}
+		_res = _function(_instance);
 	}
+
 public:
 
-	ProcFuncRunner(boost::function<T(Y *)> funct,Y *instance, T res, wstring name = L"")
-		:_function(funct),
-		_instance(instance),
-		_name(name),
-		_res(res)
+	ProcFuncRunner(
+		LpHandlePair pair,
+		boost::function<T(Y *)> funct,
+		Y *instance, 
+		T res, 
+		wstring name = L"")
+		:LightweightProcess(pair,name),
+	_function(funct),
+	_instance(instance),
+	_res(res)
 	{
+
 	}
 
 	typename T &_res;
+};
 
-	wstring _name;
+
+template <class Y>
+class ProcVoidFuncRunner: 
+	public LightweightProcess
+{
+private:
+
+	typename boost::function<void(Y*)> _function;
+
+	typename Y* _instance;
+
+protected:
+
+	void real_run()
+	{
+		_function(_instance);
+	}
+
+public:
+
+	ProcVoidFuncRunner(
+		LpHandlePair pair,
+		boost::function<void(Y *)> funct,
+		Y *instance, 
+		wstring name = L"")
+		:LightweightProcess(pair,name),
+		_function(funct),
+		_instance(instance)
+	{
+
+	}
+
 };
 
 #pragma endregion

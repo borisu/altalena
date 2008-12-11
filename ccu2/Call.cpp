@@ -28,9 +28,16 @@ Call::Call(IN LpHandlePair stack_pair,
 _stackPair(stack_pair),
 _stackCallHandle(CCU_UNDEFINED),
 _parentProcess(parent_process),
-_handlerHandle(new LpHandle())
+_hangupDetected(FALSE)
 {
+	_handlerPair = HANDLE_PAIR;
 
+	_forking.forkInThisThread(
+		new ProcVoidFuncRunner<Call>(
+			_handlerPair,
+			bind<void>(&Call::call_handler_run, _1),
+			this,
+			L"Call Handler"));
 }
 
 Call::Call(
@@ -41,21 +48,43 @@ Call::Call(
  _stackPair(stack_pair),
  _stackCallHandle(stack_handle),
  _remoteMedia(offered_media),
- _parentProcess(parent_process),
- _handlerHandle(new LpHandle())
+ _parentProcess(parent_process)
 {
 
-	START_FORKING_REGION;
-
-	
-	
-	END_FORKING_REGION;
+		
+	// not implemented
+	throw;
 	
 }
 
 Call::~Call(void)
 {
 	HagupCall();
+
+	_parentProcess.Shutdown(Seconds(5), _handlerPair);
+
+	_hangupDetected = TRUE;
+}
+
+CcuApiErrorCode
+Call::WaitForDtmf(IN wstring &dtmf_digit, IN Time timeout)
+{
+	CcuApiErrorCode res = CCU_API_SUCCESS;
+	CcuMsgPtr ptr = _dtmfChannel.Wait(timeout,res);
+
+	if (CCU_FAILURE(res))
+	{
+		return res;
+	}
+
+	shared_ptr<CcuMsgCallDtmfEvt> dtmfEvt = 
+		dynamic_pointer_cast<CcuMsgCallDtmfEvt> (ptr);
+
+	dtmf_digit = dtmfEvt->dtmf_digit;
+
+	return res;
+
+
 }
 
 CcuApiErrorCode
@@ -88,6 +117,8 @@ Call::HagupCall()
 	_stackPair.inbound->Send(msg);
 
 	_stackCallHandle = CCU_UNDEFINED;
+
+	_hangupDetected = TRUE;
 
 	return CCU_API_SUCCESS;
 }
@@ -141,6 +172,54 @@ Call::AcceptCall(IN CnxInfo local_media)
 }
 
 
+void
+Call::call_handler_run()
+{
+
+	BOOL shutdown_flag = FALSE;
+	while (!shutdown_flag)
+	{
+		CcuApiErrorCode res = CCU_API_SUCCESS;
+		CcuMsgPtr message = _handlerPair.inbound->Wait(Seconds(10),res);
+
+		if (res == CCU_API_TIMEOUT)
+		{
+			if (_hangupDetected)
+			{
+				return;
+			}
+
+			continue;
+		}
+
+		switch (message->message_id)
+		{
+		case CCU_MSG_CALL_DTMF_EVT:
+			{
+				_dtmfChannel.Send(message);
+				break;
+			}
+		case CCU_MSG_PROC_SHUTDOWN_REQ:
+			{
+				_parentProcess.SendResponse(message,new CcuMsgShutdownAck());
+				shutdown_flag = true;
+				break;
+			}
+		default:
+			{
+				BOOL res = _parentProcess.HandleOOBMessage(message);
+				if (res == FALSE)
+				{
+					LogCrit("OOB message");
+					throw;
+				}
+			} // default
+		}
+	}
+	
+
+}
+
 CcuApiErrorCode
 Call::MakeCall(IN wstring destination_uri, 
 			   IN CnxInfo local_media)
@@ -154,7 +233,7 @@ Call::MakeCall(IN wstring destination_uri,
 	CcuMsgMakeCallReq *msg = new CcuMsgMakeCallReq();
 	msg->local_media = local_media;
 	msg->destination_uri = destination_uri;
-	msg->call_handler_inbound = _handlerHandle;
+	msg->call_handler_inbound = _handlerPair.inbound;
 
 	EventsSet map;
 	map.insert(CCU_MSG_MAKE_CALL_ACK);
