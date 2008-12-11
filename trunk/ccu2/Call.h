@@ -22,7 +22,6 @@
 #include "LightweightProcess.h"
 
 
-
 #pragma region Sip_Stack_Events
 
 enum CallEvts
@@ -252,11 +251,14 @@ class CcuMsgCallDtmfEvt:
 	{
 		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
 		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_FIELD(dtmf_digit)
 	}
 
 public:
 	CcuMsgCallDtmfEvt():CcuMessage(CCU_MSG_CALL_DTMF_EVT, 
 		NAME(CCU_MSG_CALL_DTMF_EVT)){}
+
+	wstring dtmf_digit;
 
 };
 BOOST_CLASS_EXPORT(CcuMsgCallDtmfEvt);
@@ -287,8 +289,11 @@ public:
 		IN wstring destination_uri, 
 		IN CnxInfo local_media);
 
-	
 	CcuApiErrorCode HagupCall();
+
+	CcuApiErrorCode WaitForDtmf(
+		IN wstring &dtmf_digit,
+		IN Time timeout);
 
 	CnxInfo RemoteMedia() const;
 	void RemoteMedia(CnxInfo &val);
@@ -296,9 +301,12 @@ public:
 	CnxInfo LocalMedia() const;
 	void LocalMedia(CnxInfo &val);
 
-	void CallHandler();
+	
 
 protected:
+
+
+	void call_handler_run();
 
 	LpHandlePair _stackPair;
 
@@ -310,8 +318,13 @@ protected:
 
 	LightweightProcess &_parentProcess;
 
-	LpHandlePtr _handlerHandle;
+	ScopedForking _forking;
 
+	LpHandlePair _handlerPair;
+
+	BOOL _hangupDetected;
+
+	LpHandle _dtmfChannel;
 	
 };
 

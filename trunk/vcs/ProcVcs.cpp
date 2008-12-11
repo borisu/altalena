@@ -95,8 +95,10 @@ ProcVcs::real_run()
 		CcuApiErrorCode res = CCU_API_SUCCESS;
 		
 		// the syntax from hell
+		DECLARE_NAMED_HANDLE_PAIR(agent_logger_pair);
 		ProcFuncRunner<CcuApiErrorCode,ProcVcs> *agent_login_proc 
-			= new  ProcFuncRunner<CcuApiErrorCode,ProcVcs>(		
+			= new  ProcFuncRunner<CcuApiErrorCode,ProcVcs>(	
+					agent_logger_pair,
 					bind<CcuApiErrorCode>(&ProcVcs::InitialLogin, _1, *iter, stack_pair),
 					this,
 					res,
