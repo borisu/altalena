@@ -14,7 +14,15 @@ namespace callfloweditor
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+
+            MainForm mainForm = new MainForm();
+
+            EventSink visioEventSink = new EventSink(mainForm.GetApplication(), mainForm.GetDocument());
+            
+            
+            Application.Run(mainForm);
         }
+
+        
     }
 }
