@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 namespace OleCommandTarget
 {
     [StructLayout(LayoutKind.Sequential)]
+    [CLSCompliant(false)]
     public struct OLECMDTEXT
     {
         public UInt32 cmdtextf;
@@ -15,6 +16,7 @@ namespace OleCommandTarget
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    [CLSCompliant(false)]
     public struct OLECMD
     {
         public UInt32 cmdID;
@@ -23,6 +25,7 @@ namespace OleCommandTarget
 
     [ComImport(), Guid("B722BCCB-4E68-101B-A2BC-00AA00404770"),
     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [CLSCompliant(false)]
     public interface IOleCommandTarget
     {
         [PreserveSig()]

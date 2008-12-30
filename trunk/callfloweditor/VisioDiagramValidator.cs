@@ -9,8 +9,6 @@ using System.Windows.Forms;
 namespace callfloweditor
 {
     
-    
-
     class VisioDiagramValidator
     {
 
@@ -33,21 +31,21 @@ namespace callfloweditor
 
                 foreach (Shape shape in page.Shapes)
                 {
-                    
-                    if (shape.Master.NameU.Equals(CallFlowShape.CallFlowConnector_NameU))
+
+                    try
                     {
-                        if (shape.Connects.Count != 2)
-                        {
-                            MessageBox.Show(
-                               "Cannot Validate! Found connector that do not connect shapes.",
-                               "Validation Error",
-                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        CallFlowShapeFactory.CreateInstance(shape);
+                    }
+                    catch (System.Exception e)
+                    {
 
-                            return;
+                    	 MessageBox.Show(
+                                        "Validation failed  on page " +  page.Name + ", for shape " + shape.NameU + " - " + e.Message + ".",
+                                        "Validation Error",
+                                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
 
-                        }
-
-                    }// if 
 
                     if (shape.Master.NameU.Equals(CallFlowShape.Start_NameU))
                     {
