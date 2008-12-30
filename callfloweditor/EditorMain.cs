@@ -12,16 +12,19 @@ namespace callfloweditor
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+//             Application.EnableVisualStyles();
+//             Application.SetCompatibleTextRenderingDefault(false);
+// 
+//             MainForm mainForm = new MainForm();
+// 
+//   
+//             
+//             
+//             Application.Run(mainForm);
 
-            MainForm mainForm = new MainForm();
-
-            EventSink visioEventSink = new EventSink(mainForm.GetApplication(), mainForm.GetDocument());
-            
-            
-            Application.Run(mainForm);
+            System.Windows.Forms.Application.Run(new MainForm());
         }
+
 
         
     }
