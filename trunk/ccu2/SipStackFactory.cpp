@@ -12,14 +12,12 @@ SipStackFactory::~SipStackFactory(void)
 
 LightweightProcess*
 SipStackFactory::CreateSipStack(IN LpHandlePair stack_pair, 
-								IN CnxInfo sip_stack_data,
-								IN ICallHandlerCreatorPtr handler_creator)
+								IN CnxInfo sip_stack_data)
 {
 
 	return 
 		new ProcSipStack(
 			stack_pair, 
-			sip_stack_data,
-			handler_creator);
+			sip_stack_data);
 
 }

@@ -57,26 +57,11 @@ ProcSipStack::ProcSipStack(IN LpHandlePair pair,
 						   IN CnxInfo data):
 LightweightProcess(pair,__FUNCTIONW__),
 _shutDownFlag(false),
-_callHandlerCreator(ICallHandlerCreatorPtr((ICallHandlerCreator*)NULL)),
 _ipAddr(data)
 {
 	FUNCTRACKER;
 	Log::initialize(Log::Cout, Log::Info, NULL, _logger);
 	LogDebug("Stack will use default UAS definitions");
-
-}
-
-ProcSipStack::ProcSipStack(IN LpHandlePair pair, 
-						   IN CnxInfo data,
-						   IN ICallHandlerCreatorPtr handler_creator):
-LightweightProcess(pair,__FUNCTIONW__),
-_shutDownFlag(false),
-_callHandlerCreator(handler_creator),
-_ipAddr(data)
-{
-	FUNCTRACKER;
-	Log::initialize(Log::Cout, Log::Info, NULL, _logger);
-
 
 }
 
@@ -101,7 +86,6 @@ ProcSipStack::Init()
 		_dumUas = UASDialogUsageManagerPtr(new UASDialogUsageManager(
 			_stack,
 			_ipAddr,
-			_callHandlerCreator,
 			_ccuHandlesMap,
 			*this));
 		

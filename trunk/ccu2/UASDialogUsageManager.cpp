@@ -30,12 +30,10 @@
 UASDialogUsageManager::UASDialogUsageManager(
 	IN SipStack &resip_stack, 
 	IN CnxInfo ip_addr,
-	IN ICallHandlerCreatorPtr call_handler_creator,
 	IN CcuHandlesMap &ccu_handles_map,
 	IN LightweightProcess &ccu_stack):
 DialogUsageManager(resip_stack),
 _ipAddr(ip_addr),
-_callHandlerCreator(call_handler_creator),
 _ccuHandlesMap(ccu_handles_map),
 _ccu_stack(ccu_stack)
 {
@@ -123,12 +121,6 @@ UASDialogUsageManager::onNewSession(ServerInviteSessionHandle sis, InviteSession
 
 	sis->provisional(180);
 
-	if (_callHandlerCreator.get() == NULL)
-	{
-		_defaultHandlersMap[sis->getAppDialog()] = sis;
-		return;
-	}
-
 	SipDialogContextPtr ctx_ptr(new SipDialogContext());
 	ctx_ptr->uas_invite_handle = sis;
 	ctx_ptr->stack_handle = GenerateSipHandle();
@@ -147,40 +139,12 @@ UASDialogUsageManager::onTerminated(InviteSessionHandle handle , InviteSessionHa
 	FUNCTRACKER;
 	LogDebug(" Call on handle=[" << handle.getId() <<"] is terminated with reason=["  <<  reason << "]");
 
-	if (_callHandlerCreator.get() == NULL)
-	{
-		_defaultHandlersMap.erase(handle->getAppDialog());
-		return;
-	}
-
 }
 
 void 
 UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp)      
 {
 	FUNCTRACKER;
-
-	if (_callHandlerCreator.get() == NULL)
-	{
-		ServerInviteSessionHandle sis = _defaultHandlersMap[is->getAppDialog()];
-		// default port
-		string sdpStr = CreateSdp(CnxInfo(_ipAddr.inaddr(), 60555));
-
-		Data data_buffer(sdpStr.c_str());
-
-#pragma warning (push )
-#pragma warning( disable : 4267)
-		HeaderFieldValue header(data_buffer.data(), data_buffer.size());
-#pragma warning (pop)
-
-		Mime type("application", "sdp");
-		SdpContents sdp(&header, type);
-
-		sis->provideAnswer(sdp);
-		sis->accept();
-		
-		return;
-	}
 
 	ResipHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
 	SipDialogContextPtr ctx_ptr = (*iter).second;
@@ -191,14 +155,18 @@ UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, co
 
 	const SdpContents::Session::Medium &medium = s.media().front();
 	int port = medium.port();
-
 	
-	LpHandlePair pair = _callHandlerCreator->CreateCallHandler(
-		_ccu_stack._pair,
-		ctx_ptr->stack_handle,
-		CnxInfo(addr,port));
+	
+	DECLARE_NAMED_HANDLE_PAIR(call_handler_pair);
 
-	ctx_ptr->call_handler_inbound = pair.inbound;
+	CcuMsgCallOffered *offered = new CcuMsgCallOffered();
+	offered->remote_media = CnxInfo(addr,port);
+	offered->stack_call_handle = ctx_ptr->stack_handle;
+
+	_ccu_stack._outbound->Send(offered);
+
+
+	ctx_ptr->call_handler_inbound = call_handler_pair.inbound;
 
 }
 
