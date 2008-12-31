@@ -170,10 +170,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ProcLuaScriptRunner.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ProcVcs.cpp"
 				>
 			</File>
@@ -237,10 +233,6 @@
 			</File>
 			<File
 				RelativePath=".\LuaVirtualMachine.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcLuaScriptRunner.h"
 				>
 			</File>
 			<File
