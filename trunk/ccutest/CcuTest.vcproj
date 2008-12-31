@@ -213,6 +213,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ProcLuaScriptRunnerTest.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ProcPipeIPCDispatcherTest.cpp"
 				>
 			</File>
@@ -256,12 +260,6 @@
 				RelativePath=".\VcsTest.cpp"
 				>
 			</File>
-			<Filter
-				Name="Resource Files"
-				Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-				UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-				>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -297,11 +295,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ProcLuaScriptRunnerTest.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ProcPipeIPCDispatcherTest.h"
 				>
 			</File>
 			<File
 				RelativePath=".\ProcRtpRelayStub.h"
+				>
+			</File>
+			<File
+				RelativePath="..\ccu2\ProcSipStack.h"
 				>
 			</File>
 			<File

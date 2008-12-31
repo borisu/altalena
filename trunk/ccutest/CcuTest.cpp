@@ -41,6 +41,7 @@
 #include "LpHandleTest.h"
 #include "CallWithRtpManagmentTest.h"
 #include "SimpleRTPStreamer.h"
+#include "ProcLuaScriptRunnerTest.h"
 
 #pragma TODO("Outsource system starter to a different file")
 
@@ -102,6 +103,11 @@ int _tmain(int argc, _TCHAR* argv[])
 	//
 	//////////////////////////////////////////////////////////////////////////
 
+	ProcLuaScriptRunnerTest().test();
+
+	return 0;
+
+
 // 	SimpleRTPStreamer r;
 // 	r.SyncPlay("C:\\SOLUTIONS\\altalena\\ccutest\\sounds\\welcome.wav", 
 // 		CcuMediaData("192.168.150.3",6555));
@@ -110,8 +116,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 	
 
-	start_test_system();
- 	return 0;
+// 	start_test_system();
+//  	return 0;
   
 //  	CallWithRtpManagmentTest().test();
 //  	return 0;
