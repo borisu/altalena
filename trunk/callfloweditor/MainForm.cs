@@ -93,22 +93,20 @@ namespace callfloweditor
 
         void openProductStencil()
         {
-//             string stencilPath = System.Windows.Forms.Application.StartupPath + "\\Altalena.vss";
-// 
-//             Document targetStencil = null;
-// 
-//             Documents targetDocuments;
-//             targetDocuments = (Documents)visioControl.Window.Application.Documents;
-// 
-//             targetStencil = targetDocuments.OpenEx(stencilPath,
-//                 (short)VisOpenSaveArgs.visOpenRO |
-//                 (short)VisOpenSaveArgs.visOpenHidden |
-//                 (short)VisOpenSaveArgs.visOpenMinimized |
-//                 (short)VisOpenSaveArgs.visOpenNoWorkspace);
-// 
-//             // The drawing control is displaying a newly opened document.
-//             // Set the saved flag to true.
-//             visioControl.Document.Saved = true;
+             string stencilPath = System.Windows.Forms.Application.StartupPath + "\\Altalena.vss";
+ 
+             Document targetStencil = null;
+ 
+             Documents targetDocuments;
+             targetDocuments = (Documents)visioControl.Window.Application.Documents;
+ 
+             targetStencil = targetDocuments.OpenEx(stencilPath,
+                 (short)VisOpenSaveArgs.visOpenRO |
+                 (short)VisOpenSaveArgs.visOpenNoWorkspace);
+ 
+             // The drawing control is displaying a newly opened document.
+             // Set the saved flag to true.
+             visioControl.Document.Saved = true;
         }
 
 
@@ -430,7 +428,9 @@ namespace callfloweditor
                         {
 
                             // Open the new document.
-                            //
+                            GC.Collect();
+                            GC.WaitForPendingFinalizers();
+
                             visioControl.Src = fileName;
                             visioControl.Document.Saved = true;
 
@@ -546,6 +546,9 @@ namespace callfloweditor
                     {
                         targetDocument.SaveAs(targetFilename);
                     }
+
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
                     visioControl.Src = targetFilename;
                     visioControl.Document.Saved = true;
                 }
