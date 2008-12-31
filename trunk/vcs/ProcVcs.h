@@ -22,6 +22,10 @@
 #include "LightweightProcess.h"
 #include "CcuConfiguration.h"
 #include "Call.h"
+#include "LuaVirtualMachine.h"
+#include "LuaScript.h"
+#include "CallWithRTPManagment.h"
+
 
 using namespace std;
 
@@ -44,7 +48,8 @@ public:
 protected:
 
 	BOOL ProcessStackMessage(
-		IN CcuMsgPtr event 
+		IN CcuMsgPtr event,
+		IN ScopedForking &forking
 		);
 
 	BOOL ProcessInboundMessage(
@@ -52,10 +57,43 @@ protected:
 		IN ScopedForking &forking
 		);
 
+	void StartScript(
+		IN CcuMsgPtr msg);
+
 private:
+
+	LpHandlePair _stackPair;
 
 	CnxInfo _sipStackData;
 
 	CcuConfiguration *_conf;
 
+	CLuaVirtualMachine _vm;
+
 };
+
+class CallFlowScript
+	: public CLuaScript
+{
+public:
+
+	CallFlowScript(IN CLuaVirtualMachine &vm, IN CallWithRTPManagment &call_session);
+
+	~CallFlowScript();
+
+	// When the script calls a class method, this is called
+	virtual int ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber) ;
+
+	// When the script function has returns
+	virtual void HandleReturns (CLuaVirtualMachine& vm, const char *strFunc);
+
+private:
+
+	int AnswerCall(CLuaVirtualMachine& vm);
+
+	CallWithRTPManagment &_callSession;
+
+	int _methodBase;
+
+};
+

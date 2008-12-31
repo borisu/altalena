@@ -50,6 +50,8 @@ ProcVcs::real_run()
 {
 
 	START_FORKING_REGION;
+
+	_vm.InitialiseVM();
 	
 	//
 	// Start IPC for VCS queue
@@ -65,6 +67,7 @@ ProcVcs::real_run()
 	// Start SIP stack process
 	//
 	DECLARE_NAMED_HANDLE_PAIR(stack_pair);
+	_stackPair = stack_pair;
 	FORK(SipStackFactory::CreateSipStack(stack_pair,_sipStackData));
 	if (CCU_FAILURE(WaitTillReady(Seconds(5),stack_pair)))
 	{
@@ -123,7 +126,7 @@ ProcVcs::real_run()
 
 		if (index == stack_index)
 		{
-			shutdown_flag = ProcessStackMessage(event);
+			shutdown_flag = ProcessStackMessage(event, forking);
 		} 
 		else if (index == inbound_index)
 		{
@@ -174,7 +177,7 @@ ProcVcs::ProcessInboundMessage(IN CcuMsgPtr event, IN ScopedForking &forking)
 }
 
 BOOL 
-ProcVcs::ProcessStackMessage(CcuMsgPtr ptr)
+ProcVcs::ProcessStackMessage(IN CcuMsgPtr ptr, IN ScopedForking &forking)
 {
 	FUNCTRACKER;
 
@@ -182,6 +185,17 @@ ProcVcs::ProcessStackMessage(CcuMsgPtr ptr)
 	{
 	case CCU_MSG_CALL_OFFERED:
 		{
+			
+			shared_ptr<CcuMsgCallOffered> call_offered_msg = 
+				dynamic_pointer_cast<CcuMsgCallOffered>(ptr);
+
+			DECLARE_NAMED_HANDLE_PAIR(script_pair);
+			FORK_IN_THIS_THREAD(
+				new ProcVoidFuncRunner<ProcVcs>(
+				script_pair,
+				bind<void>(&ProcVcs::StartScript, _1, ptr),
+				this,
+				L"Script Runner"));
 
 		}
 	case CCU_MSG_PROC_SHUTDOWN_REQ:
@@ -198,3 +212,77 @@ ProcVcs::ProcessStackMessage(CcuMsgPtr ptr)
 	return FALSE;
 
 }
+
+void ProcVcs::StartScript(IN CcuMsgPtr msg)
+{
+	shared_ptr<CcuMsgCallOffered> start_script_msg  = 
+		dynamic_pointer_cast<CcuMsgCallOffered>(msg);
+
+	CallWithRTPManagment call_session(
+		_stackPair,
+		start_script_msg->stack_call_handle,
+		start_script_msg->remote_media,
+		*this);
+
+	CallFlowScript script( _vm, call_session);
+
+	string s = WStringToString(L"hello.cvs");
+
+	if (!script.CompileBuffer((unsigned char*)s.c_str(), s.length()))
+	{
+		SendResponse(msg, new CcuMsgNack());
+	}
+
+	script.Go();
+}
+
+CallFlowScript::CallFlowScript(IN CLuaVirtualMachine &vm, IN CallWithRTPManagment &call_session)
+:CLuaScript(vm),
+_callSession(call_session)
+{
+	_methodBase = RegisterFunction("answer");
+
+}
+
+CallFlowScript::~CallFlowScript()
+{
+
+}
+
+int 
+CallFlowScript::ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber) 
+{
+	switch (iFunctionNumber - _methodBase)
+	{
+	case 0:
+		return AnswerCall(vm);
+	}
+
+	return 0;
+
+}
+
+
+void 
+CallFlowScript::HandleReturns (CLuaVirtualMachine& vm, const char *strFunc)
+{
+
+}
+
+int
+CallFlowScript::AnswerCall(CLuaVirtualMachine& vm)
+{
+	FUNCTRACKER;
+
+	CcuApiErrorCode res = _callSession.AcceptCall();
+
+	if (CCU_SUCCESS(res))
+	{
+		return 0;
+	} else 
+	{
+		return -1;
+	}
+
+}
+
