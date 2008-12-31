@@ -20,9 +20,9 @@
 #include "StdAfx.h"
 #include "ProcVcs.h"
 #include "ProcPipeIPCDispatcher.h"
-#include "ProcIncomingCallHandler.h"
 #include "CallWithRTPManagment.h"
 #include "SipStackFactory.h"
+#include "LuaScriptRunnerFactory.h"
 
 
 ProcVcs::ProcVcs(IN LpHandlePair pair, IN CnxInfo sip_stack_media)
@@ -61,55 +61,30 @@ ProcVcs::real_run()
 		return;
 	};
 
-	
 	//
 	// Start SIP stack process
 	//
 	DECLARE_NAMED_HANDLE_PAIR(stack_pair);
-	FORK(SipStackFactory::CreateSipStack(
-		stack_pair, 
-		_sipStackData,
-		ICallHandlerCreatorPtr(new VcsCallHandlerCreator(_inbound, stack_pair))));
-
+	FORK(SipStackFactory::CreateSipStack(stack_pair,_sipStackData));
 	if (CCU_FAILURE(WaitTillReady(Seconds(5),stack_pair)))
 	{
 		Shutdown(Seconds(5), ipc_pair);
 		return;
 	};
 
-	I_AM_READY;
-
 	//
-	// Login Agents To Campaign
+	// Start Script Runner
 	//
-
-	AgentsList agents;
-	_conf->Agents(agents);
-
-	
-	ProcessList proclist;
-	// confirm login agents in parallel
-	for (AgentsList::iterator iter = agents.begin(); iter!=agents.end(); iter++)
+	DECLARE_NAMED_HANDLE_PAIR(script_runner_pair);
+	FORK(LuaScriptRunnerFactory::CreateScriptRunner(script_runner_pair, stack_pair));
+	if (CCU_FAILURE(WaitTillReady(Seconds(5),script_runner_pair)))
 	{
-		// dummy variable
-		CcuApiErrorCode res = CCU_API_SUCCESS;
-		
-		// the syntax from hell
-		DECLARE_NAMED_HANDLE_PAIR(agent_logger_pair);
-		ProcFuncRunner<CcuApiErrorCode,ProcVcs> *agent_login_proc 
-			= new  ProcFuncRunner<CcuApiErrorCode,ProcVcs>(	
-					agent_logger_pair,
-					bind<CcuApiErrorCode>(&ProcVcs::InitialLogin, _1, *iter, stack_pair),
-					this,
-					res,
-					__FUNCTIONW__);
+		Shutdown(Seconds(5), stack_pair);
+		Shutdown(Seconds(5), ipc_pair);
+		return;
+	};
 
-		proclist.push_back(agent_login_proc);
-
-	}
-
-	RunInThisThread(InParallelOneThread(proclist.begin(),proclist.end()));
-
+	I_AM_READY;
 
 	HandlesList list;
 	int index = 0;
@@ -142,24 +117,22 @@ ProcVcs::real_run()
 
 		if (err_code == CCU_API_TIMEOUT)
 		{
-			LogInfo(">>Keep Alive<<");
+			LogInfo(">>VCS Keep Alive<<");
 			continue;
 		}
 
 		if (index == stack_index)
 		{
 			shutdown_flag = ProcessStackMessage(event);
-
-		} else if (index == inbound_index)
+		} 
+		else if (index == inbound_index)
 		{
-			
 			shutdown_flag = ProcessInboundMessage(event,forking);
-			
-
 		}
 
 	}
 
+	Shutdown(Time(Seconds(5)),script_runner_pair);
 	Shutdown(Time(Seconds(5)),stack_pair);
 	Shutdown(Time(Seconds(5)),ipc_pair);
 
@@ -184,16 +157,6 @@ ProcVcs::ProcessInboundMessage(IN CcuMsgPtr event, IN ScopedForking &forking)
 		{
 			return TRUE;
 		}
-	case CCU_MSG_START_CALL_HANDLER:
-		{
-			shared_ptr<CcuMsgStartHandlerProc> msg = 
-				dynamic_pointer_cast<CcuMsgStartHandlerProc>(event);
-
-			FORK_IN_THIS_THREAD(msg->h);
-
-			break;
-
-		}
 	default:
 		{
 			BOOL oob_res = HandleOOBMessage(event);
@@ -217,12 +180,15 @@ ProcVcs::ProcessStackMessage(CcuMsgPtr ptr)
 
 	switch (ptr->message_id)
 	{
+	case CCU_MSG_CALL_OFFERED:
+		{
+
+		}
 	case CCU_MSG_PROC_SHUTDOWN_REQ:
 		{
 			
 			return TRUE;
 		}
-
 	default:
 		{
 
@@ -232,67 +198,3 @@ ProcVcs::ProcessStackMessage(CcuMsgPtr ptr)
 	return FALSE;
 
 }
-
-CcuApiErrorCode
-ProcVcs::InitialLogin(Agent agent, LpHandlePair stack_pair)
-{
-	FUNCTRACKER;
-
-	CallWithRTPManagment call(stack_pair, *this);
-
-
-	CcuApiErrorCode res = call.MakeCall(agent.media_address);
-	if (CCU_FAILURE(res))
-	{
-		LogWarn("Error making call to dest=[" << agent.media_address << "] res=[" << res << "]");
-		return res;
-	}
-
-	res = call.PlayFile(L".\\sounds\\welcome.wav");	
-	if (CCU_FAILURE(res))
-	{
-		LogWarn("Error playing welcome res=[" << res << "]");
-		return res;
-	}
-
-	return CCU_API_TIMEOUT;
-}
-
-
-
-VcsCallHandlerCreator::VcsCallHandlerCreator(
-	IN LpHandlePtr main_proc_handle,
-	IN LpHandlePair stack_pair):
-_mainProcHandle(main_proc_handle),
-_stackPair(stack_pair)
-{
-
-}
-
-
-
-LpHandlePair  
-VcsCallHandlerCreator::CreateCallHandler(
-	IN LpHandlePair stack_pair, 
-	IN int stack_handle,
-	IN CnxInfo offered_media)
-{
-	
-	DECLARE_NAMED_HANDLE_PAIR(new_handler_pair);
-
-	ProcIncomingCallHandler *h = 
-		new ProcIncomingCallHandler(new_handler_pair, _stackPair);
-
-
-
-	CcuMsgStartHandlerProc *msg = new CcuMsgStartHandlerProc();
-	msg->h = h;
-
-	_mainProcHandle->Send(msg);
-
-	return new_handler_pair;
-
-
-}
-
-

@@ -1,0 +1,76 @@
+/*
+*	The Altalena Project File
+*	Copyright (C) 2009  Boris Ouretskey
+*
+*	This library is free software; you can redistribute it and/or
+*	modify it under the terms of the GNU Lesser General Public
+*	License as published by the Free Software Foundation; either
+*	version 2.1 of the License, or (at your option) any later version.
+*
+*	This library is distributed in the hope that it will be useful,
+*	but WITHOUT ANY WARRANTY; without even the implied warranty of
+*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+*	Lesser General Public License for more details.
+*
+*	You should have received a copy of the GNU Lesser General Public
+*	License along with this library; if not, write to the Free Software
+*	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA    
+*/
+#pragma once
+
+#include "LightweightProcess.h"
+
+#pragma region Script_Events
+
+enum ScriptEvts
+{
+	CCU_MSG_START_SCRIPT = CCU_MSG_USER_DEFINED,
+};
+
+//
+// CALL RELATED
+//
+class CcuMsgStartScript: 
+	public CcuMessage
+{
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_FIELD(script_buffer);
+	}
+public:
+	CcuMsgStartScript():
+	  CcuMessage(CCU_MSG_START_SCRIPT, NAME(CCU_MSG_START_SCRIPT)),
+		  incoming_call_handle(CCU_UNDEFINED){};
+
+	  wstring script_buffer;
+
+	  CcuHandleId incoming_call_handle;
+
+	  CnxInfo offered_cnx_info;
+
+};
+
+BOOST_CLASS_EXPORT(CcuMsgStartScript);
+
+#pragma endregion Script_Events
+
+
+class ScriptSession
+{
+public:
+
+	ScriptSession(IN LpHandlePair scriptRunnerPair, 
+		IN LightweightProcess &facade);
+
+	CcuApiErrorCode StartScript(wstring buffer);
+
+	virtual ~ScriptSession(void);
+
+private:
+
+   LpHandlePair _scriptRunnerPair;
+
+   LightweightProcess &_parentProcess;
+
+};

@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\ccu2;..\rtprelay;..\ims;..\ais"
+				AdditionalIncludeDirectories="..\ccu2;..\rtprelay;..\ims;..\ais;..\lua5.1\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -154,11 +154,31 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ProcIncomingCallHandler.cpp"
+				RelativePath=".\LuaDebugger.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaScript.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaScriptRunnerFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaVirtualMachine.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ProcLuaScriptRunner.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\ProcVcs.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ScriptSession.cpp"
 				>
 			</File>
 			<File
@@ -196,11 +216,39 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ProcIncomingCallHandler.h"
+				RelativePath=".\LuaDebugger.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaRestoreStack.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaScript.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaScriptRunnerFactory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaThis.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaVirtualMachine.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ProcLuaScriptRunner.h"
 				>
 			</File>
 			<File
 				RelativePath=".\ProcVcs.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ScriptSession.h"
 				>
 			</File>
 			<File
