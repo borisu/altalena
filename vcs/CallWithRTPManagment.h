@@ -32,6 +32,12 @@ public:
 		IN LpHandlePair stack_pair, 
 		IN LightweightProcess &facade);
 
+	CallWithRTPManagment(
+		IN LpHandlePair _stackPair, 
+		IN int call_handle,
+		IN CnxInfo offered_media,
+		IN LightweightProcess &facade);
+
 	virtual ~CallWithRTPManagment(void);
 
 	CcuApiErrorCode MakeCall(
@@ -39,6 +45,8 @@ public:
 
 	CcuApiErrorCode PlayFile(
 		IN const wstring &file_name);
+
+	CcuApiErrorCode AcceptCall();
 
 private:
 

@@ -28,6 +28,17 @@ _callerRtpSession(facade)
 {
 }
 
+CallWithRTPManagment::CallWithRTPManagment(
+	IN LpHandlePair _stackPair, 
+	IN int call_handle,
+	IN CnxInfo offered_media,
+	IN LightweightProcess &facade)
+:Call(_stackPair, call_handle, offered_media, facade),
+_callerRtpSession(facade)
+{
+}
+
+
 CallWithRTPManagment::~CallWithRTPManagment(void)
 {
 	FUNCTRACKER;
@@ -62,6 +73,19 @@ CallWithRTPManagment::MakeCall(IN const wstring &destination_uri)
 	}
 
 	return CCU_API_SUCCESS;
+}
+
+CcuApiErrorCode CallWithRTPManagment::AcceptCall()
+{
+	CcuApiErrorCode res = _callerRtpSession.AllocateRTPConnection();
+	if (CCU_FAILURE(res))
+	{
+		return res;
+	};
+
+	res = Call::AcceptCall(_callerRtpSession.LocalMediaData());
+	return res;
+
 }
 
 CcuApiErrorCode
