@@ -38,7 +38,6 @@ public:
 	UASDialogUsageManager(
 		IN SipStack &stack, 
 		IN CnxInfo ipAddr,
-		IN ICallHandlerCreatorPtr call_handler_creator,
 		IN CcuHandlesMap &ccu_handles_map,
 		IN LightweightProcess &ccu_stack);
 
@@ -73,13 +72,9 @@ private:
 
 	NameAddrPtr _uasAor;
 
-	ICallHandlerCreatorPtr _callHandlerCreator;
-
 	ResipHandlesMap _resipHandlesMap;
 
 	CcuHandlesMap &_ccuHandlesMap;
-
-	DefaultHandlersMap _defaultHandlersMap;
 
 	LightweightProcess &_ccu_stack;
 

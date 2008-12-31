@@ -93,11 +93,6 @@ public:
 		IN LpHandlePair pair, 
 		IN CnxInfo data);
 
-	ProcSipStack(
-		IN LpHandlePair pair, 
-		IN CnxInfo data,
-		IN ICallHandlerCreatorPtr handler_creator);
-
 	virtual ~ProcSipStack(void);
 
 	virtual void real_run();
@@ -136,8 +131,6 @@ protected:
 	UACDialogUsageManagerPtr _dumUac;
 
 	UASDialogUsageManagerPtr _dumUas;
-
-	ICallHandlerCreatorPtr _callHandlerCreator;
 
 	CcuResipLogger _logger;
 

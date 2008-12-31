@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/Zm200&#x0D;&#x0A;"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\resip;..\..\json\json_spirit_v2.06\json_spirit\"
+				AdditionalIncludeDirectories="..\lua5.1\include;..\..\resip;..\..\json\json_spirit_v2.06\json_spirit\"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -186,10 +186,6 @@
 			</File>
 			<File
 				RelativePath=".\ProcSipStack.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcSipStack.h"
 				>
 			</File>
 			<File

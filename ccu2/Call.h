@@ -274,7 +274,7 @@ public:
 
 	Call(
 		IN LpHandlePair _stackPair, 
-		IN int stack_handle,
+		IN int call_handle,
 		IN CnxInfo offered_media,
 		IN LightweightProcess &facade);
 
@@ -331,16 +331,4 @@ protected:
 typedef 
 shared_ptr<Call> CallPtr;
 
-class ICallHandlerCreator
-{
-public:
-	virtual LpHandlePair CreateCallHandler(
-		IN LpHandlePair stack_pair, 
-		IN int stack_handle,
-		IN CnxInfo offered_media) = 0;
-
-};
-
-typedef 
-shared_ptr <ICallHandlerCreator> ICallHandlerCreatorPtr;
 
