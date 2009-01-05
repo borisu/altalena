@@ -22,6 +22,19 @@ namespace callfloweditor
         /// <summary>Visio xml drawing suffix VDX.</summary>
         public const string VdxSuffix = ".VDX";
 
+        public const string TitlePostfix = " - Altalena Call Flow Editor";
+
+        public const string UntitledFileName = "Untitled";
+
+        public string currFileNameInTitle = UntitledFileName;
+        public string CurrFileNameInTitle
+        {
+            get { return visioControl.Src == "" ? UntitledFileName : System.IO.Path.GetFileName(visioControl.Src); }
+        }
+
+        const int visualFeedbackOn = 1;
+
+        const int visualFeedbackOff = 0;
 
         /// <summary>The drawingControlList contains a list of names of
         /// documents open in the drawing control.</summary>
@@ -48,18 +61,16 @@ namespace callfloweditor
         {
             InitializeComponent();
             visioControl.Src = "";
+            Text = UntitledFileName + TitlePostfix;
         }
 
         public void setUpVisioDrawing()
         {
-
             // Start the event sink.
             initializeEventSink();
 
             // Open the stencil with the product shapes.
             openProductStencil();
-
-            
         }
 
         void initializeEventSink()
@@ -84,31 +95,29 @@ namespace callfloweditor
                 visioEventSink.AddAdvise(targetApplication, targetDocument);
 
             }
-
             catch (COMException error)
             {
-               throw;
+                throw;
             }
         }
 
         void openProductStencil()
         {
-             string stencilPath = System.Windows.Forms.Application.StartupPath + "\\Altalena.vss";
- 
-             Document targetStencil = null;
- 
-             Documents targetDocuments;
-             targetDocuments = (Documents)visioControl.Window.Application.Documents;
- 
-             targetStencil = targetDocuments.OpenEx(stencilPath,
-                 (short)VisOpenSaveArgs.visOpenRO |
-                 (short)VisOpenSaveArgs.visOpenNoWorkspace);
- 
-             // The drawing control is displaying a newly opened document.
-             // Set the saved flag to true.
-             visioControl.Document.Saved = true;
-        }
+            string stencilPath = System.Windows.Forms.Application.StartupPath + "\\Altalena.vss";
 
+            Document targetStencil = null;
+
+            Documents targetDocuments;
+            targetDocuments = (Documents)visioControl.Window.Application.Documents;
+
+            targetStencil = targetDocuments.OpenEx(stencilPath,
+                (short)VisOpenSaveArgs.visOpenRO |
+                (short)VisOpenSaveArgs.visOpenNoWorkspace);
+
+            // The drawing control is displaying a newly opened document.
+            // Set the saved flag to true.
+            visioControl.Document.Saved = true;
+        }
 
         private void SendCommand(VisUICmds commandID)
         {
@@ -130,6 +139,33 @@ namespace callfloweditor
 
         }
 
+        DialogResult SaveCheck()
+        {
+            if (visioControl.Document.Saved == true)
+            {
+                return DialogResult.Yes;
+            }
+
+            DialogResult result =
+              MessageBox.Show("The diagram in  " + CurrFileNameInTitle + " has changed\n\nDo you want to save the changes?", "Altalena",
+              MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
+
+            if (result == DialogResult.Yes)
+            {
+                if (visioControl.Src == String.Empty)
+                {
+                    DoFileSaveAsCmd();
+
+                }
+                else
+                {
+                    DoFileSaveCmd();
+                }
+            }
+
+            return result;
+        }
+
 #region UI_Handlers
 
         private void validateButton_Click(object sender, EventArgs e)
@@ -144,12 +180,12 @@ namespace callfloweditor
 
         private void openToolStripButton_Click(object sender, EventArgs e)
         {
-            DoFileOpenCmd(sender, e); 
+            DoFileOpenCmd(sender, e);
         }
 
         private void openScriptDiagramToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            DoFileOpenCmd(sender, e); 
+            DoFileOpenCmd(sender, e);
         }
 
         private void cutToolStripButton_Click(object sender, EventArgs e)
@@ -174,7 +210,16 @@ namespace callfloweditor
 
         private void saveToolStripButton_Click(object sender, EventArgs e)
         {
-            DoFileSaveCmd();
+            if (visioControl.Src == String.Empty)
+            {
+                DoFileSaveAsCmd();
+
+            }
+            else
+            {
+                DoFileSaveCmd();
+            }
+            
         }
 
         private void AltMainMenuStrip_VisibleChanged(object sender, EventArgs e)
@@ -182,10 +227,71 @@ namespace callfloweditor
             DoVisibleChangedCmd();
         }
 
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DoFileNew();
+        }
+
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (visioControl.Src == String.Empty)
+            {
+                DoFileSaveAsCmd();
+
+            }
+            else
+            {
+                DoFileSaveCmd();
+            }
+        }
+
+        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DoFileSaveAsCmd();
+        }
+
+        private void printToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DoPrintPreviewCmd();
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DoExitCmd();
+        }
+
+        private void printToolStripButton_Click(object sender, EventArgs e)
+        {
+            DoPrintPreviewCmd();
+        }
+
+        private void selectAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DoVisioSelectAllCmd();
+        }
+
+        private void undoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DoVisioUndoCmd();
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (SaveCheck() == DialogResult.Cancel)
+            {
+                e.Cancel = true;
+                return;
+            }
+        }
+
+
 
 #endregion UI_Handlers
 
-        void DoVisibleChangedCmd()
+#region Commands
+
+#region UICommands
+        private void DoVisibleChangedCmd()
         {
 
             // If the drawing control is not on the list of initialized
@@ -204,48 +310,272 @@ namespace callfloweditor
             }
 
         }
+#endregion UICommands
 
-        void DoFileNew()
+#region FileCommands
+
+        private void DoFileNew()
         {
-            SaveDrawing(true);
+
+            if (SaveCheck() == DialogResult.Cancel)
+            {
+                return;
+            }
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            visioControl.Src = "";
+            Text = UntitledFileName + TitlePostfix;
+
+
+            // Get the current state of the visual feedback. If visual
+            // feedback is on the end user will see changes in the drawing
+            // window as the code operates on the shapes.
+            int visualFeedbackStatus = GetApplication().ScreenUpdating;
+
+            // Don't let the user see the visual feedback while the shapes
+            // are deleted.
+            if (visualFeedbackStatus == visualFeedbackOn)
+            {
+                GetApplication().ScreenUpdating = visualFeedbackOff;
+            }
+
+            // Delete all of the shapes from the Visio window.
+            // Note: when invoking Selection.Delete(), the EventSink class will raise
+            // an event and call onRemoveProductInformation for each shape deleted
+            // from the page. That will update the product data and grid control.
+            Window targetWindow;
+            targetWindow = (Window)visioControl.Window;
+            if (targetWindow.PageAsObj.Shapes.Count > 0)
+            {
+                targetWindow.SelectAll();
+                targetWindow.Selection.Delete();
+            }
+
+            // Set the document saved flag since the drawing control is now
+            // displaying a blank document.
+            visioControl.Document.Saved = true;
+
+            // Restore the screen updating status.
+            if (visualFeedbackStatus == visualFeedbackOn)
+            {
+                GetApplication().ScreenUpdating = visualFeedbackOn;
+            }
 
         }
-        
-        void DoValidateCmd()
+
+        private void DoFileOpenCmd(object sender, EventArgs e)
         {
-            VisioDiagramValidator validator = 
+
+            if (SaveCheck() == DialogResult.Cancel)
+            {
+                return;
+            }
+
+            OpenFileDialog openFileDialog = null;
+            Documents targetDocuments;
+            string fileName;
+            string fileNameForCompare;
+
+
+
+            try
+            {
+                // Set up the open file dialog and let the user select the
+                // file to open.
+                openFileDialog = new OpenFileDialog();
+                openFileDialog.Title = "Open Script Diagram";
+                openFileDialog.Filter = "Drawing files (*.vsd)|*.vsd|All files (*.*)|*.*";
+                openFileDialog.FilterIndex = 1;
+                openFileDialog.InitialDirectory =
+                    System.Windows.Forms.Application.StartupPath;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+
+                    // The user selected a valid file name and hit OK. Get the
+                    // file name from the dialog and open the file.
+                    fileName = openFileDialog.FileName;
+                    fileNameForCompare = fileName.ToUpper(
+                        System.Globalization.CultureInfo.CurrentCulture);
+
+                    // user chose stencil
+                    if ((fileNameForCompare.IndexOf(VssSuffix) > 0) ||
+                        (fileNameForCompare.IndexOf(VsxSuffix) > 0))
+                    {
+
+                        targetDocuments =
+                            (Documents)visioControl.Window.Application.Documents;
+
+                        // Open the stencil read-only.
+                        targetDocuments.OpenEx(fileName,
+                            (short)VisOpenSaveArgs.visOpenRO +
+                            (short)VisOpenSaveArgs.visOpenDocked);
+                    }
+                    // user chose visio diagram
+                    else if ((fileNameForCompare.IndexOf(VsdSuffix) > 0) ||
+                        (fileNameForCompare.IndexOf(VdxSuffix) > 0))
+                    {
+
+                        visioControl.Src = "";  
+
+                        // Open the new document.
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+
+                        visioControl.Src = fileName;
+                        visioControl.Document.Saved = true;
+                        Text = openFileDialog.SafeFileName + TitlePostfix;
+
+
+                        setUpVisioDrawing();
+                    }
+                }
+            }
+
+            finally
+            {
+
+                // Make sure the dialog is cleaned up.
+                if (openFileDialog != null)
+                {
+                    openFileDialog.Dispose();
+                }
+            }
+        }
+
+        private void DoExitCmd()
+        {
+            
+
+            this.Close();
+        }
+
+        private void DoFileSaveCmd()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            string s1 = visioControl.Src;
+            bool saved = GetDocument().Saved;
+
+            if (GetDocument().Saved)
+            {
+                return;
+            }
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            int res = GetDocument().SaveAs(visioControl.Src);
+            GetDocument().Saved = true;
+
+            
+        }
+
+        private void DoFileSaveAsCmd()
+        {
+            
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            DialogResult result = DialogResult.No;
+
+            try
+            {
+                String targetFilename = visioControl.Src;
+                Document targetDocument = GetDocument();
+
+                // Set up the save file dialog and let the user specify the
+                // name to save the document to.
+                saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Title = "Save Script Diagram As";
+                saveFileDialog.Filter = "Drawing files (*.vsd)|*.vsd|All files (*.*)|*.*";
+                saveFileDialog.FilterIndex = 1;
+                saveFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+                saveFileDialog.FileName = CurrFileNameInTitle;
+
+                result = saveFileDialog.ShowDialog();
+
+                if (result == DialogResult.OK)
+                {
+                    targetFilename = saveFileDialog.FileName;
+                }
+                else
+                {
+                    return;
+                }
+
+                targetDocument.SaveAs(targetFilename);
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                visioControl.Src = targetFilename;
+
+                Text = System.IO.Path.GetFileName(targetFilename) + TitlePostfix;
+
+                visioControl.Document.Saved = true;
+
+            }
+            finally
+            {
+                // Make sure the dialog is cleaned up.
+                if (saveFileDialog != null)
+                {
+                    saveFileDialog.Dispose();
+                }
+            }
+
+            return ;
+        }
+
+#endregion FileCommands
+
+#region EditCommands
+
+        private void DoVisioUndoCmd()
+        {
+            SendCommand(VisUICmds.visCmdEditUndo);
+        }
+
+        private void DoVisioSelectAllCmd()
+        {
+            SendCommand(VisUICmds.visCmdUFEditSelectAll);
+        }
+
+        private void DoVisioCopyCmd()
+        {
+            SendCommand(VisUICmds.visCmdUFEditCopy);
+        }
+
+        private void DoVisioCutCmd()
+        {
+            SendCommand(VisUICmds.visCmdUFEditCut);
+        }
+
+        private void DoVisioPasteCmd()
+        {
+            SendCommand(VisUICmds.visCmdUFEditPaste);
+        }        
+
+#endregion EditCommands
+
+#region ScriptCommands
+        private void DoValidateCmd()
+        {
+            VisioDiagramValidator validator =
                 new VisioDiagramValidator(GetDocument());
 
             validator.validate();
         }
 
-        void DoShowAboutDlgCmd()
+        private void DoShowAboutDlgCmd()
         {
             new AboutForm().Show(this);
         }
 
-        void DoVisioCopyCmd()
-        {
-            SendCommand(VisUICmds.visCmdUFEditCopy);
-        }
+        
 
-        void DoVisioCutCmd()
-        {
-            SendCommand(VisUICmds.visCmdUFEditCut);
-        }
-
-        void DoVisioPasteCmd()
-        {
-            SendCommand(VisUICmds.visCmdUFEditPaste);
-        }
-
-        /// <summary>The onPrintDocumentPrintPage method handles the event that
-        /// is raised when the end user hits Print in the print dialog.
-        /// </summary>
-        /// <param name="sender">The object that raised the event. This
-        /// is ignored for this case.</param>
-        /// <param name="e">The arguments associated with the
-        /// event.</param>
         private void onPrintDocumentPrintPage(object sender,
             System.Drawing.Printing.PrintPageEventArgs e)
         {
@@ -309,14 +639,6 @@ namespace callfloweditor
                 metafileOriginX, metafileOriginY);
         }
 
-        /// <summary>The onMenuFilePrintPreviewClicked method handles the event
-        /// that is raised when the user clicks on the Print Preview
-        /// command in the menu. The System.Drawing.Printing objects are used
-        /// to provide print preview to the user.</summary>
-        /// <param name="sender">The object that raised the event. This
-        /// is ignored for this case.</param>
-        /// <param name="e">The arguments associated with the
-        /// event. This is ignored for this case.</param>
         private void DoPrintPreviewCmd()
         {
             try
@@ -349,228 +671,10 @@ namespace callfloweditor
                     System.Windows.Forms.MessageBoxIcon.Exclamation);
             }
         }
+#endregion ScriptCommands
 
-        /// <summary>The onMenuFileSaveClicked method handles the event that is
-        /// raised when the end user clicks on the File > Save command in the
-        /// menu.</summary>
-        /// <param name="sender">The object that raised the event. This
-        /// is ignored for this case.</param>
-        /// <param name="e">The arguments associated with the
-        /// event. This is ignored for this case.</param>
-        private void DoFileSaveCmd()
-        {
-            DialogResult result;
-
-            // Prompt user to save changes.
-            result = SaveDrawing(false);
-        }
-
-        /// <summary>The onMenuFileOpenClicked method handles the event that is
-        /// raised when the user clicks on the File > Open command in the
-        /// menu. Either a document or stencil can be opened.</summary>
-        /// <param name="sender">The object that raised the event. This
-        /// is ignored for this case.</param>
-        /// <param name="e">The arguments associated with the
-        /// event. This is ignored for this case.</param>
-        private void DoFileOpenCmd(object sender, EventArgs e)
-        {
-
-            OpenFileDialog openFileDialog = null;
-            Documents targetDocuments;
-            string fileName;
-            string fileNameForCompare;
-            
-
-            try
-            {
-                // Set up the open file dialog and let the user select the
-                // file to open.
-                openFileDialog = new OpenFileDialog();
-                openFileDialog.Title = "Open Script Diagram";
-                openFileDialog.Filter = "Drawing files (*.vsd)|*.vsd|All files (*.*)|*.*";
-                openFileDialog.FilterIndex = 1;
-                openFileDialog.InitialDirectory =
-                    System.Windows.Forms.Application.StartupPath;
-
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
-                {
-
-                    // The user selected a valid file name and hit OK. Get the
-                    // file name from the dialog and open the file.
-                    fileName = openFileDialog.FileName;
-                    fileNameForCompare = fileName.ToUpper(
-                        System.Globalization.CultureInfo.CurrentCulture);
-                    if ((fileNameForCompare.IndexOf(VssSuffix) > 0) ||
-                        (fileNameForCompare.IndexOf(VsxSuffix) > 0))
-                    {
-
-                        targetDocuments =
-                            (Documents)visioControl.Window.Application.Documents;
-
-                        // Open the stencil read-only.
-                        targetDocuments.OpenEx(fileName,
-                            (short)VisOpenSaveArgs.visOpenRO +
-                            (short)VisOpenSaveArgs.visOpenDocked);
-                    }
-
-                    else if ((fileNameForCompare.IndexOf(VsdSuffix) > 0) ||
-                        (fileNameForCompare.IndexOf(VdxSuffix) > 0))
-                    {
-
-                        DialogResult result;
-
-                        // Only one document can be open.
-                        // Prompt user to save changes before closing the current
-                        // document.
-                        result = SaveDrawing(true);
-
-                        if (DialogResult.Cancel != result)
-                        {
-
-                            // Open the new document.
-                            GC.Collect();
-                            GC.WaitForPendingFinalizers();
-
-                            visioControl.Src = fileName;
-                            visioControl.Document.Saved = true;
-
-                            // Setup the drawing, open the product stencil, and
-                            // start the event sink.
-                            // Note that opening a different drawing will close
-                            // the previous drawing and end the previous event sink.
-                            setUpVisioDrawing();
-
-                          
-                        }
-                    }
-                }
-            }
-
-            finally
-            {
-
-                // Make sure the dialog is cleaned up.
-                if (openFileDialog != null)
-                {
-                    openFileDialog.Dispose();
-                }
-            }
-        }
-
-        /// <summary>The SaveDrawing method prompts the user to save changes
-        /// to the Visio document.</summary>
-        /// <param name="drawingControl">Drawing control with the Visio
-        ///  document to save.</param>
-        /// <param name="promptFirst">Display "save changes" prompt.</param>
-        /// <returns>The id of the message box button that dismissed
-        /// the dialog.</returns>
-        [CLSCompliant(false)]
-        public DialogResult SaveDrawing(
-            bool promptFirst)
-        {
-
-            if (visioControl == null)
-            {
-                return DialogResult.Cancel;
-            }
-
-
-            SaveFileDialog saveFileDialog = null;
-            DialogResult result = DialogResult.No;
-            string targetFilename = string.Empty;
-            Document targetDocument;
-
-            try
-            {
-                targetFilename = visioControl.Src;
-                targetDocument = (Document)visioControl.Document;
-
-                // Prompt to save changes.
-                if (promptFirst == true)
-                {
-
-                    string prompt = string.Empty;
-                    string title = string.Empty;
-
-                    title ="Save Script File";
-
-                    if (targetFilename == null)
-                    {
-                        return DialogResult.Cancel;
-                    }
-
-                    // Save changes to the existing drawing.
-                    if (targetFilename.Length > 0)
-                    {
-                        prompt = "Save Script Diagram As";
-                        prompt += Environment.NewLine;
-                        prompt += targetFilename;
-                    }
-                    else
-                    {
-
-                        // Save changes as new drawing.
-                        prompt = "Save Script Diagram As";
-                    }
-                    result = MessageBox.Show(prompt, title,
-                        MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
-                }
-                else
-                {
-                    result = DialogResult.Yes;
-                }
-
-                // Display a file browse dialog to select path and filename.
-                if ((DialogResult.Yes == result) && (targetFilename.Length == 0))
-                {
-
-                    // Set up the save file dialog and let the user specify the
-                    // name to save the document to.
-                    saveFileDialog = new SaveFileDialog();
-                    saveFileDialog.Title = "SaveDialogTitle";
-                    saveFileDialog.Filter = "Drawing files (*.vsd)|*.vsd|All files (*.*)|*.*";
-                    saveFileDialog.FilterIndex = 1;
-                    saveFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
-
-                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
-                    {
-                        targetFilename = saveFileDialog.FileName;
-                    }
-                }
-                // Save the document to the filename specified by
-                // the end user in the save file dialog, or the existing file name.
-                if ((DialogResult.Yes == result) && (targetFilename.Length > 0))
-                {
-
-                    if (targetDocument != null)
-                    {
-                        targetDocument.SaveAs(targetFilename);
-                    }
-
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
-                    visioControl.Src = targetFilename;
-                    visioControl.Document.Saved = true;
-                }
-
-            }
-            finally
-            {
-
-                // Make sure the dialog is cleaned up.
-                if (saveFileDialog != null)
-                {
-                    saveFileDialog.Dispose();
-                }
-            }
-            return result;
-        }
-
-       
-
-        
-       
-
+#endregion Commands
 
     }
+       
 }
