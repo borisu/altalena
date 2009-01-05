@@ -181,10 +181,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\AisTest.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\CallWithRtpManagmentTest.cpp"
 				>
 			</File>
@@ -210,10 +206,6 @@
 			</File>
 			<File
 				RelativePath=".\ProcImsStub.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcLuaScriptRunnerTest.cpp"
 				>
 			</File>
 			<File
@@ -267,10 +259,6 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\AisTest.h"
-				>
-			</File>
-			<File
 				RelativePath=".\CallWithRtpManagmentTest.h"
 				>
 			</File>
@@ -292,10 +280,6 @@
 			</File>
 			<File
 				RelativePath=".\ProcImsStub.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcLuaScriptRunnerTest.h"
 				>
 			</File>
 			<File

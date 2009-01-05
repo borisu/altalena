@@ -31,39 +31,6 @@ CcuConfiguration::CcuConfiguration(void)
 
 CcuConfiguration::~CcuConfiguration(void)
 {
-	_agentsList.clear();
-	_agentsMap.clear();
-}
-
-void
-CcuConfiguration::Agents(AgentsList &agents_list)
-{
-	mutex::scoped_lock lock(_mutex);
-
-	if (!agents_list.empty())
-	{
-		LogWarn("Agents list passed as a parameter is not empty.");
-	}
-	
-
-	agents_list.assign(_agentsList.begin(), _agentsList.end());
-
-}
-
-void
-CcuConfiguration::AddAgent(const Agent &agent)
-{
-	mutex::scoped_lock lock(_mutex);
-
-	if (agent.name == L"")
-	{
-		LogWarn("Not valid agent passed as a parameter.");
-		return;
-	}
-
-	_agentsList.push_back(agent);
-	_agentsMap[agent.name] = agent;
-
 }
 
 CnxInfo
@@ -110,4 +77,13 @@ CcuConfiguration::RtpRelayIp()
 	return _rtpRelayIp;
 
 }
+
+wstring
+CcuConfiguration::ScriptFile()
+{
+	mutex::scoped_lock lock(_mutex);
+
+	return  _scriptFile;
+}
+
 

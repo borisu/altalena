@@ -89,7 +89,7 @@ public:
 
 private:
 
-	int AnswerCall(CLuaVirtualMachine& vm);
+	int LuaAnswerCall(CLuaVirtualMachine& vm);
 
 	CallWithRTPManagment &_callSession;
 
