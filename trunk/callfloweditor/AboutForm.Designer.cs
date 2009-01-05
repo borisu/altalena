@@ -60,10 +60,11 @@ namespace callfloweditor
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.Disable;
-            this.BackColor = System.Drawing.SystemColors.InactiveCaptionText;
+            this.BackColor = System.Drawing.SystemColors.MenuBar;
             this.ClientSize = new System.Drawing.Size(263, 64);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.AboutLabel);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximumSize = new System.Drawing.Size(271, 98);
             this.MinimumSize = new System.Drawing.Size(271, 98);
             this.Name = "AboutForm";

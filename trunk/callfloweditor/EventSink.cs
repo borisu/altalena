@@ -130,7 +130,6 @@ namespace callfloweditor
             object subject,
             object moreInfo)
         {
-            return null;
 
             Microsoft.Office.Interop.Visio.Application eventProcApplication = null;
             Document eventProcDocument = null;
