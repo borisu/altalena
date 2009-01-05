@@ -54,12 +54,8 @@ wostream&
 operator<<(std::wostream& strm, 
 				  const Message& msg)
 {
-#pragma TODO("Efficiency warning")
-	stringstream  stream;
-	throw;
-// 	ResipFastOStream os(stream);
-// 	msg.encode(&os);
-	return strm << StringToWString(stream.str());
+#pragma TODO("Add output");
+	return strm;
 }
 
 CcuStackHandle 

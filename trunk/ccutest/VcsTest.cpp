@@ -20,7 +20,6 @@
 #include "StdAfx.h"
 #include "VcsTest.h"
 #include "VcsFactory.h"
-#include "ProcAIS.h"
 #include "ImsFactory.h"
 #include "RtpRelay.h"
 
@@ -80,14 +79,6 @@ ProcVcsTester::real_run()
 	FORK(ImsFactory::CreateProcIms(ims_pair, g_localAddr));
 	assert(CCU_SUCCESS(WaitTillReady(Seconds(5), ims_pair)));
 	assert(CCU_SUCCESS(Ping(IMS_Q)));
-
-	//
-	// Start AIS 
-	//
-	DECLARE_NAMED_HANDLE_PAIR(ais_pair);
-	FORK(new ProcAis(ais_pair));
-	assert(CCU_SUCCESS(WaitTillReady(Seconds(5), ais_pair)));
-	assert(CCU_SUCCESS(Ping(AIS_Q)));
 
 
  	//

@@ -31,17 +31,15 @@
 #include "ImsTest.h"
 #include "CmdLine.h"
 #include "CcuLpTest.h"
-#include "AisTest.h"
 #include "JsonConfigurationTest.h"
 #include "ImsFactory.h"
-#include "ProcAIS.h"
 #include "VcsFactory.h"
 #include "RtpRelay.h"
 #include "ConfigurationFactory.h"
 #include "LpHandleTest.h"
 #include "CallWithRtpManagmentTest.h"
 #include "SimpleRTPStreamer.h"
-#include "ProcLuaScriptRunnerTest.h"
+
 
 #pragma TODO("Outsource system starter to a different file")
 
@@ -103,7 +101,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	//
 	//////////////////////////////////////////////////////////////////////////
 
-	ProcLuaScriptRunnerTest().test();
+	start_test_system();
 
 	return 0;
 
@@ -116,19 +114,15 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 	
 
-// 	start_test_system();
-//  	return 0;
-  
-//  	CallWithRtpManagmentTest().test();
-//  	return 0;
+	
 
 
+	CallWithRtpManagmentTest().test();
 	ProcPipeIPCDispatcherTest().test();
 	RTPRelayTest(CnxInfo(ip,port)).test();
 	VcsTest(CnxInfo(ip,port)).test();
 	ImsTest(CnxInfo(ip,port)).test();
 	CcuLightweightProcessTest().test();
-	AisTest(CnxInfo(ip,port)).test();
 	JsonConfigurationTest().test();
 	LpHandleTest().test();
 	
@@ -169,14 +163,6 @@ public:
 		FORK(ImsFactory::CreateProcIms(ims_pair, conf->DefaultCnxInfo()));
 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), ims_pair)));
 		assert(CCU_SUCCESS(Ping(IMS_Q)));
-
-		//
-		// Start AIS 
-		//
-		DECLARE_NAMED_HANDLE_PAIR(ais_pair);
-		FORK(new ProcAis(ais_pair));
-		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), ais_pair)));
-		assert(CCU_SUCCESS(Ping(AIS_Q)));
 
 		//
 		// Start VCS

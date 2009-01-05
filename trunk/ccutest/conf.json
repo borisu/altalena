@@ -9,10 +9,6 @@
 	"rtp_relay_top_port" : 62000,
 	"rtp_relay_bottom_port" : 61000,
     
-    "agents": [
-        {
-            "name": "agent1",
-            "media_address": "sip:24001@192.168.150.3:5060" 
-        } 
-    ] 
+    "script_file" : "answer.alt"
+    
 }

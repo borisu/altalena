@@ -32,10 +32,6 @@ public:
 	
 	virtual ~CcuConfiguration(void);
 
-	virtual void Agents(OUT AgentsList &agent);
-
-	virtual void AddAgent(IN const Agent &agent);
-
 	virtual int RtpRelayBottomPort();
 
 	virtual int RtpRelayTopPort();
@@ -46,16 +42,11 @@ public:
 
 	virtual CnxInfo RtpRelayIp();
 
+	virtual wstring ScriptFile();
+
 protected:
 
-	typedef 
-		map<wstring,Agent> AgentsMap;
-
-	AgentsMap _agentsMap;
-
 	mutex _mutex;
-
-	AgentsList _agentsList;
 
 	CnxInfo _defaultIp;
 
@@ -66,6 +57,8 @@ protected:
 	int _rtpRelayTopPort;
 
 	int _rtpRelayBottomPort;
+
+	wstring _scriptFile;
 
 };
 

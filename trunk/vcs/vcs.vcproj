@@ -162,10 +162,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\LuaScriptRunnerFactory.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\LuaVirtualMachine.cpp"
 				>
 			</File>
@@ -221,10 +217,6 @@
 			</File>
 			<File
 				RelativePath=".\LuaScript.h"
-				>
-			</File>
-			<File
-				RelativePath=".\LuaScriptRunnerFactory.h"
 				>
 			</File>
 			<File

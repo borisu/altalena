@@ -107,19 +107,6 @@ JSONConfiguration::InitDb()
 	wObject root_obj(_value.get_obj());
 
 	//
-	// agents
-	//
-	const wArray& addr_array( find_array(root_obj, L"agents" ) );
-
-	for( unsigned int i = 0; i < addr_array.size(); ++i )
-	{
-		Agent temp_agent;
-		read_agent( addr_array[i].get_obj(),temp_agent );
-
-		AddAgent(temp_agent);
-	}
-
-	//
 	// default ip
 	//
 	const wstring default_ip_str = find_str(root_obj, L"default_ip" );
@@ -148,6 +135,9 @@ JSONConfiguration::InitDb()
 
 	_rtpRelayTopPort = rtp_relay_top_port_int;
 	_rtpRelayBottomPort = rtp_relay_bottom_port_int;
+
+	// configuration file
+	const wstring _scriptFile = find_str(root_obj, L"script_file");
 
 	return CCU_API_SUCCESS;
 

@@ -22,7 +22,7 @@
 #include "ProcPipeIPCDispatcher.h"
 #include "CallWithRTPManagment.h"
 #include "SipStackFactory.h"
-#include "LuaScriptRunnerFactory.h"
+
 
 
 ProcVcs::ProcVcs(IN LpHandlePair pair, IN CnxInfo sip_stack_media)
@@ -75,17 +75,6 @@ ProcVcs::real_run()
 		return;
 	};
 
-	//
-	// Start Script Runner
-	//
-	DECLARE_NAMED_HANDLE_PAIR(script_runner_pair);
-	FORK(LuaScriptRunnerFactory::CreateScriptRunner(script_runner_pair, stack_pair));
-	if (CCU_FAILURE(WaitTillReady(Seconds(5),script_runner_pair)))
-	{
-		Shutdown(Seconds(5), stack_pair);
-		Shutdown(Seconds(5), ipc_pair);
-		return;
-	};
 
 	I_AM_READY;
 
@@ -135,7 +124,7 @@ ProcVcs::real_run()
 
 	}
 
-	Shutdown(Time(Seconds(5)),script_runner_pair);
+
 	Shutdown(Time(Seconds(5)),stack_pair);
 	Shutdown(Time(Seconds(5)),ipc_pair);
 
@@ -226,9 +215,10 @@ void ProcVcs::StartScript(IN CcuMsgPtr msg)
 
 	CallFlowScript script( _vm, call_session);
 
-	string s = WStringToString(L"hello.cvs");
+	
 
-	if (!script.CompileBuffer((unsigned char*)s.c_str(), s.length()))
+	
+	if (!script.CompileFile(WStringToString(_conf->ScriptFile()).c_str()))
 	{
 		SendResponse(msg, new CcuMsgNack());
 	}
@@ -255,7 +245,7 @@ CallFlowScript::ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber)
 	switch (iFunctionNumber - _methodBase)
 	{
 	case 0:
-		return AnswerCall(vm);
+		return LuaAnswerCall(vm);
 	}
 
 	return 0;
@@ -270,7 +260,7 @@ CallFlowScript::HandleReturns (CLuaVirtualMachine& vm, const char *strFunc)
 }
 
 int
-CallFlowScript::AnswerCall(CLuaVirtualMachine& vm)
+CallFlowScript::LuaAnswerCall(CLuaVirtualMachine& vm)
 {
 	FUNCTRACKER;
 
