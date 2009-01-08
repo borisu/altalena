@@ -27,6 +27,7 @@ namespace callfloweditor
         public const string UntitledFileName = "Untitled";
 
         public string currFileNameInTitle = UntitledFileName;
+        [CLSCompliant(false)]
         public string CurrFileNameInTitle
         {
             get { return visioControl.Src == "" ? UntitledFileName : System.IO.Path.GetFileName(visioControl.Src); }
@@ -95,7 +96,7 @@ namespace callfloweditor
                 visioEventSink.AddAdvise(targetApplication, targetDocument);
 
             }
-            catch (COMException error)
+            catch (COMException) 
             {
                 throw;
             }
@@ -284,7 +285,15 @@ namespace callfloweditor
             }
         }
 
+        private void generateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DoGenerateCmd();
+        }
 
+        private void convertToScriptButton_Click(object sender, EventArgs e)
+        {
+            DoGenerateCmd();
+        }
 
 #endregion UI_Handlers
 
@@ -525,8 +534,6 @@ namespace callfloweditor
                     saveFileDialog.Dispose();
                 }
             }
-
-            return ;
         }
 
 #endregion FileCommands
@@ -566,7 +573,26 @@ namespace callfloweditor
             VisioDiagramValidator validator =
                 new VisioDiagramValidator(GetDocument());
 
-            validator.validate();
+            validator.validate(false);
+        }
+
+        private void DoGenerateCmd()
+        {
+            VisioDiagramValidator validator =
+                new VisioDiagramValidator(GetDocument());
+
+            bool valid = validator.validate(true);
+
+            if (!valid)
+            {
+                return;
+            }
+
+            LuaScriptGenerator generator =
+                new LuaScriptGenerator(GetDocument());
+
+            generator.generate();
+
         }
 
         private void DoShowAboutDlgCmd()
@@ -672,6 +698,10 @@ namespace callfloweditor
             }
         }
 #endregion ScriptCommands
+
+        
+
+      
 
 #endregion Commands
 
