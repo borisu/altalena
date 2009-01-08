@@ -18,46 +18,134 @@ namespace callfloweditor
             set { _visShape = value; }
         }
 
+        
         public CallFlowShape(Shape visShape)
         {
             VisShape = visShape;
             validate();
         }
 
-        public const string CallFlowConnector_NameU = "Call Flow Connector";
+        public const string CallFlowConnector_MasterName = "Call Flow Connector";
 
-        public const string Start_NameU = "Start";
+        public const string Start_MasterName             = "Start";
 
-        public const string Hangup_NameU = "Hangup";
+        public const string Hangup_MasterName            = "Hangup";
 
-        public const string Answer_NameU = "Answer";
+        public const string Answer_MasterName            = "Answer";
+
+        public virtual string GenerateFunctionBlock()
+        {
+            throw new Exception("This operation is not implemented for this shape.");
+        }
 
         public virtual void validate()
         {
+            throw new Exception("This operation is not implemented for this shape.");
+        }
 
-
-            Dictionary<string, bool> connections = new Dictionary<string, bool>();
-
-
-            foreach (Connect cnxn in VisShape.FromConnects)
-            {
-
-                Shape toShape = cnxn.ToCell.Shape;
-                if (connections.ContainsKey(toShape.NameU))
-                {
-                    throw new Exception("shape connected twice to the same shape");
-                }
-
-                connections[toShape.NameU] = true;
-
-            }
+        public virtual string funcname()
+        {
+            throw new Exception("This operation is not implemented for this shape.");
 
         }
+
+        public virtual string GetFixedName()
+        {
+            string dottedName = VisShape.NameU;
+            return dottedName.Replace(".", "_");
+        }
+
+    }
+
+    class ShapeWithSingleConnection : 
+        CallFlowShape
+    {
+        public ShapeWithSingleConnection(Shape shape):
+            base(shape){}
+
+        public override void validate()
+        {
+            if ( VisShape.Connects.Count > 2)
+            {
+              throw new Exception("call flow shape is not properly connected");
+            }
+        }
+        
+        public virtual Shape GetNextShape()
+        {
+            
+            if (VisShape.FromConnects.Count == 0)
+            {
+                return null;
+            }
+
+            // Find the Connect for which this shape is start
+            // For connector object itself FromConnects property 
+            // should be null
+            Connect startConnection = null;
+            foreach (Connect cnxn  in VisShape.FromConnects)
+            {
+                if (cnxn.FromPart  == (int) VisFromParts.visBegin)
+                {
+                    if (startConnection == null)
+                    {
+                        startConnection = cnxn;
+                    } 
+                    else
+                    {
+                        throw new Exception("This connection can only be source for only one other block");
+                    }
+                }
+            }
+
+            if (startConnection == null)
+            {
+                return null;
+            }
+
+            // look for connections inside connector object
+            // and fine the one which is end
+            Shape connectorShape = startConnection.FromSheet;
+            Shape destShape = null;
+            foreach (Connect cnxn in connectorShape.Connects)
+            {
+                if (cnxn.FromPart == (int)VisFromParts.visEnd)
+                {
+                    if (destShape == null)
+                    {
+                        destShape = cnxn.ToSheet;
+                        break;
+                    }
+                }
+            }
+
+            return destShape;
+
+        }
+
+
+        public override string GenerateFunctionBlock()
+        {
+           string myFixedName = GetFixedName();
+           string gluedShapeFixedName = "nil";
+
+           Shape nextVisShape = GetNextShape();
+           if (nextVisShape != null)
+           {
+               CallFlowShape nextCallFlowShape = CallFlowShapeFactory.CreateInstance(nextVisShape);
+               if (nextCallFlowShape != null)
+               {
+                   gluedShapeFixedName = nextCallFlowShape.GetFixedName();
+               }
+           }
+           return "function " + myFixedName + "()" + funcname() +  "; return " + gluedShapeFixedName + "; end;";
+        }
+
     }
 
 
-
-    class StartShape : CallFlowShape
+    class StartShape : 
+        ShapeWithSingleConnection
     {
 
         public StartShape(Shape visShape)
@@ -66,9 +154,15 @@ namespace callfloweditor
 
         }
 
+        public override string GenerateFunctionBlock()
+        {
+            return "function start() return " + (GetNextShape() == null ? "nil" : GetNextShape().NameU)  + "; end;";
+        }
+
     }
 
-    class AnswerShape : CallFlowShape
+    class AnswerShape : 
+        ShapeWithSingleConnection
     {
 
         public AnswerShape(Shape visShape)
@@ -78,10 +172,15 @@ namespace callfloweditor
 
         }
 
+        public override string funcname()
+        {
+            return "this.answer";
+        }
 
     }
 
-    class HangupShape : CallFlowShape
+    class HangupShape :
+        ShapeWithSingleConnection
     {
         public HangupShape(Shape visShape)
             : base(visShape)
@@ -90,9 +189,15 @@ namespace callfloweditor
 
         }
 
+        public override string funcname()
+        {
+            return "this.hangup";
+        }
+
     }
 
-    class CallFlowconnectorShape : CallFlowShape
+    class CallFlowconnectorShape :
+        ShapeWithSingleConnection
     {
         public CallFlowconnectorShape(Shape visShape)
             : base(visShape)
@@ -109,7 +214,11 @@ namespace callfloweditor
             {
                 throw new Exception("connector has to be connected on both ends.");
             }
+        }
 
+        public override string GenerateFunctionBlock()
+        {
+            return null;
         }
 
     }
@@ -118,22 +227,24 @@ namespace callfloweditor
     {
         public static CallFlowShape CreateInstance(Shape visShape)
         {
-            if (visShape.NameU.Equals(CallFlowShape.CallFlowConnector_NameU))
+            string masterName = visShape.Master.Name;
+
+            if (masterName.Equals(CallFlowShape.CallFlowConnector_MasterName))
             {
                 return new CallFlowconnectorShape(visShape);
             }
 
-            if (visShape.NameU.Equals(CallFlowShape.Answer_NameU))
+            if (masterName.Equals(CallFlowShape.Answer_MasterName))
             {
                 return new AnswerShape(visShape);
             }
 
-            if (visShape.NameU.Equals(CallFlowShape.Hangup_NameU))
+            if (masterName.Equals(CallFlowShape.Hangup_MasterName))
             {
                 return new HangupShape(visShape);
             }
 
-            if (visShape.NameU.Equals(CallFlowShape.Start_NameU))
+            if (masterName.Equals(CallFlowShape.Start_MasterName))
             {
                 return new StartShape(visShape);
             }
