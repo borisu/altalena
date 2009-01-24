@@ -203,10 +203,20 @@ class CcuMsgCallOfferedNack:
 	{
 		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
 		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_FIELD(code);
 	}
 public:
-	CcuMsgCallOfferedNack():CcuMessage(CCU_MSG_CALL_OFFERED_NACK, 
-		NAME(CCU_MSG_CALL_OFFERED_NACK)){}
+	CcuMsgCallOfferedNack():
+	  CcuMessage(CCU_MSG_CALL_OFFERED_NACK, NAME(CCU_MSG_CALL_OFFERED_NACK))
+		,code(CCU_API_FAILURE){}
+
+	  virtual void copy_data_on_response(IN CcuMessage *request)
+	  {
+		  CcuMsgStackMixin::copy_data_on_response(request);
+		  CcuMessage::copy_data_on_response(request);
+	  }
+
+	CcuApiErrorCode code;
 
 };
 BOOST_CLASS_EXPORT(CcuMsgCallOfferedNack);
@@ -305,6 +315,7 @@ public:
 
 protected:
 
+	void Init();
 
 	void call_handler_run();
 

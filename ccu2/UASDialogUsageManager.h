@@ -21,7 +21,7 @@
 #include "Ccu.h"
 #include "ResipCommon.h"
 #include "SipSessionHandlerAdapter.h"
-
+#include "CcuConfiguration.h"
 
 using namespace resip;
 using namespace boost;
@@ -36,14 +36,16 @@ class UASDialogUsageManager:
 {
 public:
 	UASDialogUsageManager(
-		IN SipStack &stack, 
-		IN CnxInfo ipAddr,
+		IN CcuConfiguration &conf,
+		IN SipStack &resip_stack, 
 		IN CcuHandlesMap &ccu_handles_map,
 		IN LightweightProcess &ccu_stack);
 
 	virtual ~UASDialogUsageManager(void);
 
 	virtual void UponCallOfferedAck(CcuMsgPtr req, SipDialogContextPtr ptr);
+
+	virtual void UponCallOfferedNack(CcuMsgPtr req);
 
 	virtual void onNewSession(ServerInviteSessionHandle sis, InviteSession::OfferAnswerType oat, const SipMessage& msg);
 
@@ -61,23 +63,29 @@ public:
 
 	virtual void onConnected(InviteSessionHandle, const SipMessage& msg);
 
-	string CreateSdp(CnxInfo &data);
+	virtual string CreateSdp(CnxInfo &offered_sdp);
 
 private:
 
+	CcuConfiguration &_conf;
 	
-	CnxInfo _ipAddr;
-
 	SharedPtr<MasterProfile> _uasMasterProfile;
 
 	NameAddrPtr _uasAor;
 
 	ResipHandlesMap _resipHandlesMap;
 
-	CcuHandlesMap &_ccuHandlesMap;
+	CcuHandlesMap &_refCcuHandlesMap;
 
 	LightweightProcess &_ccu_stack;
 
+	long _sdpVersionCounter;
+
 };
+
+
+
+
+
 
 

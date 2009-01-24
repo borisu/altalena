@@ -1,4 +1,5 @@
 #pragma once
+#include "CcuConfiguration.h"
 #include "LightweightProcess.h"
 #include "Call.h"
 
@@ -11,5 +12,5 @@ public:
 
 	static LightweightProcess *CreateSipStack(
 		IN LpHandlePair stack_pair, 
-		IN CnxInfo sip_stack_data);
+		IN CcuConfiguration &conf);
 };

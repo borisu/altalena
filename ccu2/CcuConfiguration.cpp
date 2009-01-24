@@ -31,6 +31,12 @@ CcuConfiguration::CcuConfiguration(void)
 
 CcuConfiguration::~CcuConfiguration(void)
 {
+	while (_codecsList.empty() != 0)
+	{
+		const IxCodec *ptr = *_codecsList.end();
+		_codecsList.pop_back();
+		delete const_cast<IxCodec *> (ptr);
+	}
 }
 
 CnxInfo
@@ -86,4 +92,51 @@ CcuConfiguration::ScriptFile()
 	return  _scriptFile;
 }
 
+
+void
+CcuConfiguration::AddCodec(const IxCodec& codec)
+{
+	mutex::scoped_lock lock(_mutex);
+
+	_codecsList.push_front(new IxCodec(codec));
+
+}
+
+
+void
+CcuConfiguration::AddCodec(const IxCodec* codec)
+{
+	mutex::scoped_lock lock(_mutex);
+
+	_codecsList.push_front(codec);
+
+}
+
+
+const CodecsList& 
+CcuConfiguration::CodecList()
+{
+	mutex::scoped_lock lock(_mutex);
+
+	return _codecsList;
+
+}
+
+wstring 
+CcuConfiguration::From()
+{
+	mutex::scoped_lock lock(_mutex);
+
+	return _from;
+
+}
+
+wstring 
+CcuConfiguration::FromDisplay()
+{
+	mutex::scoped_lock lock(_mutex);
+
+	return _fromDisplay;
+
+}
 

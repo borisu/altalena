@@ -28,16 +28,10 @@ Call::Call(IN LpHandlePair stack_pair,
 _stackPair(stack_pair),
 _stackCallHandle(CCU_UNDEFINED),
 _parentProcess(parent_process),
-_hangupDetected(FALSE)
+_hangupDetected(FALSE),
+_handlerPair(HANDLE_PAIR)
 {
-	_handlerPair = HANDLE_PAIR;
-
-	_forking.forkInThisThread(
-		new ProcVoidFuncRunner<Call>(
-			_handlerPair,
-			bind<void>(&Call::call_handler_run, _1),
-			this,
-			L"Call Handler"));
+	Init();
 }
 
 Call::Call(
@@ -48,13 +42,23 @@ Call::Call(
  _stackPair(stack_pair),
  _stackCallHandle(stack_handle),
  _remoteMedia(offered_media),
- _parentProcess(parent_process)
+ _parentProcess(parent_process),
+ _handlerPair(HANDLE_PAIR)
+{
+	Init();
+}
+
+void
+Call::Init()
 {
 
-		
-	// not implemented
-	throw;
-	
+	_forking.forkInThisThread(
+		new ProcVoidFuncRunner<Call>(
+		_handlerPair,
+		bind<void>(&Call::call_handler_run, _1),
+		this,
+		L"Call Handler"));
+
 }
 
 Call::~Call(void)

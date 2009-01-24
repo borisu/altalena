@@ -17,65 +17,16 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 #pragma once
-#include "Ccu.h"
-
-
-using namespace std;
-
-class CcuConfiguration
+namespace ivrworx
 {
-public:
+	class UASDialogUsageManagerTest
+	{
+	public:
+		UASDialogUsageManagerTest(void);
+		virtual ~UASDialogUsageManagerTest(void);
 
-	CcuConfiguration(void);
-	
-	virtual ~CcuConfiguration(void);
-
-	virtual int RtpRelayBottomPort();
-
-	virtual int RtpRelayTopPort();
-
-	virtual CnxInfo DefaultCnxInfo();
-
-	virtual CnxInfo VcsCnxInfo();
-
-	virtual CnxInfo RtpRelayIp();
-
-	virtual wstring ScriptFile();
-
-	virtual void AddCodec(const IxCodec& codec);
-
-	virtual void AddCodec(const IxCodec* codec);
-
-	virtual const CodecsList& CodecList();
-
-	virtual wstring From();
-
-	virtual wstring FromDisplay();
-
-protected:
-
-	mutex _mutex;
-
-	CnxInfo _defaultIp;
-
-	CnxInfo _vcsMediaData;
-
-	CnxInfo _rtpRelayIp;
-
-	int _rtpRelayTopPort;
-
-	int _rtpRelayBottomPort;
-
-	wstring _scriptFile;
-
-	CodecsList _codecsList;
-
-	wstring _from;
-
-	wstring _fromDisplay;
-
-};
-
+		void test();
+	};
+}
 

@@ -44,17 +44,3 @@ int operator == (const CnxInfo &right,const CnxInfo &left)
 	return memcmp(&right.addr,&left.addr,sizeof(left.addr)) == 0;
 }
 
-Agent::Agent()
-{
-
-};
-
-Agent::Agent(const Agent &other)
-{
-	name = other.name;
-
-	media_address = other.media_address;
-
-}
-
-

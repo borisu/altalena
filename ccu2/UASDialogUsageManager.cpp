@@ -28,19 +28,25 @@
 
 
 UASDialogUsageManager::UASDialogUsageManager(
+	IN CcuConfiguration &conf,
 	IN SipStack &resip_stack, 
-	IN CnxInfo ip_addr,
 	IN CcuHandlesMap &ccu_handles_map,
 	IN LightweightProcess &ccu_stack):
 DialogUsageManager(resip_stack),
-_ipAddr(ip_addr),
-_ccuHandlesMap(ccu_handles_map),
+_conf(conf),
+_refCcuHandlesMap(ccu_handles_map),
 _ccu_stack(ccu_stack)
 {
-	string uasUri = "sip:VCS@" + _ipAddr.ipporttos();
-	_uasAor		= NameAddrPtr(new NameAddr(uasUri.c_str()));
+	
+	_sdpVersionCounter = ::GetTickCount();
 
-	addTransport(UDP,_ipAddr.port_ho());
+	CnxInfo ipAddr = conf.VcsCnxInfo();
+
+	wstring uasUri = L"sip:" + conf.From() + L"@" + ipAddr.ipporttows();
+	_uasAor		= NameAddrPtr(new NameAddr(WStringToString(uasUri).c_str()));
+
+	addTransport(UDP,ipAddr.port_ho());
+	addTransport(TCP,ipAddr.port_ho());
 
 	_uasMasterProfile = SharedPtr<MasterProfile>(new MasterProfile());
 	setMasterProfile(_uasMasterProfile);
@@ -53,8 +59,6 @@ _ccu_stack(ccu_stack)
 	getMasterProfile()->setDefaultFrom(*_uasAor);
 	getMasterProfile()->setDefaultRegistrationTime(70);
 
-	time_t bHangupAt = 0;
-	
 	setClientRegistrationHandler(this);
 	setInviteSessionHandler(this);
 	addOutOfDialogHandler(OPTIONS, this);
@@ -69,6 +73,29 @@ UASDialogUsageManager::~UASDialogUsageManager(void)
 {
 }
 
+void
+UASDialogUsageManager::UponCallOfferedNack(CcuMsgPtr req)
+{
+	shared_ptr<CcuMsgCallOfferedNack> ack = 
+		dynamic_pointer_cast<CcuMsgCallOfferedNack>(req);
+
+	CcuHandlesMap::iterator iter = _refCcuHandlesMap.find(ack->stack_call_handle);
+	if (iter == _refCcuHandlesMap.end())
+	{
+		LogWarn("Handle=[" << ack->stack_call_handle<< "] >>not found<<. Has caller disconnected???");
+		return;
+	}
+
+	SipDialogContextPtr ptr = (*iter).second;
+
+	LogDebug(">>Closing<< call handle=[" << ptr->stack_handle << "]");
+
+	_refCcuHandlesMap.erase(ptr->stack_handle);
+	
+	ptr->uas_invite_handle->end();
+
+}
+
 void 
 UASDialogUsageManager::UponCallOfferedAck(CcuMsgPtr req, SipDialogContextPtr ptr)
 {
@@ -77,38 +104,65 @@ UASDialogUsageManager::UponCallOfferedAck(CcuMsgPtr req, SipDialogContextPtr ptr
 		dynamic_pointer_cast<CcuMsgCalOfferedlAck>(req);
 	
 	
-	string sdpStr = CreateSdp(ack->local_media);
+	string sdpStr = 
+		CreateSdp(ack->local_media);
 
 	Data data_buffer(sdpStr.c_str());
 
-#pragma warning (push )
-#pragma warning( disable : 4267)
-	HeaderFieldValue header(data_buffer.data(), data_buffer.size());
-#pragma warning (pop)
+	HeaderFieldValue header(data_buffer.data(), (unsigned int)data_buffer.size());
 
 	Mime type("application", "sdp");
 	SdpContents sdp(&header, type);
+	
 
 	ptr->uas_invite_handle.get()->provideAnswer(sdp);
 	ptr->uas_invite_handle.get()->accept();
 }
 
+
 string
-UASDialogUsageManager::CreateSdp(CnxInfo &data)
+UASDialogUsageManager::CreateSdp(CnxInfo &offered_sdp)
 {
 
-	string empty_str = "";
-	string sdpStr = empty_str + "v=0\r\n"
-		"o=1900 369696545 369696545 IN IP4  " + data.iptos() + "\r\n"
-		"s=CCU\r\n"
-		"c=IN IP4 "  + data.iptos() + "\r\n"
-		"t=0 0\r\n"
-		"m=audio " + data.porttos() + " RTP/AVP 8 101\r\n"
-		"a=rtpmap:8 pcma/8000\r\n"
-		"a=rtpmap:101 telephone-event/8000\r\n"
-		"a=fmtp:101 0-15\r\n";
 
-	return sdpStr;
+	char session_id_buf[CCU_MAX_LONG_LENGTH];
+	_ltoa_s(::GetTickCount(),session_id_buf,CCU_MAX_LONG_LENGTH,10);
+
+	char version_buf[CCU_MAX_LONG_LENGTH];
+	_ltoa_s(_sdpVersionCounter++,version_buf,CCU_MAX_LONG_LENGTH,10);
+
+	
+	string sdp_str = 
+		//v=0
+		"v=0\r\n"
+		//o=<username> <session id> <version> <network type> <address type> <address>
+		"o=myivr " +  string(session_id_buf) +  " " + string(version_buf) + " IN IP4  " + offered_sdp.iptos() + "\r\n"
+		//s=<session name>
+		"s=myivr\r\n"
+		// c=<network type> <address type> <connection address>
+		"c=IN IP4 "  + offered_sdp.iptos() + "\r\n"
+		// t=<start time>  <stop time>
+		"t=0 0\r\n";
+
+
+	string codecs_list_str =	"m=audio " + offered_sdp.porttos() + " RTP/AVP ";
+	
+	string sdp_map;
+	
+	for (CodecsList::const_iterator iter = _conf.CodecList().begin(); 
+		iter != _conf.CodecList().end();
+		iter++)
+	{
+		codecs_list_str += " " + (*iter)->sdp_mapping_tos();
+		sdp_map += (*iter)->get_sdp_a();
+		
+	}
+
+	sdp_str += codecs_list_str + "\r\n";
+
+	sdp_str += sdp_map;
+
+	return sdp_str;
 
 }
 
@@ -126,7 +180,7 @@ UASDialogUsageManager::onNewSession(ServerInviteSessionHandle sis, InviteSession
 	ctx_ptr->stack_handle = GenerateSipHandle();
 
 	_resipHandlesMap[sis->getAppDialog()]= ctx_ptr;
-	_ccuHandlesMap[ctx_ptr->stack_handle]= ctx_ptr;
+	_refCcuHandlesMap[ctx_ptr->stack_handle]= ctx_ptr;
 
 
 }
@@ -211,7 +265,7 @@ UASDialogUsageManager::HangupCall(SipDialogContextPtr ptr)
 	FUNCTRACKER;
 
 
-	_ccuHandlesMap.erase(ptr->stack_handle);
+	_refCcuHandlesMap.erase(ptr->stack_handle);
 	_resipHandlesMap.erase(ptr->uas_invite_handle->getAppDialog());
 	ptr->uas_invite_handle->end();
 

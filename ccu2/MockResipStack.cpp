@@ -17,33 +17,17 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#pragma once
+#include "stdafx.h"
+#include "MockResipStack.h"
 
+using namespace ivrworx;
 
-
-#define CCU_UNDEFINED -1
-
-#define CCU_MAX_LONG_LENGTH 255
-#define CCU_MAX_INT_LENGTH	255
-
-enum CcuApiErrorCode
+MockResipStack::MockResipStack(void)
 {
-	CCU_API_SUCCESS = 0,
-	CCU_API_FAILURE,
-	CCU_API_SERVER_FAILURE,
-	CCU_API_TIMEOUT,
-	CCU_API_OUT_OF_BAND,
-	CCU_API_UNKNOWN_PROC_DESTINATION,
-	CCU_API_OPERATION_IN_PROGRESS 
-};
 
-#define CCU_SUCCESS(x)	((x) == CCU_API_SUCCESS)
-#define CCU_FAILURE(x)	((x) != CCU_API_SUCCESS)
+}
 
+MockResipStack::~MockResipStack(void)
+{
 
-typedef int CcuHandleId;
-
-typedef int CcuProcId;
-
-
-
+}

@@ -54,14 +54,14 @@ ResipInterruptor::SignalDataOut()
 }
 
 ProcSipStack::ProcSipStack(IN LpHandlePair pair, 
-						   IN CnxInfo data):
+						   IN CcuConfiguration &conf):
 LightweightProcess(pair,__FUNCTIONW__),
 _shutDownFlag(false),
-_ipAddr(data)
+_conf(conf)
 {
 	FUNCTRACKER;
 	Log::initialize(Log::Cout, Log::Info, NULL, _logger);
-	LogDebug("Stack will use default UAS definitions");
+	
 
 }
 
@@ -84,8 +84,8 @@ ProcSipStack::Init()
 		// All messages are sent to stack outbound channel
 		//
 		_dumUas = UASDialogUsageManagerPtr(new UASDialogUsageManager(
+			_conf,
 			_stack,
-			_ipAddr,
 			_ccuHandlesMap,
 			*this));
 		
@@ -94,7 +94,7 @@ ProcSipStack::Init()
 		//
 		_dumUac = UACDialogUsageManagerPtr(new UACDialogUsageManager(
 			_stack,
-			_ipAddr,
+			_conf.VcsCnxInfo(),
 			_ccuHandlesMap,
 			*this));
 
@@ -238,6 +238,13 @@ ProcSipStack::UponCallOfferedAck(CcuMsgPtr req)
 
 }
 
+void
+ProcSipStack::UponCallOfferedNack(CcuMsgPtr req)
+{
+	FUNCTRACKER;
+	_dumUas->UponCallOfferedNack(req);
+}
+
 bool 
 ProcSipStack::ProcessCcuMessages()
 {
@@ -281,6 +288,11 @@ ProcSipStack::ProcessCcuMessages()
 		case CCU_MSG_CALL_OFFERED_ACK:
 			{
 				UponCallOfferedAck(msg);
+				break;
+			}
+		case CCU_MSG_CALL_OFFERED_NACK:
+			{
+				UponCallOfferedNack(msg);
 				break;
 			}
 		default:
