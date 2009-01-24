@@ -39,7 +39,7 @@ VcsFactory::CreateProcVcs(LpHandlePair pair, CnxInfo data)
 
 
 LightweightProcess*
-VcsFactory::CreateProcVcs(LpHandlePair pair, CcuConfiguration  &conf)
+VcsFactory::CreateProcVcs(LpHandlePair pair, CcuConfiguration  *conf)
 {
 	return new ProcVcs(pair, conf);
 }

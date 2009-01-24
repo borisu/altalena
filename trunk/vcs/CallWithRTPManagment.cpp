@@ -77,6 +77,8 @@ CallWithRTPManagment::MakeCall(IN const wstring &destination_uri)
 
 CcuApiErrorCode CallWithRTPManagment::AcceptCall()
 {
+	FUNCTRACKER;
+
 	CcuApiErrorCode res = _callerRtpSession.AllocateRTPConnection();
 	if (CCU_FAILURE(res))
 	{
