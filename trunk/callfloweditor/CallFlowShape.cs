@@ -43,7 +43,7 @@ namespace callfloweditor
             throw new Exception("This operation is not implemented for this shape.");
         }
 
-        public virtual string funcname()
+        public virtual string implname()
         {
             throw new Exception("This operation is not implemented for this shape.");
 
@@ -138,7 +138,7 @@ namespace callfloweditor
                    gluedShapeFixedName = nextCallFlowShape.GetFixedName();
                }
            }
-           return "function " + myFixedName + "()" + funcname() +  "; return " + gluedShapeFixedName + "; end;";
+           return "function " + myFixedName + "() " + implname() +  "(this); return " + gluedShapeFixedName + "; end;";
         }
 
     }
@@ -172,7 +172,7 @@ namespace callfloweditor
 
         }
 
-        public override string funcname()
+        public override string implname()
         {
             return "this.answer";
         }
@@ -189,7 +189,7 @@ namespace callfloweditor
 
         }
 
-        public override string funcname()
+        public override string implname()
         {
             return "this.hangup";
         }
