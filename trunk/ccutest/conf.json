@@ -1,14 +1,22 @@
 {
     "default_ip": "192.168.100.232",
     
-    "vcs_sip_ip": "192.168.100.232",
-    "vcs_sip_port": 5060,
+    "vcs_sip_ip"		: "192.168.100.232",
+    "vcs_sip_port"		: 5060,
     
     
-	"rtp_relay_ip":	"192.168.100.232",
-	"rtp_relay_top_port" : 62000,
-	"rtp_relay_bottom_port" : 61000,
+    "rtp_relay_ip"		: "192.168.100.232",
+    "rtp_relay_top_port" 	: 62000,
+    "rtp_relay_bottom_port" 	: 61000,
     
-    "script_file" : "answer.alt"
+    "script_file" : "scripts\\answer.lua",
     
+    "from_id"	        : "MyIvr",
+    "from_display_name"	: "My Ivr",
+    
+    "codecs": 
+    [
+		{"name":"pcmu" , "sdp_mapping":0, "sampling_rate":8000},
+		{"name":"pcmu" , "sdp_mapping":8, "sampling_rate":8000}
+    ]
 }

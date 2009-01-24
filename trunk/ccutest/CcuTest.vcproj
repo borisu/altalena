@@ -27,6 +27,8 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+				CommandLine="rem echo Copying mediastreamer2.dll to output directory ...&#x0D;&#x0A;rem copy $(ProjectDir)\..\..\mediastreamer2-antisip-4.1.1-rc10\mediastreamer2\build\win32native\Debug\mediastreamer2.dll $(OutDir)&#x0D;&#x0A;rem echo Copying 3rd parties dll to output directory ...&#x0D;&#x0A;rem copy $(ProjectDir)\..\..\mediastreamer2-antisip-4.1.1-rc10\win32-bin\lib\*.dll $(OutDir)&#x0D;&#x0A;rem echo Copying ortp.dll to output directory ...&#x0D;&#x0A;rem copy $(ProjectDir)\..\..\mediastreamer2-antisip-4.1.1-rc10\oRTP\build\win32native\Debug\oRTP.dll $(OutDir)&#x0D;&#x0A;"
+				Outputs="out.txt"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -41,7 +43,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;..\ccu2;..\ais;..\rtpgen;..\rtprelay;..\vcs;..\ims"
+				AdditionalIncludeDirectories=".;..\ccu2;..\ais;..\rtpgen;..\rtprelay;..\vcs;..\ims;&quot;..\..\mediastreamer2-antisip-4.1.1-rc10\mediastreamer2\include&quot;;&quot;..\..\mediastreamer2-antisip-4.1.1-rc10\oRTP\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -64,9 +66,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib Winmm.lib ws2_32.lib Iphlpapi.lib libboost_thread-vc80-mt-gd-1_34_1.lib Mqrt.lib"
+				AdditionalDependencies="ws2_32.lib Winmm.lib ws2_32.lib Iphlpapi.lib libboost_thread-vc80-mt-gd-1_34_1.lib Mqrt.lib mediastreamer2.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories=""
+				AdditionalLibraryDirectories="&quot;C:\utils\mediastreamer2\mediastreamer2-antisip-4.1.1-rc10\mediastreamer2-antisip-4.1.1-rc10\mediastreamer2\build\win32native\Debug\&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -221,10 +223,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ProcTestStub.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\RTPRelayTest.cpp"
 				>
 			</File>
@@ -296,10 +294,6 @@
 			</File>
 			<File
 				RelativePath=".\ProcStackStub.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcTestStub.h"
 				>
 			</File>
 			<File

@@ -31,6 +31,17 @@
 #include <tchar.h>
 #include <stdio.h>
 
+#include <mediastreamer2/mscommon.h>
+#include <mediastreamer2/msticker.h>
+#include <mediastreamer2/msfilter.h>
+#include <mediastreamer2/mediastream.h>
+#include <mediastreamer2/dtmfgen.h>
+#include <mediastreamer2/mssndcard.h>
+#include <mediastreamer2/msrtp.h>
+#include <mediastreamer2/msfileplayer.h>
+#include <mediastreamer2/msfilerec.h>
+
+
 #include "CcuUtils.h"
 #include "CcuLogger.h"
 
