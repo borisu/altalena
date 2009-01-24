@@ -17,65 +17,27 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 #pragma once
-#include "Ccu.h"
 
+#include "LightweightProcess.h"
 
-using namespace std;
-
-class CcuConfiguration
+class ProcTestStub:
+	public LightweightProcess
 {
 public:
+	ProcTestStub(LpHandlePair pair);
 
-	CcuConfiguration(void);
-	
-	virtual ~CcuConfiguration(void);
+	ProcTestStub();
 
-	virtual int RtpRelayBottomPort();
+	virtual ~ProcTestStub(void);
 
-	virtual int RtpRelayTopPort();
+	virtual BOOL HandleOOBMessage(CcuMsgPtr msg);
 
-	virtual CnxInfo DefaultCnxInfo();
+	virtual void real_run();
 
-	virtual CnxInfo VcsCnxInfo();
+	CcuMessageId _exitMsg;
 
-	virtual CnxInfo RtpRelayIp();
+	bool _shutdownFlag;
 
-	virtual wstring ScriptFile();
-
-	virtual void AddCodec(const IxCodec& codec);
-
-	virtual void AddCodec(const IxCodec* codec);
-
-	virtual const CodecsList& CodecList();
-
-	virtual wstring From();
-
-	virtual wstring FromDisplay();
-
-protected:
-
-	mutex _mutex;
-
-	CnxInfo _defaultIp;
-
-	CnxInfo _vcsMediaData;
-
-	CnxInfo _rtpRelayIp;
-
-	int _rtpRelayTopPort;
-
-	int _rtpRelayBottomPort;
-
-	wstring _scriptFile;
-
-	CodecsList _codecsList;
-
-	wstring _from;
-
-	wstring _fromDisplay;
-
+	int _numOfMessages;
 };
-
-

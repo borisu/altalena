@@ -52,10 +52,14 @@ wstring find_str( const wObject& obj, const wstring& name )
 	return find_value( obj, name ).get_str();
 }
 
-void read_agent( const wObject& obj, Agent &agent)
+IxCodec *read_codec( const wObject& obj)
 {
-	agent.media_address = find_str( obj, L"media_address" );
-	agent.name          = find_str( obj, L"name" );        
+	return 
+		new IxCodec(
+		find_str( obj, L"name" ),
+		find_int( obj, L"sdp_mapping" ),
+		find_int( obj, L"sampling_rate" ));
+	
 }
 
 
@@ -137,7 +141,24 @@ JSONConfiguration::InitDb()
 	_rtpRelayBottomPort = rtp_relay_bottom_port_int;
 
 	// configuration file
-	const wstring _scriptFile = find_str(root_obj, L"script_file");
+	_scriptFile = find_str(root_obj, L"script_file");
+
+	// codecs
+	
+	const wArray &codecs_array = find_array(root_obj, L"codecs");
+
+	wArray::const_iterator iter = codecs_array.begin();
+	while(iter != codecs_array.end())
+	{
+		IxCodec *codec;
+		codec = read_codec(iter->get_obj());
+		_codecsList.push_front(codec);
+		iter++;
+	}
+
+	// from 
+	_from		 = find_str(root_obj, L"from_id");
+	_fromDisplay = find_str(root_obj, L"from_display_name");
 
 	return CCU_API_SUCCESS;
 

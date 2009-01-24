@@ -59,6 +59,146 @@ namespace boost {
 	}
 }
 
+struct IxCodec
+{
+
+	IxCodec()
+		:name(L"INVALID"),
+		rate(CCU_UNDEFINED),
+		mapping(CCU_UNDEFINED)
+	{
+		init_strings();
+	};
+
+	IxCodec(wstring param_name, int param_sampling_rate,int param_sdp_mapping)
+		:name(param_name),
+		rate(param_sampling_rate),
+		mapping(param_sdp_mapping)
+	{
+		init_strings();
+	};
+
+	IxCodec(const IxCodec &codec)
+	{
+		rate = codec.rate;
+		mapping = codec.mapping;
+
+		init_strings();
+
+	};
+	
+	int sampling_rate() const 
+	{ 
+		return rate; 
+	}
+
+	string sampling_rate_tos() const 
+	{ 
+		return rate_s; 
+	}
+
+	wstring sampling_rate_tows() const 
+	{ 
+		return rate_ws; 
+	}
+
+	int sdp_mapping() const 
+	{ 
+		return mapping; 
+	}
+
+	string sdp_mapping_tos() const 
+	{ 
+		return mapping_s; 
+	}
+
+	string sdp_mapping_tows() const 
+	{ 
+		return mapping_s; 
+	}
+
+	wstring sdp_name() const 
+	{ 
+		return name; 
+	}
+
+	string sdp_name_tos() const 
+	{ 
+		return name_s; 
+	}
+
+	string get_sdp_a() const
+	{
+		return sdp_a;
+	}
+
+private:
+
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_FIELD(rate);
+		SERIALIZE_FIELD(mapping);
+		SERIALIZE_FIELD(name);
+	}
+
+	void init_strings()
+	{
+		// convert port
+		char buffer[10];
+		buffer[0] = '\0';
+
+		// rate
+		if ( _itoa_s(rate,buffer,10,10) != 0)
+		{
+			rate_s = "INVALID";
+			rate_ws = L"INVALID";
+		} 
+		else
+		{
+			rate_s = string(buffer);
+			rate_ws = StringToWString(rate_s);
+		}
+
+		// sdp mapping
+		if ( _itoa_s(mapping,buffer,10,10) != 0)
+		{
+			mapping_s = "INVALID";
+			mapping_ws = L"INVALID";
+		} 
+		else
+		{
+			mapping_s = string(buffer);
+			mapping_ws = StringToWString(rate_s);
+		}
+
+		name_s  = WStringToString(name);
+		sdp_a   += "a=rtpmap:" + sdp_mapping_tos() + " "  + sdp_name_tos() + "/" + sampling_rate_tos() + "\r\n";
+
+	}
+
+	int rate;
+
+	wstring rate_ws;
+
+	string rate_s;
+
+	int mapping;
+
+	wstring mapping_ws;
+
+	string mapping_s;
+
+	wstring name;
+
+	string name_s;
+
+	string sdp_a;
+
+};
+BOOST_CLASS_EXPORT(IxCodec);
+
+
+typedef list<const IxCodec*> CodecsList;
 
 class CnxInfo
 {
@@ -254,22 +394,4 @@ list<CnxInfo> CcuMediaDataList;
 wostream& operator << (wostream &ostream, const CnxInfo *ptr);
 
 wostream& operator << (wostream &ostream, const CnxInfo &ptr);
-
-
-//
-// Business Objects
-//
-struct Agent
-{	
-	Agent();
-
-	Agent(const Agent &other);
-
-	wstring name;
-
-	wstring media_address;
-};
-
-typedef 
-list<Agent> AgentsList;
 

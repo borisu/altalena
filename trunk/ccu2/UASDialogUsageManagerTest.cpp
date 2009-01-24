@@ -17,65 +17,43 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "StdAfx.h"
+#include "UASDialogUsageManagerTest.h"
+#include "UASDialogUsageManager.h"
+#include "MockResipStack.h"
+#include "ProcSipStack.h"
+#include "ProcTestStub.h"
 
-#pragma once
-#include "Ccu.h"
+using namespace ivrworx;
 
-
-using namespace std;
-
-class CcuConfiguration
+UASDialogUsageManagerTest::UASDialogUsageManagerTest(void)
 {
-public:
+}
 
-	CcuConfiguration(void);
+UASDialogUsageManagerTest::~UASDialogUsageManagerTest(void)
+{
+}
+
+void
+UASDialogUsageManagerTest::test()
+{
+
+	CcuConfiguration conf;
+
+	conf.AddCodec(new IxCodec(L"pcma",0,8000));
+	conf.AddCodec(new IxCodec(L"pcmu",8,8000));
 	
-	virtual ~CcuConfiguration(void);
 
-	virtual int RtpRelayBottomPort();
+	MockResipStack mock_stack;
+	CcuHandlesMap map;
 
-	virtual int RtpRelayTopPort();
+	DECLARE_NAMED_HANDLE_PAIR (test);
+	ProcTestStub stub(test);
 
-	virtual CnxInfo DefaultCnxInfo();
+	UASDialogUsageManager mngr(conf, mock_stack,map,stub);
 
-	virtual CnxInfo VcsCnxInfo();
+	CnxInfo info("1.2.3.4",6555);
 
-	virtual CnxInfo RtpRelayIp();
+	string sdp = mngr.CreateSdp(info);
 
-	virtual wstring ScriptFile();
-
-	virtual void AddCodec(const IxCodec& codec);
-
-	virtual void AddCodec(const IxCodec* codec);
-
-	virtual const CodecsList& CodecList();
-
-	virtual wstring From();
-
-	virtual wstring FromDisplay();
-
-protected:
-
-	mutex _mutex;
-
-	CnxInfo _defaultIp;
-
-	CnxInfo _vcsMediaData;
-
-	CnxInfo _rtpRelayIp;
-
-	int _rtpRelayTopPort;
-
-	int _rtpRelayBottomPort;
-
-	wstring _scriptFile;
-
-	CodecsList _codecsList;
-
-	wstring _from;
-
-	wstring _fromDisplay;
-
-};
-
-
+}

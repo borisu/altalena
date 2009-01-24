@@ -91,7 +91,7 @@ public:
 
 	ProcSipStack(
 		IN LpHandlePair pair, 
-		IN CnxInfo data);
+		IN CcuConfiguration &conf);
 
 	virtual ~ProcSipStack(void);
 
@@ -109,15 +109,14 @@ public:
 
 	virtual void UponCallOfferedAck(CcuMsgPtr req);
 
-	virtual void ShutDown();
+	virtual void UponCallOfferedNack(CcuMsgPtr req);
 
-	CnxInfo _ipAddr;
+	virtual void ShutDown();
 
 	Time _retryTimeout;
 
 protected:
 
-	
 	virtual unsigned int getTimeTillNextProcessMS() const;
 
 	virtual bool ProcessCcuMessages();
@@ -135,6 +134,8 @@ protected:
 	CcuResipLogger _logger;
 
 	CcuHandlesMap _ccuHandlesMap;
+
+	CcuConfiguration &_conf;
 
 
 };

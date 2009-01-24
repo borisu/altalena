@@ -8,6 +8,8 @@ using namespace boost;
 
 wstring DumpAsXml(CcuMsgPtr msg)
 {
+	return L"";
+
 	std::wostringstream ostream;
 	archive::xml_woarchive oa(ostream);
 
