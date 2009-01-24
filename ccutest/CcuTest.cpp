@@ -39,6 +39,10 @@
 #include "LpHandleTest.h"
 #include "CallWithRtpManagmentTest.h"
 #include "SimpleRTPStreamer.h"
+#include "IxCoreTest.h"
+
+
+
 
 
 #pragma TODO("Outsource system starter to a different file")
@@ -51,11 +55,52 @@ start_test_system();
 using namespace JadedHoboConsole;
 namespace con = JadedHoboConsole;
 
+using namespace ivrworx;
 
 
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	 
+// 	ms_init();
+// 
+// 	RtpProfile *av_profile = 
+// 		rtp_profile_new("ims profile");
+// 
+// 	RtpSession *session=NULL;
+// 
+// 	rtp_profile_set_payload(av_profile,0,&payload_type_pcmu8000);
+// 
+// 	OrtpEvQueue *q=ortp_ev_queue_new();	
+// 
+// 	
+// 
+// 	
+// 
+// 	int remport = 60655;
+// 	AudioStream *a = audio_stream_new(60655, FALSE);
+// 
+// 	
+// 
+// 	int res = audio_stream_start_with_files(
+// 		a,						// audio stream			
+// 		av_profile,				// rtp profile
+// 		"192.168.100.231",		// remote ip
+// 		remport,				// remote port
+// 		0,						// payload
+// 		0,						// jitter
+// 		"C:\\SOLUTIONS\\altalena\\ccutest\\sounds\\welcome.wav", // file to play
+// 		NULL					// oufile
+// 		);
+
+// 	session=a->session;
+// 	rtp_session_register_event_queue(session,q);
+	::Sleep(0);
+	
+
+	ms_exit();
+
+
 	
 	CcuSetLogLevel(CCU_LOG_LEVEL_DEBUG);
 	CcuSetLogMask(CCU_LOG_MASK_CONSOLE|CCU_LOG_MASK_DEBUGVIEW);
@@ -101,9 +146,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	//
 	//////////////////////////////////////////////////////////////////////////
 
-	start_test_system();
-
-	return 0;
+// 	start_test_system();
+// 
+// 	return 0;
 
 
 // 	SimpleRTPStreamer r;
@@ -116,6 +161,10 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	
 
+
+	IxCoreTest().test();
+
+	return 0;
 
 	CallWithRtpManagmentTest().test();
 	ProcPipeIPCDispatcherTest().test();
@@ -143,10 +192,10 @@ public:
 
 	void real_run()
 	{
-		START_FORKING_REGION;
-
 		CcuConfigurationPtr conf = 
 			ConfigurationFactory::CreateJsonConfiguration(L"conf.json");
+
+		START_FORKING_REGION;
 		
 		//
 		// Start RTP relay
@@ -170,7 +219,7 @@ public:
 		CnxInfo vcs_media = CnxInfo(
 			conf->DefaultCnxInfo().inaddr(),5060);
 		DECLARE_NAMED_HANDLE_PAIR(vcs_pair);
-		FORK(VcsFactory::CreateProcVcs(vcs_pair,*conf));
+		FORK(VcsFactory::CreateProcVcs(vcs_pair,conf.get()));
 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), vcs_pair)));
 		assert(CCU_SUCCESS(Ping(VCS_Q)));
 
