@@ -25,6 +25,7 @@
 
 
 
+#pragma TODO("Leave only ctor that takes configuration as a ref")
 ProcVcs::ProcVcs(IN LpHandlePair pair, IN CnxInfo sip_stack_media)
 :LightweightProcess(pair,VCS_Q,	__FUNCTIONW__),
 _sipStackData(sip_stack_media),
@@ -32,10 +33,10 @@ _conf(NULL)
 {
 }
 
-ProcVcs::ProcVcs(IN LpHandlePair pair, IN CcuConfiguration &conf)
+ProcVcs::ProcVcs(IN LpHandlePair pair, IN CcuConfiguration *conf)
 :LightweightProcess(pair,VCS_Q,	__FUNCTIONW__),
-_conf(&conf),
-_sipStackData(conf.VcsCnxInfo())
+_conf(conf),
+_sipStackData(conf->VcsCnxInfo())
 {
 }
 
@@ -68,7 +69,7 @@ ProcVcs::real_run()
 	//
 	DECLARE_NAMED_HANDLE_PAIR(stack_pair);
 	_stackPair = stack_pair;
-	FORK(SipStackFactory::CreateSipStack(stack_pair,_sipStackData));
+	FORK(SipStackFactory::CreateSipStack(stack_pair,*_conf));
 	if (CCU_FAILURE(WaitTillReady(Seconds(5),stack_pair)))
 	{
 		Shutdown(Seconds(5), ipc_pair);
@@ -186,11 +187,13 @@ ProcVcs::ProcessStackMessage(IN CcuMsgPtr ptr, IN ScopedForking &forking)
 				this,
 				L"Script Runner"));
 
+			break;
+
 		}
 	case CCU_MSG_PROC_SHUTDOWN_REQ:
 		{
-			
 			return TRUE;
+			break;
 		}
 	default:
 		{
@@ -215,12 +218,11 @@ void ProcVcs::StartScript(IN CcuMsgPtr msg)
 
 	CallFlowScript script( _vm, call_session);
 
-	
-
-	
 	if (!script.CompileFile(WStringToString(_conf->ScriptFile()).c_str()))
 	{
-		SendResponse(msg, new CcuMsgNack());
+		LogWarn(">>Error Compiling<< script=[" << _conf->ScriptFile() << "]");
+		SendResponse(msg, new CcuMsgCallOfferedNack());
+		return;
 	}
 
 	script.Go();

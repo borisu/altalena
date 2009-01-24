@@ -39,7 +39,7 @@ public:
 
 	ProcVcs(IN LpHandlePair pair, IN CnxInfo sip_stack_media);
 
-	ProcVcs(IN LpHandlePair pair, IN CcuConfiguration &conf);
+	ProcVcs(IN LpHandlePair pair, IN CcuConfiguration *conf);
 
 	virtual void real_run();
 
