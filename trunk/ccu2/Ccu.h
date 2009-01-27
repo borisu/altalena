@@ -80,6 +80,7 @@ struct IxCodec
 
 	IxCodec(const IxCodec &codec)
 	{
+		name = codec.name;
 		rate = codec.rate;
 		mapping = codec.mapping;
 
@@ -370,8 +371,8 @@ private:
 
 		// build full address
 		saddrport.append(saddr);
-		saddr.append(":");
-		saddr.append(sport);
+		saddrport.append(":");
+		saddrport.append(sport);
 
 		wsport = StringToWString(sport);
 		wsaddr = StringToWString(saddr);

@@ -20,6 +20,8 @@
 #include "StdAfx.h"
 #include "CallWithRTPManagment.h"
 
+using namespace ivrworx;
+
 CallWithRTPManagment::CallWithRTPManagment(
 	IN LpHandlePair stack_pair,
 	IN LightweightProcess &facade)

@@ -57,8 +57,8 @@ IxCodec *read_codec( const wObject& obj)
 	return 
 		new IxCodec(
 		find_str( obj, L"name" ),
-		find_int( obj, L"sdp_mapping" ),
-		find_int( obj, L"sampling_rate" ));
+		find_int( obj, L"sampling_rate" ),
+		find_int( obj, L"sdp_mapping" ));
 	
 }
 

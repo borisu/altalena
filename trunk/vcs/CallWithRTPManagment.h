@@ -23,6 +23,8 @@
 #include "CcuRTPSession.h"
 #include "ImsSession.h"
 
+using namespace ivrworx;
+
 class CallWithRTPManagment :
 	public Call
 {

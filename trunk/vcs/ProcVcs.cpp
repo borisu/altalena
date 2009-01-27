@@ -52,7 +52,7 @@ ProcVcs::real_run()
 
 	START_FORKING_REGION;
 
-	_vm.InitialiseVM();
+	
 	
 	//
 	// Start IPC for VCS queue
@@ -207,6 +207,7 @@ ProcVcs::ProcessStackMessage(IN CcuMsgPtr ptr, IN ScopedForking &forking)
 
 void ProcVcs::StartScript(IN CcuMsgPtr msg)
 {
+
 	shared_ptr<CcuMsgCallOffered> start_script_msg  = 
 		dynamic_pointer_cast<CcuMsgCallOffered>(msg);
 
@@ -216,23 +217,31 @@ void ProcVcs::StartScript(IN CcuMsgPtr msg)
 		start_script_msg->remote_media,
 		*this);
 
-	CallFlowScript script( _vm, call_session);
+	CallFlowScript script(
+		CLuaVirtualMachinePtr(new CLuaVirtualMachine()),
+		call_session);
 
 	if (!script.CompileFile(WStringToString(_conf->ScriptFile()).c_str()))
 	{
-		LogWarn(">>Error Compiling<< script=[" << _conf->ScriptFile() << "]");
+		LogWarn(">>Error Compiling/Running<< script=[" << _conf->ScriptFile() << "]");
 		SendResponse(msg, new CcuMsgCallOfferedNack());
 		return;
 	}
-
-	script.Go();
 }
 
-CallFlowScript::CallFlowScript(IN CLuaVirtualMachine &vm, IN CallWithRTPManagment &call_session)
-:CLuaScript(vm),
-_callSession(call_session)
+CallFlowScript::CallFlowScript(
+							   IN CLuaVirtualMachinePtr vm_ptr, 
+							   IN CallWithRTPManagment &call_session)
+:CLuaScript(*(vm_ptr.get())),
+_callSession(call_session),
+_vmPtr(vm_ptr)
 {
+	_vmPtr->InitialiseVM();
+
+	// !!! The order should be preserved for later switch statement !!!
 	_methodBase = RegisterFunction("answer");
+	 RegisterFunction("hangup");
+	 RegisterFunction("wait");
 
 }
 
@@ -247,7 +256,18 @@ CallFlowScript::ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber)
 	switch (iFunctionNumber - _methodBase)
 	{
 	case 0:
-		return LuaAnswerCall(vm);
+		{
+			return LuaAnswerCall(vm);
+		}
+	case 1:
+		{
+			return LuaHangupCall(vm);
+		}
+	case 2:
+		{
+			return LuaWait(vm);
+		}
+		
 	}
 
 	return 0;
@@ -277,4 +297,36 @@ CallFlowScript::LuaAnswerCall(CLuaVirtualMachine& vm)
 	}
 
 }
+
+int
+CallFlowScript::LuaHangupCall(CLuaVirtualMachine& vm)
+{
+	FUNCTRACKER;
+
+	CcuApiErrorCode res = _callSession.HagupCall();
+
+	if (CCU_SUCCESS(res))
+	{
+		return 0;
+	} else 
+	{
+		return -1;
+	}
+
+}
+
+int
+CallFlowScript::LuaWait(CLuaVirtualMachine& vm)
+{
+	FUNCTRACKER;
+
+	lua_State *state = (lua_State *) vm;
+	long time_to_sleep  = (long) lua_tonumber (state, -1);
+
+	csp::SleepFor(MilliSeconds(time_to_sleep));
+	return 0;
+	
+
+}
+
 

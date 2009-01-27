@@ -129,12 +129,13 @@ ProcSipStack::UponHangupCall(CcuMsgPtr ptr)
 	CcuHandlesMap::iterator iter = _ccuHandlesMap.find(handle);
 	if (iter == _ccuHandlesMap.end())
 	{
+		LogWarn("The call with IX handle =[" << hangup_msg->stack_call_handle << "] already hanged up");
 		return;
 	}
 
 	SipDialogContextPtr ctx_ptr = (*iter).second;
 
-	if (ctx_ptr->transaction_type = CCU_UAC)
+	if (ctx_ptr->transaction_type == CCU_UAC)
 	{
 		_dumUac->HangupCall(ctx_ptr);
 	} 
@@ -221,20 +222,7 @@ void
 ProcSipStack::UponCallOfferedAck(CcuMsgPtr req)
 {
 	FUNCTRACKER;
-
-	shared_ptr<CcuMsgCalOfferedlAck> ack = 
-		dynamic_pointer_cast<CcuMsgCalOfferedlAck>(req);
-
-	CcuHandlesMap::iterator iter = _ccuHandlesMap.find(ack->stack_call_handle);
-	if (iter == _ccuHandlesMap.end())
-	{
-		LogWarn("Handle=[" << ack->stack_call_handle<< "] not found.");
-		SendResponse(req, new CcuMsgNack());
-		return;
-	}
-
-
-	_dumUas->UponCallOfferedAck(req,(*iter).second);
+	_dumUas->UponCallOfferedAck(req);
 
 }
 
@@ -330,13 +318,12 @@ ProcSipStack::real_run()
 			_si->_siPtr->buildFdSet(fdset);
 			_stack.buildFdSet(fdset);
 
-#pragma warning (push)
-#pragma warning (disable :4267)
+
 			int ret = fdset.selectMilliSeconds(
 				resipMin(
-				 _stack.getTimeTillNextProcessMS(), 
-				 getTimeTillNextProcessMS()));
-#pragma warning (pop)
+				 (unsigned long)_stack.getTimeTillNextProcessMS(), 
+				 (unsigned long)getTimeTillNextProcessMS()));
+
 
 			if (ret < 0)
 			{
