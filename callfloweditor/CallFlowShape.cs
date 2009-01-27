@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.Office.Interop.Visio;
+using Visio = Microsoft.Office.Interop.Visio;
+ 
 
 
 
@@ -10,30 +11,33 @@ namespace callfloweditor
 
     class CallFlowShape
     {
-        Shape _visShape;
+        Visio.Shape _visShape;
 
-        public Shape VisShape
+        public Visio.Shape VisShape
         {
             get { return _visShape; }
             set { _visShape = value; }
         }
 
-        
-        public CallFlowShape(Shape visShape)
+
+        public CallFlowShape(Visio.Shape visShape)
         {
             VisShape = visShape;
             validate();
         }
 
         public const string CallFlowConnector_MasterName = "Call Flow Connector";
-
         public const string Start_MasterName             = "Start";
-
         public const string Hangup_MasterName            = "Hangup";
-
+        public const string Wait_MasterName              = "Wait.8";
         public const string Answer_MasterName            = "Answer";
 
         public virtual string GenerateFunctionBlock()
+        {
+            throw new Exception("This operation is not implemented for this shape.");
+        }
+
+        public virtual string GenerateArgumentsList()
         {
             throw new Exception("This operation is not implemented for this shape.");
         }
@@ -57,10 +61,52 @@ namespace callfloweditor
 
     }
 
+    static class CallFlowShapeFactory
+    {
+        public static CallFlowShape CreateInstance(Visio.Shape visShape)
+        {
+
+            if (visShape == null || visShape.Master == null)
+            {
+                return null;
+            }
+
+            string masterName = visShape.Master.Name;
+
+            if (masterName.Equals(CallFlowShape.Start_MasterName))
+            {
+                return new StartShape(visShape);
+            }
+
+            if (masterName.Equals(CallFlowShape.CallFlowConnector_MasterName))
+            {
+                return new CallFlowconnectorShape(visShape);
+            }
+
+            if (masterName.Equals(CallFlowShape.Answer_MasterName))
+            {
+                return new AnswerShape(visShape);
+            }
+
+            if (masterName.Equals(CallFlowShape.Hangup_MasterName))
+            {
+                return new HangupShape(visShape);
+            }
+
+            if (masterName.Equals(CallFlowShape.Wait_MasterName))
+            {
+                return new WaitShape(visShape);
+            }
+
+            return null;
+        }
+    }
+
     class ShapeWithSingleConnection : 
         CallFlowShape
     {
-        public ShapeWithSingleConnection(Shape shape):
+        public ShapeWithSingleConnection(Visio.Shape shape)
+            :
             base(shape){}
 
         public override void validate()
@@ -70,8 +116,8 @@ namespace callfloweditor
               throw new Exception("call flow shape is not properly connected");
             }
         }
-        
-        public virtual Shape GetNextShape()
+
+        public virtual Visio.Shape GetNextShape()
         {
             
             if (VisShape.FromConnects.Count == 0)
@@ -82,10 +128,10 @@ namespace callfloweditor
             // Find the Connect for which this shape is start
             // For connector object itself FromConnects property 
             // should be null
-            Connect startConnection = null;
-            foreach (Connect cnxn  in VisShape.FromConnects)
+            Visio.Connect startConnection = null;
+            foreach (Visio.Connect cnxn in VisShape.FromConnects)
             {
-                if (cnxn.FromPart  == (int) VisFromParts.visBegin)
+                if (cnxn.FromPart == (int)Visio.VisFromParts.visBegin)
                 {
                     if (startConnection == null)
                     {
@@ -105,11 +151,11 @@ namespace callfloweditor
 
             // look for connections inside connector object
             // and fine the one which is end
-            Shape connectorShape = startConnection.FromSheet;
-            Shape destShape = null;
-            foreach (Connect cnxn in connectorShape.Connects)
+            Visio.Shape connectorShape = startConnection.FromSheet;
+            Visio.Shape destShape = null;
+            foreach (Visio.Connect cnxn in connectorShape.Connects)
             {
-                if (cnxn.FromPart == (int)VisFromParts.visEnd)
+                if (cnxn.FromPart == (int)Visio.VisFromParts.visEnd)
                 {
                     if (destShape == null)
                     {
@@ -123,13 +169,18 @@ namespace callfloweditor
 
         }
 
+        public override string GenerateArgumentsList()
+        {
+            return "(this)";
+        }
+
 
         public override string GenerateFunctionBlock()
         {
            string myFixedName = GetFixedName();
            string gluedShapeFixedName = "nil";
 
-           Shape nextVisShape = GetNextShape();
+           Visio.Shape nextVisShape = GetNextShape();
            if (nextVisShape != null)
            {
                CallFlowShape nextCallFlowShape = CallFlowShapeFactory.CreateInstance(nextVisShape);
@@ -138,7 +189,7 @@ namespace callfloweditor
                    gluedShapeFixedName = nextCallFlowShape.GetFixedName();
                }
            }
-           return "function " + myFixedName + "() " + implname() +  "(this); return " + gluedShapeFixedName + "; end;";
+           return "function " + myFixedName + "() " + implname() + GenerateArgumentsList() + "; return " + gluedShapeFixedName + "; end;";
         }
 
     }
@@ -148,7 +199,7 @@ namespace callfloweditor
         ShapeWithSingleConnection
     {
 
-        public StartShape(Shape visShape)
+        public StartShape(Visio.Shape visShape)
             : base(visShape)
         {
 
@@ -165,7 +216,7 @@ namespace callfloweditor
         ShapeWithSingleConnection
     {
 
-        public AnswerShape(Shape visShape)
+        public AnswerShape(Visio.Shape visShape)
             : base(visShape)
         {
 
@@ -182,7 +233,7 @@ namespace callfloweditor
     class HangupShape :
         ShapeWithSingleConnection
     {
-        public HangupShape(Shape visShape)
+        public HangupShape(Visio.Shape visShape)
             : base(visShape)
         {
 
@@ -196,10 +247,44 @@ namespace callfloweditor
 
     }
 
+    class WaitShape :
+       ShapeWithSingleConnection
+    {
+        private int _timeToWait;
+
+        public int TimeToWait
+        {
+            get { return _timeToWait; }
+            set { _timeToWait = value; }
+        }
+
+        public override string GenerateArgumentsList()
+        {
+            return "(this," + TimeToWait +")";
+        }
+
+
+        public WaitShape(Visio.Shape visShape)
+            : base(visShape)
+        {
+
+            Visio.Cell cell = visShape.get_Cells("Prop.Row_1");
+            TimeToWait = cell.get_ResultInt(
+                Visio.VisUnitCodes.visNumber,
+                (short)Visio.VisRoundFlags.visRound); ;
+        }
+
+        public override string implname()
+        {
+            return "this.wait";
+        }
+
+    }
+
     class CallFlowconnectorShape :
         ShapeWithSingleConnection
     {
-        public CallFlowconnectorShape(Shape visShape)
+        public CallFlowconnectorShape(Visio.Shape visShape)
             : base(visShape)
         {
            
@@ -223,35 +308,7 @@ namespace callfloweditor
 
     }
 
-    static class CallFlowShapeFactory
-    {
-        public static CallFlowShape CreateInstance(Shape visShape)
-        {
-            string masterName = visShape.Master.Name;
-
-            if (masterName.Equals(CallFlowShape.CallFlowConnector_MasterName))
-            {
-                return new CallFlowconnectorShape(visShape);
-            }
-
-            if (masterName.Equals(CallFlowShape.Answer_MasterName))
-            {
-                return new AnswerShape(visShape);
-            }
-
-            if (masterName.Equals(CallFlowShape.Hangup_MasterName))
-            {
-                return new HangupShape(visShape);
-            }
-
-            if (masterName.Equals(CallFlowShape.Start_MasterName))
-            {
-                return new StartShape(visShape);
-            }
-
-            return null;
-        }
-    }
+    
 
 
 

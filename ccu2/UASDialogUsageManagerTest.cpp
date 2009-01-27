@@ -40,8 +40,8 @@ UASDialogUsageManagerTest::test()
 
 	CcuConfiguration conf;
 
-	conf.AddCodec(new IxCodec(L"pcma",0,8000));
-	conf.AddCodec(new IxCodec(L"pcmu",8,8000));
+	conf.AddCodec(new IxCodec(L"PCMU",8000,0));
+	conf.AddCodec(new IxCodec(L"PCMA",8000,8));
 	
 
 	MockResipStack mock_stack;
@@ -55,5 +55,22 @@ UASDialogUsageManagerTest::test()
 	CnxInfo info("1.2.3.4",6555);
 
 	string sdp = mngr.CreateSdp(info);
+
+	// version depends on time so look only 
+	// for substring
+	char * buf=
+		//"v=0\r\n"
+		//"o=ivrworx 948688500 948688375 IN IP4 1.2.3.4\r\n"
+		"s=myivr\r\n"
+		"c=IN IP4 1.2.3.4\r\n"
+		"t=0 0\r\n"
+		"m=audio 6555 RTP/AVP 8 0\r\n"
+		"a=rtpmap:8 PCMA/8000\r\n"
+		"a=rtpmap:0 PCMU/8000\r\n"
+		"\r\n";
+
+	assert(sdp.find(buf) != string::npos);
+
+	
 
 }

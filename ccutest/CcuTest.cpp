@@ -95,10 +95,10 @@ int _tmain(int argc, _TCHAR* argv[])
 
 // 	session=a->session;
 // 	rtp_session_register_event_queue(session,q);
-	::Sleep(0);
+//	::Sleep(0);
 	
 
-	ms_exit();
+//ms_exit();
 
 
 	
@@ -146,7 +146,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	//
 	//////////////////////////////////////////////////////////////////////////
 
-// 	start_test_system();
+ 	start_test_system();
 // 
 // 	return 0;
 
@@ -162,10 +162,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 
 
-	IxCoreTest().test();
-
 	return 0;
 
+	IxCoreTest().test();
 	CallWithRtpManagmentTest().test();
 	ProcPipeIPCDispatcherTest().test();
 	RTPRelayTest(CnxInfo(ip,port)).test();

@@ -68,16 +68,19 @@ private:
 
 	CcuConfiguration *_conf;
 
-	CLuaVirtualMachine _vm;
+	
 
 };
+
+typedef 
+shared_ptr<CLuaVirtualMachine> CLuaVirtualMachinePtr;
 
 class CallFlowScript
 	: public CLuaScript
 {
 public:
 
-	CallFlowScript(IN CLuaVirtualMachine &vm, IN CallWithRTPManagment &call_session);
+	CallFlowScript(IN CLuaVirtualMachinePtr vm_ptr, IN CallWithRTPManagment &call_session);
 
 	~CallFlowScript();
 
@@ -91,9 +94,15 @@ private:
 
 	int LuaAnswerCall(CLuaVirtualMachine& vm);
 
+	int LuaHangupCall(CLuaVirtualMachine& vm);
+
+	int LuaWait(CLuaVirtualMachine& vm);
+
 	CallWithRTPManagment &_callSession;
 
 	int _methodBase;
+
+	CLuaVirtualMachinePtr _vmPtr;
 
 };
 

@@ -155,7 +155,7 @@ UACDialogUsageManager::MakeCall(IN CcuMsgPtr ptr)
 		ctx_ptr->stack_handle = GenerateSipHandle();
 		ctx_ptr->transaction_type = CCU_UAC;
 		ctx_ptr->call_handler_inbound = req->call_handler_inbound;
-		ctx_ptr->orig_request = ptr;
+		ctx_ptr->last_user_request = ptr;
 
 		return CCU_API_SUCCESS;
 
@@ -217,7 +217,7 @@ UACDialogUsageManager::onConnected(IN ClientInviteSessionHandle is, IN const Sip
 {
 	FUNCTRACKER;
 
-	ResipHandlesMap::iterator iter = 
+	ResipDialogHandlesMap::iterator iter = 
 		_resipHandlesMap.find(is->getAppDialog());
 
 	if (iter == _resipHandlesMap.end())
@@ -241,7 +241,7 @@ UACDialogUsageManager::onConnected(IN ClientInviteSessionHandle is, IN const Sip
 	ack->remote_media = data;
 
 	_ccu_stack.SendResponse(
-		ctx_ptr->orig_request,
+		ctx_ptr->last_user_request,
 		ack);
 }
 

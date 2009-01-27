@@ -97,12 +97,21 @@ UASDialogUsageManager::UponCallOfferedNack(CcuMsgPtr req)
 }
 
 void 
-UASDialogUsageManager::UponCallOfferedAck(CcuMsgPtr req, SipDialogContextPtr ptr)
+UASDialogUsageManager::UponCallOfferedAck(CcuMsgPtr req)
 {
 	
 	shared_ptr<CcuMsgCalOfferedlAck> ack = 
 		dynamic_pointer_cast<CcuMsgCalOfferedlAck>(req);
-	
+
+	CcuHandlesMap::iterator iter = _refCcuHandlesMap.find(ack->stack_call_handle);
+	if (iter == _refCcuHandlesMap.end())
+	{
+		LogWarn("Handle=[" << ack->stack_call_handle<< "] >>not found<<. Has caller disconnected???");
+		return;
+	}
+
+	SipDialogContextPtr ptr = (*iter).second;
+	ptr->last_user_request = req;
 	
 	string sdpStr = 
 		CreateSdp(ack->local_media);
@@ -123,46 +132,83 @@ UASDialogUsageManager::UponCallOfferedAck(CcuMsgPtr req, SipDialogContextPtr ptr
 string
 UASDialogUsageManager::CreateSdp(CnxInfo &offered_sdp)
 {
+#define IX_MSX_SDP_SIZE		1024
 
+	static char sdp_buf[IX_MSX_SDP_SIZE];
+	sdp_buf[0] = '\0';
 
-	char session_id_buf[CCU_MAX_LONG_LENGTH];
-	_ltoa_s(::GetTickCount(),session_id_buf,CCU_MAX_LONG_LENGTH,10);
+	char temp_buf[CCU_MAX_LONG_LENGTH];
+	temp_buf[0] = '\0';
 
-	char version_buf[CCU_MAX_LONG_LENGTH];
-	_ltoa_s(_sdpVersionCounter++,version_buf,CCU_MAX_LONG_LENGTH,10);
+	int length_counter=0;
 
+#define STRCAT_COUNT(BUF,S) length_counter+=(int)::strlen((S));\
+	::strcat_s((BUF), IX_MSX_SDP_SIZE - length_counter, (S));
 	
-	string sdp_str = 
-		//v=0
-		"v=0\r\n"
-		//o=<username> <session id> <version> <network type> <address type> <address>
-		"o=myivr " +  string(session_id_buf) +  " " + string(version_buf) + " IN IP4  " + offered_sdp.iptos() + "\r\n"
-		//s=<session name>
-		"s=myivr\r\n"
-		// c=<network type> <address type> <connection address>
-		"c=IN IP4 "  + offered_sdp.iptos() + "\r\n"
-		// t=<start time>  <stop time>
-		"t=0 0\r\n";
+	//v=0\r\n
+	STRCAT_COUNT(sdp_buf, "v=0\r\n");
 
+	//o=<username>_
+	STRCAT_COUNT(sdp_buf, "o=ivrworx ");
+	//<session id>_ 
+	_ltoa_s(::GetTickCount(),temp_buf,CCU_MAX_LONG_LENGTH,10);
+	STRCAT_COUNT(sdp_buf, temp_buf);
+	STRCAT_COUNT(sdp_buf, " ");
+	//<version>_ 
+	_ltoa_s(_sdpVersionCounter++,temp_buf,CCU_MAX_LONG_LENGTH,10);
+	STRCAT_COUNT(sdp_buf, temp_buf);
+	//<network type>_
+	STRCAT_COUNT(sdp_buf," IN IP4 ");
+	//<address>\r\n
+	STRCAT_COUNT(sdp_buf,offered_sdp.iptoa());
+	STRCAT_COUNT(sdp_buf,"\r\n");
 
-	string codecs_list_str =	"m=audio " + offered_sdp.porttos() + " RTP/AVP ";
+	//s=<session name>\r\n
+	STRCAT_COUNT(sdp_buf,"s=myivr\r\n");	
+		
+	// c=<network type> <address type>_
+	STRCAT_COUNT(sdp_buf,"c=IN IP4 ")  ;
+
+	// <connection address>\r\n
+	STRCAT_COUNT(sdp_buf,offered_sdp.iptoa())
+	STRCAT_COUNT(sdp_buf,"\r\n")
+
+	// t=<start time>  <stop time>\r\n
+	STRCAT_COUNT(sdp_buf,"t=0 0\r\n");
+
+	// m=audio_
+	STRCAT_COUNT(sdp_buf,"m=audio ");
+	STRCAT_COUNT(sdp_buf,offered_sdp.porttos().c_str());
+
+	//_RTP/AVP
+	STRCAT_COUNT(sdp_buf," RTP/AVP");
 	
-	string sdp_map;
+	
 	
 	for (CodecsList::const_iterator iter = _conf.CodecList().begin(); 
 		iter != _conf.CodecList().end();
 		iter++)
 	{
-		codecs_list_str += " " + (*iter)->sdp_mapping_tos();
-		sdp_map += (*iter)->get_sdp_a();
-		
+		STRCAT_COUNT(sdp_buf," "); 
+		STRCAT_COUNT(sdp_buf,(*iter)->sdp_mapping_tos().c_str());
 	}
 
-	sdp_str += codecs_list_str + "\r\n";
+	STRCAT_COUNT(sdp_buf,"\r\n"); 
+	for (CodecsList::const_iterator iter = _conf.CodecList().begin(); 
+		iter != _conf.CodecList().end();
+		iter++)
+	{
+		STRCAT_COUNT(sdp_buf,(*iter)->get_sdp_a().c_str());
+	}
 
-	sdp_str += sdp_map;
 
-	return sdp_str;
+	STRCAT_COUNT(sdp_buf,"\r\n"); 
+	cout << endl << sdp_buf << endl;
+
+#undef IX_MSX_SDP_SIZE
+#undef STRCAT_COUNT
+	
+	return sdp_buf;
 
 }
 
@@ -171,17 +217,19 @@ void
 UASDialogUsageManager::onNewSession(ServerInviteSessionHandle sis, InviteSession::OfferAnswerType oat, const SipMessage& msg)
 {
 	FUNCTRACKER;
-	LogDebug(">>New UAS SIP Session<< msg:-\n" << msg <<"\n");
-
+	
 	sis->provisional(180);
 
+	// prepare dialog context
 	SipDialogContextPtr ctx_ptr(new SipDialogContext());
+	ctx_ptr->transaction_type = CCU_UAS;
 	ctx_ptr->uas_invite_handle = sis;
 	ctx_ptr->stack_handle = GenerateSipHandle();
 
 	_resipHandlesMap[sis->getAppDialog()]= ctx_ptr;
 	_refCcuHandlesMap[ctx_ptr->stack_handle]= ctx_ptr;
 
+	LogDebug(">>New UAS SIP Session<< ix stack handle=[" <<  ctx_ptr->stack_handle  << "] msg:-\n" << msg <<"\n");
 
 }
 
@@ -200,7 +248,7 @@ UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, co
 {
 	FUNCTRACKER;
 
-	ResipHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
+	ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
 	SipDialogContextPtr ctx_ptr = (*iter).second;
 	
 	const SdpContents::Session &s = sdp.session();
@@ -230,12 +278,18 @@ UASDialogUsageManager::onConnected(InviteSessionHandle is, const SipMessage& msg
 {
 	FUNCTRACKER;
 
-	ResipHandlesMap::iterator iter = _resipHandlesMap.find(is->getAppDialog());
+	ResipDialogHandlesMap::iterator iter = _resipHandlesMap.find(is->getAppDialog());
+	if (iter == _resipHandlesMap.end())
+	{
+		LogWarn("Resip dialog handle=[" << is->getAppDialog().getId() << "] >>not found<<. Has user disconnected???");
+		return;
+	}
 
 	SipDialogContextPtr ctx_ptr = (*iter).second;
-
-	ctx_ptr->call_handler_inbound->Send(new CcuMsgNewCallConnected());
-
+	_ccu_stack.SendResponse(
+		ctx_ptr->last_user_request, 
+		new CcuMsgNewCallConnected());
+	
 }
 
 void 

@@ -73,7 +73,7 @@ struct SipDialogContext :
 	// used to send responses as it is 
 	// temporary process used to run transaction
 	//
-	CcuMsgPtr orig_request;
+	CcuMsgPtr last_user_request;
 
 	CcuStackHandle stack_handle;
 };
@@ -86,7 +86,7 @@ typedef
 map<CcuStackHandle,SipDialogContextPtr> CcuHandlesMap;
 
 typedef 
-map<AppDialogHandle,SipDialogContextPtr> ResipHandlesMap;
+map<AppDialogHandle,SipDialogContextPtr> ResipDialogHandlesMap;
 
 
 CnxInfo 

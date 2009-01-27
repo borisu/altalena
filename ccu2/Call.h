@@ -21,7 +21,6 @@
 
 #include "LightweightProcess.h"
 
-
 #pragma region Sip_Stack_Events
 
 enum CallEvts
@@ -39,6 +38,7 @@ enum CallEvts
 	CCU_MSG_MAKE_CALL_NACK,
 	CCU_MSG_HANGUP_CALL_REQ,
 };
+
 
 //
 // CALL RELATED
@@ -208,7 +208,7 @@ class CcuMsgCallOfferedNack:
 public:
 	CcuMsgCallOfferedNack():
 	  CcuMessage(CCU_MSG_CALL_OFFERED_NACK, NAME(CCU_MSG_CALL_OFFERED_NACK))
-		,code(CCU_API_FAILURE){}
+		  ,code(CCU_API_FAILURE){}
 
 	  virtual void copy_data_on_response(IN CcuMessage *request)
 	  {
@@ -216,7 +216,7 @@ public:
 		  CcuMessage::copy_data_on_response(request);
 	  }
 
-	CcuApiErrorCode code;
+	  CcuApiErrorCode code;
 
 };
 BOOST_CLASS_EXPORT(CcuMsgCallOfferedNack);
@@ -233,6 +233,12 @@ class CcuMsgNewCallConnected:
 public:
 	CcuMsgNewCallConnected():CcuMessage(CCU_MSG_CALL_CONNECTED, 
 		NAME(CCU_MSG_CALL_CONNECTED)){}
+
+	virtual void copy_data_on_response(IN CcuMessage *request)
+	{
+		CcuMsgStackMixin::copy_data_on_response(request);
+		CcuMessage::copy_data_on_response(request);
+	}
 
 };
 BOOST_CLASS_EXPORT(CcuMsgNewCallConnected);
@@ -275,71 +281,87 @@ BOOST_CLASS_EXPORT(CcuMsgCallDtmfEvt);
 
 #pragma endregion Sip_Stack_Events
 
-class Call 
+namespace ivrworx
 {
-public:
 
-	Call(IN LpHandlePair _stackPair, 
-		IN LightweightProcess &facade);
-
-	Call(
-		IN LpHandlePair _stackPair, 
-		IN int call_handle,
-		IN CnxInfo offered_media,
-		IN LightweightProcess &facade);
-
-	virtual ~Call(void);
-
-	CcuApiErrorCode AcceptCall(
-		IN CnxInfo local_data);
-
-	CcuApiErrorCode RejectCall();
-
-	CcuApiErrorCode MakeCall(
-		IN wstring destination_uri, 
-		IN CnxInfo local_media);
-
-	CcuApiErrorCode HagupCall();
-
-	CcuApiErrorCode WaitForDtmf(
-		IN wstring &dtmf_digit,
-		IN Time timeout);
-
-	CnxInfo RemoteMedia() const;
-	void RemoteMedia(CnxInfo &val);
-
-	CnxInfo LocalMedia() const;
-	void LocalMedia(CnxInfo &val);
+	enum IxCallStates
+	{
+		IX_CALL_NONE,
+		IX_CALL_OFFERED,
+		IX_CALL_CONNECTED,
+		IX_CALL_TERMINATED
+	};
 
 	
+	class Call 
+	{
+	public:
 
-protected:
+		Call(IN LpHandlePair _stackPair, 
+			IN LightweightProcess &facade);
 
-	void Init();
+		Call(
+			IN LpHandlePair _stackPair, 
+			IN int call_handle,
+			IN CnxInfo offered_media,
+			IN LightweightProcess &facade);
 
-	void call_handler_run();
+		virtual ~Call(void);
 
-	LpHandlePair _stackPair;
+		CcuApiErrorCode AcceptCall(
+			IN CnxInfo local_data);
 
-	int _stackCallHandle;
+		CcuApiErrorCode RejectCall();
 
-	CnxInfo _remoteMedia;
+		CcuApiErrorCode MakeCall(
+			IN wstring destination_uri, 
+			IN CnxInfo local_media);
 
-	CnxInfo _localMedia;
+		CcuApiErrorCode HagupCall();
 
-	LightweightProcess &_parentProcess;
+		CcuApiErrorCode WaitForDtmf(
+			IN wstring &dtmf_digit,
+			IN Time timeout);
 
-	ScopedForking _forking;
+		CnxInfo RemoteMedia() const;
+		void RemoteMedia(CnxInfo &val);
 
-	LpHandlePair _handlerPair;
+		CnxInfo LocalMedia() const;
+		void LocalMedia(CnxInfo &val);
 
-	BOOL _hangupDetected;
+	protected:
 
-	LpHandle _dtmfChannel;
-	
-};
+		void Init();
 
-typedef 
-shared_ptr<Call> CallPtr;
+		void call_handler_run();
+
+		LpHandlePair _stackPair;
+
+		int _stackCallHandle;
+
+		CnxInfo _remoteMedia;
+
+		CnxInfo _localMedia;
+
+		LightweightProcess &_parentProcess;
+
+		ScopedForking _forking;
+
+		LpHandlePair _handlerPair;
+
+		BOOL _hangupDetected;
+
+		LpHandle _dtmfChannel;
+
+		IxCallStates _callState;
+
+	};
+
+	typedef 
+		shared_ptr<Call> CallPtr;
+
+}
+
+
 
 

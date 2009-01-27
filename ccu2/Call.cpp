@@ -21,7 +21,7 @@
 #include "Call.h"
 #include "CcuLogger.h"
 
-
+using namespace ivrworx;
 
 Call::Call(IN LpHandlePair stack_pair, 
 		   IN LightweightProcess &parent_process):
@@ -31,6 +31,7 @@ _parentProcess(parent_process),
 _hangupDetected(FALSE),
 _handlerPair(HANDLE_PAIR)
 {
+	_callState = IX_CALL_NONE;
 	Init();
 }
 
@@ -45,6 +46,7 @@ Call::Call(
  _parentProcess(parent_process),
  _handlerPair(HANDLE_PAIR)
 {
+	_callState = IX_CALL_OFFERED;
 	Init();
 }
 
@@ -111,7 +113,9 @@ Call::HagupCall()
 {
 	FUNCTRACKER;
 
-	if (_stackCallHandle == CCU_UNDEFINED)
+	if (_stackCallHandle == CCU_UNDEFINED || 
+		_callState == IX_CALL_NONE		  || 
+		_callState == IX_CALL_TERMINATED)
 	{
 		return CCU_API_SUCCESS;
 	}
@@ -159,8 +163,8 @@ Call::AcceptCall(IN CnxInfo local_media)
 	{
 	case CCU_MSG_CALL_CONNECTED:
 		{
-			shared_ptr<CcuMsgMakeCallAck> make_call_sucess = 
-				dynamic_pointer_cast<CcuMsgMakeCallAck>(response);
+			shared_ptr<CcuMsgNewCallConnected> make_call_sucess = 
+				dynamic_pointer_cast<CcuMsgNewCallConnected>(response);
 
 			_stackCallHandle = make_call_sucess->stack_call_handle;
 
@@ -171,6 +175,8 @@ Call::AcceptCall(IN CnxInfo local_media)
 			throw;
 		}
 	}
+
+	_callState = IX_CALL_CONNECTED;
 
 	return res;
 }

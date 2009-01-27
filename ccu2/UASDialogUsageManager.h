@@ -43,7 +43,7 @@ public:
 
 	virtual ~UASDialogUsageManager(void);
 
-	virtual void UponCallOfferedAck(CcuMsgPtr req, SipDialogContextPtr ptr);
+	virtual void UponCallOfferedAck(CcuMsgPtr req);
 
 	virtual void UponCallOfferedNack(CcuMsgPtr req);
 
@@ -73,7 +73,7 @@ private:
 
 	NameAddrPtr _uasAor;
 
-	ResipHandlesMap _resipHandlesMap;
+	ResipDialogHandlesMap _resipHandlesMap;
 
 	CcuHandlesMap &_refCcuHandlesMap;
 

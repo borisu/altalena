@@ -71,7 +71,7 @@ private:
 
 	CcuHandlesMap &_ccuHandlesMap;
 
-	ResipHandlesMap _resipHandlesMap;
+	ResipDialogHandlesMap _resipHandlesMap;
 
 	LightweightProcess &_ccu_stack;
 
