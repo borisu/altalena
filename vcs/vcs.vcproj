@@ -170,10 +170,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ScriptSession.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -229,10 +225,6 @@
 			</File>
 			<File
 				RelativePath=".\ProcVcs.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ScriptSession.h"
 				>
 			</File>
 			<File

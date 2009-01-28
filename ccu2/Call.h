@@ -44,7 +44,7 @@ enum CallEvts
 // CALL RELATED
 //
 class CcuMsgMakeCallReq : 
-	public CcuMessage
+	public CcuMsgRequest
 {
 	BOOST_SERIALIZATION_REGION
 	{
@@ -55,7 +55,7 @@ class CcuMsgMakeCallReq :
 	}
 public:
 	CcuMsgMakeCallReq():
-	  CcuMessage(CCU_MSG_MAKE_CALL_REQ, NAME(CCU_MSG_MAKE_CALL_REQ)){};
+	  CcuMsgRequest(CCU_MSG_MAKE_CALL_REQ, NAME(CCU_MSG_MAKE_CALL_REQ)){};
 
 	  wstring destination_uri;
 
@@ -112,7 +112,7 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgMakeCallNack);
 
 class CcuMsgHangupCallReq: 
-	public CcuMessage
+	public CcuMsgRequest
 {
 	BOOST_SERIALIZATION_REGION
 	{
@@ -121,11 +121,11 @@ class CcuMsgHangupCallReq:
 	}
 public:
 	CcuMsgHangupCallReq():
-	  CcuMessage(CCU_MSG_HANGUP_CALL_REQ, NAME(CCU_MSG_HANGUP_CALL_REQ)),
+	  CcuMsgRequest(CCU_MSG_HANGUP_CALL_REQ, NAME(CCU_MSG_HANGUP_CALL_REQ)),
 		  stack_call_handle(CCU_UNDEFINED){};
 
 	  CcuMsgHangupCallReq(int handle):
-	  CcuMessage(CCU_MSG_HANGUP_CALL_REQ, NAME(CCU_MSG_HANGUP_CALL_REQ)),
+	  CcuMsgRequest(CCU_MSG_HANGUP_CALL_REQ, NAME(CCU_MSG_HANGUP_CALL_REQ)),
 		  stack_call_handle(handle){};
 
 	  unsigned long stack_call_handle;
@@ -162,8 +162,8 @@ public:
 };
 BOOST_IS_ABSTRACT(CcuMsgStackMixin);
 
-class CcuMsgCallOffered:
-	public CcuMsgStackMixin, public CcuMessage
+class CcuMsgCallOfferedReq:
+	public CcuMsgStackMixin, public CcuMsgRequest
 {
 	BOOST_SERIALIZATION_REGION
 	{
@@ -171,10 +171,10 @@ class CcuMsgCallOffered:
 		SERIALIZE_BASE_CLASS(CcuMessage);
 	}
 public:
-	CcuMsgCallOffered():CcuMessage(CCU_MSG_CALL_OFFERED, 
+	CcuMsgCallOfferedReq():CcuMsgRequest(CCU_MSG_CALL_OFFERED, 
 		NAME(CCU_MSG_CALL_OFFERED)){}
 };
-BOOST_CLASS_EXPORT(CcuMsgCallOffered);
+BOOST_CLASS_EXPORT(CcuMsgCallOfferedReq);
 
 class CcuMsgCalOfferedlAck:
 	public CcuMsgStackMixin,public CcuMessage

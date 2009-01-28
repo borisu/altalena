@@ -118,9 +118,9 @@ private:
 #define __FILEW__          _STR2WSTR(__FILE__)
 #define __FUNCTIONW__      _STR2WSTR(__FUNCTION__)
 
-#define PREFIX  L"[" << dec << ::GetCurrentThreadId() << L"]\t" << __FUNCTIONW__ << "(" << dec << __LINE__ << ") : "
+#define PREFIX			 L"[" << dec << ::GetCurrentThreadId() << L"," << ::GetCurrentFiber() << "]\t" << __FUNCTIONW__ << "(" << dec << __LINE__ << "):"
 
-#define PREFIX_WITH_LINE L"[" << dec << ::GetCurrentThreadId() << L"]\t" << __FUNCTIONW__ << "(" << dec << __LINE__ << " : "
+#define PREFIX_WITH_LINE L"[" << dec << ::GetCurrentThreadId() << L"," << ::GetCurrentFiber() << "]\t" << __FUNCTIONW__ << "(" << dec << __LINE__ << "):"
 
 #define FUNCTRACKER LoggerTracker _ltTag(__FUNCTIONW__) 
 

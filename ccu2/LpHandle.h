@@ -30,6 +30,7 @@
 
 #define CCU_MAX_MESSAGES_IN_QUEUE 1000
 
+#define DECLARE_NAMED_HANDLE(P) LpHandlePtr P (new LpHandle())
 #define DECLARE_NAMED_HANDLE_PAIR(P) LpHandlePair P (LpHandlePtr(new LpHandle()), LpHandlePtr(new LpHandle()))
 #define HANDLE_PAIR LpHandlePair(LpHandlePtr(new LpHandle()), LpHandlePtr(new LpHandle()))
 
@@ -195,15 +196,11 @@ public:
 		IN const EventsSet &msg_id_map, 
 		OUT CcuApiErrorCode &res);
 
-	virtual void OwnerProc(
-		IN int parentProcId, 
-		IN const wstring &procName);
-
 	virtual bool InboundPending();
 
-	virtual wstring OwnerProcName() const;
+	virtual wstring HandleName() const;
 
-	virtual void OwnerProcName(
+	virtual void HandleName(
 		IN const wstring &val);
 
 	virtual void Poison();
@@ -231,7 +228,7 @@ private:
 
 	int _ownerProcId ;
 
-	wstring _ownerProcName;
+	wstring _name;
 
 	IFirstChanceOOBMsgHandler *_firstChanceHandler;
 	

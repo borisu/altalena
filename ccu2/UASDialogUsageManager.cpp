@@ -261,7 +261,7 @@ UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, co
 	
 	DECLARE_NAMED_HANDLE_PAIR(call_handler_pair);
 
-	CcuMsgCallOffered *offered = new CcuMsgCallOffered();
+	CcuMsgCallOfferedReq *offered = new CcuMsgCallOfferedReq();
 	offered->remote_media = CnxInfo(addr,port);
 	offered->stack_call_handle = ctx_ptr->stack_handle;
 

@@ -185,11 +185,11 @@ LpHandle::Send(IN CcuMsgPtr message)
 	// someone send to owner
 	if (Direction() == CCU_MSG_DIRECTION_INBOUND)
 	{
-		LogDebug("LOCAL SND message=[" << message->message_id_str << "] from=[" << GetCurrThreadOwner() << "] to=[" << OwnerProcName() << "].");
+		LogDebug("LOCAL SND message=[" << message->message_id_str << "] from=[" << GetCurrThreadOwner() << ", rsp dst:" << message->source.proc_id  << "] to=[" << this << "] txn=[" << message->transaction_id << "]");
 	} else 
 	{
 		// owner sends to someone
-		LogDebug("LOCAL SND message=[" << message->message_id_str << "] from=[" << OwnerProcName() << "].");
+		LogDebug("LOCAL SND message=[" << message->message_id_str << "] from=[" << this << "] txn=[" << message->transaction_id << "]");
 	} 
 
 	if (message->source.proc_id == CCU_UNDEFINED)
@@ -227,7 +227,17 @@ LpHandle::WaitForMessages(IN  const  Time &timeout,
 		list<Guard*> list;
 		list.push_back(channel.reader().inputGuard());
 #pragma TODO ("Add custom memory manager for RelTimeoutGuard to improve the speed")
-		list.push_back (new RelTimeoutGuard(time_to_wait));
+		
+		// if user passed 0 as timeout and there are messages 
+		// pending csp will prefer to return TIMEOUT code.
+		// We override this behavior by trying to return
+		// pending messages in queue in this case. We're doing
+		// it by disabling the RelTimeoutGuard
+		if (!(GetMilliSeconds(time_to_wait) == 0 && 
+			channel.reader().pending()))
+		{
+			list.push_back (new RelTimeoutGuard(time_to_wait));
+		}
 
 		Alternative alt(list);
 
@@ -243,7 +253,7 @@ LpHandle::WaitForMessages(IN  const  Time &timeout,
 			//
 			//  Timeout
 			//
-			LogTrace(L">>Timeout<< waiting for messages from proc=[" << OwnerProcName() << "]");
+			LogTrace(L">>TIMEOUT<< handle=[" << this << "]");
 			resPtr = ptr;
 			res = CCU_API_TIMEOUT;
 			break;
@@ -272,11 +282,11 @@ LpHandle::WaitForMessages(IN  const  Time &timeout,
 			
 			if (Direction() == CCU_MSG_DIRECTION_INBOUND)
 			{
-				LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] to=[" << OwnerProcName() <<"]" << endl << DumpAsXml(ptr));
+				LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] to=[" << this <<"] txn=[" << ptr->transaction_id << "]" << DumpAsXml(ptr));
 			} else if (Direction() == CCU_MSG_DIRECTION_OUTBOUND){
-				LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] from=[" << OwnerProcName() <<"] to=[" << GetCurrThreadOwner() << "]" << endl << DumpAsXml(ptr));
+				LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] from=[" << this <<"] to=[" << GetCurrThreadOwner() << "] txn=[" << ptr->transaction_id << "]" << DumpAsXml(ptr));
 			} else {
-				LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] UNDEFINED " << endl << DumpAsXml(ptr));
+				LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] undef direction, txn=[" << ptr->transaction_id << "]" << DumpAsXml(ptr));
 			}
 
 			
@@ -350,12 +360,12 @@ LpHandle::Wait()
 	{
 	case CCU_MSG_DIRECTION_INBOUND:
 		{
-			LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] to=[" << OwnerProcName() <<"]");
+			LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] to=[" << HandleName() <<"]");
 			break;
 		}
 	case CCU_MSG_DIRECTION_OUTBOUND:
 		{
-			LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] from=[" << OwnerProcName() <<"] to=[" << GetCurrThreadOwner() << "]");
+			LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] from=[" << HandleName() <<"] to=[" << GetCurrThreadOwner() << "]");
 			break;
 		}
 	default:
@@ -436,21 +446,16 @@ LpHandle::WaitForMessages(Time timeout,
 }
 
 
-void
-LpHandle::OwnerProc(int parentProcId, const wstring &procName)
-{
-	_ownerProcId = parentProcId;
-	_ownerProcName = procName;
+wstring 
+LpHandle::HandleName() const 
+{ 
+	return _name; 
 }
 
-wstring LpHandle::OwnerProcName() const 
-{ 
-	return _ownerProcName; 
-}
 
-void LpHandle::OwnerProcName(const wstring &val) 
+void LpHandle::HandleName(const wstring &val) 
 { 
-	_ownerProcName = val; 
+	_name = val; 
 }
 
 void
@@ -483,7 +488,12 @@ LpHandlePair::LpHandlePair(const LpHandlePair &other)
 
 wostream& operator << (wostream &ostream, const LpHandle *lpHandlePtr)
 {
-	return ostream << ((lpHandlePtr == NULL) ? L"NULL" : lpHandlePtr->OwnerProcName());
+	if (lpHandlePtr == NULL)
+	{
+		return ostream << L"NULL";
+
+	};
+	return ostream << lpHandlePtr->HandleName() << L"," << lpHandlePtr->GetObjectUid();
 	
 }
 
@@ -497,7 +507,7 @@ CcuApiErrorCode SelectFromChannels(
 {
 	if (map.size() == 0)
 	{
-		CCU_API_FAILURE;
+		return CCU_API_FAILURE;
 	}
 
 	CcuMsgPtr res_ptr;
@@ -522,6 +532,7 @@ CcuApiErrorCode SelectFromChannels(
 		return CCU_API_TIMEOUT;
 	} else
 	{
+		
 		index = wait_res - 1;
 		if (!peekOnly)
 		{
