@@ -80,7 +80,7 @@ class CallFlowScript
 {
 public:
 
-	CallFlowScript(IN CLuaVirtualMachinePtr vm_ptr, IN CallWithRTPManagment &call_session);
+	CallFlowScript(IN CLuaVirtualMachine &vm_ptr, IN CallWithRTPManagment &call_session);
 
 	~CallFlowScript();
 
@@ -102,7 +102,7 @@ private:
 
 	int _methodBase;
 
-	CLuaVirtualMachinePtr _vmPtr;
+	CLuaVirtualMachine &_vmPtr;
 
 };
 

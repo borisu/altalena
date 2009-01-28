@@ -54,9 +54,17 @@ class RegistrationGuard
 	:public UIDOwner
 {
 public:
-	RegistrationGuard(LpHandlePtr ptr);
+
+	RegistrationGuard(IN LpHandlePtr ptr, 
+		IN int process_alias = CCU_UNDEFINED);
 
 	~RegistrationGuard();
+
+private:
+
+	int _handleUid;
+
+	int _aliasId;
 
 };
 
@@ -77,6 +85,11 @@ typedef
 map<CcuProcId, HandlesList> ListenersMap;
 
 	ListenersMap _listenersMap;
+
+typedef
+map<int,int> AliasesMap;
+
+	AliasesMap _aliasesMap;
 
 	mutex _mutex;
 

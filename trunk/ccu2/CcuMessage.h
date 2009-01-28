@@ -26,6 +26,7 @@ using namespace std;
 using namespace boost;
 using namespace boost::serialization;
 
+int GenerateNewTxnId();
 
 enum CcuMessageId
 {
@@ -140,17 +141,37 @@ boost::shared_ptr<CcuMessage> CcuMsgPtr;
 
 wstring DumpAsXml(CcuMsgPtr msg);
 
-class CcuMsgResponse:
+class CcuMsgRequest:
 	public CcuMessage
 {
 private:
-
 	BOOST_SERIALIZATION_REGION
 	{
 		// serialize base class information
 		SERIALIZE_BASE_CLASS(CcuMessage);
 		SERIALIZE_FIELD(is_response);
 	}
+
+public:
+	CcuMsgRequest(int message_id, const wstring message_id_str):
+	  CcuMessage (message_id, message_id_str)
+	  {
+		  transaction_id = GenerateNewTxnId();
+	  };
+};
+BOOST_IS_ABSTRACT(CcuMsgRequest);
+
+class CcuMsgResponse:
+	public CcuMessage
+{
+private:
+	BOOST_SERIALIZATION_REGION
+	{
+		// serialize base class information
+		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_FIELD(is_response);
+	}
+
 public:
 	CcuMsgResponse(int message_id, const wstring message_id_str):
 	  CcuMessage (message_id, message_id_str)
@@ -195,7 +216,7 @@ BOOST_CLASS_EXPORT(CcuMsgNack);
 #pragma region Process_Management_Events
 
 class CcuMsgPing : 
-	public CcuMessage
+	public CcuMsgRequest
 {
 private:
 	BOOST_SERIALIZATION_REGION
@@ -205,7 +226,7 @@ private:
 public:
 
 	CcuMsgPing():
-	  CcuMessage(CCU_MSG_PING, NAME(CCU_MSG_PING)){};
+	  CcuMsgRequest(CCU_MSG_PING, NAME(CCU_MSG_PING)){};
 };
 BOOST_CLASS_EXPORT(CcuMsgPing);
 
@@ -224,7 +245,7 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgPong);
 
 class CcuMsgShutdownReq: 
-	public CcuMessage
+	public CcuMsgRequest
 {
 	BOOST_SERIALIZATION_REGION
 	{
@@ -233,7 +254,7 @@ class CcuMsgShutdownReq:
 public:
 
 	CcuMsgShutdownReq():
-	  CcuMessage(CCU_MSG_PROC_SHUTDOWN_REQ, NAME(CCU_MSG_PROC_SHUTDOWN_REQ)){};
+	  CcuMsgRequest(CCU_MSG_PROC_SHUTDOWN_REQ, NAME(CCU_MSG_PROC_SHUTDOWN_REQ)){};
 
 };
 BOOST_CLASS_EXPORT(CcuMsgShutdownReq);

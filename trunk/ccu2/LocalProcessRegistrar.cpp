@@ -12,15 +12,24 @@ mutex
 LocalProcessRegistrar::_instanceMutex;
 
 
-RegistrationGuard::RegistrationGuard(LpHandlePtr ptr)
+RegistrationGuard::RegistrationGuard(IN LpHandlePtr ptr, 
+									 IN int process_alias):
+_handleUid(ptr->GetObjectUid()),
+_aliasId(process_alias)
 {
-	LocalProcessRegistrar::Instance().RegisterChannel(GetObjectUid(),ptr);
+	LocalProcessRegistrar::Instance().RegisterChannel(_handleUid,ptr);
+	LocalProcessRegistrar::Instance().RegisterChannel(_aliasId,ptr);
+	
 }
+
+
 
 RegistrationGuard::~RegistrationGuard()
 {
-	LocalProcessRegistrar::Instance().UnregisterChannel(GetObjectUid());
+	LocalProcessRegistrar::Instance().UnregisterChannel(_handleUid);
+	LocalProcessRegistrar::Instance().UnregisterChannel(_aliasId);
 }
+
 
 LocalProcessRegistrar::LocalProcessRegistrar(void)
 {
@@ -45,43 +54,52 @@ LocalProcessRegistrar::Instance()
 }
 
 void
-LocalProcessRegistrar::RegisterChannel(int procId, LpHandlePtr ptr)
+LocalProcessRegistrar::RegisterChannel(IN int handle_id, IN LpHandlePtr ptr)
 {
+	
+	if (handle_id == CCU_UNDEFINED)
+	{
+		return;
+	}
 	//
 	// Scope to refrain taking nested locks
 	// logs & collection
 	//
 	{
 		mutex::scoped_lock lock(_mutex);
-		if ( _locProcessesMap.find(procId) != _locProcessesMap.end())
+		if ( _locProcessesMap.find(handle_id) != _locProcessesMap.end())
 		{
-			LogCrit(L"Registered process=[" << procId << L"] >>twice<<");
+			LogCrit(L"Registered process=[" << handle_id << L"] >>twice<<");
 			throw;
 		}
 
-		_locProcessesMap[procId] = ptr;
+		_locProcessesMap[handle_id] = ptr;
 	}
-	LogDebug(">>Registered<< channel id=[" << dec << procId << "] ->  handle=[" << ptr.get() << "]");
+	LogDebug(">>Registered<< handle id=[" << dec << handle_id << "] -> [" << ptr.get() << "]");
 }
 
 void
-LocalProcessRegistrar::UnregisterChannel(int procId)
+LocalProcessRegistrar::UnregisterChannel(int handle_id)
 {
+	if (handle_id == CCU_UNDEFINED)
+	{
+		return;
+	}
 	//
 	// Scope to refrain taking nested locks
 	// logs & collection
 	//
 	{
 		mutex::scoped_lock lock(_mutex);
-		if (_locProcessesMap.find(procId) == _locProcessesMap.end())
+		if (_locProcessesMap.find(handle_id) == _locProcessesMap.end())
 		{
 			return;
 		}
 
-		_locProcessesMap.erase(procId);
+		_locProcessesMap.erase(handle_id);
 
 
-		ListenersMap::iterator iter = _listenersMap.find(procId);
+		ListenersMap::iterator iter = _listenersMap.find(handle_id);
 		if (iter != _listenersMap.end())
 		{
 			HandlesList list = (*iter).second;
@@ -90,7 +108,7 @@ LocalProcessRegistrar::UnregisterChannel(int procId)
 				set_iter != list.end(); 
 				set_iter++)
 			{
-				(*set_iter)->Send(new CcuMsgShutdownEvt(procId));
+				(*set_iter)->Send(new CcuMsgShutdownEvt(handle_id));
 			}
 
 			list.clear();
@@ -101,7 +119,7 @@ LocalProcessRegistrar::UnregisterChannel(int procId)
 
 
 	}
-	LogDebug(">>Unregistered<< channel id=[" << dec << procId << "]");
+	LogDebug(">>Unregistered<< channel id=[" << dec << handle_id << "]");
 }
 
 

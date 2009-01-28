@@ -6,6 +6,15 @@
 using namespace std;
 using namespace boost;
 
+int GenerateNewTxnId()
+{
+	static long txn_counter = 0;
+
+	return ::InterlockedExchangeAdd(&txn_counter,1);
+
+}
+
+
 wstring DumpAsXml(CcuMsgPtr msg)
 {
 	return L"";

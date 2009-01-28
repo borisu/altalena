@@ -31,11 +31,11 @@ std::set<RTPConnection*> HaveToLogConnectionSet;
 // RTP RELATED
 //
 class CcuMsgRtpReceiverAdd :
-	public CcuMessage
+	public CcuMsgRequest
 {
 public:
 	CcuMsgRtpReceiverAdd():
-	  CcuMessage(CCU_MSG_RTPRECEIVER_ADD, NAME(CCU_MSG_RTPRECEIVER_ADD)){};
+	  CcuMsgRequest(CCU_MSG_RTPRECEIVER_ADD, NAME(CCU_MSG_RTPRECEIVER_ADD)){};
 
     RTPConnection *rtp_connection;
 
@@ -43,11 +43,11 @@ public:
 
 
 class CcuMsgRtpReceiverRemove :
-	public CcuMessage
+	public CcuMsgRequest
 {
 public:
 	CcuMsgRtpReceiverRemove():
-	  CcuMessage(CCU_MSG_RTPRECEIVER_REMOVE, NAME(CCU_MSG_RTPRECEIVER_REMOVE)){};
+	  CcuMsgRequest(CCU_MSG_RTPRECEIVER_REMOVE, NAME(CCU_MSG_RTPRECEIVER_REMOVE)){};
 
 	  RTPConnection *rtp_connection;
 
@@ -64,11 +64,11 @@ public:
 
 
 class CcuMsgRtpReceiverBridge :
-	public CcuMessage
+	public CcuMsgRequest
 {
 public:
 	CcuMsgRtpReceiverBridge():
-	  CcuMessage(CCU_MSG_RTPRECEIVER_BRIDGE, NAME(CCU_MSG_RTPRECEIVER_BRIDGE)){};
+	  CcuMsgRequest(CCU_MSG_RTPRECEIVER_BRIDGE, NAME(CCU_MSG_RTPRECEIVER_BRIDGE)){};
 
 	  RTPConnection *rtp_connection_source;
 	  RTPConnection *rtp_connection_destination;
@@ -76,11 +76,11 @@ public:
 };
 
 class CcuMsgRtpReceiverModify :
-	public CcuMessage
+	public CcuMsgRequest
 {
 public:
 	CcuMsgRtpReceiverModify():
-	  CcuMessage(CCU_MSG_RTPRECEIVER_MODIFY, NAME(CCU_MSG_RTPRECEIVER_MODIFY)){};
+	  CcuMsgRequest(CCU_MSG_RTPRECEIVER_MODIFY, NAME(CCU_MSG_RTPRECEIVER_MODIFY)){};
 
 	  RTPConnection *rtp_connection_source;
 

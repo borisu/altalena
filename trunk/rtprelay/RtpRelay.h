@@ -42,7 +42,7 @@ enum RtpMessages
 };
 
 class CcuMsgRtpAllocateNewConnectionReq: 
-	public CcuMessage
+	public CcuMsgRequest
 {
 private:
 	BOOST_SERIALIZATION_REGION
@@ -53,7 +53,7 @@ private:
 
 public:
 	CcuMsgRtpAllocateNewConnectionReq():
-	  CcuMessage(CCU_MSG_ALLOCATE_NEW_CONNECTION_REQ, NAME(CCU_MSG_ALLOCATE_NEW_CONNECTION_REQ)){};
+	  CcuMsgRequest(CCU_MSG_ALLOCATE_NEW_CONNECTION_REQ, NAME(CCU_MSG_ALLOCATE_NEW_CONNECTION_REQ)){};
 
 	  CnxInfo remote_end;
 };
@@ -99,7 +99,7 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgRtpAllocateConnectionNack);
 
 class CcuMsgModifyConnectionReq:
-	public CcuMessage
+	public CcuMsgRequest
 {
 private:
 	BOOST_SERIALIZATION_REGION
@@ -110,7 +110,7 @@ private:
 	}
 public:
 	CcuMsgModifyConnectionReq():
-	  CcuMessage(CCU_MSG_MODIFY_CONNECTION_REQ, NAME(CCU_MSG_MODIFY_CONNECTION_REQ)){};
+	  CcuMsgRequest(CCU_MSG_MODIFY_CONNECTION_REQ, NAME(CCU_MSG_MODIFY_CONNECTION_REQ)){};
 
 	  CcuConnectionId connection_id;
 
@@ -120,7 +120,7 @@ BOOST_CLASS_EXPORT(CcuMsgModifyConnectionReq);
 
 
 class CcuMsgRtpBridgeConnectionsReq: 
-	public CcuMessage
+	public CcuMsgRequest
 {
 private:
 
@@ -132,7 +132,7 @@ private:
 	}
 public:
 	CcuMsgRtpBridgeConnectionsReq():
-	  CcuMessage(CCU_MSG_BRIDGE_CONNECTIONS_REQ, NAME(CCU_MSG_BRIDGE_CONNECTIONS_REQ)),
+	  CcuMsgRequest(CCU_MSG_BRIDGE_CONNECTIONS_REQ, NAME(CCU_MSG_BRIDGE_CONNECTIONS_REQ)),
 		  connection_id1(CCU_UNDEFINED),
 		  connection_id2(CCU_UNDEFINED){};
 
@@ -176,7 +176,7 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgRtpBridgeConnectionsNack);
 
 class CcuMsgRtpCloseConnectionReq: 
-	public CcuMessage
+	public CcuMsgRequest
 {
 	BOOST_SERIALIZATION_REGION
 	{
@@ -185,7 +185,7 @@ class CcuMsgRtpCloseConnectionReq:
 	}
 public:
 	CcuMsgRtpCloseConnectionReq():
-	  CcuMessage(CCU_CLOSE_CONNECTION_REQ, NAME(CCU_CLOSE_CONNECTION_REQ)){};
+	  CcuMsgRequest(CCU_CLOSE_CONNECTION_REQ, NAME(CCU_CLOSE_CONNECTION_REQ)){};
 
 	  CcuConnectionId connection_id;
 

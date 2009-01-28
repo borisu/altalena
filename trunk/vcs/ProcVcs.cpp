@@ -176,8 +176,8 @@ ProcVcs::ProcessStackMessage(IN CcuMsgPtr ptr, IN ScopedForking &forking)
 	case CCU_MSG_CALL_OFFERED:
 		{
 			
-			shared_ptr<CcuMsgCallOffered> call_offered_msg = 
-				dynamic_pointer_cast<CcuMsgCallOffered>(ptr);
+			shared_ptr<CcuMsgCallOfferedReq> call_offered_msg = 
+				dynamic_pointer_cast<CcuMsgCallOfferedReq>(ptr);
 
 			DECLARE_NAMED_HANDLE_PAIR(script_pair);
 			FORK_IN_THIS_THREAD(
@@ -207,37 +207,47 @@ ProcVcs::ProcessStackMessage(IN CcuMsgPtr ptr, IN ScopedForking &forking)
 
 void ProcVcs::StartScript(IN CcuMsgPtr msg)
 {
-
-	shared_ptr<CcuMsgCallOffered> start_script_msg  = 
-		dynamic_pointer_cast<CcuMsgCallOffered>(msg);
-
-	CallWithRTPManagment call_session(
-		_stackPair,
-		start_script_msg->stack_call_handle,
-		start_script_msg->remote_media,
-		*this);
-
-	CallFlowScript script(
-		CLuaVirtualMachinePtr(new CLuaVirtualMachine()),
-		call_session);
-
-	if (!script.CompileFile(WStringToString(_conf->ScriptFile()).c_str()))
+	try
 	{
-		LogWarn(">>Error Compiling/Running<< script=[" << _conf->ScriptFile() << "]");
-		SendResponse(msg, new CcuMsgCallOfferedNack());
-		return;
+		shared_ptr<CcuMsgCallOfferedReq> start_script_msg  = 
+			dynamic_pointer_cast<CcuMsgCallOfferedReq>(msg);
+
+		CallWithRTPManagment call_session(
+			_stackPair,
+			start_script_msg->stack_call_handle,
+			start_script_msg->remote_media,
+			*this);
+
+		CLuaVirtualMachine vm;
+		vm.InitialiseVM();
+
+		CallFlowScript script(vm,call_session);
+
+		if (!script.CompileFile(WStringToString(_conf->ScriptFile()).c_str()))
+		{
+			LogWarn(">>Error Compiling/Running<< script=[" << _conf->ScriptFile() << "]");
+			SendResponse(msg, new CcuMsgCallOfferedNack());
+			return;
+		}
+
+		LogDebug("script=[" << _conf->ScriptFile() << "], ix call handle=[" << start_script_msg->stack_call_handle <<"]");
 	}
+	catch (std::exception e)
+	{
+		LogWarn("Exception while running script=[ " << _conf->ScriptFile() <<"] e=[" << e.what() << "]");
+	}
+
+	
 }
 
 CallFlowScript::CallFlowScript(
-							   IN CLuaVirtualMachinePtr vm_ptr, 
+							   IN CLuaVirtualMachine &vm_ptr, 
 							   IN CallWithRTPManagment &call_session)
-:CLuaScript(*(vm_ptr.get())),
+:CLuaScript(vm_ptr),
 _callSession(call_session),
 _vmPtr(vm_ptr)
 {
-	_vmPtr->InitialiseVM();
-
+	
 	// !!! The order should be preserved for later switch statement !!!
 	_methodBase = RegisterFunction("answer");
 	 RegisterFunction("hangup");

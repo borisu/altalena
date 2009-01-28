@@ -38,7 +38,7 @@ enum ImsEvents
 
 
 class CcuMsgAllocateImsSessionReq:
-	public CcuMessage
+	public CcuMsgRequest
 {
 	BOOST_SERIALIZATION_REGION
 	{
@@ -48,7 +48,7 @@ class CcuMsgAllocateImsSessionReq:
 	}
 public:
 	CcuMsgAllocateImsSessionReq():
-	  CcuMessage(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST, 
+	  CcuMsgRequest(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST, 
 		  NAME(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST)){};
 
 	  CnxInfo remote_media_data;
@@ -94,7 +94,7 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgAllocateImsSessionNack)
 
 class CcuMsgStartPlayReq:
-	public CcuMessage
+	public CcuMsgRequest
 {
 	BOOST_SERIALIZATION_REGION
 	{
@@ -104,7 +104,7 @@ class CcuMsgStartPlayReq:
 	}
 public:
 	CcuMsgStartPlayReq():
-	  CcuMessage(CCU_MSG_START_PLAYBACK_REQUEST, NAME(CCU_MSG_START_PLAYBACK_REQUEST)),
+	  CcuMsgRequest(CCU_MSG_START_PLAYBACK_REQUEST, NAME(CCU_MSG_START_PLAYBACK_REQUEST)),
 	  playback_handle(CCU_UNDEFINED),
 	  send_provisional(false){};
 

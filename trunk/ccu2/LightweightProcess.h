@@ -37,7 +37,6 @@ shared_ptr<Bucket> BucketPtr;
 
 class LightweightProcess: 
 	public CSProcess, 
-	public UIDOwner,
 	public IFirstChanceOOBMsgHandler
 {
 public:
@@ -140,7 +139,7 @@ public:
 		IN wstring transaction_name);
 
 	CcuApiErrorCode WaitForTxnResponse(
-		IN LpHandlePair txn_pair,
+		IN LpHandlePtr txn_handle,
 		IN EventsSet &responses,
 		OUT CcuMsgPtr &response,
 		IN Time timout);
@@ -160,11 +159,11 @@ protected:
 
 	LpHandlePtr _transactionTerminator;
 
-	
-
 	wstring _name;
 	
 	int _processId;
+
+	int _processAlias;
 
 private:
 

@@ -41,16 +41,18 @@ _inbound(pair.inbound),
 _outbound(pair.outbound),
 _bucket(new Bucket()),
 _transactionTimeout(5000),
-_transactionTerminator(pair.inbound)
+_transactionTerminator(pair.inbound),
+_processAlias(CCU_UNDEFINED)
 {
 	FUNCTRACKER;
 
-	Init(GetObjectUid(), owner_name);
+	// process id is as its inbound handle id
+	Init(_inbound->GetObjectUid(), owner_name);
 }
 
 LightweightProcess::LightweightProcess(
 									   LpHandlePair pair,
-									   int process_id,
+									   int process_alias,
 									   const wstring &owner_name
 									   ):
 _pair(pair),
@@ -58,12 +60,13 @@ _inbound(pair.inbound),
 _outbound(pair.outbound),
 _bucket(new Bucket()),
 _transactionTimeout(5000),
-_transactionTerminator(pair.inbound)
-
+_transactionTerminator(pair.inbound),
+_processAlias(process_alias)
 {
 	FUNCTRACKER;
 
-	Init(process_id, owner_name);
+	// process id is as its inbound handle id
+	Init(_inbound->GetObjectUid(), owner_name);
 }
 
 void
@@ -79,21 +82,16 @@ LightweightProcess::Init(int process_id, wstring owner_name)
 	
 	if (_inbound != CCU_NULL_LP_HANDLE)
 	{
-		_inbound->OwnerProc(
-			process_id,
-			owner_name);
+		_inbound->HandleName(owner_name);
 	}
 
 	if (_outbound!= CCU_NULL_LP_HANDLE)
 	{
-		_outbound->OwnerProc(
-			process_id,
-			owner_name);
+		_outbound->HandleName(owner_name);
 	}
 		
 	if (_inbound != CCU_NULL_LP_HANDLE)
 	{
-		LocalProcessRegistrar::Instance().RegisterChannel(process_id,_inbound);
 		_inbound->FirstChanceOOBMsgHandler(this);
 	}
 
@@ -143,6 +141,8 @@ LightweightProcess::run()
 {
 	
 	FUNCTRACKER;
+
+	RegistrationGuard guard(_inbound,_processAlias);
 
 	// Created only once -  thread local storage 
 	// of the fibers.
@@ -303,20 +303,26 @@ LightweightProcess::DoRequestResponseTransaction(
 
 	FUNCTRACKER;
 
-	DECLARE_NAMED_HANDLE_PAIR(txn_pair);
-	txn_pair.inbound->OwnerProcName(transaction_name); // for logging purposes
+	DECLARE_NAMED_HANDLE(txn_handle);
+	txn_handle->HandleName(transaction_name); // for logging purposes
 
-	RegistrationGuard guard(txn_pair.inbound);
+	RegistrationGuard guard(txn_handle);
 
-	request->source.proc_id = guard.GetObjectUid();
+	request->source.proc_id = txn_handle->GetObjectUid();
+	request->transaction_id = GenerateNewTxnId();
 
 	dest_handle->Send(request);
 
 	CcuApiErrorCode res = WaitForTxnResponse(
-		txn_pair,
+		txn_handle,
 		responses,
 		response,
 		timout);
+
+	if (res == CCU_API_TIMEOUT)
+	{
+		LogDebug("TIMEOUT txn=[" << request->transaction_id<< "]");
+	}
 
 	return res;
 
@@ -334,14 +340,15 @@ LightweightProcess::DoRequestResponseTransaction(
 
 	FUNCTRACKER;
 
-	DECLARE_NAMED_HANDLE_PAIR(txn_pair);
-	txn_pair.inbound->OwnerProcName(transaction_name);
+	DECLARE_NAMED_HANDLE(txn_handle);
+	txn_handle->HandleName(transaction_name);
 
-	RegistrationGuard guard(txn_pair.inbound);
+	RegistrationGuard guard(txn_handle);
 
 
-	request->source.proc_id = guard.GetObjectUid();
+	request->source.proc_id = txn_handle->GetObjectUid();
 	request->dest.proc_id = dest_proc_id;
+	request->transaction_id = GenerateNewTxnId();
 
 	CcuApiErrorCode res = SendMessage(request);
 	if (CCU_FAILURE(res))
@@ -350,10 +357,15 @@ LightweightProcess::DoRequestResponseTransaction(
 	}
 
 	res = WaitForTxnResponse(
-		txn_pair,
+		txn_handle,
 		responses,
 		response,
 		timout);
+
+	if (res == CCU_API_TIMEOUT)
+	{
+		LogDebug("TIMEOUT txn=[" << request->transaction_id<< "]");
+	}
 
 	return res;
 
@@ -361,7 +373,7 @@ LightweightProcess::DoRequestResponseTransaction(
 
 CcuApiErrorCode	
 LightweightProcess::WaitForTxnResponse(
-								  IN LpHandlePair txn_pair,
+								  IN LpHandlePtr txn_handle,
 								  IN EventsSet &responses,
 								  OUT CcuMsgPtr &response,
 								  IN Time timeout)
@@ -381,7 +393,7 @@ LightweightProcess::WaitForTxnResponse(
 	list.push_back(_transactionTerminator);
 	const int txn_term_index = interrupted_handle_index++;
 
-	list.push_back(txn_pair.inbound);
+	list.push_back(txn_handle);
 	const int txn_inbound_index = interrupted_handle_index++;
 
 
@@ -404,15 +416,22 @@ LightweightProcess::WaitForTxnResponse(
 			CCU_NULL_MSG,
 			true);
 
-
-		if (err_code == CCU_API_TIMEOUT)
+		if (CCU_FAILURE(err_code))
 		{
 			return err_code;
 		}
+		
 
 		if (interrupted_handle_index == txn_term_index)
 		{
-			BOOL res = HandleOOBMessage(_transactionTerminator->Wait(Seconds(0),err_code));
+			CcuMsgPtr msg = _transactionTerminator->Wait(Seconds(0),err_code);
+			if (CCU_FAILURE(err_code))
+			{
+				LogCrit("XXX");
+				throw;
+			}
+
+			BOOL res = HandleOOBMessage(msg);
 			if (res == FALSE)
 			{
 				throw std::exception("Transaction was terminated");
@@ -436,7 +455,7 @@ LightweightProcess::WaitForTxnResponse(
 		{
 
 			response = 
-				txn_pair.inbound->WaitForMessages(
+				txn_handle->WaitForMessages(
 				MilliSeconds(0),
 				responses,
 				res
@@ -572,7 +591,6 @@ LightweightProcess::TransactionTimeout(long val)
 LightweightProcess::~LightweightProcess(void)
 {
 	FUNCTRACKER;
-	LocalProcessRegistrar::Instance().UnregisterChannel(GetObjectUid());
 }
 
 
