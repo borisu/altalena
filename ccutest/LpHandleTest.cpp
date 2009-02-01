@@ -20,6 +20,7 @@
 #include "StdAfx.h"
 #include "LpHandleTest.h"
 #include "LpHandle.h"
+#include "LightweightProcess.h"
 
 LpHandleTest::LpHandleTest(void)
 {
@@ -32,8 +33,10 @@ LpHandleTest::~LpHandleTest(void)
 void
 LpHandleTest::test()
 {
+	testSelectFromChannels();
 	testPoison();
 	testMaxMessages();
+	
 }
 
 void
@@ -43,7 +46,16 @@ LpHandleTest::testPoison()
 
 	h.Poison();
 
-	assert(CCU_FAILURE(h.Send(new CcuMsgAck())));
+	try
+	{
+		h.Send(new CcuMsgAck());
+		assert(0);
+	}
+	catch (std::exception e)
+	{
+		
+	}
+
 }
 
 void
@@ -68,4 +80,76 @@ LpHandleTest::testMaxMessages()
 #pragma TODO("Make overflowing revertible (now it seems like it poisond the channel")
 	
 
+}
+
+void
+LpHandleTest::testSelectFromChannels()
+{
+
+	START_FORKING_REGION;
+
+	HandlesList list;
+
+	DECLARE_NAMED_HANDLE(h1);
+	DECLARE_NAMED_HANDLE(h2);
+	DECLARE_NAMED_HANDLE(h3);
+	
+	list.push_back(h1); int h1_index = 0;
+	list.push_back(h2); int h2_index = 1;
+	list.push_back(h3); int h3_index = 2;
+	
+	int index = CCU_UNDEFINED;
+	CcuMsgPtr event;
+
+	// wait with time 0
+	h1->Send(new CcuMsgAck());
+	SelectFromChannels(
+		list,
+		Seconds(0), 
+		index, 
+		event);
+	assert(index==0);
+	assert(event->message_id == CCU_MSG_ACK);
+
+	
+	// simple wait
+	DECLARE_NAMED_HANDLE_PAIR(script_pair);
+	FORK_IN_THIS_THREAD(
+		new ProcVoidFuncRunner<LpHandleTest>(
+		script_pair,
+		bind<void>(&LpHandleTest::sleep_and_send, _1, h2),
+		this,
+		L"Message Sender"));
+	
+	
+	SleepFor(Seconds(1));
+	// simple wait
+	SelectFromChannels(
+		list,
+		Seconds(10), 
+		index, 
+		event);
+	assert(index==1);
+	assert(event->message_id == CCU_MSG_ACK);
+	
+
+	
+	// timeout
+	CcuApiErrorCode res = SelectFromChannels(
+		list,
+		Seconds(0), 
+		index, 
+		event);
+
+	assert(res==CCU_API_TIMEOUT);
+	assert(index==-1);
+
+	END_FORKING_REGION;
+
+}
+
+void 
+LpHandleTest::sleep_and_send(LpHandlePtr h)
+{
+	h->Send(new CcuMsgAck());
 }

@@ -22,7 +22,12 @@ ProcStackStub::real_run()
 	BOOL shutdownFlag = FALSE;
 	while (!shutdownFlag)
 	{
-		CcuMsgPtr msg = GetInboundMessage();
+		CcuApiErrorCode res;
+		CcuMsgPtr msg = GetInboundMessage(Seconds(0),res);
+		if (CCU_FAILURE(res))
+		{
+			throw;
+		}
 
 		LogInfo(L" Processing msg=[" << msg->message_id_str <<"]");
 

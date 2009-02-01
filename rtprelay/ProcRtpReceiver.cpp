@@ -197,7 +197,13 @@ ProcRtpReceiver::ProcessCcuMessage(OUT BOOL &shutdown_flag)
 		return;
 	}
 	
-	CcuMsgPtr message = GetInboundMessage();
+	CcuApiErrorCode res;
+	CcuMsgPtr message = GetInboundMessage(Seconds(0),res);
+	if (CCU_FAILURE(res))
+	{
+		throw;
+	}
+	
 
 	switch (message->message_id)
 	{

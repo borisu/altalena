@@ -453,7 +453,12 @@ ProcPipeIPCDispatcher::HandleLocalMsg()
 		return CCU_API_FAILURE;
 	}
 
-	CcuMsgPtr msg = _inbound->Wait();
+	CcuApiErrorCode res;
+	CcuMsgPtr msg = _inbound->Wait(Seconds(0),res);
+	if (CCU_FAILURE(res))
+	{
+		throw;
+	}
 
 
 	if (msg->message_id == CCU_MSG_PROC_SHUTDOWN_REQ)

@@ -206,7 +206,7 @@ CcuRtpSession::CloseRTPConnection()
 {
 	FUNCTRACKER;
 
-	if (_connectionId != CCU_UNDEFINED)
+	if (_connectionId == CCU_UNDEFINED)
 	{
 		return CCU_API_SUCCESS;
 	}

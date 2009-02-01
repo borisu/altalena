@@ -27,20 +27,20 @@ using namespace std;
 
 mutex g_loggerMutex;
 
-volatile CcuLogLevel g_LogLevel = CCU_LOG_LEVEL_INFO;
+volatile IxLogLevel g_LogLevel = IX_LOG_LEVEL_INFO;
 
-volatile DWORD g_logMask = CCU_LOG_MASK_CONSOLE;
+volatile DWORD g_logMask = IX_LOG_MASK_CONSOLE;
 
 wdostream dbgout;
 
 void
-CcuSetLogLevel(CcuLogLevel log_level)
+IxSetLogLevel(IxLogLevel log_level)
 {
 	g_LogLevel = log_level;
 }
 
 void 
-CcuSetLogMask(int log_mask)
+IxSetLogMask(int log_mask)
 {
 	g_logMask = log_mask;
 }
@@ -48,17 +48,18 @@ CcuSetLogMask(int log_mask)
 void 
 LoggerTracker::DispatchLog(boolean exit)
 {
- 	if (g_logMask & CCU_LOG_MASK_CONSOLE) 
+ 	if (g_logMask & IX_LOG_MASK_CONSOLE) 
  	{ 
  		Print(wcout,exit);
  	}
- 	if (g_logMask & CCU_LOG_MASK_DEBUGVIEW) 
+ 	if (g_logMask & IX_LOG_MASK_DEBUGVIEW) 
  	{  
  		Print(dbgout,exit);
  	}
 
 }
 
+#pragma TODO("Log level of function tracker should be configurable")
 void 
 LoggerTracker::Print(wostream &stream, 
 					 boolean exit)
@@ -66,10 +67,10 @@ LoggerTracker::Print(wostream &stream,
 	mutex::scoped_lock scoped_lock(g_loggerMutex);
 	if (!exit)
 	{
-		stream <<  "[" << hex << "0x" << ::GetCurrentThreadId() << "]\t" << _funcname << " Enters -->" << endl;
+		stream <<  PREFIX << "[TRC]:" << _funcname << " Enters -->" << endl;
 	} else 
 	{
-		stream <<  "[" << hex << "0x" << ::GetCurrentThreadId() << "]\t" << _funcname << " <-- Exits" << endl;
+		stream <<  PREFIX << "[TRC]:" <<_funcname << " <-- Exits" << endl;
 	}
 	
 }
@@ -77,7 +78,7 @@ LoggerTracker::Print(wostream &stream,
 
 LoggerTracker::LoggerTracker(wchar_t *log_function)
 {
-	if (g_LogLevel < CCU_LOG_LEVEL_TRACE)
+	if (g_LogLevel < IX_LOG_LEVEL_TRACE)
 	{
 		_funcname[0] = '\0';
 		return;

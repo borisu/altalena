@@ -18,6 +18,7 @@
 */
 
 #pragma once
+#include "LpHandle.h"
 
 class LpHandleTest
 {
@@ -30,4 +31,10 @@ public:
 	void testPoison();
 
 	void testMaxMessages();
+
+	void testSelectFromChannels();
+
+private:
+
+	void sleep_and_send(LpHandlePtr h);
 };

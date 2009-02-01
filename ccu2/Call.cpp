@@ -50,16 +50,17 @@ Call::Call(
 	Init();
 }
 
+#pragma TODO ("Crashes on dtor")
 void
 Call::Init()
 {
 
-	_forking.forkInThisThread(
-		new ProcVoidFuncRunner<Call>(
-		_handlerPair,
-		bind<void>(&Call::call_handler_run, _1),
-		this,
-		L"Call Handler"));
+// 	_forking.forkInThisThread(
+// 		new ProcVoidFuncRunner<Call>(
+// 		_handlerPair,
+// 		bind<void>(&Call::call_handler_run, _1),
+// 		this,
+// 		L"Call Handler"));
 
 }
 

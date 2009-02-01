@@ -102,8 +102,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
 
 	
-	CcuSetLogLevel(CCU_LOG_LEVEL_DEBUG);
-	CcuSetLogMask(CCU_LOG_MASK_CONSOLE|CCU_LOG_MASK_DEBUGVIEW);
+	IxSetLogLevel(IX_LOG_LEVEL_TRACE);
+	IxSetLogMask(IX_LOG_MASK_CONSOLE|IX_LOG_MASK_DEBUGVIEW);
 	LogInfo(">>>>>> START TEST <<<<<<");
 
 	Start_CPPCSP();
@@ -146,9 +146,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	//
 	//////////////////////////////////////////////////////////////////////////
 
- 	start_test_system();
-// 
-// 	return 0;
+	start_test_system();
+ 
+ 	return 0;
 
 
 // 	SimpleRTPStreamer r;
@@ -162,17 +162,17 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 
 
-	return 0;
+	//return 0;
 
-	IxCoreTest().test();
-	CallWithRtpManagmentTest().test();
-	ProcPipeIPCDispatcherTest().test();
-	RTPRelayTest(CnxInfo(ip,port)).test();
-	VcsTest(CnxInfo(ip,port)).test();
-	ImsTest(CnxInfo(ip,port)).test();
-	CcuLightweightProcessTest().test();
-	JsonConfigurationTest().test();
-	LpHandleTest().test();
+// 	IxCoreTest().test();
+// 	CallWithRtpManagmentTest().test();
+// 	ProcPipeIPCDispatcherTest().test();
+// 	RTPRelayTest(CnxInfo(ip,port)).test();
+// 	VcsTest(CnxInfo(ip,port)).test();
+// 	ImsTest(CnxInfo(ip,port)).test();
+// 	CcuLightweightProcessTest().test();
+// 	JsonConfigurationTest().test();
+// 	LpHandleTest().test();
 	
 	End_CPPCSP();
 	

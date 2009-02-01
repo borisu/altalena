@@ -91,7 +91,7 @@ public:
 
 	virtual BOOL InboundPending();
 
-	virtual CcuMsgPtr GetInboundMessage();
+	virtual CcuMsgPtr GetInboundMessage(IN Time timeout, OUT CcuApiErrorCode &res);
 
 	long TransactionTimeout() const ;
 
@@ -255,10 +255,10 @@ LightweightProcess*
 GetCurrLightWeightProc();
 
 wstring 
-GetCurrThreadOwner();
+IxGetCurrLpName();
 
 int
-GetCurrCcuProcId();
+IxGetCurLpId();
 
 
 

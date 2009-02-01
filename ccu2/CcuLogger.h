@@ -28,7 +28,6 @@ using namespace std;
 using namespace JadedHoboConsole;
 namespace con = JadedHoboConsole;
 
-
 template <class CharT, class TraitsT = std::char_traits<CharT> >
 class basic_debugbuf : 
 	public std::basic_stringbuf<CharT, TraitsT>
@@ -85,8 +84,8 @@ typedef basic_dostream<wchar_t> wdostream;
 
 extern wdostream dbgout;
 
-#define CCU_LOG_MASK_CONSOLE	0x1
-#define CCU_LOG_MASK_DEBUGVIEW	0x10
+#define IX_LOG_MASK_CONSOLE		0x1
+#define IX_LOG_MASK_DEBUGVIEW	0x10
 
 // global logging mutex
 extern mutex g_loggerMutex;
@@ -94,7 +93,7 @@ extern mutex g_loggerMutex;
 extern volatile DWORD g_logMask;
 
 void
-CcuSetLogMask(int mask);
+IxSetLogMask(int mask);
 
 
 wstring 
@@ -112,59 +111,70 @@ private:
 	wchar_t _funcname[MAX_LENGTH];
 };
 
+
+
 #define __STR2WSTR(str)    L##str
 #define _STR2WSTR(str)     __STR2WSTR(str)
 
 #define __FILEW__          _STR2WSTR(__FILE__)
 #define __FUNCTIONW__      _STR2WSTR(__FUNCTION__)
 
-#define PREFIX			 L"[" << dec << ::GetCurrentThreadId() << L"," << ::GetCurrentFiber() << "]\t" << __FUNCTIONW__ << "(" << dec << __LINE__ << "):"
+#define DISABLE_SRC_REF
 
-#define PREFIX_WITH_LINE L"[" << dec << ::GetCurrentThreadId() << L"," << ::GetCurrentFiber() << "]\t" << __FUNCTIONW__ << "(" << dec << __LINE__ << "):"
+#define IX_THREAD_ID		L"[" << dec << setw(5) << ::GetCurrentThreadId() << L"," << ::GetCurrentFiber() << L"]"
+
+#ifndef DISABLE_SRC_REF
+#define PREFIX				IX_THREAD_ID << __FUNCTIONW__ << "(" << dec << __LINE__ << "):"
+#define PREFIX_WITH_LINE	IX_THREAD_ID << __FUNCTIONW__ << "(" << dec << __LINE__ << "):"
+#else
+#define PREFIX				IX_THREAD_ID 
+#define PREFIX_WITH_LINE	IX_THREAD_ID 
+#endif
+
 
 #define FUNCTRACKER LoggerTracker _ltTag(__FUNCTIONW__) 
 
 #define LOG_HANDLE(x) hex << (x)
 
-enum CcuLogLevel
+enum IxLogLevel
 {
-	CCU_LOG_LEVEL_OFF,
-	CCU_LOG_LEVEL_CRITICAL,
-	CCU_LOG_LEVEL_WARN,
-	CCU_LOG_LEVEL_INFO,
-	CCU_LOG_LEVEL_DEBUG,
-	CCU_LOG_LEVEL_TRACE
+	IX_LOG_LEVEL_OFF,
+	IX_LOG_LEVEL_CRITICAL,
+	IX_LOG_LEVEL_WARN,
+	IX_LOG_LEVEL_INFO,
+	IX_LOG_LEVEL_DEBUG,
+	IX_LOG_LEVEL_TRACE
 };
 
-extern volatile CcuLogLevel g_LogLevel;
+extern volatile IxLogLevel g_LogLevel;
 
 void
-CcuSetLogLevel(CcuLogLevel log_level);
+IxSetLogLevel(IxLogLevel log_level);
 
 #define SCOPED_LOG(level ,x, color){ \
 	mutex::scoped_lock scoped_lock(g_loggerMutex);\
-if (g_logMask & CCU_LOG_MASK_CONSOLE)  { std::cout << color;(std::wcout)  << PREFIX  << level << x << endl; }\
-	if (g_logMask & CCU_LOG_MASK_DEBUGVIEW) { std::cout << color;(dbgout) << PREFIX  << level << x << endl; }\
+if (g_logMask & IX_LOG_MASK_CONSOLE)  { std::cout << color;(std::wcout)  << PREFIX  << level << x << endl; }\
+	if (g_logMask & IX_LOG_MASK_DEBUGVIEW) { std::cout << color;(dbgout) << PREFIX  << level << x << endl; }\
 }
 
 #define SCOPED_LOG_RAW(x){ \
 	mutex::scoped_lock scoped_lock(g_loggerMutex);\
-	if (g_logMask & CCU_LOG_MASK_CONSOLE)  { (std::wcout) << x << endl; }\
-	if (g_logMask & CCU_LOG_MASK_DEBUGVIEW) { (dbgout) << x << endl; }\
+	if (g_logMask & IX_LOG_MASK_CONSOLE)  { (std::wcout) << x << endl; }\
+	if (g_logMask & IX_LOG_MASK_DEBUGVIEW) { (dbgout) << x << endl; }\
 }
 
-#define LogTrace(x) if (g_LogLevel >= CCU_LOG_LEVEL_TRACE) SCOPED_LOG(L"[TRACE]\t",	 x, con::bg_black)
-#define LogDebug(x) if (g_LogLevel >= CCU_LOG_LEVEL_DEBUG) SCOPED_LOG(L"[DEBUG]\t",	 x, con::bg_black)
-#define LogInfo(x)  if (g_LogLevel >= CCU_LOG_LEVEL_INFO) SCOPED_LOG(L"[INFO]\t",	 x, con::bg_black)
-#define LogWarn(x)  if (g_LogLevel >= CCU_LOG_LEVEL_WARN) SCOPED_LOG(L"[WARN]\t",	 x, con::bg_red)
-#define LogCrit(x)	if (g_LogLevel >= CCU_LOG_LEVEL_CRITICAL) SCOPED_LOG(L"[CRIT]\t",x, con::bg_red)
+#define LogTrace(x) if (g_LogLevel >= IX_LOG_LEVEL_TRACE)		SCOPED_LOG(L"[TRC]:",x, con::bg_black)
+#define LogDebug(x) if (g_LogLevel >= IX_LOG_LEVEL_DEBUG)		SCOPED_LOG(L"[DBG]:",x, con::bg_black)
+#define LogInfo(x)  if (g_LogLevel >= IX_LOG_LEVEL_INFO)		SCOPED_LOG(L"[INF]:",x, con::bg_black)
+#define LogWarn(x)  if (g_LogLevel >= IX_LOG_LEVEL_WARN)		SCOPED_LOG(L"[WRN]:",x, con::bg_red)
+#define LogCrit(x)	if (g_LogLevel >= IX_LOG_LEVEL_CRITICAL)	SCOPED_LOG(L"[CRT]:",x, con::bg_red)
 
 
-#define LogTraceRaw(x) if (g_LogLevel >= CCU_LOG_LEVEL_TRACE) SCOPED_LOG_RAW(x)
-#define LogDebugRaw(x) if (g_LogLevel >= CCU_LOG_LEVEL_DEBUG) SCOPED_LOG_RAW(x)
-#define LogInfoRaw(x)  if (g_LogLevel >= CCU_LOG_LEVEL_INFO) SCOPED_LOG_RAW(x)
-#define LogWarnRaw(x)  if (g_LogLevel >= CCU_LOG_LEVEL_WARN) SCOPED_LOG_RAW(x)
-#define LogCritRaw(x)	if (g_LogLevel >= CCU_LOG_LEVEL_CRITICAL) SCOPED_LOG_RAW(x)
+#define LogTraceRaw(x) if (g_LogLevel >= IX_LOG_LEVEL_TRACE) SCOPED_LOG_RAW(x)
+#define LogDebugRaw(x) if (g_LogLevel >= IX_LOG_LEVEL_DEBUG) SCOPED_LOG_RAW(x)
+#define LogInfoRaw(x)  if (g_LogLevel >= IX_LOG_LEVEL_INFO) SCOPED_LOG_RAW(x)
+#define LogWarnRaw(x)  if (g_LogLevel >= IX_LOG_LEVEL_WARN) SCOPED_LOG_RAW(x)
+#define LogCritRaw(x)	if (g_LogLevel >= IX_LOG_LEVEL_CRITICAL) SCOPED_LOG_RAW(x)
 
 #define LogSysError(x) { \
 	mutex::scoped_lock scoped_lock(g_loggerMutex);\

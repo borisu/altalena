@@ -172,12 +172,15 @@ LightweightProcess::run()
 	}
 	(*tl_procMap)[fiber] = this;
 
+	LogDebug("=== LP START ===");
 	try
 	{
 		real_run();
+		LogDebug("=== LP END ===");
 	} 
 	catch (std::exception e)
 	{
+		LogDebug("=== LP EXP ===");
 		LogWarn("Exception in process=[" << Name() << "] what=[" << e.what() << "]");
 	}
 	
@@ -305,6 +308,7 @@ LightweightProcess::DoRequestResponseTransaction(
 
 	DECLARE_NAMED_HANDLE(txn_handle);
 	txn_handle->HandleName(transaction_name); // for logging purposes
+	txn_handle->Direction(CCU_MSG_DIRECTION_INBOUND);
 
 	RegistrationGuard guard(txn_handle);
 
@@ -342,6 +346,7 @@ LightweightProcess::DoRequestResponseTransaction(
 
 	DECLARE_NAMED_HANDLE(txn_handle);
 	txn_handle->HandleName(transaction_name);
+	txn_handle->Direction(CCU_MSG_DIRECTION_INBOUND);
 
 	RegistrationGuard guard(txn_handle);
 
@@ -390,7 +395,10 @@ LightweightProcess::WaitForTxnResponse(
 	HandlesList list;
 	int interrupted_handle_index = 0;
 
-	list.push_back(_transactionTerminator);
+	#pragma TODO("Transaction interruptor disabled - I think it caused troubles that many lp process were waiting on the same handle")
+
+	DECLARE_NAMED_HANDLE(transactionTerminator);
+	list.push_back(transactionTerminator);
 	const int txn_term_index = interrupted_handle_index++;
 
 	list.push_back(txn_handle);
@@ -408,13 +416,13 @@ LightweightProcess::WaitForTxnResponse(
 	while (timeLeftToWaitMs >= 0)
 	{
 		int start = ::GetTickCount();
+
 		CcuApiErrorCode err_code = 
 			SelectFromChannels(
 			list,
 			MilliSeconds(timeLeftToWaitMs), 
 			interrupted_handle_index, 
-			CCU_NULL_MSG,
-			true);
+			response);
 
 		if (CCU_FAILURE(err_code))
 		{
@@ -424,14 +432,7 @@ LightweightProcess::WaitForTxnResponse(
 
 		if (interrupted_handle_index == txn_term_index)
 		{
-			CcuMsgPtr msg = _transactionTerminator->Wait(Seconds(0),err_code);
-			if (CCU_FAILURE(err_code))
-			{
-				LogCrit("XXX");
-				throw;
-			}
-
-			BOOL res = HandleOOBMessage(msg);
+			BOOL res = HandleOOBMessage(response);
 			if (res == FALSE)
 			{
 				throw std::exception("Transaction was terminated");
@@ -453,13 +454,6 @@ LightweightProcess::WaitForTxnResponse(
 		} 
 		else 
 		{
-
-			response = 
-				txn_handle->WaitForMessages(
-				MilliSeconds(0),
-				responses,
-				res
-				);
 
 			break;
 
@@ -602,13 +596,13 @@ LightweightProcess::InboundPending()
 
 
 CcuMsgPtr 
-LightweightProcess::GetInboundMessage()
+LightweightProcess::GetInboundMessage(IN Time timeout, OUT CcuApiErrorCode &res)
 {
-	return _inbound->Wait();
+	return _inbound->Wait(timeout, res);
 }
 
 int
-GetCurrCcuProcId()
+IxGetCurLpId()
 {
 	LightweightProcess *proc = 
 		GetCurrLightWeightProc();
@@ -641,7 +635,7 @@ GetCurrLightWeightProc()
 }
 
 wstring 
-GetCurrThreadOwner()
+IxGetCurrLpName()
 {
 
 	LightweightProcess *proc = 

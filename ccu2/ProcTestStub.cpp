@@ -62,7 +62,13 @@ ProcTestStub::real_run()
 
 	while(1)
 	{
-		CcuMsgPtr ptr = _inbound->Wait();
+		
+		CcuApiErrorCode res;
+		CcuMsgPtr ptr = _inbound->Wait(Seconds(0),res);
+		if (CCU_FAILURE(res))
+		{
+			throw;
+		}
 
 		LogInfo("TEST RCV msg=[" << ptr->message_id_str << "]");
 

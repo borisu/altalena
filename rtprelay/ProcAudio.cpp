@@ -215,6 +215,12 @@ ProcAudio::CloseAudioConnection(CcuMsgPtr ptr, ScopedForking &forking)
 	shared_ptr<CcuMsgRtpCloseConnectionReq> request =
 		shared_dynamic_cast<CcuMsgRtpCloseConnectionReq> (ptr);
 
+	// stub
+	SendResponse(ptr, 
+		new CcuMsgAck());
+	return;
+	//stub
+
 	RTPConnectionMap::iterator iter = _connMap.find(request->connection_id);
 	if ( iter == _connMap.end())
 	{
@@ -326,8 +332,29 @@ ProcAudio::AllocateAudioConnection(CcuMsgPtr ptr)
 	_portManager.BeginSearch();
 	int curr_port_slot_candidate = _portManager.GetNextCandidate();
 
+	// stub
+	{
+		CcuMsgRtpAllocateConnectionAck 
+			*success = new CcuMsgRtpAllocateConnectionAck();
+
+		success->connection_id = 555;
+		success->connection_media = CnxInfo(
+			_mediaData.inaddr(),
+			60555);
+
+		SendResponse(ptr, success);
+		return;
+
+	}
+	// stub
+
 	shared_ptr<CcuMsgRtpAllocateNewConnectionReq> ac_msg =
 		shared_dynamic_cast<CcuMsgRtpAllocateNewConnectionReq>(ptr);
+
+	_portManager.MarkUnavailable(curr_port_slot_candidate);
+
+	
+	
 
 	RTPConnection *conn = NULL;
 	while(curr_port_slot_candidate != CCU_UNDEFINED)
