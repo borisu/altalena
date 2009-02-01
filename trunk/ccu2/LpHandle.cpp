@@ -28,12 +28,12 @@
 using namespace boost;
 
 wstring 
-GetCurrThreadOwner();
+IxGetCurrLpName();
 
 int
-GetCurrCcuProcId();
+IxGetCurLpId();
 
-
+#pragma  region Interruptors
 SemaphoreInterruptor::SemaphoreInterruptor():
 _handle(NULL)
 {
@@ -129,19 +129,24 @@ IocpInterruptor::SignalDataOut()
 
 }
 
+#pragma endregion Interruptors
 
 
-CcuHandleDirection 
+#pragma region Direction
+
+IxHandleDirection 
 LpHandle::Direction() const 
 { 
 	return _direction; 
 }
 
 void 
-LpHandle::Direction(CcuHandleDirection val) 
+LpHandle::Direction(IxHandleDirection val) 
 { 
 	_direction = val; 
 }
+
+#pragma endregion Direction
 
 
 LpHandle::LpHandle():
@@ -182,39 +187,67 @@ LpHandle::Send(IN CcuMessage *message)
 CcuApiErrorCode 
 LpHandle::Send(IN CcuMsgPtr message)
 {
-	// someone send to owner
-	if (Direction() == CCU_MSG_DIRECTION_INBOUND)
-	{
-		LogDebug("LOCAL SND message=[" << message->message_id_str << "] from=[" << GetCurrThreadOwner() << ", rsp dst:" << message->source.proc_id  << "] to=[" << this << "] txn=[" << message->transaction_id << "]");
-	} else 
-	{
-		// owner sends to someone
-		LogDebug("LOCAL SND message=[" << message->message_id_str << "] from=[" << this << "] txn=[" << message->transaction_id << "]");
-	} 
-
+	FUNCTRACKER;
+	
 	if (message->source.proc_id == CCU_UNDEFINED)
 	{
-		message->source.proc_id = GetCurrCcuProcId();
+		message->source.proc_id = IxGetCurLpId();
 	}
 	
-	
-	_channel.writer() << message;
-	if (_interruptor != NULL)
+	try 
 	{
-		_interruptor->SignalDataIn();
+		_channel.writer() << message;
+		if (_interruptor != NULL)
+		{
+			_interruptor->SignalDataIn();
+		}
+	} 
+	catch(PoisonException p)
+	{
+		LogWarn(this << " poisoned.");
+		return CCU_API_FAILURE;
 	}
-	
+
+	LogDebug("SND (" << this << ") msg=[" << message->message_id_str << "] from proc=[" << IxGetCurrLpName() << "], rsp dst=[" << message->source.proc_id  << "] txn=[" << message->transaction_id << "]");
 	return CCU_API_SUCCESS;
 }
 
 CcuMsgPtr
-LpHandle::WaitForMessages(IN  const  Time &timeout, 
-						  IN const EventsSet &msg_id_map, 
-						  IN CcuChannel &channel,
+LpHandle::Read()
+{
+	FUNCTRACKER;
+
+	CcuMsgPtr ptr;
+	try 
+	{
+		_channel.reader() >> ptr;
+		if (_interruptor != NULL)
+		{
+			_interruptor->SignalDataOut();
+		}
+	} 
+	catch(PoisonException p)
+	{
+		LogWarn(this << " poisoned.");
+		return CCU_NULL_MSG;
+	}
+
+	LogDebug("RCV (" << this << ") msg=[" << ptr->message_id_str << "] to=[" << IxGetCurrLpName() << "], rsp dst=[" << ptr->source.proc_id  << "] txn=[" << ptr->transaction_id << "]");
+	return ptr;
+
+}
+
+CcuMsgPtr
+LpHandle::WaitForMessagesOnChannel(
+						  IN  const  Time &timeout, 
+						  IN  const EventsSet &msg_id_map, 
+						  IN  CcuChannel &channel,
 						  OUT CcuApiErrorCode &res)
 {
 
-	LogTrace(L"Waiting on " << this << L" " << csp::GetSeconds(timeout) << " seconds.");
+	FUNCTRACKER;
+
+	LogTrace(L"Waiting on " << this << L" " << csp::GetMilliSeconds(timeout) << " ms.");
 	
 	CcuMsgPtr resPtr;
 
@@ -226,8 +259,7 @@ LpHandle::WaitForMessages(IN  const  Time &timeout,
 
 		list<Guard*> list;
 		list.push_back(channel.reader().inputGuard());
-#pragma TODO ("Add custom memory manager for RelTimeoutGuard to improve the speed")
-		
+
 		// if user passed 0 as timeout and there are messages 
 		// pending csp will prefer to return TIMEOUT code.
 		// We override this behavior by trying to return
@@ -253,7 +285,7 @@ LpHandle::WaitForMessages(IN  const  Time &timeout,
 			//
 			//  Timeout
 			//
-			LogTrace(L">>TIMEOUT<< handle=[" << this << "]");
+			LogTrace(L"TIMEOUT " << this );
 			resPtr = ptr;
 			res = CCU_API_TIMEOUT;
 			break;
@@ -278,17 +310,8 @@ LpHandle::WaitForMessages(IN  const  Time &timeout,
 		if (msg_id_map.size() == 0 ||
 			msg_id_map.find(ptr->message_id) != msg_id_map.end())
 		{
-			LogTrace(L"Message >>accepted<<. " << this);
-			
-			if (Direction() == CCU_MSG_DIRECTION_INBOUND)
-			{
-				LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] to=[" << this <<"] txn=[" << ptr->transaction_id << "]" << DumpAsXml(ptr));
-			} else if (Direction() == CCU_MSG_DIRECTION_OUTBOUND){
-				LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] from=[" << this <<"] to=[" << GetCurrThreadOwner() << "] txn=[" << ptr->transaction_id << "]" << DumpAsXml(ptr));
-			} else {
-				LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] undef direction, txn=[" << ptr->transaction_id << "]" << DumpAsXml(ptr));
-			}
-
+						
+			LogDebug("RCV (" << this << ") msg=[" << ptr->message_id_str << "] to=[" << IxGetCurrLpName() << "], rsp dst=[" << ptr->source.proc_id  << "] txn=[" << ptr->transaction_id << "]");
 			
 			resPtr = ptr;
 			res = CCU_API_SUCCESS;
@@ -337,47 +360,7 @@ LpHandle::WaitForMessages(IN  const  Time &timeout,
 
 
 
-CcuMsgPtr
-LpHandle::Wait()
-{
-	CcuMsgPtr ptr;
-	try 
-	{
-		_channel.reader() >> ptr;
-	} catch(PoisonException p)
-	{
-		LogWarn("Cannot read the channel is >>poisoned<<.");
-		return CCU_NULL_MSG;
-	}
-	
 
-	if (_interruptor != NULL)
-	{
-		_interruptor->SignalDataOut();
-	}
-
-	switch (Direction())
-	{
-	case CCU_MSG_DIRECTION_INBOUND:
-		{
-			LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] to=[" << HandleName() <<"]");
-			break;
-		}
-	case CCU_MSG_DIRECTION_OUTBOUND:
-		{
-			LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] from=[" << HandleName() <<"] to=[" << GetCurrThreadOwner() << "]");
-			break;
-		}
-	default:
-		{
-			LogDebug("LOCAL RCV message=[" << ptr->message_id_str << "] UNDEFINED");
-			break;
-		}
-	}
-
-	return ptr;
-
-}
 
 CcuMsgPtr
 LpHandle::Wait(IN Time timeout,
@@ -385,7 +368,7 @@ LpHandle::Wait(IN Time timeout,
 {
 	EventsSet msg_id_map;
 
-	return WaitForMessages(
+	return WaitForMessagesOnChannel(
 		timeout,
 		msg_id_map,
 		_channel, 
@@ -399,7 +382,7 @@ LpHandle::WaitForMessages(IN const  Time timeout,
 						  IN const EventsSet &msg_id_map, 
 						  OUT CcuApiErrorCode &res)
 {
-	return WaitForMessages(
+	return WaitForMessagesOnChannel(
 		timeout,
 		msg_id_map,
 		_channel, 
@@ -442,7 +425,7 @@ LpHandle::WaitForMessages(Time timeout,
 		
 	va_end(param_list);
 
-	return WaitForMessages(timeout, msg_id_map, _channel, res);
+	return WaitForMessagesOnChannel(timeout, msg_id_map, _channel, res);
 }
 
 
@@ -493,53 +476,85 @@ wostream& operator << (wostream &ostream, const LpHandle *lpHandlePtr)
 		return ostream << L"NULL";
 
 	};
-	return ostream << lpHandlePtr->HandleName() << L"," << lpHandlePtr->GetObjectUid();
+
+	return ostream 
+		<< (lpHandlePtr->Direction() == CCU_MSG_DIRECTION_INBOUND ? L"IN ":L"OUT ") 
+		<<  lpHandlePtr->HandleName() 
+		<< L"," 
+		<< lpHandlePtr->GetObjectUid();
 	
 }
 
 
-CcuApiErrorCode SelectFromChannels(
-	IN  HandlesList &map,
+CcuApiErrorCode 
+SelectFromChannels(
+	IN  HandlesList &param_handles_list,
 	IN  Time timeout, 
-	OUT int &index, 
-	OUT CcuMsgPtr &event,
-	IN  bool peekOnly)
+	OUT int &res_index, 
+	OUT CcuMsgPtr &res_event)
 {
-	if (map.size() == 0)
+	FUNCTRACKER;
+
+	if (param_handles_list.size() == 0)
 	{
 		return CCU_API_FAILURE;
 	}
 
-	CcuMsgPtr res_ptr;
-	list<Guard*> list;
-
-
-	// index Zero is timeout
-	list.push_back (new RelTimeoutGuard(timeout));
-	for (HandlesList::iterator iter = map.begin(); iter!= map.end(); iter++)
+	
+	// First loop is to check that may be there are already 
+	// messages	so we won't do heavy operations.
+	//
+	int index = 0;
+	for (HandlesList::iterator iter = param_handles_list.begin(); iter!= param_handles_list.end(); iter++)
 	{
-		list.push_back((*iter)->_channel.reader().inputGuard());
+		LpHandlePtr ptr = (*iter);
+		bool pending	= ptr->InboundPending();
+
+		LogTrace(L"(" << (*iter).get() << L"), pending:" << pending);
+
+		if (pending)
+		{
+			res_index = index;
+			res_event = ptr->Read();
+			return CCU_API_SUCCESS;
+		}
+
+		index++;
 	}
 
+	// ok let's do it hard way
+	list<Guard*> list;
+
+	// index Zero is timeout
+	index = 0;
+	list.push_back (new RelTimeoutGuard(timeout));
+	LogTrace("(RelTimeoutGuard) added at index=[" << index <<"]");
+	for (HandlesList::iterator iter = param_handles_list.begin(); iter!= param_handles_list.end(); iter++)
+	{
+		index++;
+
+		LpHandlePtr curr_handle = (*iter);
+		list.push_back(curr_handle->_channel.reader().inputGuard());
+		LogTrace("(" << curr_handle.get() << ") added at index=[" << index <<"]");
+	}
 
 	Alternative alt(list);
 	int wait_res = alt.priSelect();
+	LogTrace("handle index=[" << wait_res << "] selected.");
 
 	// timeout
 	if (wait_res == 0)
 	{
-		index = -1;
+		res_index = CCU_UNDEFINED;
 		return CCU_API_TIMEOUT;
 	} else
 	{
-		
-		index = wait_res - 1;
-		if (!peekOnly)
-		{
-		    HandlesList::iterator iter = map.begin();
-			advance(iter, index);
-			event = (*iter)->Wait();
-		}
+		res_index = wait_res - 1;
+
+		HandlesList::iterator iter = param_handles_list.begin();
+		std::advance(iter, res_index);
+		res_event = (*iter)->Read();
+
 		
 		return CCU_API_SUCCESS;
 	}

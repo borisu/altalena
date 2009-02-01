@@ -136,7 +136,7 @@ public:
 	virtual BOOL HandleOOBMessage(CcuMsgPtr ptr) = 0;
 };
 
-enum CcuHandleDirection
+enum IxHandleDirection
 {
 	CCU_MSG_DIRECTION_UNDEFINED,
 	CCU_MSG_DIRECTION_INBOUND,
@@ -163,9 +163,9 @@ public:
 	virtual ~LpHandle(void);
 
 	virtual void Direction(
-		IN CcuHandleDirection val);
+		IN IxHandleDirection val);
 
-	virtual CcuHandleDirection Direction() const;
+	virtual IxHandleDirection Direction() const;
 
 	virtual void HandleInterruptor(
 		IN InterruptorPtr interruptor);
@@ -179,8 +179,6 @@ public:
 	virtual CcuApiErrorCode Send(
 		IN CcuMessage *message);
 	
-	virtual CcuMsgPtr Wait();
-
 	virtual CcuMsgPtr Wait(
 		IN Time timeout,
 		OUT CcuApiErrorCode &res);
@@ -207,12 +205,12 @@ public:
 
 private:
 
-	CcuHandleDirection _direction;
+	virtual CcuMsgPtr Read();
 
-	virtual CcuMsgPtr  WaitForMessages(
-		IN const  Time &timeout, 
-		IN const EventsSet &msg_id_map, 
-		IN CcuChannel &channel,
+	virtual CcuMsgPtr  WaitForMessagesOnChannel(
+		IN	const Time &timeout, 
+		IN	const EventsSet &msg_id_map, 
+		IN	CcuChannel &channel,
 		OUT CcuApiErrorCode &res);
 
 	void SendToChannel(
@@ -220,13 +218,13 @@ private:
 		IN CcuMsgPtr message, 
 		IN bool interrupt);
 
+	IxHandleDirection _direction;
+
 	CcuBufferFactory _bufferFactory;
 
 	CcuChannel _channel;
 
 	InterruptorPtr _interruptor;
-
-	int _ownerProcId ;
 
 	wstring _name;
 
@@ -238,8 +236,7 @@ private:
 		IN  HandlesList &map,
 		IN  Time timeout, 
 		OUT int &index, 
-		OUT CcuMsgPtr &event,
-		IN  bool peekOnly);
+		OUT CcuMsgPtr &event);
 
 };
 
@@ -248,8 +245,7 @@ private:
 CcuApiErrorCode SelectFromChannels(IN  HandlesList &map,
 								   IN  Time timeout, 
 								   OUT int &index, 
-								   OUT CcuMsgPtr &event,
-								   IN  bool peekOnly = false);
+								   OUT CcuMsgPtr &event);
 
 
 struct LpHandlePair

@@ -95,7 +95,13 @@ ProcStreamer::real_run()
 
 		if (InboundPending())
 		{
-			CcuMsgPtr ptr = GetInboundMessage();
+			CcuMsgPtr ptr = GetInboundMessage(Seconds(0),res);
+			if (CCU_FAILURE(res))
+			{
+				throw;
+			}
+
+			
 
 			switch (ptr->message_id)
 			{

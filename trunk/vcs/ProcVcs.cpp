@@ -123,6 +123,8 @@ ProcVcs::real_run()
 			shutdown_flag = ProcessInboundMessage(event,forking);
 		}
 
+		csp::CPPCSP_Yield();
+
 	}
 
 
