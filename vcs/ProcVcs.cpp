@@ -23,31 +23,23 @@
 #include "CallWithRTPManagment.h"
 #include "SipStackFactory.h"
 
+using namespace ivrworx;
 
-
-#pragma TODO("Leave only ctor that takes configuration as a ref")
-ProcVcs::ProcVcs(IN LpHandlePair pair, IN CnxInfo sip_stack_media)
-:LightweightProcess(pair,VCS_Q,	__FUNCTIONW__),
-_sipStackData(sip_stack_media),
-_conf(NULL)
-{
-}
-
-ProcVcs::ProcVcs(IN LpHandlePair pair, IN CcuConfiguration *conf)
+ProcIxMain::ProcIxMain(IN LpHandlePair pair, IN CcuConfiguration &conf)
 :LightweightProcess(pair,VCS_Q,	__FUNCTIONW__),
 _conf(conf),
-_sipStackData(conf->VcsCnxInfo())
+_sipStackData(conf.VcsCnxInfo())
 {
 }
 
 
 
-ProcVcs::~ProcVcs(void)
+ProcIxMain::~ProcIxMain(void)
 {
 }
 
 void
-ProcVcs::real_run()
+ProcIxMain::real_run()
 {
 
 	START_FORKING_REGION;
@@ -69,7 +61,7 @@ ProcVcs::real_run()
 	//
 	DECLARE_NAMED_HANDLE_PAIR(stack_pair);
 	_stackPair = stack_pair;
-	FORK(SipStackFactory::CreateSipStack(stack_pair,*_conf));
+	FORK(SipStackFactory::CreateSipStack(stack_pair,_conf));
 	if (CCU_FAILURE(WaitTillReady(Seconds(5),stack_pair)))
 	{
 		Shutdown(Seconds(5), ipc_pair);
@@ -143,7 +135,7 @@ ProcVcs::real_run()
 }
 
 BOOL 
-ProcVcs::ProcessInboundMessage(IN CcuMsgPtr event, IN ScopedForking &forking)
+ProcIxMain::ProcessInboundMessage(IN CcuMsgPtr event, IN ScopedForking &forking)
 {
 	FUNCTRACKER;
 	switch (event->message_id)
@@ -169,7 +161,7 @@ ProcVcs::ProcessInboundMessage(IN CcuMsgPtr event, IN ScopedForking &forking)
 }
 
 BOOL 
-ProcVcs::ProcessStackMessage(IN CcuMsgPtr ptr, IN ScopedForking &forking)
+ProcIxMain::ProcessStackMessage(IN CcuMsgPtr ptr, IN ScopedForking &forking)
 {
 	FUNCTRACKER;
 
@@ -178,16 +170,8 @@ ProcVcs::ProcessStackMessage(IN CcuMsgPtr ptr, IN ScopedForking &forking)
 	case CCU_MSG_CALL_OFFERED:
 		{
 			
-			shared_ptr<CcuMsgCallOfferedReq> call_offered_msg = 
-				dynamic_pointer_cast<CcuMsgCallOfferedReq>(ptr);
-
 			DECLARE_NAMED_HANDLE_PAIR(script_pair);
-			FORK_IN_THIS_THREAD(
-				new ProcVoidFuncRunner<ProcVcs>(
-				script_pair,
-				bind<void>(&ProcVcs::StartScript, _1, ptr),
-				this,
-				L"Script Runner"));
+			FORK_IN_THIS_THREAD(new ProcScriptRunner(_conf,ptr,_stackPair,script_pair));
 
 			break;
 
@@ -199,7 +183,7 @@ ProcVcs::ProcessStackMessage(IN CcuMsgPtr ptr, IN ScopedForking &forking)
 		}
 	default:
 		{
-
+			
 		}
 	}
 
@@ -207,12 +191,31 @@ ProcVcs::ProcessStackMessage(IN CcuMsgPtr ptr, IN ScopedForking &forking)
 
 }
 
-void ProcVcs::StartScript(IN CcuMsgPtr msg)
+ProcScriptRunner::ProcScriptRunner(IN CcuConfiguration &conf,
+								   IN CcuMsgPtr msg, 
+								   IN LpHandlePair stack_pair, 
+								   IN LpHandlePair pair)
+:LightweightProcess(pair,__FUNCTIONW__),
+_conf(conf),
+_initialMsg(msg),
+_stackPair(stack_pair)
+{
+	FUNCTRACKER;
+}
+
+ProcScriptRunner::~ProcScriptRunner()
+{
+
+}
+
+
+void 
+ProcScriptRunner::real_run()
 {
 	try
 	{
 		shared_ptr<CcuMsgCallOfferedReq> start_script_msg  = 
-			dynamic_pointer_cast<CcuMsgCallOfferedReq>(msg);
+			dynamic_pointer_cast<CcuMsgCallOfferedReq>(_initialMsg);
 
 		CallWithRTPManagment call_session(
 			_stackPair,
@@ -223,28 +226,29 @@ void ProcVcs::StartScript(IN CcuMsgPtr msg)
 		CLuaVirtualMachine vm;
 		vm.InitialiseVM();
 
-		CallFlowScript script(vm,call_session);
+		IxScript script(vm,call_session);
 
-		if (!script.CompileFile(WStringToString(_conf->ScriptFile()).c_str()))
+		if (!script.CompileFile(WStringToString(_conf.ScriptFile()).c_str()))
 		{
-			LogWarn(">>Error Compiling/Running<< script=[" << _conf->ScriptFile() << "]");
-			SendResponse(msg, new CcuMsgCallOfferedNack());
+			LogWarn(">>Error Compiling/Running<< script=[" << _conf.ScriptFile() << "]");
+			SendResponse(_initialMsg, new CcuMsgCallOfferedNack());
 			return;
 		}
 
-		LogDebug("script=[" << _conf->ScriptFile() << "], ix call handle=[" << start_script_msg->stack_call_handle <<"]");
+		LogDebug("script=[" << _conf.ScriptFile() << "], ix call handle=[" << start_script_msg->stack_call_handle <<"]");
 	}
 	catch (std::exception e)
 	{
-		LogWarn("Exception while running script=[ " << _conf->ScriptFile() <<"] e=[" << e.what() << "]");
+		LogWarn("Exception while running script=[ " << _conf.ScriptFile() <<"] e=[" << e.what() << "]");
 	}
 
-	
+
 }
 
-CallFlowScript::CallFlowScript(
-							   IN CLuaVirtualMachine &vm_ptr, 
-							   IN CallWithRTPManagment &call_session)
+
+
+IxScript::IxScript(IN CLuaVirtualMachine &vm_ptr, 
+				   IN CallWithRTPManagment &call_session)
 :CLuaScript(vm_ptr),
 _callSession(call_session),
 _vmPtr(vm_ptr)
@@ -257,13 +261,14 @@ _vmPtr(vm_ptr)
 
 }
 
-CallFlowScript::~CallFlowScript()
+
+IxScript::~IxScript()
 {
 
 }
 
 int 
-CallFlowScript::ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber) 
+IxScript::ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber) 
 {
 	switch (iFunctionNumber - _methodBase)
 	{
@@ -288,13 +293,13 @@ CallFlowScript::ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber)
 
 
 void 
-CallFlowScript::HandleReturns (CLuaVirtualMachine& vm, const char *strFunc)
+IxScript::HandleReturns (CLuaVirtualMachine& vm, const char *strFunc)
 {
 
 }
 
 int
-CallFlowScript::LuaAnswerCall(CLuaVirtualMachine& vm)
+IxScript::LuaAnswerCall(CLuaVirtualMachine& vm)
 {
 	FUNCTRACKER;
 
@@ -311,7 +316,7 @@ CallFlowScript::LuaAnswerCall(CLuaVirtualMachine& vm)
 }
 
 int
-CallFlowScript::LuaHangupCall(CLuaVirtualMachine& vm)
+IxScript::LuaHangupCall(CLuaVirtualMachine& vm)
 {
 	FUNCTRACKER;
 
@@ -328,16 +333,18 @@ CallFlowScript::LuaHangupCall(CLuaVirtualMachine& vm)
 }
 
 int
-CallFlowScript::LuaWait(CLuaVirtualMachine& vm)
+IxScript::LuaWait(CLuaVirtualMachine& vm)
 {
 	FUNCTRACKER;
 
 	lua_State *state = (lua_State *) vm;
 	long time_to_sleep  = (long) lua_tonumber (state, -1);
 
+	LogDebug("Sleep for " << time_to_sleep << " ms. ix stack handle=[" << _callSession.StackCallHandle() << "].");
+
 	csp::SleepFor(MilliSeconds(time_to_sleep));
 	return 0;
-	
+
 
 }
 

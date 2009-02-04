@@ -48,7 +48,7 @@ using namespace boost;
 // related facility which used to interrupt such a
 // process and inform it that new message has arrived
 //
-class Interruptor
+class IxInterruptor
 {
 public:
 
@@ -58,12 +58,12 @@ public:
 };
 
 typedef 
-shared_ptr<Interruptor> InterruptorPtr;
+shared_ptr<IxInterruptor> InterruptorPtr;
 
 // use this interruptor if you want to receive messages 
 // by waiting on specific HANDLE by means of WaitForMultipleObjects 
 class SemaphoreInterruptor
-	:public Interruptor, boost::noncopyable
+	:public IxInterruptor, boost::noncopyable
 {
 public:
 
@@ -90,7 +90,7 @@ shared_ptr<SemaphoreInterruptor> SemaphoreInterruptorPtr;
 // use this interruptor if you want to receive messages 
 // by waiting on io completion port by  means of  GetQueuedCompletionStatus  
 class IocpInterruptor
-	:public Interruptor, boost::noncopyable
+	:public IxInterruptor, boost::noncopyable
 {
 public:
 

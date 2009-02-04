@@ -41,14 +41,20 @@ ProcStreamer::real_run()
 {
 	FUNCTRACKER;
 
-	BOOL os_res = ::SetThreadPriority(::GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);
-	if (os_res == FALSE)
-	{
-		LogSysError("::SetThreadPriority");
-		throw;
-	}
+	//BOOL os_res = ::SetThreadPriority(::GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);
+// 	if (os_res == FALSE)
+// 	{
+// 		LogSysError("::SetThreadPriority");
+// 		throw;
+// 	}
 
 	I_AM_READY;
+
+	while (true)
+	{
+		csp::SleepFor(Seconds(100));
+	}
+	
 
 	// polling loop
 	bool shutdownFlag = FALSE;

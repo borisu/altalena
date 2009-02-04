@@ -31,11 +31,11 @@ using namespace resip;
 
 
 
-class CcuResipLogger :
+class IxResipLogger :
 	public ExternalLogger
 {
 public:
-	virtual ~CcuResipLogger();
+	virtual ~IxResipLogger();
 
 	/** return true to also do default logging, false to supress default logging. */
 	virtual bool operator()(Log::Level level,
@@ -58,23 +58,22 @@ shared_ptr<UASDialogUsageManager> UASDialogUsageManagerPtr;
 typedef
 shared_ptr<UACDialogUsageManager> UACDialogUsageManagerPtr;
 
-
 typedef
 shared_ptr<SelectInterruptor> SelectInterruptorPtr;
 
 class ResipInterruptor
-	:public Interruptor, boost::noncopyable
+	:public IxInterruptor, 
+	public resip::SelectInterruptor, 
+	public boost::noncopyable
 {
 
 public:
 
-	ResipInterruptor(SelectInterruptorPtr ptr);
+	ResipInterruptor();
 
 	virtual void SignalDataIn();
 
 	virtual void SignalDataOut();
-
-	SelectInterruptorPtr _siPtr;
 
 };
 
@@ -113,30 +112,25 @@ public:
 
 	virtual void ShutDown();
 
-	Time _retryTimeout;
-
 protected:
-
-	virtual unsigned int getTimeTillNextProcessMS() const;
 
 	virtual bool ProcessCcuMessages();
 
+	IxResipLogger _logger;
+
+	ResipInterruptorPtr _handleInterruptor;
+
 	SipStack _stack;
 
-	ResipInterruptorPtr _si;
-
-	bool _shutDownFlag;
+	CcuHandlesMap _ccuHandlesMap;
 
 	UACDialogUsageManagerPtr _dumUac;
 
 	UASDialogUsageManagerPtr _dumUas;
 
-	CcuResipLogger _logger;
-
-	CcuHandlesMap _ccuHandlesMap;
+	bool _shutDownFlag;
 
 	CcuConfiguration &_conf;
-
 
 };
 

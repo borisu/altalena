@@ -30,13 +30,16 @@
 #include "UASDialogUsageManager.h"
 
 
+#define TimerInit() //int g_start = ::GetTickCount(); int g_end
+
+
+#define LogTimer(X) //g_end=::GetTickCount();  LogCrit( __FUNCTIONW__ << X << " took " << (g_end - g_start)); g_start =::GetTickCount();
 
 
 using namespace resip;
 using namespace std;
 
-ResipInterruptor::ResipInterruptor(SelectInterruptorPtr ptr):
-_siPtr(ptr)
+ResipInterruptor::ResipInterruptor()
 {
 
 }
@@ -44,7 +47,7 @@ _siPtr(ptr)
 void 
 ResipInterruptor::SignalDataIn()
 {
-	_siPtr->interrupt();
+	interrupt();
 }
 
 void 
@@ -60,9 +63,18 @@ _shutDownFlag(false),
 _conf(conf)
 {
 	FUNCTRACKER;
-	Log::initialize(Log::Cout, Log::Info, NULL, _logger);
-	
+	Log::initialize(Log::Cout, Log::Debug, NULL, _logger);
+	Log::initialize(Log::Cerr, Log::Debug, NULL, _logger);
 
+// #pragma TODO ("Make it configurable")
+// 
+// 	// in debug we only print TRANSPORT subsystems
+// 	if (IsDebug())
+// 	{
+// 		Subsystem::TRANSPORT.setLevel(Log::Debug);
+// 		Subsystem::TRANSACTION.setLevel(Log::Debug);
+// 	}
+		
 }
 
 ProcSipStack::~ProcSipStack(void)
@@ -98,12 +110,12 @@ ProcSipStack::Init()
 			_ccuHandlesMap,
 			*this));
 
-		_si = ResipInterruptorPtr(
-					new ResipInterruptor( 
-					SelectInterruptorPtr(new SelectInterruptor())));
+		_handleInterruptor = ResipInterruptorPtr(new ResipInterruptor());
 
-		_inbound->HandleInterruptor(shared_dynamic_cast<Interruptor>(_si));
-		_outbound->Send(new CcuMsgProcReady());
+		_inbound->HandleInterruptor(
+			shared_dynamic_cast<IxInterruptor>(_handleInterruptor));
+
+		I_AM_READY;
 
 		return CCU_API_SUCCESS;
 
@@ -237,17 +249,27 @@ bool
 ProcSipStack::ProcessCcuMessages()
 {
 	
+	TimerInit();
+
 	bool shutdown = false;
 	while (InboundPending())
 	{
+		LogTimer("InboundPending()");
 		CcuApiErrorCode res;
+
+		int start = ::GetTickCount();
+
 		CcuMsgPtr msg = GetInboundMessage(Seconds(0),res);
+		int end = ::GetTickCount();
+
+		LogTimer("GetInboundMessage(Seconds(0),res);");
+		LogCrit("GetInboundMessage(Seconds(0),res); took " << (start - end));
 		if (CCU_FAILURE(res))
 		{
 			throw;
 		}
 
-		LogInfo(L" Processing msg=[" << msg->message_id_str <<"]");
+		//LogInfo(L" Processing msg=[" << msg->message_id_str <<"]");
 
 		if (msg.get() == NULL)
 			break;
@@ -257,6 +279,7 @@ ProcSipStack::ProcessCcuMessages()
 		case CCU_MSG_MAKE_CALL_REQ:
 			{
 				UponMakeCall(msg);
+				LogTimer("UponMakeCall(msg)");
 				break;
 			}
 // 		case CCU_MSG_START_REGISTRATION_REQUEST:
@@ -268,24 +291,29 @@ ProcSipStack::ProcessCcuMessages()
 			{
 				
 				ShutDown(msg);
+				LogTimer("ShutDown;");
 				shutdown = true;
 				SendResponse(msg, new CcuMsgShutdownAck());
+				LogTimer("SendResponse(msg, new CcuMsgShutdownAck());");
 				break;
 			}
 		case CCU_MSG_HANGUP_CALL_REQ:
 			{
 				UponHangupCall(msg);
+				LogTimer("UponHangupCall(msg);");
 				break;
 
 			}
 		case CCU_MSG_CALL_OFFERED_ACK:
 			{
 				UponCallOfferedAck(msg);
+				LogTimer("UponCallOfferedAck(msg);");
 				break;
 			}
 		case CCU_MSG_CALL_OFFERED_NACK:
 			{
 				UponCallOfferedNack(msg);
+				LogTimer("UponCallOfferedNack(msg);");
 				break;
 			}
 		default:
@@ -294,6 +322,7 @@ ProcSipStack::ProcessCcuMessages()
 				{
 					LogInfo(L" Received unknown message " << msg->message_id_str)
 				}
+				LogTimer("HandleOOBMessage(msg)");
 				
 			}
 		}
@@ -308,72 +337,64 @@ ProcSipStack::real_run()
 {
 	FUNCTRACKER;
 
+	TimerInit();
+
 	if (Init() != CCU_API_SUCCESS)
 	{
 		return;
 	}
 
 	BOOL shutdown_flag = FALSE;
+
+	
 	while (shutdown_flag == FALSE)
 	{
-		try
+
+		FdSet fdset;
+		_handleInterruptor->buildFdSet(fdset);
+		_stack.buildFdSet(fdset);
+		
+		LogTimer("Build fd set");
+
+		int ret = fdset.selectMilliSeconds(_stack.getTimeTillNextProcessMS());
+		LogTimer("select");
+		if (ret < 0)
 		{
-			FdSet fdset;
-			_stack.process(fdset); 
-			_si->_siPtr->buildFdSet(fdset);
-			_stack.buildFdSet(fdset);
-
-
-			int ret = fdset.selectMilliSeconds(
-				resipMin(
-				 (unsigned long)_stack.getTimeTillNextProcessMS(), 
-				 (unsigned long)getTimeTillNextProcessMS()));
-
-
-			if (ret < 0)
-			{
-				LogCrit(L" -1 on select !!!");
-				continue;
-			}
-
-			shutdown_flag = ProcessCcuMessages();
-			if (shutdown_flag)
-			{
-				break;
-			}
-
-			_si->_siPtr->process(fdset);
-			_stack.process(fdset);
-			while(_dumUas->process());
-			while(_dumUac->process());
-
+			LogCrit("Error while selecting in sip stack res=[" << ret << "].");
+			throw;
 		}
-		catch (BaseException& e)
+
+		_handleInterruptor->process(fdset);
+		LogTimer("_handleInterruptor->process(fdset);");
+		_stack.process(fdset);
+		LogTimer("_stack.process(fdset);");
+		while(_dumUas->process());
+		LogTimer("while(_dumUas->process());");
+		while(_dumUac->process());
+		LogTimer("while(_dumUac->process());");
+
+		shutdown_flag = ProcessCcuMessages();
+		LogTimer("ProcessCcuMessages()");
+		if (shutdown_flag)
 		{
-			LogWarn(L"Unhandled exception msg=[" << e.getMessage() <<"]");
+			break;
 		}
+
 	}
-
-
-}
-
-unsigned int
-ProcSipStack::getTimeTillNextProcessMS() const
-{
-	return 100000;   
 }
 
 
 
 
-CcuResipLogger::~CcuResipLogger()
+
+IxResipLogger::~IxResipLogger()
 {
 
 }
 
 /** return true to also do default logging, false to suppress default logging. */
 bool 
-CcuResipLogger::operator()(Log::Level level,
+IxResipLogger::operator()(Log::Level level,
 		const Subsystem& subsystem, 
 		const Data& appName,
 		const char* file,
@@ -381,36 +402,43 @@ CcuResipLogger::operator()(Log::Level level,
 		const Data& message,
 		const Data& messageWithHeaders)
 {
-
+	return false;
+	
+	
 	
 	switch (level)
 	{
 	case Log::Info:
+	case Log::Warning:
 		{
-			LogInfoRaw(message.c_str());
+			LogInfo(subsystem.getSubsystem().c_str() << " " << message.c_str());
 			break;
 		}
 	case Log::Debug:
 		{
-			LogDebugRaw(message.c_str());
+			// nasty hack to print sip messages only once
+// 			if (strncmp(message.c_str(),"Send to TU:", 11) == 0)
+// 			{
+// 				return false;
+// 			}
+		
+			LogDebug(subsystem.getSubsystem().c_str() << " " << message.c_str());
 			break;
 		}
-	case Log::Warning:
 	case Log::Err:
 		{
-			LogWarnRaw(message.c_str());
+			LogWarn(subsystem.getSubsystem().c_str() << " " << message.c_str());
 			break;
 
 		}
 	case Log::Crit:
-	
 		{
-			LogCritRaw(message.c_str());
+			LogCrit(subsystem.getSubsystem().c_str() << " " << message.c_str());
 			break;
 		}
 	default:
 		{
-
+			throw;
 		}
 	}
 	

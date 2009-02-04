@@ -21,6 +21,8 @@
 #include "VcsFactory.h"
 #include "ProcVcs.h"
 
+using namespace ivrworx;
+
 VcsFactory::VcsFactory(void)
 {
 }
@@ -31,15 +33,7 @@ VcsFactory::~VcsFactory(void)
 
 
 LightweightProcess*
-VcsFactory::CreateProcVcs(LpHandlePair pair, CnxInfo data)
+VcsFactory::CreateProcVcs(LpHandlePair pair, CcuConfiguration  &conf)
 {
-	return new ProcVcs(pair, data);
-
-}
-
-
-LightweightProcess*
-VcsFactory::CreateProcVcs(LpHandlePair pair, CcuConfiguration  *conf)
-{
-	return new ProcVcs(pair, conf);
+	return new ProcIxMain(pair, conf);
 }

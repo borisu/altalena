@@ -47,6 +47,9 @@ Call::Call(
  _handlerPair(HANDLE_PAIR)
 {
 	_callState = IX_CALL_OFFERED;
+
+	LogDebug("Creating call session - ix stack handle=[" << _stackCallHandle << "].");
+
 	Init();
 }
 
@@ -114,6 +117,8 @@ Call::HagupCall()
 {
 	FUNCTRACKER;
 
+	LogDebug("Hanging up the call - ix stack handle=[" << _stackCallHandle << "].");
+
 	if (_stackCallHandle == CCU_UNDEFINED || 
 		_callState == IX_CALL_NONE		  || 
 		_callState == IX_CALL_TERMINATED)
@@ -136,6 +141,8 @@ CcuApiErrorCode
 Call::AcceptCall(IN CnxInfo local_media)
 {
 	FUNCTRACKER;
+
+	LogDebug("Accepting call - ix stack handle=[" << _stackCallHandle << "].");
 
 	CcuMsgPtr response = CCU_NULL_MSG;
 	
@@ -181,6 +188,13 @@ Call::AcceptCall(IN CnxInfo local_media)
 
 	return res;
 }
+
+int 
+Call::StackCallHandle() const 
+{ 
+	return _stackCallHandle; 
+}
+
 
 
 void

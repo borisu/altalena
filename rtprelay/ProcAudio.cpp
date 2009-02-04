@@ -325,13 +325,6 @@ ProcAudio::AllocateAudioConnection(CcuMsgPtr ptr)
 {
 	FUNCTRACKER;
 
-	
-	//
-	// find new port slot
-	// 
-	_portManager.BeginSearch();
-	int curr_port_slot_candidate = _portManager.GetNextCandidate();
-
 	// stub
 	{
 		CcuMsgRtpAllocateConnectionAck 
@@ -347,6 +340,14 @@ ProcAudio::AllocateAudioConnection(CcuMsgPtr ptr)
 
 	}
 	// stub
+
+	
+	//
+	// find new port slot
+	// 
+	_portManager.BeginSearch();
+#pragma TODO ("This is crashes on load")
+	int curr_port_slot_candidate = _portManager.GetNextCandidate();
 
 	shared_ptr<CcuMsgRtpAllocateNewConnectionReq> ac_msg =
 		shared_dynamic_cast<CcuMsgRtpAllocateNewConnectionReq>(ptr);

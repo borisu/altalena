@@ -57,11 +57,16 @@ namespace con = JadedHoboConsole;
 
 using namespace ivrworx;
 
-
+class X
+{
+public:
+	~X() { std::cout << "dtor";}
+};
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	 
+
+		 
 // 	ms_init();
 // 
 // 	RtpProfile *av_profile = 
@@ -102,7 +107,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 
 	
-	IxSetLogLevel(IX_LOG_LEVEL_TRACE);
+	IxSetLogLevel(IX_LOG_LEVEL_CRITICAL);
 	IxSetLogMask(IX_LOG_MASK_CONSOLE|IX_LOG_MASK_DEBUGVIEW);
 	LogInfo(">>>>>> START TEST <<<<<<");
 
@@ -218,7 +223,7 @@ public:
 		CnxInfo vcs_media = CnxInfo(
 			conf->DefaultCnxInfo().inaddr(),5060);
 		DECLARE_NAMED_HANDLE_PAIR(vcs_pair);
-		FORK(VcsFactory::CreateProcVcs(vcs_pair,conf.get()));
+		FORK(VcsFactory::CreateProcVcs(vcs_pair,*conf));
 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), vcs_pair)));
 		assert(CCU_SUCCESS(Ping(VCS_Q)));
 
