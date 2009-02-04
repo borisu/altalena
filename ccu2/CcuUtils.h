@@ -65,6 +65,8 @@
 // Kent CSP
 #include <cppcsp.h>
 
+// Shiny profiler
+#include "Shiny.h"
 
 #pragma warning( pop )
 

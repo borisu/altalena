@@ -28,12 +28,9 @@
 #include "UACAppDialogSet.h"
 #include "UACDialogUsageManager.h"
 #include "UASDialogUsageManager.h"
+#include "Profiler.h"
 
 
-#define TimerInit() //int g_start = ::GetTickCount(); int g_end
-
-
-#define LogTimer(X) //g_end=::GetTickCount();  LogCrit( __FUNCTIONW__ << X << " took " << (g_end - g_start)); g_start =::GetTickCount();
 
 
 using namespace resip;
@@ -132,6 +129,8 @@ void
 ProcSipStack::UponHangupCall(CcuMsgPtr ptr)
 {
 	FUNCTRACKER;
+
+	IX_PROFILE_FUNCTION();
 
 	shared_ptr<CcuMsgHangupCallReq> hangup_msg = 
 		dynamic_pointer_cast<CcuMsgHangupCallReq>(ptr);
@@ -234,6 +233,9 @@ void
 ProcSipStack::UponCallOfferedAck(CcuMsgPtr req)
 {
 	FUNCTRACKER;
+
+	IX_PROFILE_FUNCTION();
+
 	_dumUas->UponCallOfferedAck(req);
 
 }
@@ -242,6 +244,9 @@ void
 ProcSipStack::UponCallOfferedNack(CcuMsgPtr req)
 {
 	FUNCTRACKER;
+
+	IX_PROFILE_FUNCTION();
+	
 	_dumUas->UponCallOfferedNack(req);
 }
 
@@ -249,12 +254,14 @@ bool
 ProcSipStack::ProcessCcuMessages()
 {
 	
-	TimerInit();
+	FUNCTRACKER;
+
+	IX_PROFILE_FUNCTION();
+	
 
 	bool shutdown = false;
 	while (InboundPending())
 	{
-		LogTimer("InboundPending()");
 		CcuApiErrorCode res;
 
 		int start = ::GetTickCount();
@@ -262,7 +269,6 @@ ProcSipStack::ProcessCcuMessages()
 		CcuMsgPtr msg = GetInboundMessage(Seconds(0),res);
 		int end = ::GetTickCount();
 
-		LogTimer("GetInboundMessage(Seconds(0),res);");
 		LogCrit("GetInboundMessage(Seconds(0),res); took " << (start - end));
 		if (CCU_FAILURE(res))
 		{
@@ -279,7 +285,6 @@ ProcSipStack::ProcessCcuMessages()
 		case CCU_MSG_MAKE_CALL_REQ:
 			{
 				UponMakeCall(msg);
-				LogTimer("UponMakeCall(msg)");
 				break;
 			}
 // 		case CCU_MSG_START_REGISTRATION_REQUEST:
@@ -291,29 +296,24 @@ ProcSipStack::ProcessCcuMessages()
 			{
 				
 				ShutDown(msg);
-				LogTimer("ShutDown;");
 				shutdown = true;
 				SendResponse(msg, new CcuMsgShutdownAck());
-				LogTimer("SendResponse(msg, new CcuMsgShutdownAck());");
 				break;
 			}
 		case CCU_MSG_HANGUP_CALL_REQ:
 			{
 				UponHangupCall(msg);
-				LogTimer("UponHangupCall(msg);");
 				break;
 
 			}
 		case CCU_MSG_CALL_OFFERED_ACK:
 			{
 				UponCallOfferedAck(msg);
-				LogTimer("UponCallOfferedAck(msg);");
 				break;
 			}
 		case CCU_MSG_CALL_OFFERED_NACK:
 			{
 				UponCallOfferedNack(msg);
-				LogTimer("UponCallOfferedNack(msg);");
 				break;
 			}
 		default:
@@ -322,7 +322,6 @@ ProcSipStack::ProcessCcuMessages()
 				{
 					LogInfo(L" Received unknown message " << msg->message_id_str)
 				}
-				LogTimer("HandleOOBMessage(msg)");
 				
 			}
 		}
@@ -337,7 +336,7 @@ ProcSipStack::real_run()
 {
 	FUNCTRACKER;
 
-	TimerInit();
+	IX_PROFILE_INIT();
 
 	if (Init() != CCU_API_SUCCESS)
 	{
@@ -347,17 +346,24 @@ ProcSipStack::real_run()
 	BOOL shutdown_flag = FALSE;
 
 	
+	long prof_start = ::GetTickCount(); 
 	while (shutdown_flag == FALSE)
 	{
+		long prof_end = ::GetTickCount(); 
+		if ((prof_end - prof_start) > 10000)
+		{
+			IX_PROFILE_PRINT();
+			prof_start = ::GetTickCount(); 
+		}
+
 
 		FdSet fdset;
 		_handleInterruptor->buildFdSet(fdset);
 		_stack.buildFdSet(fdset);
 		
-		LogTimer("Build fd set");
+
 
 		int ret = fdset.selectMilliSeconds(_stack.getTimeTillNextProcessMS());
-		LogTimer("select");
 		if (ret < 0)
 		{
 			LogCrit("Error while selecting in sip stack res=[" << ret << "].");
@@ -365,16 +371,14 @@ ProcSipStack::real_run()
 		}
 
 		_handleInterruptor->process(fdset);
-		LogTimer("_handleInterruptor->process(fdset);");
+		
 		_stack.process(fdset);
-		LogTimer("_stack.process(fdset);");
+		
 		while(_dumUas->process());
-		LogTimer("while(_dumUas->process());");
 		while(_dumUac->process());
-		LogTimer("while(_dumUac->process());");
-
+		
 		shutdown_flag = ProcessCcuMessages();
-		LogTimer("ProcessCcuMessages()");
+		
 		if (shutdown_flag)
 		{
 			break;
