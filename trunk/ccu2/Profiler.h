@@ -20,12 +20,15 @@
 #pragma once
 
 #ifdef PROFILE
-#define IX_PROFILE_FUNCTION() ivrworx::FuncProfiler(__FUNCTION__)
+#pragma message ("+----------------------------+")
+#pragma message ("| Compiling with profiler on |")
+#pragma message ("+----------------------------+")
+#define IX_PROFILE_FUNCTION() ivrworx::FuncProfiler _dummyIxProfiler(__FUNCTION__)
 #define IX_PROFILE_INIT() ivrworx::InitProfile()
 #define IX_PROFILE_PRINT() ivrworx::PrintProfile()
 #define IX_PROFILE_CODE( code )												\
 	{																		\
-		{ ivrworx::FuncProfiler(#code);										\
+		{ ivrworx::FuncProfiler _dummyIxProfiler(#code);										\
 		 code; }															\
 	}
 #else 

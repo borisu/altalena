@@ -43,7 +43,7 @@
 				AdditionalOptions="/Zm200&#x0D;&#x0A;"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\lua5.1\include;..\..\resip;..\..\json\json_spirit_v2.06\json_spirit\"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;PROFILE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
