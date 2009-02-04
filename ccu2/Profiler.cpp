@@ -19,15 +19,16 @@
 
 #include "StdAfx.h"
 #include "Profiler.h"
+#include <intrin.h>
+
+#pragma intrinsic(__rdtsc)
+
+
 
 using namespace ivrworx;
 using namespace std;
 
-inline unsigned __int64 RDTSC(void)
-{
-	_asm _emit 0x0F
-	_asm _emit 0x31
-}
+
 
 struct ProfileData
 {
@@ -63,17 +64,19 @@ namespace ivrworx
 		PrintProfile()
 	{
 		cout << "Statistics for thread id " << ::GetCurrentThreadId() << std::endl;
-		cout << "--------------------------------------------------------------"<< std::endl;
-		cout << "name\t\t\t\t\t\thits\t\tavg" << std::endl;
-		cout << "=============================================================="<< std::endl;
+		cout << "-------------------------------------------------------------------------"<< std::endl;
+		cout << std::setw(40)<< std::left << "Profiled Name" << std::setw(10) << "Hits" << std::setw(10) << "Cumulative" << std::endl;
+		cout << "-------------------------------------------------------------------------"<< std::endl;
 
 		for (ProfileMap::iterator iter = g_ProfileMap->begin();
 			iter != g_ProfileMap->end();
 			iter ++)
 		{
 			ProfileData *data = (*iter).second;
-			cout << std::setw(40) <<  (*iter).first.c_str() << "\t\t" << data->hits << "\t\t" << data->avg << " us" << std::endl;
+			cout << std::setw(40)<< std::left << (*iter).first.c_str() << std::setw(10) << data->hits << std::setw(10) << data->avg << std::endl;
 		}
+
+		cout << "========================================================================="<< std::endl;
 
 	}
 }
@@ -84,13 +87,16 @@ namespace ivrworx
 FuncProfiler::FuncProfiler(string string)
 {
 
-	_start = RDTSC();;
+	// _start = __rdtsc();
+	_start = ::GetTickCount();
+
 	_funcName = string;
 }
 
 FuncProfiler::~FuncProfiler(void)
 {
-	__int64 lEnd = RDTSC();
+//	__int64 lEnd = __rdtsc();
+	__int64 lEnd = ::GetTickCount();
 
 	
 	ProfileMap::iterator iter = g_ProfileMap->find(_funcName);
