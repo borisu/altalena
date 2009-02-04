@@ -1,3 +1,22 @@
+/*
+*	The Altalena Project File
+*	Copyright (C) 2009  Boris Ouretskey
+*
+*	This library is free software; you can redistribute it and/or
+*	modify it under the terms of the GNU Lesser General Public
+*	License as published by the Free Software Foundation; either
+*	version 2.1 of the License, or (at your option) any later version.
+*
+*	This library is distributed in the hope that it will be useful,
+*	but WITHOUT ANY WARRANTY; without even the implied warranty of
+*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+*	Lesser General Public License for more details.
+*
+*	You should have received a copy of the GNU Lesser General Public
+*	License along with this library; if not, write to the Free Software
+*	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
 #include "StdAfx.h"
 #include "Profiler.h"
 
@@ -22,12 +41,13 @@ struct ProfileData
 	{
 		hits = 0;
 		avg	 = 0;
+		all  = 0;
 	}
 
 } ;
 
 typedef 
-map<std::wstring,ProfileData*> ProfileMap;
+map<std::string,ProfileData*> ProfileMap;
 
 __declspec(thread) ProfileMap *g_ProfileMap;
 
@@ -42,16 +62,17 @@ namespace ivrworx
 	void 
 		PrintProfile()
 	{
-		wcout << L"Statistics for thread id " << ::GetCurrentThreadId() << std::endl;
-		wcout << L"-------------------------------------------------------------"<< std::endl;
-		wcout << L"name\t\thits\t\tavg" << std::endl;
+		cout << "Statistics for thread id " << ::GetCurrentThreadId() << std::endl;
+		cout << "--------------------------------------------------------------"<< std::endl;
+		cout << "name\t\t\t\t\t\thits\t\tavg" << std::endl;
+		cout << "=============================================================="<< std::endl;
 
 		for (ProfileMap::iterator iter = g_ProfileMap->begin();
 			iter != g_ProfileMap->end();
 			iter ++)
 		{
 			ProfileData *data = (*iter).second;
-			wcout << std:: setw(19) << (*iter).first << "\t\t" << data->hits << "\t\t" << data->avg << std::endl;
+			cout << std::setw(40) <<  (*iter).first.c_str() << "\t\t" << data->hits << "\t\t" << data->avg << " us" << std::endl;
 		}
 
 	}
@@ -60,7 +81,7 @@ namespace ivrworx
 
 
 
-FuncProfiler::FuncProfiler(wstring string)
+FuncProfiler::FuncProfiler(string string)
 {
 
 	_start = RDTSC();;

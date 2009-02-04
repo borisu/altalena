@@ -18,7 +18,7 @@
 */
 
 #include "StdAfx.h"
-#include "Shiny.h"
+
 #include "CallWithRTPManagment.h"
 
 using namespace ivrworx;
@@ -80,7 +80,6 @@ CallWithRTPManagment::MakeCall(IN const wstring &destination_uri)
 
 CcuApiErrorCode CallWithRTPManagment::AcceptCall()
 {
-	PROFILE_FUNC();
 	FUNCTRACKER;
 
 	CcuApiErrorCode res = _callerRtpSession.AllocateRTPConnection();
