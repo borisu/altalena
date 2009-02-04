@@ -40,6 +40,7 @@
 #include "CallWithRtpManagmentTest.h"
 #include "SimpleRTPStreamer.h"
 #include "IxCoreTest.h"
+#include "Profiler.h"
 
 
 
@@ -196,6 +197,7 @@ public:
 
 	void real_run()
 	{
+		
 		CcuConfigurationPtr conf = 
 			ConfigurationFactory::CreateJsonConfiguration(L"conf.json");
 
@@ -227,6 +229,7 @@ public:
 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), vcs_pair)));
 		assert(CCU_SUCCESS(Ping(VCS_Q)));
 
+
 		END_FORKING_REGION;
 
 
@@ -237,11 +240,15 @@ public:
 void
 start_test_system()
 {
+	
 	START_FORKING_REGION;
 
 	DECLARE_NAMED_HANDLE_PAIR(starter_pair);
 	FORK(new ProcSystemStarter(starter_pair));
 
 	END_FORKING_REGION;
+
+	PROFILER_UPDATE(); // update all profiles
+	PROFILER_OUTPUT(); // print to cout
 
 }

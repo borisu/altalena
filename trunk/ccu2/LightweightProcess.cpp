@@ -21,6 +21,7 @@
 #include "LightweightProcess.h"
 #include "LocalProcessRegistrar.h"
 #include "CcuLogger.h"
+#include "Shiny.h"
 
 
 

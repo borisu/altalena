@@ -20,6 +20,7 @@
 #include "StdAfx.h"
 #include "Call.h"
 #include "CcuLogger.h"
+#include "Shiny.h"
 
 using namespace ivrworx;
 
@@ -115,6 +116,7 @@ Call::RejectCall()
 CcuApiErrorCode
 Call::HagupCall()
 {
+	PROFILE_FUNC();
 	FUNCTRACKER;
 
 	LogDebug("Hanging up the call - ix stack handle=[" << _stackCallHandle << "].");
@@ -140,6 +142,7 @@ Call::HagupCall()
 CcuApiErrorCode
 Call::AcceptCall(IN CnxInfo local_media)
 {
+	PROFILE_FUNC();
 	FUNCTRACKER;
 
 	LogDebug("Accepting call - ix stack handle=[" << _stackCallHandle << "].");

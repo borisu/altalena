@@ -20,6 +20,7 @@
 #include "StdAfx.h"
 #include "CcuRTPSession.h"
 #include "CcuLogger.h"
+#include "Shiny.h"
 
 CcuRtpSession::CcuRtpSession(LightweightProcess &facade):
 _connectionId(CCU_UNDEFINED),
@@ -47,6 +48,7 @@ CcuRtpSession::AllocateRTPConnection()
 CcuApiErrorCode
 CcuRtpSession::AllocateRTPConnection(IN CnxInfo remote_end)
 {
+	PROFILE_FUNC();
 	FUNCTRACKER;
 
 	CcuMsgPtr response = CCU_NULL_MSG;

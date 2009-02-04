@@ -312,6 +312,14 @@
 				RelativePath=".\Console.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Profiler.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Profiler.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="configuration"
