@@ -84,11 +84,11 @@ ProcVcsTester::real_run()
  	//
  	// Start VCS
  	//
- 	CnxInfo vcs_media = CnxInfo(g_localAddr.inaddr(),5060);
- 	DECLARE_NAMED_HANDLE_PAIR(vcs_pair);
- 	FORK(VcsFactory::CreateProcVcs(vcs_pair,vcs_media));
- 	assert(CCU_SUCCESS(WaitTillReady(Seconds(5), vcs_pair)));
- 	assert(CCU_SUCCESS(Ping(VCS_Q)));
+//  	CnxInfo vcs_media = CnxInfo(g_localAddr.inaddr(),5060);
+//  	DECLARE_NAMED_HANDLE_PAIR(vcs_pair);
+//  	FORK(VcsFactory::CreateProcVcs(vcs_pair,vcs_media));
+//  	assert(CCU_SUCCESS(WaitTillReady(Seconds(5), vcs_pair)));
+//  	assert(CCU_SUCCESS(Ping(VCS_Q)));
  
  
 // 	//

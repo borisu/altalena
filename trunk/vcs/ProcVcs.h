@@ -29,21 +29,21 @@
 
 using namespace std;
 
-class ProcVcs :
+namespace ivrworx
+{
+
+
+class ProcIxMain :
 	public LightweightProcess
 {
 
 public:
 
-#pragma TODO("Leave only ctor that receives configuration object as a parameter")
-
-	ProcVcs(IN LpHandlePair pair, IN CnxInfo sip_stack_media);
-
-	ProcVcs(IN LpHandlePair pair, IN CcuConfiguration *conf);
+	ProcIxMain(IN LpHandlePair pair, IN CcuConfiguration &conf);
 
 	virtual void real_run();
 
-	virtual ~ProcVcs(void);
+	virtual ~ProcIxMain(void);
 
 protected:
 
@@ -66,7 +66,7 @@ private:
 
 	CnxInfo _sipStackData;
 
-	CcuConfiguration *_conf;
+	CcuConfiguration &_conf;
 
 	
 
@@ -75,22 +75,48 @@ private:
 typedef 
 shared_ptr<CLuaVirtualMachine> CLuaVirtualMachinePtr;
 
-class CallFlowScript
-	: public CLuaScript
+class ProcScriptRunner
+	: public LightweightProcess
+	
 {
 public:
 
-	CallFlowScript(IN CLuaVirtualMachine &vm_ptr, IN CallWithRTPManagment &call_session);
+	ProcScriptRunner(
+		IN CcuConfiguration &conf,
+		IN CcuMsgPtr msg, 
+		IN LpHandlePair stack_pair, 
+		IN LpHandlePair pair);
 
-	~CallFlowScript();
+	~ProcScriptRunner();
+
+	virtual void real_run();
+
+private:
+
+	CcuMsgPtr _initialMsg;
+
+	LpHandlePair _stackPair;
+
+	CcuConfiguration &_conf;
+
+};
+
+class IxScript : 
+	public CLuaScript
+{
+public:
+
+	IxScript(IN CLuaVirtualMachine &_vmPtr, IN CallWithRTPManagment &_callSession);
+
+	~IxScript();
+
+private:
 
 	// When the script calls a class method, this is called
 	virtual int ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber) ;
 
 	// When the script function has returns
 	virtual void HandleReturns (CLuaVirtualMachine& vm, const char *strFunc);
-
-private:
 
 	int LuaAnswerCall(CLuaVirtualMachine& vm);
 
@@ -105,4 +131,10 @@ private:
 	CLuaVirtualMachine &_vmPtr;
 
 };
+
+}
+
+
+
+
 

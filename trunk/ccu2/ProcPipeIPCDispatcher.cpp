@@ -41,7 +41,7 @@ _intPtr(new SemaphoreInterruptor())
 	_pipesDict[IMS_Q] = L"\\\\.\\pipe\\IMS";
 	_pipesDict[AIS_Q] = L"\\\\.\\pipe\\AIS";
 
-	pair.inbound->HandleInterruptor(dynamic_pointer_cast<Interruptor>(_intPtr));
+	pair.inbound->HandleInterruptor(dynamic_pointer_cast<IxInterruptor>(_intPtr));
 	
 	init();
 	 
@@ -57,7 +57,7 @@ _intPtr(new SemaphoreInterruptor())
 {
 	FUNCTRACKER;
 
-	pair.inbound->HandleInterruptor(dynamic_pointer_cast<Interruptor>(_intPtr));
+	pair.inbound->HandleInterruptor(dynamic_pointer_cast<IxInterruptor>(_intPtr));
 
 	init();
 

@@ -25,11 +25,11 @@
 class VcsFactory
 {
 public:
+
 	VcsFactory(void);
+
 	virtual ~VcsFactory(void);
 
-	static LightweightProcess *CreateProcVcs(LpHandlePair pair, CnxInfo data);
-
-	static LightweightProcess *CreateProcVcs(LpHandlePair pair, CcuConfiguration  *conf);
+	static LightweightProcess *CreateProcVcs(LpHandlePair pair, CcuConfiguration  &conf);
 
 };

@@ -329,6 +329,8 @@ namespace ivrworx
 		CnxInfo LocalMedia() const;
 		void LocalMedia(CnxInfo &val);
 
+		int StackCallHandle() const;
+
 	protected:
 
 		void Init();
@@ -338,7 +340,7 @@ namespace ivrworx
 		LpHandlePair _stackPair;
 
 		int _stackCallHandle;
-
+		
 		CnxInfo _remoteMedia;
 
 		CnxInfo _localMedia;

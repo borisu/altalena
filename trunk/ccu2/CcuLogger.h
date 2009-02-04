@@ -120,6 +120,7 @@ private:
 #define __FUNCTIONW__      _STR2WSTR(__FUNCTION__)
 
 #define DISABLE_SRC_REF
+#define NOLOGS
 
 #define IX_THREAD_ID		L"[" << dec << setw(5) << ::GetCurrentThreadId() << L"," << ::GetCurrentFiber() << L"]"
 
@@ -163,23 +164,46 @@ if (g_logMask & IX_LOG_MASK_CONSOLE)  { std::cout << color;(std::wcout)  << PREF
 	if (g_logMask & IX_LOG_MASK_DEBUGVIEW) { (dbgout) << x << endl; }\
 }
 
-#define LogTrace(x) if (g_LogLevel >= IX_LOG_LEVEL_TRACE)		SCOPED_LOG(L"[TRC]:",x, con::bg_black)
-#define LogDebug(x) if (g_LogLevel >= IX_LOG_LEVEL_DEBUG)		SCOPED_LOG(L"[DBG]:",x, con::bg_black)
-#define LogInfo(x)  if (g_LogLevel >= IX_LOG_LEVEL_INFO)		SCOPED_LOG(L"[INF]:",x, con::bg_black)
-#define LogWarn(x)  if (g_LogLevel >= IX_LOG_LEVEL_WARN)		SCOPED_LOG(L"[WRN]:",x, con::bg_red)
-#define LogCrit(x)	if (g_LogLevel >= IX_LOG_LEVEL_CRITICAL)	SCOPED_LOG(L"[CRT]:",x, con::bg_red)
+#define IsDebug()   (g_LogLevel >= IX_LOG_LEVEL_DEBUG)
+
+#ifndef NOLOGS
+	#define LogTrace(x) if (g_LogLevel >= IX_LOG_LEVEL_TRACE)		SCOPED_LOG(L"[TRC]:",x, con::bg_black)
+	#define LogDebug(x) if (g_LogLevel >= IX_LOG_LEVEL_DEBUG)		SCOPED_LOG(L"[DBG]:",x, con::bg_black)
+	#define LogInfo(x)  if (g_LogLevel >= IX_LOG_LEVEL_INFO)		SCOPED_LOG(L"[INF]:",x, con::bg_black)
+	#define LogWarn(x)  if (g_LogLevel >= IX_LOG_LEVEL_WARN)		SCOPED_LOG(L"[WRN]:",x, con::bg_red)
+	#define LogCrit(x)	if (g_LogLevel >= IX_LOG_LEVEL_CRITICAL)	SCOPED_LOG(L"[CRT]:",x, con::bg_red)
+
+	#define LogTraceRaw(x) if (g_LogLevel >= IX_LOG_LEVEL_TRACE) SCOPED_LOG_RAW(x)
+	#define LogDebugRaw(x) if (g_LogLevel >= IX_LOG_LEVEL_DEBUG) SCOPED_LOG_RAW(x)
+	#define LogInfoRaw(x)  if (g_LogLevel >= IX_LOG_LEVEL_INFO) SCOPED_LOG_RAW(x)
+	#define LogWarnRaw(x)  if (g_LogLevel >= IX_LOG_LEVEL_WARN) SCOPED_LOG_RAW(x)
+	#define LogCritRaw(x)	if (g_LogLevel >= IX_LOG_LEVEL_CRITICAL) SCOPED_LOG_RAW(x)
+
+	#define LogSysError(x) { \
+		mutex::scoped_lock scoped_lock(g_loggerMutex);\
+		(std::wcout) << con::bg_red << PREFIX_WITH_LINE  << L" " << x << L" " << FormatLastSysError(__FUNCTIONW__) << con::fg_white << endl;\
+	}
+
+#else
+
+	#define LogTrace(x) 
+	#define LogDebug(x) 
+	#define LogInfo(x)  
+	#define LogWarn(x)  
+	#define LogCrit(x)	
+
+	#define LogTraceRaw(x) 
+	#define LogDebugRaw(x) 
+	#define LogInfoRaw(x)  
+	#define LogWarnRaw(x)  
+	#define LogCritRaw(x)
+
+	#define LogSysError(x) 
+
+#endif
 
 
-#define LogTraceRaw(x) if (g_LogLevel >= IX_LOG_LEVEL_TRACE) SCOPED_LOG_RAW(x)
-#define LogDebugRaw(x) if (g_LogLevel >= IX_LOG_LEVEL_DEBUG) SCOPED_LOG_RAW(x)
-#define LogInfoRaw(x)  if (g_LogLevel >= IX_LOG_LEVEL_INFO) SCOPED_LOG_RAW(x)
-#define LogWarnRaw(x)  if (g_LogLevel >= IX_LOG_LEVEL_WARN) SCOPED_LOG_RAW(x)
-#define LogCritRaw(x)	if (g_LogLevel >= IX_LOG_LEVEL_CRITICAL) SCOPED_LOG_RAW(x)
 
-#define LogSysError(x) { \
-	mutex::scoped_lock scoped_lock(g_loggerMutex);\
-	(std::wcout) << con::bg_red << PREFIX_WITH_LINE  << L" " << x << L" " << FormatLastSysError(__FUNCTIONW__) << con::fg_white << endl;\
-}
 
 
 extern ostream& 

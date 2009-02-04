@@ -203,7 +203,7 @@ UASDialogUsageManager::CreateSdp(CnxInfo &offered_sdp)
 
 
 	STRCAT_COUNT(sdp_buf,"\r\n"); 
-	cout << endl << sdp_buf << endl;
+	//cout << endl << sdp_buf << endl;
 
 #undef IX_MSX_SDP_SIZE
 #undef STRCAT_COUNT
@@ -218,6 +218,7 @@ UASDialogUsageManager::onNewSession(ServerInviteSessionHandle sis, InviteSession
 {
 	FUNCTRACKER;
 	
+	sis->provisional(100);
 	sis->provisional(180);
 
 	// prepare dialog context
@@ -229,7 +230,7 @@ UASDialogUsageManager::onNewSession(ServerInviteSessionHandle sis, InviteSession
 	_resipHandlesMap[sis->getAppDialog()]= ctx_ptr;
 	_refCcuHandlesMap[ctx_ptr->stack_handle]= ctx_ptr;
 
-	LogDebug(">>New UAS SIP Session<< ix stack handle=[" <<  ctx_ptr->stack_handle  << "] msg:-\n" << msg <<"\n");
+	LogDebug("New session created - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid=[" << sis->getCallId().c_str() << "], resip handle=[" << sis.getId() << "]");
 
 }
 
@@ -239,7 +240,19 @@ void
 UASDialogUsageManager::onTerminated(InviteSessionHandle handle , InviteSessionHandler::TerminatedReason reason, const SipMessage* msg)
 {
 	FUNCTRACKER;
-	LogDebug(" Call on handle=[" << handle.getId() <<"] is terminated with reason=["  <<  reason << "]");
+
+	
+	CcuStackHandle ixhandle = CCU_UNDEFINED;
+	ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(handle->getAppDialog());
+	if (iter != _resipHandlesMap.end())
+	{
+		SipDialogContextPtr ctx_ptr = (*iter).second;
+		ixhandle = ctx_ptr->stack_handle;
+		throw "what situation is this";
+	}
+
+
+	LogDebug("Call terminated - stack ix handle=[" <<  ixhandle  << "], sip callid=[" << handle->getCallId().c_str() << "], resip handle=[" << handle.getId() << "]");
 
 }
 
@@ -270,6 +283,8 @@ UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, co
 
 	ctx_ptr->call_handler_inbound = call_handler_pair.inbound;
 
+	LogDebug("Call offered - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid=[" << is->getCallId().c_str() << "], resip handle=[" << is.getId() << "]");
+
 }
 
 
@@ -281,7 +296,7 @@ UASDialogUsageManager::onConnected(InviteSessionHandle is, const SipMessage& msg
 	ResipDialogHandlesMap::iterator iter = _resipHandlesMap.find(is->getAppDialog());
 	if (iter == _resipHandlesMap.end())
 	{
-		LogWarn("Resip dialog handle=[" << is->getAppDialog().getId() << "] >>not found<<. Has user disconnected???");
+		LogWarn("Resip dialog handle=[" << is->getAppDialog().getId() << "] not found. Has user disconnected already???");
 		return;
 	}
 
@@ -289,6 +304,8 @@ UASDialogUsageManager::onConnected(InviteSessionHandle is, const SipMessage& msg
 	_ccu_stack.SendResponse(
 		ctx_ptr->last_user_request, 
 		new CcuMsgNewCallConnected());
+
+	LogDebug("Call connected - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid =[" << is->getCallId().c_str() << "], resip handle=[" << is.getId() << "]");
 	
 }
 
