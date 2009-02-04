@@ -7,7 +7,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ccutest", "..\..\ccutest\CcuTest.vcproj", "{D5CF5924-ECA0-402B-9312-5B25256E099C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2FCEFE58-70F8-4D68-8F39-8AD958596C42} = {2FCEFE58-70F8-4D68-8F39-8AD958596C42}
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636} = {D44CCFEB-7FC2-46E6-8290-E0B00D06A636}
 		{E4E14960-A4AD-4B7A-8471-8091D58C11F3} = {E4E14960-A4AD-4B7A-8471-8091D58C11F3}
 		{BE262A86-CC26-4B25-A877-883ED2688CEC} = {BE262A86-CC26-4B25-A877-883ED2688CEC}
 		{D7488B96-456A-1E46-8B0B-0F698E025694} = {D7488B96-456A-1E46-8B0B-0F698E025694}
@@ -84,8 +83,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "eXosip", "..\..\..\mediastreamer2-antisip-4.1.1-rc10\exosip\platform\vsnet\eXosip.vcproj", "{4EA67539-9EE9-4065-BD39-87E517FD8262}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libspeex", "..\..\..\mediastreamer2-antisip-4.1.1-rc10\codecs\speex\win32\VS2005\libspeex\libspeex.vcproj", "{E972C52F-9E85-4D65-B19C-031E511E9DB4}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Shiny", "..\..\..\Shiny\src\Shiny.vcproj", "{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -769,36 +766,6 @@ Global
 		{E972C52F-9E85-4D65-B19C-031E511E9DB4}.SSL-Release|Mixed Platforms.Build.0 = Release|Win32
 		{E972C52F-9E85-4D65-B19C-031E511E9DB4}.SSL-Release|Win32.ActiveCfg = Release|Win32
 		{E972C52F-9E85-4D65-B19C-031E511E9DB4}.SSL-Release|Win32.Build.0 = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Debug Dll|Any CPU.ActiveCfg = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Debug Dll|Mixed Platforms.ActiveCfg = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Debug Dll|Mixed Platforms.Build.0 = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Debug Dll|Win32.ActiveCfg = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Debug Dll|Win32.Build.0 = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Debug|Win32.ActiveCfg = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Debug|Win32.Build.0 = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Release Dll|Any CPU.ActiveCfg = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Release Dll|Mixed Platforms.ActiveCfg = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Release Dll|Mixed Platforms.Build.0 = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Release Dll|Win32.ActiveCfg = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Release Dll|Win32.Build.0 = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Release|Any CPU.ActiveCfg = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Release|Win32.ActiveCfg = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.Release|Win32.Build.0 = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.SSL-Debug|Any CPU.ActiveCfg = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.SSL-Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.SSL-Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.SSL-Debug|Win32.ActiveCfg = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.SSL-Debug|Win32.Build.0 = Debug|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.SSL-Release|Any CPU.ActiveCfg = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.SSL-Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.SSL-Release|Mixed Platforms.Build.0 = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.SSL-Release|Win32.ActiveCfg = Release|Win32
-		{D44CCFEB-7FC2-46E6-8290-E0B00D06A636}.SSL-Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -65,11 +65,7 @@
 // Kent CSP
 #include <cppcsp.h>
 
-// Shiny profiler
-#include "Shiny.h"
-
 #pragma warning( pop )
-
 
 #define _QUOTE(x) # x
 #define QUOTE(x) _QUOTE(x)

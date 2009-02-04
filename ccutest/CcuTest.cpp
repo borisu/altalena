@@ -248,7 +248,5 @@ start_test_system()
 
 	END_FORKING_REGION;
 
-	PROFILER_UPDATE(); // update all profiles
-	PROFILER_OUTPUT(); // print to cout
 
 }

@@ -370,15 +370,12 @@ ProcSipStack::real_run()
 			throw;
 		}
 
-		_handleInterruptor->process(fdset);
-		
-		_stack.process(fdset);
-		
-		while(_dumUas->process());
-		while(_dumUac->process());
+		IX_PROFILE_CODE(_handleInterruptor->process(fdset));
+		IX_PROFILE_CODE(_stack.process(fdset));
+		IX_PROFILE_CODE(while(_dumUas->process()));
+		IX_PROFILE_CODE(while(_dumUac->process()));
 		
 		shutdown_flag = ProcessCcuMessages();
-		
 		if (shutdown_flag)
 		{
 			break;
