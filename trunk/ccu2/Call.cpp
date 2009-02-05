@@ -19,6 +19,7 @@
 
 #include "StdAfx.h"
 #include "Call.h"
+#include "Profiler.h"
 #include "CcuLogger.h"
 
 
@@ -144,6 +145,7 @@ Call::AcceptCall(IN CnxInfo local_media)
 {
 	
 	FUNCTRACKER;
+	IX_PROFILE_FUNCTION();
 
 	LogDebug("Accepting call - ix stack handle=[" << _stackCallHandle << "].");
 

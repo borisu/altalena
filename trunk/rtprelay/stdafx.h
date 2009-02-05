@@ -35,6 +35,7 @@
 // TODO: reference additional headers your program requires here
 
 #include "CcuUtils.h"
+#include "Profiler.h"
 
 
 #pragma warning( push )

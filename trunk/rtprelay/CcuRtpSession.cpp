@@ -49,6 +49,7 @@ CcuApiErrorCode
 CcuRtpSession::AllocateRTPConnection(IN CnxInfo remote_end)
 {
 	FUNCTRACKER;
+	IX_PROFILE_FUNCTION();
 
 	CcuMsgPtr response = CCU_NULL_MSG;
 
@@ -206,6 +207,7 @@ CcuApiErrorCode
 CcuRtpSession::CloseRTPConnection()
 {
 	FUNCTRACKER;
+	IX_PROFILE_FUNCTION();
 
 	if (_connectionId == CCU_UNDEFINED)
 	{

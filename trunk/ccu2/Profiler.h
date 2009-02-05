@@ -20,22 +20,28 @@
 #pragma once
 
 #ifdef PROFILE
-#pragma message ("+----------------------------+")
-#pragma message ("| Compiling with profiler on |")
-#pragma message ("+----------------------------+")
-#define IX_PROFILE_FUNCTION() ivrworx::FuncProfiler _dummyIxProfiler(__FUNCTION__)
-#define IX_PROFILE_INIT() ivrworx::InitProfile()
-#define IX_PROFILE_PRINT() ivrworx::PrintProfile()
-#define IX_PROFILE_CODE( code )												\
-	{																		\
-		{ ivrworx::FuncProfiler _dummyIxProfiler(#code);										\
-		 code; }															\
-	}
+
+	#pragma message ("+----------------------------+")
+	#pragma message ("| Compiling with profiler on |")
+	#pragma message ("+----------------------------+")
+
+	#define IX_PROFILE_FUNCTION() ivrworx::FuncProfiler _dummyIxProfiler(__FUNCTION__)
+	#define IX_PROFILE_PRINT() ivrworx::PrintProfile()
+	#define IX_PROFILE_CHECK_INTERVAL(x) ivrworx::CheckInterval(x)
+	#define IX_PROFILE_ADD_DATA(x,y) ivrworx::AddProfilingData(x,y)
+	#define IX_PROFILE_CODE( code )												\
+		{																		\
+			{ ivrworx::FuncProfiler _dummyIxProfiler(#code);										\
+			code; }															\
+		}
 #else 
-#define IX_PROFILE_FUNCTION() 
-#define IX_PROFILE_INIT() 
-#define IX_PROFILE_PRINT()
-#define IX_PROFILE_CODE( code )	code
+
+	#define IX_PROFILE_FUNCTION() 
+	#define IX_PROFILE_PRINT()
+	#define IX_PROFILE_CODE( code )	code
+	#define IX_PROFILE_ADD_DATA(x,y) 
+	#define IX_PROFILE_CHECK_INTERVAL(x);
+
 #endif
 
 namespace ivrworx
@@ -44,6 +50,12 @@ namespace ivrworx
 	void InitProfile();
 
 	void PrintProfile();
+
+	void CheckInterval(__int64 interval);
+
+	void AddProfilingData(string name, LARGE_INTEGER start, LARGE_INTEGER end);
+
+	void AddProfilingData(string name, LARGE_INTEGER start);
 
 	class FuncProfiler
 	{
@@ -54,7 +66,7 @@ namespace ivrworx
 
 	private:
 
-		__int64 _start;
+		LARGE_INTEGER _start;
 
 		string _funcName;
 	};

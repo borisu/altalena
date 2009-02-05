@@ -44,7 +44,7 @@
 				AdditionalOptions="-Zm120"
 				Optimization="0"
 				AdditionalIncludeDirectories=".;..\ccu2;..\ais;..\rtpgen;..\rtprelay;..\vcs;..\ims;&quot;..\..\mediastreamer2-antisip-4.1.1-rc10\mediastreamer2\include&quot;;&quot;..\..\mediastreamer2-antisip-4.1.1-rc10\oRTP\include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;PROFILE"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
