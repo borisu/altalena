@@ -21,6 +21,7 @@
 #include "LightweightProcess.h"
 #include "LocalProcessRegistrar.h"
 #include "CcuLogger.h"
+#include "Profiler.h"
 
 
 
@@ -238,6 +239,8 @@ CcuApiErrorCode
 LightweightProcess::SendMessage(CcuMsgPtr message)
 {
 	
+	IX_PROFILE_FUNCTION();
+
 	int proc_id = message->dest.proc_id;
 	if (message->source.proc_id == CCU_UNDEFINED)
 	{
@@ -316,7 +319,7 @@ LightweightProcess::DoRequestResponseTransaction(
 	request->source.proc_id = txn_handle->GetObjectUid();
 	request->transaction_id = GenerateNewTxnId();
 
-	dest_handle->Send(request);
+	IX_PROFILE_CODE(dest_handle->Send(request));
 
 	CcuApiErrorCode res = WaitForTxnResponse(
 		txn_handle,

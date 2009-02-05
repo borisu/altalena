@@ -99,6 +99,7 @@ protected:
 		 is_response(FALSE),
 		 preferrable_ipc_interface(CCU_UNDEFINED)
 	{
+		::QueryPerformanceCounter(&enter_queue_timestamp);
 		this->message_id = message_id;
 		this->message_id_str = message_id_str;
 	};
@@ -117,6 +118,8 @@ public:
 	int preferrable_ipc_interface;
 
 	BOOL is_response;
+
+	IxTimeStamp enter_queue_timestamp;
 
 	virtual ~CcuMessage()
 	{

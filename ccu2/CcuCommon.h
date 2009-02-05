@@ -45,5 +45,6 @@ typedef int CcuHandleId;
 
 typedef int CcuProcId;
 
+typedef LARGE_INTEGER IxTimeStamp;
 
 

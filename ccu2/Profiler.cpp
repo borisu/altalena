@@ -19,102 +19,164 @@
 
 #include "StdAfx.h"
 #include "Profiler.h"
-#include <intrin.h>
+#include "CcuLogger.h"
 
-#pragma intrinsic(__rdtsc)
-
-
-
-using namespace ivrworx;
 using namespace std;
 
-
-
-struct ProfileData
-{
-	__int64 hits;
-
-	__int64 all;
-
-	__int64 avg;	
-
-	ProfileData()
-	{
-		hits = 0;
-		avg	 = 0;
-		all  = 0;
-	}
-
-} ;
-
-typedef 
-map<std::string,ProfileData*> ProfileMap;
-
-__declspec(thread) ProfileMap *g_ProfileMap;
+#define PROFILE_INIT() if (gt_ProfileMap == NULL){InitProfile();}
 
 namespace ivrworx
 {
-	void 
-		InitProfile()
+	struct ProfileData
 	{
-		g_ProfileMap = new ProfileMap();
+		__int64 hits;
+
+		__int64 all;
+
+		__int64 avg;	
+
+		ProfileData()
+		{
+			hits = 0;
+			avg	 = 0;
+		}
+
+	} ;
+
+	typedef 
+		map<std::string,ProfileData*> ProfileMap;
+
+	__declspec(thread) ProfileMap *gt_ProfileMap = NULL;
+
+	__declspec(thread) LARGE_INTEGER gt_ticksPerSecond;
+
+	__declspec(thread) __int64 gt_ticksPerUs;
+
+	__declspec(thread) __int64 gt_ProfLastCheck;
+
+
+	void InitProfile()
+	{
+		gt_ProfileMap = new ProfileMap();
+
+		// get the high resolution counter's accuracy
+		::QueryPerformanceFrequency(&gt_ticksPerSecond);
+
+		gt_ticksPerUs = (gt_ticksPerSecond.QuadPart/1000000);
+
+		gt_ProfLastCheck = ::GetTickCount();
+
 	}
 
-	void 
-		PrintProfile()
+	__int64 calculateDelta(LARGE_INTEGER start, LARGE_INTEGER end)
 	{
-		cout << "Statistics for thread id " << ::GetCurrentThreadId() << std::endl;
-		cout << "-------------------------------------------------------------------------"<< std::endl;
-		cout << std::setw(40)<< std::left << "Profiled Name" << std::setw(10) << "Hits" << std::setw(10) << "Cumulative" << std::endl;
-		cout << "-------------------------------------------------------------------------"<< std::endl;
+		PROFILE_INIT();
 
-		for (ProfileMap::iterator iter = g_ProfileMap->begin();
-			iter != g_ProfileMap->end();
+		__int64 delta_us = (end.QuadPart - start.QuadPart)/gt_ticksPerUs;
+		return delta_us;
+	}
+
+	void CheckInterval(__int64 interval)
+	{
+		
+		PROFILE_INIT();
+
+		if (interval == 0 || interval < 0 || interval == INFINITE )
+		{
+			return;
+		}
+		
+		__int64 currTime  = ::GetTickCount();
+		if ( (currTime - gt_ProfLastCheck) >= interval)
+		{
+			PrintProfile();
+			gt_ProfLastCheck = ::GetTickCount();
+		}
+	}
+
+	void AddProfilingData(string name, LARGE_INTEGER start)
+	{
+		PROFILE_INIT();
+
+		LARGE_INTEGER end;
+		if (::QueryPerformanceCounter(&end) == FALSE)
+		{
+			throw;
+		};
+		AddProfilingData(name,start,end);
+
+	}
+
+	void AddProfilingData(string name, LARGE_INTEGER start, LARGE_INTEGER end)
+	{
+		PROFILE_INIT();
+
+
+		__int64 delta_us = calculateDelta(start, end);
+
+		ProfileMap::iterator iter = gt_ProfileMap->find(name);
+
+		if (iter == gt_ProfileMap->end())
+		{
+			ProfileData *data = new ProfileData();
+			data->hits = 1;
+			data->all = delta_us;
+			data->avg = delta_us;
+			(*gt_ProfileMap)[name] = data;
+		} else
+		{
+			ProfileData *data = (*iter).second;
+			data->hits++;
+			data->all += delta_us;
+			data->avg = data->all/(data->hits);
+			(*gt_ProfileMap)[name] = data;
+		}
+
+
+	}
+
+	void PrintProfile()
+	{
+		PROFILE_INIT();
+
+		LogProfile( "Statistics for thread id " << ::GetCurrentThreadId());
+		LogProfile( "-------------------------------------------------------------------------");
+		LogProfile( std::setw(40)<< std::left << "Profiled Name" << std::setw(10) << "Hits" << std::setw(10) << "Cumulative" );
+		LogProfile( "-------------------------------------------------------------------------");
+
+		for (ProfileMap::iterator iter = gt_ProfileMap->begin();
+			iter != gt_ProfileMap->end();
 			iter ++)
 		{
 			ProfileData *data = (*iter).second;
-			cout << std::setw(40)<< std::left << (*iter).first.c_str() << std::setw(10) << data->hits << std::setw(10) << data->avg << std::endl;
+			LogProfile(std::setw(40)<< std::left << (*iter).first.c_str() << std::setw(10) << std::right << data->hits << std::setw(10) << data->avg);
 		}
 
-		cout << "========================================================================="<< std::endl;
+		LogProfile( "========================================================================="<< std::endl);
 
+	}
+
+	FuncProfiler::FuncProfiler(string string)
+	{
+		PROFILE_INIT();
+
+		_funcName = string;
+
+		// what time is it?
+		if (::QueryPerformanceCounter(&_start) == FALSE)
+		{
+			throw;
+		};
+	}
+
+	FuncProfiler::~FuncProfiler(void)
+	{
+		
+		AddProfilingData(_funcName,_start);
+		
 	}
 }
 
 
 
 
-FuncProfiler::FuncProfiler(string string)
-{
-
-	// _start = __rdtsc();
-	_start = ::GetTickCount();
-
-	_funcName = string;
-}
-
-FuncProfiler::~FuncProfiler(void)
-{
-//	__int64 lEnd = __rdtsc();
-	__int64 lEnd = ::GetTickCount();
-
-	
-	ProfileMap::iterator iter = g_ProfileMap->find(_funcName);
-
-	if (iter == g_ProfileMap->end())
-	{
-		ProfileData *data = new ProfileData();
-		data->hits = 1;
-		data->all = lEnd - _start;
-		data->avg = lEnd - _start;
-		(*g_ProfileMap)[_funcName] = data;
-	} else
-	{
-		ProfileData *data = (*iter).second;
-		data->hits++;
-		data->all += (lEnd - _start);
-		data->avg = data->all/(data->hits);
-		(*g_ProfileMap)[_funcName] = data;
-	}
-
-}

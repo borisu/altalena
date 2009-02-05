@@ -20,6 +20,7 @@
 #include "StdAfx.h"
 #include "LpHandle.h"
 #include "CcuLogger.h"
+#include "Profiler.h"
 
 
 
@@ -188,6 +189,8 @@ CcuApiErrorCode
 LpHandle::Send(IN CcuMsgPtr message)
 {
 	FUNCTRACKER;
+
+	::QueryPerformanceCounter(&message->enter_queue_timestamp);
 	
 	if (message->source.proc_id == CCU_UNDEFINED)
 	{
@@ -225,6 +228,10 @@ LpHandle::Read()
 		{
 			_interruptor->SignalDataOut();
 		}
+
+		IX_PROFILE_ADD_DATA(WStringToString(ptr->message_id_str), ptr->enter_queue_timestamp);
+
+
 	} 
 	catch(PoisonException p)
 	{
@@ -279,8 +286,9 @@ LpHandle::WaitForMessagesOnChannel(
 
 		if (wait_res == 0)
 		{
-			channel.reader() >> ptr;
-		} else
+			ptr = Read();
+		} 
+		else
 		{
 			//
 			//  Timeout
@@ -290,17 +298,6 @@ LpHandle::WaitForMessagesOnChannel(
 			res = CCU_API_TIMEOUT;
 			break;
 		}
-
-		//
-		// Reduce the number of waiting 
-		// messages in interruptor.
-		//
-		if (_interruptor != NULL)
-		{
-			_interruptor->SignalDataOut();
-		}
-
-		LogTrace(L">>Received<< message msg=[" << ptr->message_id_str << "] " << this);
 
 		
 		//

@@ -30,6 +30,7 @@
 
 #include "CcuUtils.h"
 #include "CcuLogger.h"
+#include "Profiler.h"
 
 extern "C"
 {

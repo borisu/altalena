@@ -109,6 +109,9 @@ ProcAudio::real_run()
 	CcuMsgPtr shutdown_req = CCU_NULL_MSG;
 	while (shutdownFlag  == FALSE)
 	{
+		
+		IX_PROFILE_CHECK_INTERVAL(27000);
+
 		CcuMsgPtr ptr =  _inbound->WaitForMessages(
 			Seconds(60),
 			err_code,
@@ -211,6 +214,7 @@ void
 ProcAudio::CloseAudioConnection(CcuMsgPtr ptr, ScopedForking &forking)
 {
 	FUNCTRACKER;
+	IX_PROFILE_FUNCTION();
 
 	shared_ptr<CcuMsgRtpCloseConnectionReq> request =
 		shared_dynamic_cast<CcuMsgRtpCloseConnectionReq> (ptr);
@@ -324,6 +328,7 @@ void
 ProcAudio::AllocateAudioConnection(CcuMsgPtr ptr)
 {
 	FUNCTRACKER;
+	IX_PROFILE_FUNCTION();
 
 	// stub
 	{

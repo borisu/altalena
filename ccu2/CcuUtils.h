@@ -114,3 +114,7 @@ StringToWString(const string& s);
 string 
 WStringToString(const wstring& ws);
 
+
+#define DISABLE_SRC_REF
+#define NOLOGS
+#define PROFILE

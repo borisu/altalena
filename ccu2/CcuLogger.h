@@ -19,9 +19,6 @@
 
 #pragma once
 
-
-
-
 using namespace boost;
 using namespace csp;
 using namespace std;
@@ -119,8 +116,6 @@ private:
 #define __FILEW__          _STR2WSTR(__FILE__)
 #define __FUNCTIONW__      _STR2WSTR(__FUNCTION__)
 
-#define DISABLE_SRC_REF
-#define NOLOGS
 
 #define IX_THREAD_ID		L"[" << dec << setw(5) << ::GetCurrentThreadId() << L"," << ::GetCurrentFiber() << L"]"
 
@@ -166,6 +161,12 @@ if (g_logMask & IX_LOG_MASK_CONSOLE)  { std::cout << color;(std::wcout)  << PREF
 
 #define IsDebug()   (g_LogLevel >= IX_LOG_LEVEL_DEBUG)
 
+#ifdef PROFILE
+	#define LogProfile(x)SCOPED_LOG(L"[PRF]:",x, con::bg_black)
+#else
+	#define LogProfile(x)
+#endif
+
 #ifndef NOLOGS
 	#define LogTrace(x) if (g_LogLevel >= IX_LOG_LEVEL_TRACE)		SCOPED_LOG(L"[TRC]:",x, con::bg_black)
 	#define LogDebug(x) if (g_LogLevel >= IX_LOG_LEVEL_DEBUG)		SCOPED_LOG(L"[DBG]:",x, con::bg_black)
@@ -179,6 +180,7 @@ if (g_logMask & IX_LOG_MASK_CONSOLE)  { std::cout << color;(std::wcout)  << PREF
 	#define LogWarnRaw(x)  if (g_LogLevel >= IX_LOG_LEVEL_WARN) SCOPED_LOG_RAW(x)
 	#define LogCritRaw(x)	if (g_LogLevel >= IX_LOG_LEVEL_CRITICAL) SCOPED_LOG_RAW(x)
 
+	
 	#define LogSysError(x) { \
 		mutex::scoped_lock scoped_lock(g_loggerMutex);\
 		(std::wcout) << con::bg_red << PREFIX_WITH_LINE  << L" " << x << L" " << FormatLastSysError(__FUNCTIONW__) << con::fg_white << endl;\

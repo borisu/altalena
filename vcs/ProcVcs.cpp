@@ -42,9 +42,9 @@ void
 ProcIxMain::real_run()
 {
 
-	START_FORKING_REGION;
+	FUNCTRACKER;
 
-	
+	START_FORKING_REGION;
 	
 	//
 	// Start IPC for VCS queue
@@ -91,6 +91,7 @@ ProcIxMain::real_run()
 	CcuMsgPtr event;
 	while(shutdown_flag == FALSE)
 	{
+		IX_PROFILE_CHECK_INTERVAL(25000);
 		
 		int index = -1;
 		CcuApiErrorCode err_code = 
@@ -114,8 +115,6 @@ ProcIxMain::real_run()
 		{
 			shutdown_flag = ProcessInboundMessage(event,forking);
 		}
-
-		csp::CPPCSP_Yield();
 
 	}
 
@@ -302,6 +301,7 @@ int
 IxScript::LuaAnswerCall(CLuaVirtualMachine& vm)
 {
 	FUNCTRACKER;
+	IX_PROFILE_FUNCTION();
 
 	CcuApiErrorCode res = _callSession.AcceptCall();
 
@@ -319,6 +319,7 @@ int
 IxScript::LuaHangupCall(CLuaVirtualMachine& vm)
 {
 	FUNCTRACKER;
+	IX_PROFILE_FUNCTION();
 
 	CcuApiErrorCode res = _callSession.HagupCall();
 
@@ -336,6 +337,7 @@ int
 IxScript::LuaWait(CLuaVirtualMachine& vm)
 {
 	FUNCTRACKER;
+	IX_PROFILE_FUNCTION();
 
 	lua_State *state = (lua_State *) vm;
 	long time_to_sleep  = (long) lua_tonumber (state, -1);

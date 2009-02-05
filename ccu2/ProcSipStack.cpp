@@ -112,8 +112,6 @@ ProcSipStack::Init()
 		_inbound->HandleInterruptor(
 			shared_dynamic_cast<IxInterruptor>(_handleInterruptor));
 
-		I_AM_READY;
-
 		return CCU_API_SUCCESS;
 
 	}
@@ -336,26 +334,17 @@ ProcSipStack::real_run()
 {
 	FUNCTRACKER;
 
-	IX_PROFILE_INIT();
-
 	if (Init() != CCU_API_SUCCESS)
 	{
 		return;
 	}
 
-	BOOL shutdown_flag = FALSE;
+	I_AM_READY;
 
-	
-	long prof_start = ::GetTickCount(); 
+	BOOL shutdown_flag = FALSE;
 	while (shutdown_flag == FALSE)
 	{
-		long prof_end = ::GetTickCount(); 
-		if ((prof_end - prof_start) > 10000)
-		{
-			IX_PROFILE_PRINT();
-			prof_start = ::GetTickCount(); 
-		}
-
+		IX_PROFILE_CHECK_INTERVAL(25000);
 
 		FdSet fdset;
 		_handleInterruptor->buildFdSet(fdset);
