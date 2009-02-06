@@ -23,635 +23,620 @@
 #include "CcuLogger.h"
 #include "Profiler.h"
 
-
-
+namespace ivrworx
+{
 
 #define  CCU_NON_FIBEROUS_THREAD ((PVOID)0x1E00)
 
-typedef 
-map<PVOID, LightweightProcess*> ProcMap;
+	typedef 
+	map<PVOID, LightweightProcess*> ProcMap;
 
-__declspec (thread) ProcMap *tl_procMap= NULL;
+	__declspec (thread) ProcMap *tl_procMap = NULL;
 
 
-LightweightProcess::LightweightProcess(
-	LpHandlePair pair,
-	const wstring &owner_name 
-	):
-_pair(pair),
-_inbound(pair.inbound),
-_outbound(pair.outbound),
-_bucket(new Bucket()),
-_transactionTimeout(5000),
-_transactionTerminator(pair.inbound),
-_processAlias(CCU_UNDEFINED)
-{
-	FUNCTRACKER;
-
-	// process id is as its inbound handle id
-	Init(_inbound->GetObjectUid(), owner_name);
-}
-
-LightweightProcess::LightweightProcess(
-									   LpHandlePair pair,
-									   int process_alias,
-									   const wstring &owner_name
-									   ):
-_pair(pair),
-_inbound(pair.inbound),
-_outbound(pair.outbound),
-_bucket(new Bucket()),
-_transactionTimeout(5000),
-_transactionTerminator(pair.inbound),
-_processAlias(process_alias)
-{
-	FUNCTRACKER;
-
-	// process id is as its inbound handle id
-	Init(_inbound->GetObjectUid(), owner_name);
-}
-
-void
-LightweightProcess::Init(int process_id, wstring owner_name)
-{
-	
-	FUNCTRACKER;
-
-	if (_inbound == _outbound)
+	LightweightProcess::LightweightProcess(
+		IN LpHandlePair pair,
+		IN const wstring &owner_name ):
+	_pair(pair),
+	_inbound(pair.inbound),
+	_outbound(pair.outbound),
+	_bucket(new Bucket()),
+	_transactionTimeout(5000),
+	_transactionTerminator(pair.inbound),
+	_processAlias(IX_UNDEFINED)
 	{
-		throw;
-	}
-	
-	if (_inbound != CCU_NULL_LP_HANDLE)
-	{
-		_inbound->HandleName(owner_name);
+		FUNCTRACKER;
+
+		// process id is as its inbound handle id
+		Init(_inbound->GetObjectUid(), owner_name);
 	}
 
-	if (_outbound!= CCU_NULL_LP_HANDLE)
+	LightweightProcess::LightweightProcess(
+		LpHandlePair pair,
+		int process_alias,
+		const wstring &owner_name
+		):
+	_pair(pair),
+	_inbound(pair.inbound),
+	_outbound(pair.outbound),
+	_bucket(new Bucket()),
+	_transactionTimeout(5000),
+	_transactionTerminator(pair.inbound),
+	_processAlias(process_alias)
 	{
-		_outbound->HandleName(owner_name);
+		FUNCTRACKER;
+
+		// process id is as its inbound handle id
+		Init(_inbound->GetObjectUid(), owner_name);
 	}
-		
-	if (_inbound != CCU_NULL_LP_HANDLE)
+
+	void
+	LightweightProcess::Init(int process_id, wstring owner_name)
 	{
-		_inbound->FirstChanceOOBMsgHandler(this);
+
+		FUNCTRACKER;
+
+		if (_inbound == _outbound)
+		{
+			throw;
+		}
+
+		if (_inbound != CCU_NULL_LP_HANDLE)
+		{
+			_inbound->HandleName(owner_name);
+		}
+
+		if (_outbound != CCU_NULL_LP_HANDLE)
+		{
+			_outbound->HandleName(owner_name);
+		}
+
+		_processId = process_id;
+
+		_inbound->Direction(CCU_MSG_DIRECTION_INBOUND);
+		_outbound->Direction(CCU_MSG_DIRECTION_OUTBOUND);
+
+		_name = owner_name;
+
 	}
 
 
-	_processId = process_id;
 
 
-	_inbound->Direction(CCU_MSG_DIRECTION_INBOUND);
-	_outbound->Direction(CCU_MSG_DIRECTION_OUTBOUND);
-
-	_name = owner_name;
-	
-
-}
-
-
-
-
-BOOL 
-LightweightProcess::HandleOOBMessage(CcuMsgPtr msg)
-{
-	FUNCTRACKER;
-
-	LogDebug("First Chance OOB message=["<< msg->message_id_str <<"]");
-
-	BOOL res = FALSE;
-	switch (msg->message_id)
+	BOOL 
+	LightweightProcess::HandleOOBMessage(IxMsgPtr msg)
 	{
+		FUNCTRACKER;
+
+		LogDebug("First Chance OOB message=["<< msg->message_id_str <<"]");
+
+		switch (msg->message_id)
+		{
 		case CCU_MSG_PING:
 			{
-				LogDebug("Pong!");
 				SendResponse(msg,new CcuMsgPong());
-				res = TRUE;
-				break;
+				return  TRUE;
 			}
 		default:
 			{
-				res =  FALSE;
+				return FALSE;
 			}
-	}
-
-	return res;
-}
-
-void
-LightweightProcess::run()
-{
-	
-	FUNCTRACKER;
-
-	RegistrationGuard guard(_inbound,_processAlias);
-
-	// Created only once -  thread local storage 
-	// of the fibers.
-	if (tl_procMap == NULL)
-	{
-		tl_procMap = new ProcMap();
-	}
-
-	//
-	// register itself within thread 
-	// local storage
-	//
-	PVOID fiber = ::GetCurrentFiber();
-
-	if (tl_procMap->find(fiber) != tl_procMap->end())
-	{
-		LogCrit("Fiber id already exists in the map. Have you run the routine manually?")
-		throw;
-	}
-
-	if (fiber == (PVOID)NULL || 
-		fiber == CCU_NON_FIBEROUS_THREAD )
-	{
-		// should never happen
-		LogCrit("Shut 'er down Clancy, she's pumping mud!")
-		throw;
-	}
-	(*tl_procMap)[fiber] = this;
-
-	LogDebug("=== LP START ===");
-	try
-	{
-		real_run();
-		LogDebug("=== LP END ===");
-	} 
-	catch (std::exception e)
-	{
-		LogDebug("=== LP EXP ===");
-		LogWarn("Exception in process=[" << Name() << "] what=[" << e.what() << "]");
-	}
-	
-	_inbound->Poison();
-
-	_bucket->flush();
-
-	tl_procMap->erase(fiber);
-
-}
-
-wstring 
-LightweightProcess::Name()
-{ 
-	return _name; 
-}
-
-void 
-LightweightProcess::Name(const wstring &val) 
-{
-	_name = val; 
-}
-
-CcuApiErrorCode
-LightweightProcess::SendMessage(CcuProcId qid, 
-								 CcuMessage *message)
-{
-	return SendMessage(qid, CcuMsgPtr(message));
-}
-
-
-CcuApiErrorCode
-LightweightProcess::SendResponse(CcuMsgPtr request, 
-									   CcuMessage* response)
-{
-	
-	
-	response->copy_data_on_response(request.get());
-	return SendMessage(CcuMsgPtr(response));
-
-}
-
-CcuApiErrorCode
-LightweightProcess::SendMessage(CcuProcId qid, 
-								 CcuMsgPtr message)
-{
-	
-	message->dest.proc_id = qid;
-
-	return SendMessage(message);
-}
-
-CcuApiErrorCode
-LightweightProcess::SendMessage(CcuMsgPtr message)
-{
-	
-	IX_PROFILE_FUNCTION();
-
-	int proc_id = message->dest.proc_id;
-	if (message->source.proc_id == CCU_UNDEFINED)
-	{
-		message->source.proc_id = _processId;
-	}
-	
-	
-	LpHandlePtr localHandlePtr;
-
-	// send message via the same IPC interface they arrived from
-	if (message->preferrable_ipc_interface != CCU_UNDEFINED)
-	{
-		localHandlePtr = LocalProcessRegistrar::Instance().GetHandle(message->preferrable_ipc_interface);
-	}
-	
-
-	if (localHandlePtr == CCU_NULL_LP_HANDLE)
-	{
-		localHandlePtr = 
-			LocalProcessRegistrar::Instance().GetHandle(proc_id,message->dest.queue_path);
-	}
-	
-
-	if (localHandlePtr != CCU_NULL_LP_HANDLE)
-	{
-		localHandlePtr->Send(message);
-		return CCU_API_SUCCESS;
-	}
-
-	LogWarn("Unknown destination for message=[" << message->message_id_str 
-		<< "] dest=["<< proc_id << "@" << message->dest.queue_path << "]");
-
-	return CCU_API_FAILURE;
-
-}
-
-int
-LightweightProcess::ProcessId()
-{
-	return _processId;
-}
-
-void
-LightweightProcess::Join(BucketPtr bucket)
-{
-	bucket->fallInto();
-}
-
-
-CcuApiErrorCode
-LightweightProcess::TerminatePendingTransaction(IN std::exception e)
-{
-	_transactionTerminator->Send(new CcuMsgShutdownReq());
-
-	return CCU_API_SUCCESS;
-}
-
-CcuApiErrorCode
-LightweightProcess::DoRequestResponseTransaction(
-	IN LpHandlePtr dest_handle, 
-	IN CcuMsgPtr request, 
-	IN EventsSet &responses,
-	OUT CcuMsgPtr &response,
-	IN Time timout,
-	IN wstring transaction_name)
-{
-
-	FUNCTRACKER;
-
-	DECLARE_NAMED_HANDLE(txn_handle);
-	txn_handle->HandleName(transaction_name); // for logging purposes
-	txn_handle->Direction(CCU_MSG_DIRECTION_INBOUND);
-
-	RegistrationGuard guard(txn_handle);
-
-	request->source.proc_id = txn_handle->GetObjectUid();
-	request->transaction_id = GenerateNewTxnId();
-
-	IX_PROFILE_CODE(dest_handle->Send(request));
-
-	CcuApiErrorCode res = WaitForTxnResponse(
-		txn_handle,
-		responses,
-		response,
-		timout);
-
-	if (res == CCU_API_TIMEOUT)
-	{
-		LogDebug("TIMEOUT txn=[" << request->transaction_id<< "]");
-	}
-
-	return res;
-
-}
-
-CcuApiErrorCode	
-LightweightProcess::DoRequestResponseTransaction(
-	IN CcuProcId dest_proc_id, 
-	IN CcuMsgPtr request, 
-	IN EventsSet &responses, 
-	OUT CcuMsgPtr &response, 
-	IN Time timout, 
-	IN wstring transaction_name)
-{
-
-	FUNCTRACKER;
-
-	DECLARE_NAMED_HANDLE(txn_handle);
-	txn_handle->HandleName(transaction_name);
-	txn_handle->Direction(CCU_MSG_DIRECTION_INBOUND);
-
-	RegistrationGuard guard(txn_handle);
-
-
-	request->source.proc_id = txn_handle->GetObjectUid();
-	request->dest.proc_id = dest_proc_id;
-	request->transaction_id = GenerateNewTxnId();
-
-	CcuApiErrorCode res = SendMessage(request);
-	if (CCU_FAILURE(res))
-	{
-		return res;
-	}
-
-	res = WaitForTxnResponse(
-		txn_handle,
-		responses,
-		response,
-		timout);
-
-	if (res == CCU_API_TIMEOUT)
-	{
-		LogDebug("TIMEOUT txn=[" << request->transaction_id<< "]");
-	}
-
-	return res;
-
-}
-
-CcuApiErrorCode	
-LightweightProcess::WaitForTxnResponse(
-								  IN LpHandlePtr txn_handle,
-								  IN EventsSet &responses,
-								  OUT CcuMsgPtr &response,
-								  IN Time timeout)
-{
-	if (responses.empty())
-	{
-		return CCU_API_SUCCESS;
-	}
-
-	//
-	// Create lists of handles that 
-	// we are waiting messages from.
-	//
-	HandlesList list;
-	int interrupted_handle_index = 0;
-
-	#pragma TODO("Transaction interruptor disabled - I think it caused troubles that many lp process were waiting on the same handle")
-
-	DECLARE_NAMED_HANDLE(transactionTerminator);
-	list.push_back(transactionTerminator);
-	const int txn_term_index = interrupted_handle_index++;
-
-	list.push_back(txn_handle);
-	const int txn_inbound_index = interrupted_handle_index++;
-
-
-	interrupted_handle_index = CCU_UNDEFINED;
-	CcuApiErrorCode res= CCU_API_SUCCESS;
-
-
-	//
-	// Message waiting loop.
-	//
-	long timeLeftToWaitMs = GetMilliSeconds(timeout);
-	while (timeLeftToWaitMs >= 0)
-	{
-		int start = ::GetTickCount();
-
-		CcuApiErrorCode err_code = 
-			SelectFromChannels(
-			list,
-			MilliSeconds(timeLeftToWaitMs), 
-			interrupted_handle_index, 
-			response);
-
-		if (CCU_FAILURE(err_code))
-		{
-			return err_code;
 		}
-		
 
-		if (interrupted_handle_index == txn_term_index)
+	}
+
+	void
+	LightweightProcess::run()
+	{
+
+		FUNCTRACKER;
+
+		RegistrationGuard guard(_inbound,_processAlias);
+
+		// Created only once -  thread local storage 
+		// of the fibers.
+		if (tl_procMap == NULL)
 		{
-			BOOL res = HandleOOBMessage(response);
-			if (res == FALSE)
+			tl_procMap = new ProcMap();
+		}
+
+		//
+		// register itself within thread 
+		// local storage
+		//
+		PVOID fiber = ::GetCurrentFiber();
+
+		if (tl_procMap->find(fiber) != tl_procMap->end())
+		{
+			LogCrit("Fiber id already exists in the map. Have you run the routine manually?")
+			throw;
+		}
+
+		if (fiber == (PVOID)NULL || 
+			fiber == CCU_NON_FIBEROUS_THREAD )
+		{
+			// should never happen
+			LogCrit("Shut 'er down Clancy, she's pumping mud!")
+			throw;
+		}
+
+		(*tl_procMap)[fiber] = this;
+
+		LogDebug("=== LP " << Name() << " START ===");
+		try
+		{
+			real_run();
+		} 
+		catch (std::exception e)
+		{
+			LogWarn("Exception in process=[" << Name() << "] what=[" << e.what() << "]");
+		}
+
+		LogDebug("=== LP " << Name() << " END ===");
+
+		_inbound->Poison();
+
+		_bucket->flush();
+
+		tl_procMap->erase(fiber);
+
+		csp::CPPCSP_Yield();
+
+	}
+
+	wstring 
+	LightweightProcess::Name()
+	{ 
+		return _name; 
+	}
+
+	void 
+	LightweightProcess::Name(IN const wstring &val) 
+	{
+		_name = val; 
+	}
+
+	IxApiErrorCode
+	LightweightProcess::SendMessage(
+		IN IxProcId qid, 
+		IN IxMessage *message)
+	{
+		return SendMessage(qid, IxMsgPtr(message));
+	}
+
+
+	IxApiErrorCode
+	LightweightProcess::SendResponse(
+		IN IxMsgPtr request, 
+		IN IxMessage* response)
+	{
+		IX_PROFILE_CODE(response->copy_data_on_response(request.get()));
+		return SendMessage(IxMsgPtr(response));
+	}
+
+	IxApiErrorCode
+		LightweightProcess::SendMessage(
+		IN IxProcId qid, 
+		IN IxMsgPtr message)
+	{
+
+		message->dest.handle_id = qid;
+		return SendMessage(message);
+	}
+
+	IxApiErrorCode
+	LightweightProcess::SendMessage(IxMsgPtr message)
+	{
+
+		IX_PROFILE_FUNCTION();
+
+		int handle_id = message->dest.handle_id;
+		if (message->source.handle_id == IX_UNDEFINED)
+		{
+			message->source.handle_id = _processId;
+		}
+
+
+		LpHandlePtr localHandlePtr;
+
+		// send message via the same IPC interface they arrived from
+		if (message->preferrable_ipc_interface != IX_UNDEFINED)
+		{
+			localHandlePtr = LocalProcessRegistrar::Instance().GetHandle(message->preferrable_ipc_interface);
+		}
+
+
+		if (localHandlePtr == CCU_NULL_LP_HANDLE)
+		{
+			localHandlePtr = 
+				LocalProcessRegistrar::Instance().GetHandle(handle_id,message->dest.queue_path);
+		}
+
+
+		if (localHandlePtr != CCU_NULL_LP_HANDLE)
+		{
+			localHandlePtr->Send(message);
+			return CCU_API_SUCCESS;
+		}
+
+		LogWarn("Unknown destination for message=[" << message->message_id_str 
+			<< "] dest=["<< handle_id << "@" << message->dest.queue_path << "]");
+
+		return CCU_API_FAILURE;
+
+	}
+
+	int
+	LightweightProcess::ProcessId()
+	{
+		return _processId;
+	}
+
+	void
+	LightweightProcess::Join(BucketPtr bucket)
+	{
+		bucket->fallInto();
+	}
+
+
+	IxApiErrorCode
+	LightweightProcess::TerminatePendingTransaction(IN std::exception e)
+	{
+		_transactionTerminator->Send(new CcuMsgShutdownReq());
+
+		return CCU_API_SUCCESS;
+	}
+
+	IxApiErrorCode
+		LightweightProcess::DoRequestResponseTransaction(
+		IN LpHandlePtr dest_handle, 
+		IN IxMsgPtr request, 
+		OUT IxMsgPtr &response,
+		IN Time timout,
+		IN wstring transaction_name)
+	{
+
+		FUNCTRACKER;
+
+		DECLARE_NAMED_HANDLE(txn_handle);
+		txn_handle->HandleName(transaction_name); // for logging purposes
+		txn_handle->Direction(CCU_MSG_DIRECTION_INBOUND);
+
+		RegistrationGuard guard(txn_handle);
+
+		request->source.handle_id = txn_handle->GetObjectUid();
+		request->transaction_id = GenerateNewTxnId();
+
+		IX_PROFILE_CODE(dest_handle->Send(request));
+
+		IxApiErrorCode res = WaitForTxnResponse(
+			txn_handle,
+			response,
+			timout);
+
+		if (res == CCU_API_TIMEOUT)
+		{
+			LogDebug("TIMEOUT txn=[" << request->transaction_id<< "]");
+		}
+
+		return res;
+
+	}
+
+	IxApiErrorCode	
+		LightweightProcess::DoRequestResponseTransaction(
+		IN IxProcId dest_proc_id, 
+		IN IxMsgPtr request, 
+		OUT IxMsgPtr &response, 
+		IN Time timout, 
+		IN wstring transaction_name)
+	{
+
+		FUNCTRACKER;
+
+		DECLARE_NAMED_HANDLE(txn_handle);
+		txn_handle->HandleName(transaction_name);
+		txn_handle->Direction(CCU_MSG_DIRECTION_INBOUND);
+
+		RegistrationGuard guard(txn_handle);
+
+
+		request->source.handle_id = txn_handle->GetObjectUid();
+		request->dest.handle_id = dest_proc_id;
+		request->transaction_id = GenerateNewTxnId();
+
+		IxApiErrorCode res = SendMessage(request);
+		if (CCU_FAILURE(res))
+		{
+			return res;
+		}
+
+		res = WaitForTxnResponse(
+			txn_handle,
+			response,
+			timout);
+
+		if (res == CCU_API_TIMEOUT)
+		{
+			LogDebug("TIMEOUT txn=[" << request->transaction_id<< "]");
+		}
+
+		return res;
+
+	}
+
+	IxApiErrorCode	
+		LightweightProcess::WaitForTxnResponse(
+		IN LpHandlePtr txn_handle,
+		OUT IxMsgPtr &response,
+		IN Time timeout)
+	{
+
+		//
+		// Create lists of handles that 
+		// we are waiting messages from.
+		//
+		HandlesList list;
+		int interrupted_handle_index = 0;
+
+#pragma TODO("Transaction interruptor disabled - I think it caused troubles that many lp process were waiting on the same handle")
+
+		DECLARE_NAMED_HANDLE(transactionTerminator);
+		list.push_back(transactionTerminator);
+		const int txn_term_index = interrupted_handle_index++;
+
+		list.push_back(txn_handle);
+		const int txn_inbound_index = interrupted_handle_index++;
+
+
+		interrupted_handle_index = IX_UNDEFINED;
+		IxApiErrorCode res= CCU_API_SUCCESS;
+
+
+		//
+		// Message waiting loop.
+		//
+		long timeLeftToWaitMs = GetMilliSeconds(timeout);
+		while (timeLeftToWaitMs >= 0)
+		{
+			int start = ::GetTickCount();
+
+			IxApiErrorCode err_code = 
+				SelectFromChannels(
+				list,
+				MilliSeconds(timeLeftToWaitMs), 
+				interrupted_handle_index, 
+				response);
+
+			if (CCU_FAILURE(err_code))
 			{
-				throw std::exception("Transaction was terminated");
+				return err_code;
+			}
+
+
+			if (interrupted_handle_index == txn_term_index)
+			{
+				BOOL res = HandleOOBMessage(response);
+				if (res == FALSE)
+				{
+					throw std::exception("Transaction was terminated");
+				} 
+				else 
+				{
+					// it was terminator who stopped the transaction, so we have
+					// to give transaction unit one more chance
+					int delta = ::GetTickCount() - start;
+					timeLeftToWaitMs -= delta;
+
+					if (timeLeftToWaitMs < 0)
+					{
+						timeLeftToWaitMs = 0;
+					}
+
+					continue;
+				}
 			} 
 			else 
 			{
-				// it was terminator who stopped the transaction, so we have
-				// to give transaction unit one more chance
-				int delta = ::GetTickCount() - start;
-				timeLeftToWaitMs -= delta;
 
-				if (timeLeftToWaitMs < 0)
-				{
-					timeLeftToWaitMs = 0;
-				}
+				break;
 
-				continue;
 			}
-		} 
-		else 
+		}
+
+		return res;
+
+	}
+
+
+	IxApiErrorCode
+	LightweightProcess::SendReadyMessage()
+	{
+		_outbound->Send(new CcuMsgProcReady());
+
+		return CCU_API_SUCCESS;
+	}
+
+	IxApiErrorCode
+	LightweightProcess::Ping(IxProcId qid)
+	{
+		FUNCTRACKER;
+
+		IxMsgPtr dummy_response = CCU_NULL_MSG;
+
+		IxApiErrorCode res = this->DoRequestResponseTransaction(
+			qid,
+			IxMsgPtr(new CcuMsgPing()),
+			dummy_response,
+			MilliSeconds(_transactionTimeout),
+			L"Ping-Pong TXN");
+
+		return res;
+
+	}
+
+	IxApiErrorCode
+	LightweightProcess::Ping(IN LpHandlePair pair)
+	{
+		FUNCTRACKER;
+
+		IxMsgPtr dummy_response = CCU_NULL_MSG;
+
+		IxApiErrorCode res = this->DoRequestResponseTransaction(
+			pair.inbound,
+			IxMsgPtr(new CcuMsgPing()),
+			dummy_response,
+			MilliSeconds(_transactionTimeout),
+			L"Ping-Pong TXN");
+
+		return res;
+
+	}
+
+
+	IxApiErrorCode
+	LightweightProcess::WaitTillReady(Time time, LpHandlePair pair)
+	{
+
+
+		// CCU_MSG_PROC_READY must be the first message sent
+		// so we do not create special process for running 
+		// the transaction
+		IxApiErrorCode res = CCU_API_FAILURE;
+		IxMsgPtr response = pair.outbound->Wait(
+			time,
+			res);
+
+		if (res == CCU_API_TIMEOUT)
 		{
+			Shutdown(Seconds(0),pair);
+			return CCU_API_FAILURE;
+		}
 
-			break;
-
+		switch (response->message_id)
+		{
+		case CCU_MSG_PROC_READY:
+			{
+				return CCU_API_SUCCESS;
+			}
+		default:
+			{
+				return CCU_API_FAILURE;
+			}
 		}
 	}
 
-	return res;
-
-}
-
-
-CcuApiErrorCode
-LightweightProcess::SendReadyMessage()
-{
-	_outbound->Send(new CcuMsgProcReady());
-
-	return CCU_API_SUCCESS;
-}
-
-CcuApiErrorCode
-LightweightProcess::Ping(CcuProcId qid)
-{
-	FUNCTRACKER;
-
-	CcuMsgPtr dummy_response = CCU_NULL_MSG;
-
-	EventsSet map;
-	map.insert(CCU_MSG_PONG);
-
-	CcuApiErrorCode res = this->DoRequestResponseTransaction(
-		qid,
-		CcuMsgPtr(new CcuMsgPing()),
-		map,
-		dummy_response,
-		MilliSeconds(_transactionTimeout),
-		L"Ping-Pong TXN");
-
-
-	return res;
-
-}
-
-CcuApiErrorCode
-LightweightProcess::Ping(IN LpHandlePair pair)
-{
-	FUNCTRACKER;
-
-	CcuMsgPtr dummy_response = CCU_NULL_MSG;
-
-	EventsSet map;
-	map.insert(CCU_MSG_PONG);
-
-	CcuApiErrorCode res = this->DoRequestResponseTransaction(
-		pair.inbound,
-		CcuMsgPtr(new CcuMsgPing()),
-		map,
-		dummy_response,
-		MilliSeconds(_transactionTimeout),
-		L"Ping-Pong TXN");
-
-	return res;
-
-}
-
-
-CcuApiErrorCode
-LightweightProcess::WaitTillReady(Time time, LpHandlePair pair)
-{
-
-
-	// CCU_MSG_PROC_READY must be the first message sent
-	// so we do not create special process for running 
-	// the transaction
-	CcuApiErrorCode res = CCU_API_FAILURE;
-	pair.outbound->WaitForMessages(
-		time,
-		res,
-		SL(CCU_MSG_PROC_READY));
-
-	if (res == CCU_API_TIMEOUT)
+	IxApiErrorCode
+	LightweightProcess::Shutdown(IN Time time, IN LpHandlePair pair)
 	{
-		Shutdown(Seconds(0),pair);
 
-		return CCU_API_FAILURE;
+		FUNCTRACKER;
+		IxMsgPtr response = CCU_NULL_MSG;
+
+		IxApiErrorCode res = this->DoRequestResponseTransaction(
+			pair.inbound,
+			IxMsgPtr(new CcuMsgShutdownReq()),
+			response,
+			time,
+			L"Shutdown TXN");
+
+		if (CCU_FAILURE(res))
+		{
+			return res;
+		}
+
+		switch (response->message_id)
+		{
+		case CCU_MSG_PROC_SHUTDOWN_ACK:
+			{
+				return CCU_API_SUCCESS;
+			}
+		default:
+			{
+				return CCU_API_FAILURE;
+			}
+		}
 	}
 
-	return CCU_API_SUCCESS;
-
-}
-
-CcuApiErrorCode
-LightweightProcess::Shutdown(IN Time time, IN LpHandlePair pair)
-{
-
-	FUNCTRACKER;
-	CcuMsgPtr response = CCU_NULL_MSG;
-
-	CcuMsgShutdownReq *msg = new CcuMsgShutdownReq();
-
-	EventsSet map;
-	map.insert(CCU_MSG_PROC_SHUTDOWN_ACK);
-
-
-	CcuApiErrorCode res = this->DoRequestResponseTransaction(
-		pair.inbound,
-		CcuMsgPtr(msg),
-		map,
-		response,
-		time,
-		L"Shutdown TXN");
-
-	return res;
-
-}
-
-long 
-LightweightProcess::TransactionTimeout() const 
-{ 
-	return _transactionTimeout; 
-}
-
-void 
-LightweightProcess::TransactionTimeout(long val) 
-{
-	_transactionTimeout = val; 
-}
-
-
-LightweightProcess::~LightweightProcess(void)
-{
-	FUNCTRACKER;
-}
-
-
-BOOL 
-LightweightProcess::InboundPending()
-{
-	return _inbound->InboundPending();
-}
-
-
-CcuMsgPtr 
-LightweightProcess::GetInboundMessage(IN Time timeout, OUT CcuApiErrorCode &res)
-{
-	return _inbound->Wait(timeout, res);
-}
-
-int
-IxGetCurLpId()
-{
-	LightweightProcess *proc = 
-		GetCurrLightWeightProc();
-
-	if (GetCurrLightWeightProc() != NULL )
-	{
-		return proc->ProcessId();
-	} else {
-		return CCU_UNDEFINED;
+	long 
+	LightweightProcess::TransactionTimeout() const 
+	{ 
+		return _transactionTimeout; 
 	}
 
-}
-
-LightweightProcess*
-GetCurrLightWeightProc()
-{
-	PVOID fiber = ::GetCurrentFiber();
-	if (tl_procMap== NULL || 
-		fiber == (PVOID)CCU_NON_FIBEROUS_THREAD || 
-		fiber == NULL)
+	void 
+	LightweightProcess::TransactionTimeout(long val) 
 	{
-		return NULL;
+		_transactionTimeout = val; 
 	}
 
-	LightweightProcess *proc = 
-		(*tl_procMap)[::GetCurrentFiber()];
 
-	return proc;
-
-}
-
-wstring 
-IxGetCurrLpName()
-{
-
-	LightweightProcess *proc = 
-		GetCurrLightWeightProc();
-
-	if (GetCurrLightWeightProc() != NULL )
+	LightweightProcess::~LightweightProcess(void)
 	{
-		return proc->Name();
-	} else {
-		return L"NOT CCU THREAD";
+		FUNCTRACKER;
 	}
 
+
+	BOOL 
+	LightweightProcess::InboundPending()
+	{
+		return _inbound->InboundPending();
+	}
+
+
+	IxMsgPtr 
+	LightweightProcess::GetInboundMessage(IN Time timeout, OUT IxApiErrorCode &res)
+	{
+		return _inbound->Wait(timeout, res);
+	}
+
+	int
+	IxGetCurrLpId()
+	{
+		LightweightProcess *proc = 
+			GetCurrLightWeightProc();
+
+		if (GetCurrLightWeightProc() != NULL )
+		{
+			return proc->ProcessId();
+		} else {
+			return IX_UNDEFINED;
+		}
+
+	}
+
+	LightweightProcess*
+	GetCurrLightWeightProc()
+	{
+		PVOID fiber = ::GetCurrentFiber();
+		if (tl_procMap== NULL || 
+			fiber == (PVOID)CCU_NON_FIBEROUS_THREAD || 
+			fiber == NULL)
+		{
+			return NULL;
+		}
+
+		LightweightProcess *proc = 
+			(*tl_procMap)[::GetCurrentFiber()];
+
+		return proc;
+
+	}
+
+	wstring 
+	IxGetCurrLpName()
+	{
+
+		LightweightProcess *proc = 
+			GetCurrLightWeightProc();
+
+		if (GetCurrLightWeightProc() != NULL )
+		{
+			return proc->Name();
+		} else {
+			return L"NOT CCU THREAD";
+		}
+	}
 }
 
 

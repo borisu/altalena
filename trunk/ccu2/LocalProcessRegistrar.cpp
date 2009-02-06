@@ -3,6 +3,9 @@
 #include "CcuLogger.h"
 #include "Ccu.h"
 
+namespace ivrworx
+{
+
 
 
 LocalProcessRegistrar *
@@ -57,7 +60,7 @@ void
 LocalProcessRegistrar::RegisterChannel(IN int handle_id, IN LpHandlePtr ptr)
 {
 	
-	if (handle_id == CCU_UNDEFINED)
+	if (handle_id == IX_UNDEFINED)
 	{
 		return;
 	}
@@ -81,7 +84,7 @@ LocalProcessRegistrar::RegisterChannel(IN int handle_id, IN LpHandlePtr ptr)
 void
 LocalProcessRegistrar::UnregisterChannel(int handle_id)
 {
-	if (handle_id == CCU_UNDEFINED)
+	if (handle_id == IX_UNDEFINED)
 	{
 		return;
 	}
@@ -226,5 +229,7 @@ LocalProcessRegistrar::GetHandle(int procId,const wstring &qpath)
 		
 		return CCU_NULL_LP_HANDLE;
 	}
+
+}
 
 }

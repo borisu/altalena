@@ -28,7 +28,7 @@
 
 ProcPipeIPCDispatcher::ProcPipeIPCDispatcher( 
 	LpHandlePair pair,
-	CcuProcId qId):
+	IxProcId qId):
 LightweightProcess(pair,__FUNCTIONW__),
 _qId(qId),
 _shutdown_flag(FALSE),
@@ -344,7 +344,7 @@ ProcPipeIPCDispatcher::HandleReadCompletion(PIPEINST &pipe)
 		pipe.chRequest, 
 		std::ios::binary);
 	 	 
-	CcuMessage *ccu_msg = NULL;
+	IxMessage *ccu_msg = NULL;
 	boost::archive::text_wiarchive ia(iss);
 	ia >> ccu_msg;
 
@@ -357,10 +357,10 @@ ProcPipeIPCDispatcher::HandleReadCompletion(PIPEINST &pipe)
 	this->AsyncPipeRead(pipe);	
 	 
 	 
-	LpHandlePtr procHandle = LocalProcessRegistrar::Instance().GetHandle(ccu_msg->dest.proc_id);
+	LpHandlePtr procHandle = LocalProcessRegistrar::Instance().GetHandle(ccu_msg->dest.handle_id);
 	if (procHandle == CCU_NULL_LP_HANDLE)
 	{
-		LogWarn(Name() << " Received message to non-existent process qid=[" << ccu_msg->dest.proc_id<<"]");
+		LogWarn(Name() << " Received message to non-existent process qid=[" << ccu_msg->dest.handle_id<<"]");
 	 	return;
 	}
 	 
@@ -442,7 +442,7 @@ ProcPipeIPCDispatcher::AsyncPipeConnect(PIPEINST &pipe)
 
 
 
-CcuApiErrorCode 
+IxApiErrorCode 
 ProcPipeIPCDispatcher::HandleLocalMsg()
 {
 	FUNCTRACKER;
@@ -453,8 +453,8 @@ ProcPipeIPCDispatcher::HandleLocalMsg()
 		return CCU_API_FAILURE;
 	}
 
-	CcuApiErrorCode res;
-	CcuMsgPtr msg = _inbound->Wait(Seconds(0),res);
+	IxApiErrorCode res;
+	IxMsgPtr msg = _inbound->Wait(Seconds(0),res);
 	if (CCU_FAILURE(res))
 	{
 		throw;
@@ -475,7 +475,7 @@ ProcPipeIPCDispatcher::HandleLocalMsg()
 	}
 
 	msg->source.queue_path = _pipeName;
-	CcuProcId &proc_id = msg->dest.proc_id;
+	IxProcId &proc_id = msg->dest.handle_id;
 
 	
 	//
@@ -572,7 +572,7 @@ ProcPipeIPCDispatcher::HandleLocalMsg()
 	// 
 	std::wostringstream ostream;
 	boost::archive::text_woarchive oa(ostream);
-	CcuMessage *msg_ptr = msg.get();
+	IxMessage *msg_ptr = msg.get();
 	oa & msg_ptr;
 
 	

@@ -32,7 +32,7 @@ public:
 	SimpleRTPStreamer(void);
 	virtual ~SimpleRTPStreamer(void);
 
-	virtual CcuApiErrorCode SyncPlay(
+	virtual IxApiErrorCode SyncPlay(
 		IN string file_name, 
 		IN CnxInfo data);
 

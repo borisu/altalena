@@ -40,83 +40,87 @@ class CcuMsgShutdownEvt:
 public:
 	CcuMsgShutdownEvt():
 	  CcuMsgResponse(CCU_MSG_PROC_SHUTDOWN_EVT, NAME(CCU_MSG_PROC_SHUTDOWN_EVT)),
-		  proc_id(CCU_UNDEFINED){};
-	CcuMsgShutdownEvt(CcuProcId pproc_id):
+		  proc_id(IX_UNDEFINED){};
+	  CcuMsgShutdownEvt(IxProcId pproc_id):
 	  CcuMsgResponse(CCU_MSG_PROC_SHUTDOWN_EVT, NAME(CCU_MSG_PROC_SHUTDOWN_EVT)),
 		  proc_id(pproc_id){};
 
-	CcuProcId proc_id;
+	  IxProcId proc_id;
 };
 BOOST_CLASS_EXPORT(CcuMsgShutdownEvt);
 
-
-class RegistrationGuard
-	:public UIDOwner
+namespace ivrworx
 {
-public:
 
-	RegistrationGuard(IN LpHandlePtr ptr, 
-		IN int process_alias = CCU_UNDEFINED);
+	class RegistrationGuard
+		:public UIDOwner
+	{
+	public:
 
-	~RegistrationGuard();
+		RegistrationGuard(IN LpHandlePtr ptr, 
+			IN int process_alias = IX_UNDEFINED);
 
-private:
+		~RegistrationGuard();
 
-	int _handleUid;
+	private:
 
-	int _aliasId;
+		int _handleUid;
 
-};
+		int _aliasId;
 
-class LocalProcessRegistrar
-{
-	static mutex _instanceMutex;
+	};
 
-	static LocalProcessRegistrar *_instance;
+	class LocalProcessRegistrar
+	{
+		static mutex _instanceMutex;
 
-private:
+		static LocalProcessRegistrar *_instance;
 
-typedef 
-map<int,LpHandlePtr> LocalProcessesMap;
+	private:
 
-	LocalProcessesMap _locProcessesMap;
+		typedef 
+			map<int,LpHandlePtr> LocalProcessesMap;
 
-typedef
-map<CcuProcId, HandlesList> ListenersMap;
+		LocalProcessesMap _locProcessesMap;
 
-	ListenersMap _listenersMap;
+		typedef
+			map<IxProcId, HandlesList> ListenersMap;
 
-typedef
-map<int,int> AliasesMap;
+		ListenersMap _listenersMap;
 
-	AliasesMap _aliasesMap;
+		typedef
+			map<int,int> AliasesMap;
 
-	mutex _mutex;
+		AliasesMap _aliasesMap;
 
-public:
+		mutex _mutex;
 
-	static LocalProcessRegistrar&  Instance();
+	public:
 
-	LocalProcessRegistrar(void);
+		static LocalProcessRegistrar&  Instance();
 
-	virtual ~LocalProcessRegistrar(void);
+		LocalProcessRegistrar(void);
 
-	void RegisterChannel(
-		IN int channel_id, 
-		IN LpHandlePtr hande);
+		virtual ~LocalProcessRegistrar(void);
 
-	void UnregisterChannel(
-		IN int channel_id);
+		void RegisterChannel(
+			IN int channel_id, 
+			IN LpHandlePtr hande);
 
-	void AddShutdownListener(
-		IN int channel_id, 
-		IN LpHandlePtr listener_handle);
+		void UnregisterChannel(
+			IN int channel_id);
 
-	LpHandlePtr GetHandle(
-		IN int channel_id);
+		void AddShutdownListener(
+			IN int channel_id, 
+			IN LpHandlePtr listener_handle);
 
-	LpHandlePtr GetHandle(
-		IN int channel_id, 
-		IN const wstring &qpath);
-};
+		LpHandlePtr GetHandle(
+			IN int channel_id);
+
+		LpHandlePtr GetHandle(
+			IN int channel_id, 
+			IN const wstring &qpath);
+	};
+
+}
 

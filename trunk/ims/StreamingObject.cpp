@@ -68,7 +68,7 @@ StreamingObject::ImsHandle()
 	return _handleId;
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 StreamingObject::Process()
 {
 	bool done = false;
@@ -119,7 +119,7 @@ StreamingObject::Port() const
 	return _port; 
 }
 
-CcuApiErrorCode 
+IxApiErrorCode 
 StreamingObject::Close(PortManager &portManager)
 {
 	if (!_chain.stop())
@@ -133,11 +133,11 @@ StreamingObject::Close(PortManager &portManager)
 
 
 
-CcuApiErrorCode
+IxApiErrorCode
 StreamingObject::Init(PortManager &portManager)
 {
 	
-	CcuApiErrorCode res = CCU_API_SUCCESS;
+	IxApiErrorCode res = CCU_API_SUCCESS;
 
 	do {
 
@@ -220,7 +220,7 @@ StreamingObject::Init(PortManager &portManager)
 		int port_candidate = portManager.GetNextCandidate();
 		bool found = false;
 
-		while (port_candidate != CCU_UNDEFINED && (!found))
+		while (port_candidate != IX_UNDEFINED && (!found))
 		{
 			transmissionParams.SetPortbase(port_candidate);
 			sessionParams.SetOwnTimestampUnit(1.0/((double)CCU_IMS_DEFAULT_SAMPLING_RATE));
@@ -253,7 +253,7 @@ StreamingObject::Init(PortManager &portManager)
 			}
 		}
 
-		if (port_candidate == CCU_UNDEFINED)
+		if (port_candidate == IX_UNDEFINED)
 		{
 			res = CCU_API_FAILURE;
 			break;
@@ -321,10 +321,10 @@ StreamingObject::Init(PortManager &portManager)
 
 	} while (false);
 
-	if (CCU_FAILURE(res) &&  _port != CCU_UNDEFINED)
+	if (CCU_FAILURE(res) &&  _port != IX_UNDEFINED)
 	{
 		portManager.MarkAvailable(_port);
-		_port = CCU_UNDEFINED;
+		_port = IX_UNDEFINED;
 	}
 
 	return res;

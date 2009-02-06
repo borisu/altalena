@@ -37,9 +37,9 @@ rtp_packet(rtpPacket),
 cname(NULL),
 jitter(0),
 timestamp_unit(0),
-source_id (CCU_UNDEFINED),
-timing_info_wallclock (CCU_UNDEFINED),
-timing_info_timestamp (CCU_UNDEFINED),
+source_id (IX_UNDEFINED),
+timing_info_wallclock (IX_UNDEFINED),
+timing_info_timestamp (IX_UNDEFINED),
 timing_info_set(false)
 {
 
@@ -76,7 +76,7 @@ RtpReceiveMsg::~RtpReceiveMsg()
 RTPConnection::RTPConnection(UINT localPort, RelayMemoryManager *mngr ):
 _localPort(localPort),
 _rtpSession(mngr),
-_previousTimestamp(CCU_UNDEFINED),
+_previousTimestamp(IX_UNDEFINED),
 _memMngr(mngr)
 {
 	
@@ -95,7 +95,7 @@ RTPConnection::ConnectionId()
 }
 
 
-CcuApiErrorCode 
+IxApiErrorCode 
 RTPConnection::Init(HANDLE iocpHandle)
 {
 	
@@ -127,7 +127,7 @@ RTPConnection::Init(HANDLE iocpHandle)
 	
 }
 
-CcuApiErrorCode 
+IxApiErrorCode 
 RTPConnection::IssueAsyncIoReq(BOOL rtp)
 {
 	if (_iocpAtrans == NULL)
@@ -175,7 +175,7 @@ RTPConnection::IssueAsyncIoReq(BOOL rtp)
 	
 }
 
-CcuApiErrorCode 
+IxApiErrorCode 
 RTPConnection::AddDestination(IN CnxInfo &data)
 {
 	
@@ -211,7 +211,7 @@ RTPConnection::Destroy()
 	
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 RTPConnection::Poll(OUT RtpPacketsList &packetsList, IN size_t overflow, IN BOOL relayMode, RtpOverlapped *ovlap)
 {
 	
@@ -335,7 +335,7 @@ RTPConnection::Poll(OUT RtpPacketsList &packetsList, IN size_t overflow, IN BOOL
 
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 RTPConnection::SetDestination(IN CnxInfo &data)
 {
 	_rtpSession.ClearDestinations();
@@ -392,7 +392,7 @@ RTPConnection::AsyncRelayRtpPacket(RtpPacketsList &packetsList, bool releasePack
 }
 
 	
-CcuApiErrorCode
+IxApiErrorCode
 RTPConnection::AsyncRelayRtpPacket(RTPPacket *packet)
 {
 

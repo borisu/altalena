@@ -80,17 +80,17 @@ public:
 
 	virtual ~RTPConnection(void);
 
-	virtual CcuApiErrorCode Init(HANDLE iocpHandle);
+	virtual IxApiErrorCode Init(HANDLE iocpHandle);
 
-	virtual CcuApiErrorCode AddDestination(IN CnxInfo &data);
+	virtual IxApiErrorCode AddDestination(IN CnxInfo &data);
 
-	virtual CcuApiErrorCode SetDestination(IN CnxInfo &data);
+	virtual IxApiErrorCode SetDestination(IN CnxInfo &data);
 
 	virtual void Destroy();
 
-	virtual CcuApiErrorCode IssueAsyncIoReq(IN BOOL rtp);
+	virtual IxApiErrorCode IssueAsyncIoReq(IN BOOL rtp);
 
-	virtual CcuApiErrorCode Poll(OUT RtpPacketsList &packetsList, IN size_t overflow, IN BOOL relay_mode, IN RtpOverlapped *ovlap);
+	virtual IxApiErrorCode Poll(OUT RtpPacketsList &packetsList, IN size_t overflow, IN BOOL relay_mode, IN RtpOverlapped *ovlap);
 
 	virtual void AsyncRelayRtpPacket(IN RtpPacketsList &packetsList, bool releasePacket);
 
@@ -104,7 +104,7 @@ public:
 
 private:
 
-	virtual CcuApiErrorCode AsyncRelayRtpPacket(RTPPacket *packet);
+	virtual IxApiErrorCode AsyncRelayRtpPacket(RTPPacket *packet);
 
 	RelayMemoryManager *GetMemoryManager();
 

@@ -24,7 +24,7 @@
 using namespace std;
 
 typedef map<wstring,HANDLE>		WritePipeHandleCache;
-typedef map<CcuProcId,wstring>	PipeDictionary;
+typedef map<IxProcId,wstring>	PipeDictionary;
 
 #define BUFSIZE 4096
 #define CCU_MAX_IPC_CONNECTIONS 10
@@ -59,7 +59,7 @@ class ProcPipeIPCDispatcher :
 {
 public:
 
-	ProcPipeIPCDispatcher(IN LpHandlePair pair, IN CcuProcId proc_id);
+	ProcPipeIPCDispatcher(IN LpHandlePair pair, IN IxProcId proc_id);
 
 	ProcPipeIPCDispatcher(IN LpHandlePair pair, IN wstring pipe_name);
 
@@ -75,7 +75,7 @@ private:
 
 	void AsyncPipeRead(IN PIPEINST &pipe);
 
-	CcuApiErrorCode HandleLocalMsg();
+	IxApiErrorCode HandleLocalMsg();
 
 	void HandleConnectCompletion(IN PIPEINST &pipe);
 
@@ -87,7 +87,7 @@ private:
 
 	PIPEINST _pipeStructs [CCU_MAX_IPC_CONNECTIONS];
 
-	CcuProcId _qId;
+	IxProcId _qId;
 
 	wstring _pipeName;
 

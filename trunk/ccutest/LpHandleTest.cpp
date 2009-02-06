@@ -98,8 +98,8 @@ LpHandleTest::testSelectFromChannels()
 	list.push_back(h2); int h2_index = 1;
 	list.push_back(h3); int h3_index = 2;
 	
-	int index = CCU_UNDEFINED;
-	CcuMsgPtr event;
+	int index = IX_UNDEFINED;
+	IxMsgPtr event;
 
 	// wait with time 0
 	h1->Send(new CcuMsgAck());
@@ -135,7 +135,7 @@ LpHandleTest::testSelectFromChannels()
 
 	
 	// timeout
-	CcuApiErrorCode res = SelectFromChannels(
+	IxApiErrorCode res = SelectFromChannels(
 		list,
 		Seconds(0), 
 		index, 

@@ -19,32 +19,36 @@
 
 #pragma once
 
+namespace ivrworx
+{
 
-
-#define CCU_UNDEFINED -1
+#define IX_UNDEFINED -1
 
 #define CCU_MAX_LONG_LENGTH 255
 #define CCU_MAX_INT_LENGTH	255
 
-enum CcuApiErrorCode
-{
-	CCU_API_SUCCESS = 0,
-	CCU_API_FAILURE,
-	CCU_API_SERVER_FAILURE,
-	CCU_API_TIMEOUT,
-	CCU_API_OUT_OF_BAND,
-	CCU_API_UNKNOWN_PROC_DESTINATION,
-	CCU_API_OPERATION_IN_PROGRESS 
-};
+	enum IxApiErrorCode
+	{
+		CCU_API_SUCCESS = 0,
+		CCU_API_FAILURE,
+		CCU_API_SERVER_FAILURE,
+		CCU_API_TIMEOUT,
+		CCU_API_OUT_OF_BAND,
+		CCU_API_UNKNOWN_PROC_DESTINATION,
+		CCU_API_OPERATION_IN_PROGRESS 
+	};
 
 #define CCU_SUCCESS(x)	((x) == CCU_API_SUCCESS)
 #define CCU_FAILURE(x)	((x) != CCU_API_SUCCESS)
 
 
-typedef int CcuHandleId;
+	typedef int CcuHandleId;
 
-typedef int CcuProcId;
+	typedef int IxProcId;
 
-typedef LARGE_INTEGER IxTimeStamp;
+	typedef LARGE_INTEGER IxTimeStamp;
+
+
+}
 
 

@@ -66,7 +66,7 @@ GenerateSipHandle()
 };
 
 SipDialogContext::SipDialogContext():
-stack_handle(CCU_UNDEFINED)
+stack_handle(IX_UNDEFINED)
 {
 
 }

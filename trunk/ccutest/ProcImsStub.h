@@ -16,11 +16,11 @@ public:
 
 	virtual void real_run();
 
-	virtual void AllocatePlaybackSession(CcuMsgPtr msg);
+	virtual void AllocatePlaybackSession(IxMsgPtr msg);
 
-	virtual void StartPlayback(CcuMsgPtr msg);
+	virtual void StartPlayback(IxMsgPtr msg);
 
-	virtual void StopPlayback(CcuMsgPtr msg);
+	virtual void StopPlayback(IxMsgPtr msg);
 
 	//virtual void UponPlaybackStopped(CcuMsgPtr msg);
 

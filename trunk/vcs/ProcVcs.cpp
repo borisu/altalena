@@ -88,13 +88,13 @@ ProcIxMain::real_run()
 	// Message Loop
 	// 
 	BOOL shutdown_flag = FALSE;
-	CcuMsgPtr event;
+	IxMsgPtr event;
 	while(shutdown_flag == FALSE)
 	{
 		IX_PROFILE_CHECK_INTERVAL(25000);
 		
 		int index = -1;
-		CcuApiErrorCode err_code = 
+		IxApiErrorCode err_code = 
 			SelectFromChannels(
 			list,
 			Seconds(60), 
@@ -134,7 +134,7 @@ ProcIxMain::real_run()
 }
 
 BOOL 
-ProcIxMain::ProcessInboundMessage(IN CcuMsgPtr event, IN ScopedForking &forking)
+ProcIxMain::ProcessInboundMessage(IN IxMsgPtr event, IN ScopedForking &forking)
 {
 	FUNCTRACKER;
 	switch (event->message_id)
@@ -160,7 +160,7 @@ ProcIxMain::ProcessInboundMessage(IN CcuMsgPtr event, IN ScopedForking &forking)
 }
 
 BOOL 
-ProcIxMain::ProcessStackMessage(IN CcuMsgPtr ptr, IN ScopedForking &forking)
+ProcIxMain::ProcessStackMessage(IN IxMsgPtr ptr, IN ScopedForking &forking)
 {
 	FUNCTRACKER;
 
@@ -191,7 +191,7 @@ ProcIxMain::ProcessStackMessage(IN CcuMsgPtr ptr, IN ScopedForking &forking)
 }
 
 ProcScriptRunner::ProcScriptRunner(IN CcuConfiguration &conf,
-								   IN CcuMsgPtr msg, 
+								   IN IxMsgPtr msg, 
 								   IN LpHandlePair stack_pair, 
 								   IN LpHandlePair pair)
 :LightweightProcess(pair,__FUNCTIONW__),
@@ -211,6 +211,7 @@ ProcScriptRunner::~ProcScriptRunner()
 void 
 ProcScriptRunner::real_run()
 {
+#pragma TODO ("Initializing vm and compiling script file is a terrible bottelneck")
 	try
 	{
 		shared_ptr<CcuMsgCallOfferedReq> start_script_msg  = 
@@ -223,24 +224,24 @@ ProcScriptRunner::real_run()
 			*this);
 
 		CLuaVirtualMachine vm;
-		vm.InitialiseVM();
+		IX_PROFILE_CODE(vm.InitialiseVM());
 
 		IxScript script(vm,call_session);
 
-		if (!script.CompileFile(WStringToString(_conf.ScriptFile()).c_str()))
+		bool res = false;
+		IX_PROFILE_CODE(script.CompileFile(WStringToString(_conf.ScriptFile()).c_str()));
+		if (res == false);
 		{
-			LogWarn(">>Error Compiling/Running<< script=[" << _conf.ScriptFile() << "]");
-			SendResponse(_initialMsg, new CcuMsgCallOfferedNack());
+			LogWarn("Error Compiling/Running script=[" << _conf.ScriptFile() << "]");
 			return;
 		}
 
-		LogDebug("script=[" << _conf.ScriptFile() << "], ix call handle=[" << start_script_msg->stack_call_handle <<"]");
+		LogDebug("Script=[" << _conf.ScriptFile() << "], ix call handle=[" << start_script_msg->stack_call_handle <<"] completed successfully.");
 	}
 	catch (std::exception e)
 	{
-		LogWarn("Exception while running script=[ " << _conf.ScriptFile() <<"] e=[" << e.what() << "]");
+		LogWarn("Exception while running script=[ " << _conf.ScriptFile() <<"] e=[" << e.what() << "].");
 	}
-
 
 }
 
@@ -303,7 +304,7 @@ IxScript::LuaAnswerCall(CLuaVirtualMachine& vm)
 	FUNCTRACKER;
 	IX_PROFILE_FUNCTION();
 
-	CcuApiErrorCode res = _callSession.AcceptCall();
+	IxApiErrorCode res = _callSession.AcceptCall();
 
 	if (CCU_SUCCESS(res))
 	{
@@ -321,7 +322,7 @@ IxScript::LuaHangupCall(CLuaVirtualMachine& vm)
 	FUNCTRACKER;
 	IX_PROFILE_FUNCTION();
 
-	CcuApiErrorCode res = _callSession.HagupCall();
+	IxApiErrorCode res = _callSession.HagupCall();
 
 	if (CCU_SUCCESS(res))
 	{

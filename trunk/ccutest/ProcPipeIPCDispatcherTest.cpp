@@ -84,9 +84,9 @@ ProcIPCTester::real_run()
  	FORK(test);
 
 	CcuMsgPing *ping = new CcuMsgPing();
-	ping->dest.proc_id = test->ProcessId();
+	ping->dest.handle_id= test->ProcessId();
 	ping->dest.queue_path = L"\\\\.\\pipe\\TEST_SERVER";
-	ping->source.proc_id = test->ProcessId();
+	ping->source.handle_id = test->ProcessId();
 
 	client_pair.inbound->Send(ping);
 

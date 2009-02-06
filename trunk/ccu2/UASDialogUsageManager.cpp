@@ -24,6 +24,7 @@
 #include "UASAppDialogSetFactory.h"
 #include "Call.h"
 #include "CcuLogger.h"
+#include "Profiler.h"
 
 
 
@@ -74,7 +75,7 @@ UASDialogUsageManager::~UASDialogUsageManager(void)
 }
 
 void
-UASDialogUsageManager::UponCallOfferedNack(CcuMsgPtr req)
+UASDialogUsageManager::UponCallOfferedNack(IxMsgPtr req)
 {
 	shared_ptr<CcuMsgCallOfferedNack> ack = 
 		dynamic_pointer_cast<CcuMsgCallOfferedNack>(req);
@@ -92,12 +93,12 @@ UASDialogUsageManager::UponCallOfferedNack(CcuMsgPtr req)
 
 	_refCcuHandlesMap.erase(ptr->stack_handle);
 	
-	ptr->uas_invite_handle->end();
+	IX_PROFILE_CODE(ptr->uas_invite_handle->end());
 
 }
 
 void 
-UASDialogUsageManager::UponCallOfferedAck(CcuMsgPtr req)
+UASDialogUsageManager::UponCallOfferedAck(IxMsgPtr req)
 {
 	
 	shared_ptr<CcuMsgCalOfferedlAck> ack = 
@@ -124,8 +125,8 @@ UASDialogUsageManager::UponCallOfferedAck(CcuMsgPtr req)
 	SdpContents sdp(&header, type);
 	
 
-	ptr->uas_invite_handle.get()->provideAnswer(sdp);
-	ptr->uas_invite_handle.get()->accept();
+	IX_PROFILE_CODE(ptr->uas_invite_handle.get()->provideAnswer(sdp));
+	IX_PROFILE_CODE(ptr->uas_invite_handle.get()->accept());
 }
 
 
@@ -242,7 +243,7 @@ UASDialogUsageManager::onTerminated(InviteSessionHandle handle , InviteSessionHa
 	FUNCTRACKER;
 
 	
-	CcuStackHandle ixhandle = CCU_UNDEFINED;
+	CcuStackHandle ixhandle = IX_UNDEFINED;
 	ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(handle->getAppDialog());
 	if (iter != _resipHandlesMap.end())
 	{
@@ -330,7 +331,7 @@ UASDialogUsageManager::onAnswer(InviteSessionHandle is, const SipMessage& msg, c
 }
 
 
-CcuApiErrorCode 
+IxApiErrorCode 
 UASDialogUsageManager::HangupCall(SipDialogContextPtr ptr)
 {
 	FUNCTRACKER;

@@ -42,7 +42,7 @@ class CcuMsgAllocateImsSessionReq:
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(remote_media_data);
 		SERIALIZE_FIELD(file_name);
 	}
@@ -58,19 +58,19 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgAllocateImsSessionReq)
 
 class CcuMsgAllocateImsSessionAck:
-	public CcuMessage
+	public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(playback_handle);
 		SERIALIZE_FIELD(ims_media);
 	}
 public:
 	CcuMsgAllocateImsSessionAck():
-	  CcuMessage(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK, 
+	  IxMessage(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK, 
 		  NAME(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK)),
-	  playback_handle(CCU_UNDEFINED){};
+	  playback_handle(IX_UNDEFINED){};
 
 	  int playback_handle;
 
@@ -79,15 +79,15 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgAllocateImsSessionAck)
 
 class CcuMsgAllocateImsSessionNack:
-	public CcuMessage
+	public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 public:
 	CcuMsgAllocateImsSessionNack():
-	  CcuMessage(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK, 
+	  IxMessage(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK, 
 		  NAME(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK)){};
 
 };
@@ -98,14 +98,14 @@ class CcuMsgStartPlayReq:
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(playback_handle);
 		SERIALIZE_FIELD(send_provisional);
 	}
 public:
 	CcuMsgStartPlayReq():
 	  CcuMsgRequest(CCU_MSG_START_PLAYBACK_REQUEST, NAME(CCU_MSG_START_PLAYBACK_REQUEST)),
-	  playback_handle(CCU_UNDEFINED),
+	  playback_handle(IX_UNDEFINED),
 	  send_provisional(false){};
 
 	  int playback_handle;
@@ -115,31 +115,31 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgStartPlayReq)
 
 class CcuMsgImsStartPlayReqAck:
-	public CcuMessage
+	public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 public:
 	CcuMsgImsStartPlayReqAck():
-	  CcuMessage(CCU_MSG_IMS_START_PLAY_REQ_ACK, NAME(CCU_MSG_IMS_START_PLAY_REQ_ACK)){};
+	  IxMessage(CCU_MSG_IMS_START_PLAY_REQ_ACK, NAME(CCU_MSG_IMS_START_PLAY_REQ_ACK)){};
 
 };
 BOOST_CLASS_EXPORT(CcuMsgImsStartPlayReqAck)
 
 class CcuMsgStartPlayReqNack:
-	public CcuMessage
+	public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(playback_handle);
 	}
 public:
 	CcuMsgStartPlayReqNack():
-	  CcuMessage(CCU_MSG_IMS_START_PLAY_REQ_NACK, NAME(CCU_MSG_IMS_START_PLAY_REQ_NACK)),
-	  playback_handle(CCU_UNDEFINED){};
+	  IxMessage(CCU_MSG_IMS_START_PLAY_REQ_NACK, NAME(CCU_MSG_IMS_START_PLAY_REQ_NACK)),
+	  playback_handle(IX_UNDEFINED){};
 
 	  int playback_handle;
 };
@@ -147,23 +147,23 @@ BOOST_CLASS_EXPORT(CcuMsgStartPlayReqNack)
 
 
 class CcuMsgImsPlayStopped:
-	public CcuMessage
+	public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(playback_handle);
 		SERIALIZE_FIELD(error);
 	}
 public:
 	CcuMsgImsPlayStopped():
-	  CcuMessage(CCU_MSG_IMS_PLAY_STOPPED, NAME(CCU_MSG_IMS_PLAY_STOPPED)),
-	  playback_handle(CCU_UNDEFINED),
+	  IxMessage(CCU_MSG_IMS_PLAY_STOPPED, NAME(CCU_MSG_IMS_PLAY_STOPPED)),
+	  playback_handle(IX_UNDEFINED),
 	  error(CCU_API_FAILURE){};
 
 	  int playback_handle;
 
-	  CcuApiErrorCode error;
+	  IxApiErrorCode error;
 };
 BOOST_CLASS_EXPORT(CcuMsgImsPlayStopped)
 

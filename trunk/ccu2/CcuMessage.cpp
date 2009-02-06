@@ -15,14 +15,14 @@ int GenerateNewTxnId()
 }
 
 
-wstring DumpAsXml(CcuMsgPtr msg)
+wstring DumpAsXml(IxMsgPtr msg)
 {
 	return L"";
 
 	std::wostringstream ostream;
 	archive::xml_woarchive oa(ostream);
 
-	CcuMessage *message = msg.get();
+	IxMessage *message = msg.get();
 	oa & BOOST_SERIALIZATION_NVP(message);
 
 	return ostream.str();

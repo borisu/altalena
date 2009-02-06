@@ -128,7 +128,7 @@ private:
 #endif
 
 
-#define FUNCTRACKER LoggerTracker _ltTag(__FUNCTIONW__) 
+
 
 #define LOG_HANDLE(x) hex << (x)
 
@@ -186,6 +186,8 @@ if (g_logMask & IX_LOG_MASK_CONSOLE)  { std::cout << color;(std::wcout)  << PREF
 		(std::wcout) << con::bg_red << PREFIX_WITH_LINE  << L" " << x << L" " << FormatLastSysError(__FUNCTIONW__) << con::fg_white << endl;\
 	}
 
+	#define FUNCTRACKER LoggerTracker _ltTag(__FUNCTIONW__) 
+
 #else
 
 	#define LogTrace(x) 
@@ -200,8 +202,10 @@ if (g_logMask & IX_LOG_MASK_CONSOLE)  { std::cout << color;(std::wcout)  << PREF
 	#define LogWarnRaw(x)  
 	#define LogCritRaw(x)
 
-	#define LogSysError(x) 
+	#define LogSysError(x)
 
+	#define FUNCTRACKER  
+	
 #endif
 
 

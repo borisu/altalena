@@ -47,7 +47,7 @@ class CcuMsgRtpAllocateNewConnectionReq:
 private:
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(remote_end);
 	}
 
@@ -62,19 +62,19 @@ BOOST_CLASS_EXPORT(CcuMsgRtpAllocateNewConnectionReq);
 
 
 class CcuMsgRtpAllocateConnectionAck: 
-	public CcuMessage
+	public IxMessage
 {
 private:
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD( connection_media);
 		SERIALIZE_FIELD(connection_id);
 	}
 
 public:
 	CcuMsgRtpAllocateConnectionAck():
-	  CcuMessage(CCU_MSG_ALLOCATE_NEW_CONNECTION_ACK, NAME(CCU_MSG_ALLOCATE_NEW_CONNECTION_ACK)){};
+	  IxMessage(CCU_MSG_ALLOCATE_NEW_CONNECTION_ACK, NAME(CCU_MSG_ALLOCATE_NEW_CONNECTION_ACK)){};
 
 	  CnxInfo connection_media;
 
@@ -84,16 +84,16 @@ BOOST_CLASS_EXPORT(CcuMsgRtpAllocateConnectionAck);
 
 
 class CcuMsgRtpAllocateConnectionNack: 
-	public CcuMessage
+	public IxMessage
 {
 private:
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 public:
 	CcuMsgRtpAllocateConnectionNack():
-	  CcuMessage(CCU_MSG_ALLOCATE_NEW_CONNECTION_NACK, NAME(CCU_MSG_ALLOCATE_NEW_CONNECTION_NACK)){};
+	  IxMessage(CCU_MSG_ALLOCATE_NEW_CONNECTION_NACK, NAME(CCU_MSG_ALLOCATE_NEW_CONNECTION_NACK)){};
 
 };
 BOOST_CLASS_EXPORT(CcuMsgRtpAllocateConnectionNack);
@@ -104,7 +104,7 @@ class CcuMsgModifyConnectionReq:
 private:
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(connection_id);
 		SERIALIZE_FIELD(remote_media_data);
 	}
@@ -126,15 +126,15 @@ private:
 
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(connection_id1);
 		SERIALIZE_FIELD(connection_id2);
 	}
 public:
 	CcuMsgRtpBridgeConnectionsReq():
 	  CcuMsgRequest(CCU_MSG_BRIDGE_CONNECTIONS_REQ, NAME(CCU_MSG_BRIDGE_CONNECTIONS_REQ)),
-		  connection_id1(CCU_UNDEFINED),
-		  connection_id2(CCU_UNDEFINED){};
+		  connection_id1(IX_UNDEFINED),
+		  connection_id2(IX_UNDEFINED){};
 
 	  int connection_id1;
 
@@ -144,32 +144,32 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgRtpBridgeConnectionsReq);
 
 class CcuMsgRtpBridgeConnectionsAck: 
-	public CcuMessage
+	public IxMessage
 {
 private:
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 public:
 	CcuMsgRtpBridgeConnectionsAck():
-	  CcuMessage(CCU_MSG_BRIDGE_CONNECTIONS_ACK, NAME(CCU_MSG_BRIDGE_CONNECTIONS_ACK)){};
+	  IxMessage(CCU_MSG_BRIDGE_CONNECTIONS_ACK, NAME(CCU_MSG_BRIDGE_CONNECTIONS_ACK)){};
 
 };
 BOOST_CLASS_EXPORT(CcuMsgRtpBridgeConnectionsAck);
 
 
 class CcuMsgRtpBridgeConnectionsNack: 
-	public CcuMessage
+	public IxMessage
 {
 private:
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 public:
 	CcuMsgRtpBridgeConnectionsNack():
-	  CcuMessage(CCU_MSG_BRIDGE_CONNECTIONS_NACK, NAME(CCU_MSG_BRIDGE_CONNECTIONS_NACK)){};
+	  IxMessage(CCU_MSG_BRIDGE_CONNECTIONS_NACK, NAME(CCU_MSG_BRIDGE_CONNECTIONS_NACK)){};
 
 };
 
@@ -180,7 +180,7 @@ class CcuMsgRtpCloseConnectionReq:
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(connection_id);
 	}
 public:

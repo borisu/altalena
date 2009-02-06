@@ -49,7 +49,7 @@ ProcTestStub::~ProcTestStub(void)
 }
 
 BOOL 
-ProcTestStub::HandleOOBMessage(CcuMsgPtr msg)
+ProcTestStub::HandleOOBMessage(IxMsgPtr msg)
 {
 	LightweightProcess::HandleOOBMessage(msg);
 	return TRUE;
@@ -63,8 +63,8 @@ ProcTestStub::real_run()
 	while(1)
 	{
 		
-		CcuApiErrorCode res;
-		CcuMsgPtr ptr = _inbound->Wait(Seconds(0),res);
+		IxApiErrorCode res;
+		IxMsgPtr ptr = _inbound->Wait(Seconds(0),res);
 		if (CCU_FAILURE(res))
 		{
 			throw;

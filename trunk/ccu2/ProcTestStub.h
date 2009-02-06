@@ -31,7 +31,7 @@ public:
 
 	virtual ~ProcTestStub(void);
 
-	virtual BOOL HandleOOBMessage(CcuMsgPtr msg);
+	virtual BOOL HandleOOBMessage(IxMsgPtr msg);
 
 	virtual void real_run();
 

@@ -28,7 +28,7 @@ using namespace ivrworx;
 Call::Call(IN LpHandlePair stack_pair, 
 		   IN LightweightProcess &parent_process):
 _stackPair(stack_pair),
-_stackCallHandle(CCU_UNDEFINED),
+_stackCallHandle(IX_UNDEFINED),
 _parentProcess(parent_process),
 _hangupDetected(FALSE),
 _handlerPair(HANDLE_PAIR)
@@ -78,11 +78,11 @@ Call::~Call(void)
 	_hangupDetected = TRUE;
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 Call::WaitForDtmf(IN wstring &dtmf_digit, IN Time timeout)
 {
-	CcuApiErrorCode res = CCU_API_SUCCESS;
-	CcuMsgPtr ptr = _dtmfChannel.Wait(timeout,res);
+	IxApiErrorCode res = CCU_API_SUCCESS;
+	IxMsgPtr ptr = _dtmfChannel.Wait(timeout,res);
 
 	if (CCU_FAILURE(res))
 	{
@@ -99,7 +99,7 @@ Call::WaitForDtmf(IN wstring &dtmf_digit, IN Time timeout)
 
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 Call::RejectCall()
 {
 	FUNCTRACKER;
@@ -114,7 +114,7 @@ Call::RejectCall()
 
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 Call::HagupCall()
 {
 	
@@ -122,7 +122,7 @@ Call::HagupCall()
 
 	LogDebug("Hanging up the call - ix stack handle=[" << _stackCallHandle << "].");
 
-	if (_stackCallHandle == CCU_UNDEFINED || 
+	if (_stackCallHandle == IX_UNDEFINED || 
 		_callState == IX_CALL_NONE		  || 
 		_callState == IX_CALL_TERMINATED)
 	{
@@ -133,14 +133,14 @@ Call::HagupCall()
 
 	_stackPair.inbound->Send(msg);
 
-	_stackCallHandle = CCU_UNDEFINED;
+	_stackCallHandle = IX_UNDEFINED;
 
 	_hangupDetected = TRUE;
 
 	return CCU_API_SUCCESS;
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 Call::AcceptCall(IN CnxInfo local_media)
 {
 	
@@ -149,20 +149,15 @@ Call::AcceptCall(IN CnxInfo local_media)
 
 	LogDebug("Accepting call - ix stack handle=[" << _stackCallHandle << "].");
 
-	CcuMsgPtr response = CCU_NULL_MSG;
+	IxMsgPtr response = CCU_NULL_MSG;
 	
 	CcuMsgCalOfferedlAck *ack = new CcuMsgCalOfferedlAck();
 	ack->stack_call_handle = _stackCallHandle;
 	ack->local_media = local_media;
 
-
-	EventsSet map;
-	map.insert(CCU_MSG_CALL_CONNECTED);
-
-	CcuApiErrorCode res = _parentProcess.DoRequestResponseTransaction(
+	IxApiErrorCode res = _parentProcess.DoRequestResponseTransaction(
 		_stackPair.inbound,
-		CcuMsgPtr(ack),
-		map,
+		IxMsgPtr(ack),
 		response,
 		MilliSeconds(_parentProcess.TransactionTimeout()),
 		L"Accept Call TXN");
@@ -209,8 +204,8 @@ Call::call_handler_run()
 	BOOL shutdown_flag = FALSE;
 	while (!shutdown_flag)
 	{
-		CcuApiErrorCode res = CCU_API_SUCCESS;
-		CcuMsgPtr message = _handlerPair.inbound->Wait(Seconds(10),res);
+		IxApiErrorCode res = CCU_API_SUCCESS;
+		IxMsgPtr message = _handlerPair.inbound->Wait(Seconds(10),res);
 
 		if (res == CCU_API_TIMEOUT)
 		{
@@ -250,7 +245,7 @@ Call::call_handler_run()
 
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 Call::MakeCall(IN wstring destination_uri, 
 			   IN CnxInfo local_media)
 {
@@ -258,21 +253,17 @@ Call::MakeCall(IN wstring destination_uri,
 
 	_localMedia = local_media;
 
-	CcuMsgPtr response = CCU_NULL_MSG;
+	IxMsgPtr response = CCU_NULL_MSG;
 
 	CcuMsgMakeCallReq *msg = new CcuMsgMakeCallReq();
 	msg->local_media = local_media;
 	msg->destination_uri = destination_uri;
 	msg->call_handler_inbound = _handlerPair.inbound;
 
-	EventsSet map;
-	map.insert(CCU_MSG_MAKE_CALL_ACK);
-	map.insert(CCU_MSG_MAKE_CALL_NACK);
 
-	CcuApiErrorCode res = _parentProcess.DoRequestResponseTransaction(
+	IxApiErrorCode res = _parentProcess.DoRequestResponseTransaction(
 		_stackPair.inbound,
-		CcuMsgPtr(msg),
-		map,
+		IxMsgPtr(msg),
 		response,
 		Seconds(60),
 		L"Make Call TXN");

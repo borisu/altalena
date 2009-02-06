@@ -48,17 +48,17 @@ public:
 protected:
 
 	BOOL ProcessStackMessage(
-		IN CcuMsgPtr event,
+		IN IxMsgPtr event,
 		IN ScopedForking &forking
 		);
 
 	BOOL ProcessInboundMessage(
-		IN CcuMsgPtr event,
+		IN IxMsgPtr event,
 		IN ScopedForking &forking
 		);
 
 	void StartScript(
-		IN CcuMsgPtr msg);
+		IN IxMsgPtr msg);
 
 private:
 
@@ -83,7 +83,7 @@ public:
 
 	ProcScriptRunner(
 		IN CcuConfiguration &conf,
-		IN CcuMsgPtr msg, 
+		IN IxMsgPtr msg, 
 		IN LpHandlePair stack_pair, 
 		IN LpHandlePair pair);
 
@@ -93,7 +93,7 @@ public:
 
 private:
 
-	CcuMsgPtr _initialMsg;
+	IxMsgPtr _initialMsg;
 
 	LpHandlePair _stackPair;
 

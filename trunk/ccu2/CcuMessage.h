@@ -21,10 +21,10 @@
 
 #include "CcuCommon.h"
 
-
 using namespace std;
 using namespace boost;
 using namespace boost::serialization;
+using namespace ivrworx;
 
 int GenerateNewTxnId();
 
@@ -48,29 +48,30 @@ enum CcuMessageId
 
 };
 
+
 class IpcAdddress
 {
 private:
 
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_FIELD(proc_id);
+		SERIALIZE_FIELD(handle_id);
 		SERIALIZE_FIELD(queue_path);
 	}
 
 public:
 	IpcAdddress()
 	{
-		proc_id   = CCU_UNDEFINED;
+		handle_id   = IX_UNDEFINED;
 	}
 
 	IpcAdddress(const IpcAdddress& other)
 	{
-		proc_id		= other.proc_id;
+		handle_id		= other.handle_id;
 		queue_path	= other.queue_path;
 	}
 
-	int proc_id;
+	int handle_id;
 
 	wstring queue_path;
 
@@ -78,7 +79,7 @@ public:
 BOOST_CLASS_EXPORT(IpcAdddress);
 
 
-class CcuMessage :
+class IxMessage :
 	public boost::noncopyable // must not be copied but only passed as shared pointer or serialized via network
 {
 private:
@@ -94,10 +95,10 @@ private:
 	}
 
 protected:
-	CcuMessage (int message_id, const wstring message_id_str):
+	IxMessage (int message_id, const wstring message_id_str):
 		 transaction_id(-1),
 		 is_response(FALSE),
-		 preferrable_ipc_interface(CCU_UNDEFINED)
+		 preferrable_ipc_interface(IX_UNDEFINED)
 	{
 		::QueryPerformanceCounter(&enter_queue_timestamp);
 		this->message_id = message_id;
@@ -121,12 +122,12 @@ public:
 
 	IxTimeStamp enter_queue_timestamp;
 
-	virtual ~CcuMessage()
+	virtual ~IxMessage()
 	{
 		
 	}
 
-	virtual void copy_data_on_response(IN CcuMessage *request)
+	virtual void copy_data_on_response(IN IxMessage *request)
 	{
 		transaction_id = request->transaction_id;
 		dest = request->source;
@@ -134,30 +135,30 @@ public:
 	};
 
 };
-BOOST_IS_ABSTRACT(CcuMessage);
+BOOST_IS_ABSTRACT(IxMessage);
 
 
 typedef 
-boost::shared_ptr<CcuMessage> CcuMsgPtr;
+boost::shared_ptr<IxMessage> IxMsgPtr;
 
-#define CCU_NULL_MSG CcuMsgPtr((CcuMessage*)NULL)
+#define CCU_NULL_MSG IxMsgPtr((IxMessage*)NULL)
 
-wstring DumpAsXml(CcuMsgPtr msg);
+wstring DumpAsXml(IxMsgPtr msg);
 
 class CcuMsgRequest:
-	public CcuMessage
+	public IxMessage
 {
 private:
 	BOOST_SERIALIZATION_REGION
 	{
 		// serialize base class information
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(is_response);
 	}
 
 public:
 	CcuMsgRequest(int message_id, const wstring message_id_str):
-	  CcuMessage (message_id, message_id_str)
+	  IxMessage (message_id, message_id_str)
 	  {
 		  transaction_id = GenerateNewTxnId();
 	  };
@@ -165,19 +166,19 @@ public:
 BOOST_IS_ABSTRACT(CcuMsgRequest);
 
 class CcuMsgResponse:
-	public CcuMessage
+	public IxMessage
 {
 private:
 	BOOST_SERIALIZATION_REGION
 	{
 		// serialize base class information
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(is_response);
 	}
 
 public:
 	CcuMsgResponse(int message_id, const wstring message_id_str):
-	  CcuMessage (message_id, message_id_str)
+	  IxMessage (message_id, message_id_str)
 	  {
 		  is_response = TRUE;
 	  }
@@ -224,7 +225,7 @@ class CcuMsgPing :
 private:
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 public:
 
@@ -252,7 +253,7 @@ class CcuMsgShutdownReq:
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 public:
 
@@ -276,30 +277,30 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgShutdownAck);
 
 class CcuMsgProcReady:
-	public CcuMessage
+	public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 
 public:
 	CcuMsgProcReady():
-	  CcuMessage(CCU_MSG_PROC_READY, 
+	  IxMessage(CCU_MSG_PROC_READY, 
 		  NAME(CCU_MSG_PROC_READY)){}
 };
 BOOST_CLASS_EXPORT(CcuMsgProcReady);
 
 class CcuMsgProcFailure:
-	public CcuMessage
+	public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 public:
 	CcuMsgProcFailure():
-	  CcuMessage(CCU_MSG_PROC_FAILURE, 
+	  IxMessage(CCU_MSG_PROC_FAILURE, 
 		  NAME(CCU_MSG_PROC_FAILURE)){}
 };
 BOOST_CLASS_EXPORT(CcuMsgProcFailure);

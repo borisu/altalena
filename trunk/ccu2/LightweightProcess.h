@@ -22,10 +22,12 @@
 #include "UIDOwner.h"
 #include "LpHandle.h"
 
-
 using namespace csp;
 using namespace boost;
 using namespace std;
+
+namespace ivrworx
+{
 
 #define I_AM_READY SendReadyMessage();
 
@@ -36,8 +38,7 @@ typedef
 shared_ptr<Bucket> BucketPtr;
 
 class LightweightProcess: 
-	public CSProcess, 
-	public IFirstChanceOOBMsgHandler
+	public CSProcess
 {
 public:
 
@@ -71,77 +72,74 @@ public:
 	virtual void Name(IN const wstring &val);
 
 
-	virtual CcuApiErrorCode SendMessage(
-		IN CcuProcId dest_channel_id, 
-		IN CcuMessage* message);
+	virtual IxApiErrorCode SendMessage(
+		IN IxProcId dest_channel_id, 
+		IN IxMessage* message);
 
-	virtual CcuApiErrorCode SendMessage(
-		IN CcuProcId dest_channel_id, 
-		IN CcuMsgPtr message);
+	virtual IxApiErrorCode SendMessage(
+		IN IxProcId dest_channel_id, 
+		IN IxMsgPtr message);
 
-	virtual CcuApiErrorCode SendMessage(
-		IN CcuMsgPtr message);
+	virtual IxApiErrorCode SendMessage(
+		IN IxMsgPtr message);
 
-	virtual CcuApiErrorCode SendResponse(
-		IN CcuMsgPtr request, 
-		IN CcuMessage* response);
+	virtual IxApiErrorCode SendResponse(
+		IN IxMsgPtr request, 
+		IN IxMessage* response);
 
 	virtual BOOL HandleOOBMessage(
-		IN CcuMsgPtr msg);
+		IN IxMsgPtr msg);
 
 	virtual BOOL InboundPending();
 
-	virtual CcuMsgPtr GetInboundMessage(IN Time timeout, OUT CcuApiErrorCode &res);
+	virtual IxMsgPtr GetInboundMessage(IN Time timeout, OUT IxApiErrorCode &res);
 
 	long TransactionTimeout() const ;
 
 	void TransactionTimeout(long val);
 
-	CcuApiErrorCode TerminatePendingTransaction(
+	IxApiErrorCode TerminatePendingTransaction(
 		IN std::exception e);
 
-	CcuApiErrorCode SendReadyMessage();
+	IxApiErrorCode SendReadyMessage();
 
 	//
 	// Process Management
 	//
-	CcuApiErrorCode Ping(
-		IN CcuProcId qid); 
+	IxApiErrorCode Ping(
+		IN IxProcId qid); 
 
-	CcuApiErrorCode Ping(
+	IxApiErrorCode Ping(
 		IN LpHandlePair pair); 
 
-	CcuApiErrorCode Shutdown(
+	IxApiErrorCode Shutdown(
 		IN Time timeout, 
 		IN LpHandlePair pair);
 
-	CcuApiErrorCode WaitTillReady(
+	IxApiErrorCode WaitTillReady(
 		IN Time timeout, 
 		IN LpHandlePair pair);
 
 	//
 	// Transaction Management
 	//
-	CcuApiErrorCode	DoRequestResponseTransaction(
-		IN CcuProcId dest_proc_id, 
-		IN CcuMsgPtr request, 
-		IN EventsSet &responses,
-		OUT CcuMsgPtr &response,
+	IxApiErrorCode	DoRequestResponseTransaction(
+		IN IxProcId dest_proc_id, 
+		IN IxMsgPtr request, 
+		OUT IxMsgPtr &response,
 		IN Time timout,
 		IN wstring transaction_name);
 
-	CcuApiErrorCode	DoRequestResponseTransaction(
+	IxApiErrorCode	DoRequestResponseTransaction(
 		IN LpHandlePtr dest_handle, 
-		IN CcuMsgPtr request, 
-		IN EventsSet &responses,
-		OUT CcuMsgPtr &response,
+		IN IxMsgPtr request, 
+		OUT IxMsgPtr &response,
 		IN Time timout,
 		IN wstring transaction_name);
 
-	CcuApiErrorCode WaitForTxnResponse(
+	IxApiErrorCode WaitForTxnResponse(
 		IN LpHandlePtr txn_handle,
-		IN EventsSet &responses,
-		OUT CcuMsgPtr &response,
+		OUT IxMsgPtr &response,
 		IN Time timout);
 
 	LpHandlePair _pair;
@@ -149,9 +147,6 @@ public:
 	LpHandlePtr _inbound;
 
 	LpHandlePtr _outbound;
-
-
-	friend class ScopedRTPConnectionGuard;
 
 protected:
 
@@ -258,9 +253,9 @@ wstring
 IxGetCurrLpName();
 
 int
-IxGetCurLpId();
+IxGetCurrLpId();
 
-
+}
 
 
 

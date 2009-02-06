@@ -94,7 +94,7 @@ SimpleRTPStreamer::playTime()
 	return _playTime;
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 SimpleRTPStreamer::SyncPlay(string file_name, CnxInfo data)
 {
 

@@ -46,13 +46,13 @@ public:
 
 private:
 
-	void AllocateAudioConnection(IN CcuMsgPtr ptr);
+	void AllocateAudioConnection(IN IxMsgPtr ptr);
 
-	void CloseAudioConnection(IN CcuMsgPtr ptr, IN ScopedForking &forking);
+	void CloseAudioConnection(IN IxMsgPtr ptr, IN ScopedForking &forking);
 
-	void BridgeConnections(IN CcuMsgPtr ptr);
+	void BridgeConnections(IN IxMsgPtr ptr);
 
-	void ModifyConnection(IN CcuMsgPtr ptr);
+	void ModifyConnection(IN IxMsgPtr ptr);
 
 	CnxInfo _mediaData;
 
