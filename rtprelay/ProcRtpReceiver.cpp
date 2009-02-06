@@ -40,7 +40,7 @@ ProcRtpReceiver::~ProcRtpReceiver(void)
 }
 
 void
-ProcRtpReceiver::AddConnection(CcuMsgPtr message)
+ProcRtpReceiver::AddConnection(IxMsgPtr message)
 {
 	
 	FUNCTRACKER;
@@ -50,7 +50,7 @@ ProcRtpReceiver::AddConnection(CcuMsgPtr message)
 
 	RTPConnection *connection = add_msg->rtp_connection;
 
-	CcuApiErrorCode res = connection->IssueAsyncIoReq(TRUE);
+	IxApiErrorCode res = connection->IssueAsyncIoReq(TRUE);
 	if (CCU_FAILURE(res))
 	{
 		LogWarn(">>Cannot Issue<< the I/O request for RTP - the connection will stay idle.");
@@ -197,8 +197,8 @@ ProcRtpReceiver::ProcessCcuMessage(OUT BOOL &shutdown_flag)
 		return;
 	}
 	
-	CcuApiErrorCode res;
-	CcuMsgPtr message = GetInboundMessage(Seconds(0),res);
+	IxApiErrorCode res;
+	IxMsgPtr message = GetInboundMessage(Seconds(0),res);
 	if (CCU_FAILURE(res))
 	{
 		throw;
@@ -317,7 +317,7 @@ ProcRtpReceiver::ProccessReadCompletion(RtpOverlapped *ovlap)
 	}
 
 
-	CcuApiErrorCode res = 
+	IxApiErrorCode res = 
 		source_connection->Poll(packetsList,overflow,true,ovlap);
 	RTPDelete(ovlap, GetMemoryManager());
 

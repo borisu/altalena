@@ -96,19 +96,19 @@ public:
 
 	virtual void real_run();
 
-	virtual CcuApiErrorCode Init();
+	virtual IxApiErrorCode Init();
 
-	virtual void UponMakeCall(CcuMsgPtr req);
+	virtual void UponMakeCall(IxMsgPtr req);
 
-	virtual void UponHangupCall(CcuMsgPtr req);
+	virtual void UponHangupCall(IxMsgPtr req);
 
-	virtual void UponStartRegistration(CcuMsgPtr req);
+	virtual void UponStartRegistration(IxMsgPtr req);
 
-	virtual void ShutDown(CcuMsgPtr req);
+	virtual void ShutDown(IxMsgPtr req);
 
-	virtual void UponCallOfferedAck(CcuMsgPtr req);
+	virtual void UponCallOfferedAck(IxMsgPtr req);
 
-	virtual void UponCallOfferedNack(CcuMsgPtr req);
+	virtual void UponCallOfferedNack(IxMsgPtr req);
 
 	virtual void ShutDown();
 

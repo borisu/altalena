@@ -104,23 +104,17 @@ ProcAudio::real_run()
 
 	I_AM_READY;
 
-	CcuApiErrorCode err_code = CCU_API_SUCCESS;
+	IxApiErrorCode err_code = CCU_API_SUCCESS;
 	BOOL shutdownFlag = FALSE;
-	CcuMsgPtr shutdown_req = CCU_NULL_MSG;
+	IxMsgPtr shutdown_req = CCU_NULL_MSG;
 	while (shutdownFlag  == FALSE)
 	{
 		
 		IX_PROFILE_CHECK_INTERVAL(27000);
 
-		CcuMsgPtr ptr =  _inbound->WaitForMessages(
+		IxMsgPtr ptr =  _inbound->Wait(
 			Seconds(60),
-			err_code,
-			SL(
-			CCU_MSG_ALLOCATE_NEW_CONNECTION_REQ,
-			CCU_MSG_BRIDGE_CONNECTIONS_REQ,
-			CCU_CLOSE_CONNECTION_REQ,
-			CCU_MSG_PROC_SHUTDOWN_REQ,
-			CCU_MSG_MODIFY_CONNECTION_REQ));
+			err_code);
 
 		
 		if (err_code == CCU_API_TIMEOUT)
@@ -161,8 +155,13 @@ ProcAudio::real_run()
 			}
 		default:
 			{
-				LogWarn("Received OOB message id=[" << ptr->message_id << "]");
-				_ASSERT	(false);
+				BOOL res = HandleOOBMessage(ptr);
+				if (res == FALSE)
+				{
+					LogCrit("Received OOB message id=[" << ptr->message_id << "]");
+					throw;
+				}
+
 			}
 
 		}
@@ -184,7 +183,7 @@ ProcAudio::real_run()
 }
 
 void
-ProcAudio::ModifyConnection(IN CcuMsgPtr ptr)
+ProcAudio::ModifyConnection(IN IxMsgPtr ptr)
 {
 	FUNCTRACKER;
 
@@ -211,7 +210,7 @@ ProcAudio::ModifyConnection(IN CcuMsgPtr ptr)
 }
 
 void 
-ProcAudio::CloseAudioConnection(CcuMsgPtr ptr, ScopedForking &forking)
+ProcAudio::CloseAudioConnection(IxMsgPtr ptr, ScopedForking &forking)
 {
 	FUNCTRACKER;
 	IX_PROFILE_FUNCTION();
@@ -254,7 +253,7 @@ ProcAudio::CloseAudioConnection(CcuMsgPtr ptr, ScopedForking &forking)
 }
 
 void 
-ProcAudio::BridgeConnections(CcuMsgPtr ptr)
+ProcAudio::BridgeConnections(IxMsgPtr ptr)
 {
 	FUNCTRACKER;
 
@@ -325,7 +324,7 @@ ProcAudio::BridgeConnections(CcuMsgPtr ptr)
 
 
 void
-ProcAudio::AllocateAudioConnection(CcuMsgPtr ptr)
+ProcAudio::AllocateAudioConnection(IxMsgPtr ptr)
 {
 	FUNCTRACKER;
 	IX_PROFILE_FUNCTION();
@@ -363,7 +362,7 @@ ProcAudio::AllocateAudioConnection(CcuMsgPtr ptr)
 	
 
 	RTPConnection *conn = NULL;
-	while(curr_port_slot_candidate != CCU_UNDEFINED)
+	while(curr_port_slot_candidate != IX_UNDEFINED)
 	{
 			
 		conn = 	new RTPConnection(curr_port_slot_candidate, &_memManager);
@@ -462,14 +461,11 @@ ProcRTPConnectionRemover::real_run()
 
 	msg->rtp_connection = _rtpConn;
 
-	CcuMsgPtr response_ptr;
-	EventsSet responses;
-	responses.insert(CCU_MSG_RTPRECEIVER_REMOVE_ACK);
+	IxMsgPtr response_ptr;
 
-	CcuApiErrorCode res = DoRequestResponseTransaction(
+	IxApiErrorCode res = DoRequestResponseTransaction(
 		_receiverHandle,
-		CcuMsgPtr(msg),
-		responses,
+		IxMsgPtr(msg),
 		response_ptr,
 		Seconds(60),
 		L"Close RTP Connection TXN"

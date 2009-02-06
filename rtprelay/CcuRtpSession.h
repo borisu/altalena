@@ -29,18 +29,18 @@ public:
 
 	virtual ~CcuRtpSession(void);
 
-	CcuApiErrorCode	AllocateRTPConnection(
+	IxApiErrorCode	AllocateRTPConnection(
 		IN  CnxInfo remote_end);
 
-	CcuApiErrorCode	AllocateRTPConnection();
+	IxApiErrorCode	AllocateRTPConnection();
 
-	CcuApiErrorCode	ModifyRTPConnection(
+	IxApiErrorCode	ModifyRTPConnection(
 		IN CnxInfo media_data);
 
-	CcuApiErrorCode	BridgeRTPConnection(
+	IxApiErrorCode	BridgeRTPConnection(
 		IN const CcuRtpSession &other);
 
-	CcuApiErrorCode CloseRTPConnection(); 
+	IxApiErrorCode CloseRTPConnection(); 
 
 	CnxInfo LocalMediaData() const;
 

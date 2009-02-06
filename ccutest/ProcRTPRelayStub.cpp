@@ -14,7 +14,7 @@ MockRtpConnection::MockRtpConnection(const MockRtpConnection& other)
 
 ProcRTPRelayStub::ProcRTPRelayStub(LpHandlePair pair):
 LightweightProcess(pair,RTP_RELAY_Q,__FUNCTIONW__),
-_rtpHandleCounter(CCU_UNDEFINED)
+_rtpHandleCounter(IX_UNDEFINED)
 {
 }
 
@@ -25,21 +25,15 @@ ProcRTPRelayStub::~ProcRTPRelayStub(void)
 void
 ProcRTPRelayStub::real_run()
 {
-	CcuApiErrorCode err_code = CCU_API_SUCCESS;
+	IxApiErrorCode err_code = CCU_API_SUCCESS;
 	BOOL shutdownFlag = FALSE;
-	CcuMsgPtr shutdown_req = CCU_NULL_MSG;
+	IxMsgPtr shutdown_req = CCU_NULL_MSG;
 
 	while (shutdownFlag  == FALSE)
 	{
-		CcuMsgPtr ptr =  _inbound->WaitForMessages(
+		IxMsgPtr ptr =  _inbound->Wait(
 			Seconds(60),
-			err_code,
-			SL(
-			CCU_MSG_ALLOCATE_NEW_CONNECTION_REQ,
-			CCU_MSG_BRIDGE_CONNECTIONS_REQ,
-			CCU_CLOSE_CONNECTION_REQ,
-			CCU_MSG_PROC_SHUTDOWN_REQ,
-			CCU_MSG_MODIFY_CONNECTION_REQ));
+			err_code);
 
 
 		if (err_code == CCU_API_TIMEOUT)
@@ -92,7 +86,7 @@ ProcRTPRelayStub::real_run()
 
 
 void
-ProcRTPRelayStub::AllocateAudioConnection(IN CcuMsgPtr ptr)
+ProcRTPRelayStub::AllocateAudioConnection(IN IxMsgPtr ptr)
 {
 	shared_ptr<CcuMsgRtpAllocateNewConnectionReq> ac_msg =
 		shared_dynamic_cast<CcuMsgRtpAllocateNewConnectionReq>(ptr);
@@ -117,7 +111,7 @@ ProcRTPRelayStub::AllocateAudioConnection(IN CcuMsgPtr ptr)
 }
 
 void
-ProcRTPRelayStub::CloseAudioConnection(IN CcuMsgPtr ptr)
+ProcRTPRelayStub::CloseAudioConnection(IN IxMsgPtr ptr)
 {
 	shared_ptr<CcuMsgRtpCloseConnectionReq> request =
 		shared_dynamic_cast<CcuMsgRtpCloseConnectionReq> (ptr);
@@ -128,7 +122,7 @@ ProcRTPRelayStub::CloseAudioConnection(IN CcuMsgPtr ptr)
 }
 
 void
-ProcRTPRelayStub::BridgeConnections(IN CcuMsgPtr ptr)
+ProcRTPRelayStub::BridgeConnections(IN IxMsgPtr ptr)
 {
 	shared_ptr<CcuMsgRtpBridgeConnectionsReq> request =
 		shared_dynamic_cast<CcuMsgRtpBridgeConnectionsReq> (ptr);
@@ -154,7 +148,7 @@ ProcRTPRelayStub::BridgeConnections(IN CcuMsgPtr ptr)
 }
 
 void
-ProcRTPRelayStub:: ModifyConnection(IN CcuMsgPtr ptr)
+ProcRTPRelayStub:: ModifyConnection(IN IxMsgPtr ptr)
 {
 	shared_ptr<CcuMsgModifyConnectionReq> request =
 		shared_dynamic_cast<CcuMsgModifyConnectionReq> (ptr);

@@ -31,11 +31,11 @@ public:
 
 	virtual ~JSONConfiguration(void);
 
-	CcuApiErrorCode InitFromFile(const wstring &filename);
+	IxApiErrorCode InitFromFile(const wstring &filename);
 
-	CcuApiErrorCode InitFromString(const wstring &is);
+	IxApiErrorCode InitFromString(const wstring &is);
 
-	CcuApiErrorCode InitDb();
+	IxApiErrorCode InitDb();
 
 
 private:

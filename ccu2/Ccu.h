@@ -64,8 +64,8 @@ struct IxCodec
 
 	IxCodec()
 		:name(L"INVALID"),
-		rate(CCU_UNDEFINED),
-		mapping(CCU_UNDEFINED)
+		rate(IX_UNDEFINED),
+		mapping(IX_UNDEFINED)
 	{
 		init_strings();
 	};
@@ -268,7 +268,7 @@ public:
 	CnxInfo()
 	{
 		addr.sin_addr.s_addr = INADDR_NONE;
-		addr.sin_port = CCU_UNDEFINED;
+		addr.sin_port = IX_UNDEFINED;
 	}
 
 	bool is_ip_valid() const
@@ -278,7 +278,7 @@ public:
 
 	bool is_port_valid() const
 	{
-		return (addr.sin_port != CCU_UNDEFINED);
+		return (addr.sin_port != IX_UNDEFINED);
 	}
 
 	CnxInfo(const CnxInfo &x)

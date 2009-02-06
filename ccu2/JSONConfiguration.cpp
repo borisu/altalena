@@ -71,7 +71,7 @@ JSONConfiguration::~JSONConfiguration(void)
 {
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 JSONConfiguration::InitFromFile(const wstring &filename)
 {
 	wifstream is(WStringToString(filename).c_str());
@@ -83,12 +83,12 @@ JSONConfiguration::InitFromFile(const wstring &filename)
 	}
 
 
-	CcuApiErrorCode res = InitDb();
+	IxApiErrorCode res = InitDb();
 	return res;
 
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 JSONConfiguration::InitFromString(const wstring &is)
 {
 	
@@ -97,14 +97,14 @@ JSONConfiguration::InitFromString(const wstring &is)
 		return CCU_API_FAILURE;
 	}
 
-	CcuApiErrorCode res = InitDb();
+	IxApiErrorCode res = InitDb();
 	return res;
 
 }
 
 
 
-CcuApiErrorCode
+IxApiErrorCode
 JSONConfiguration::InitDb()
 {
 
@@ -135,7 +135,7 @@ JSONConfiguration::InitDb()
 	const int rtp_relay_top_port_int = find_int(root_obj, L"rtp_relay_top_port" );
 	const int rtp_relay_bottom_port_int = find_int(root_obj, L"rtp_relay_bottom_port" );
 
-	_rtpRelayIp = CnxInfo(vcs_ip_str,CCU_UNDEFINED);
+	_rtpRelayIp = CnxInfo(vcs_ip_str,IX_UNDEFINED);
 
 	_rtpRelayTopPort = rtp_relay_top_port_int;
 	_rtpRelayBottomPort = rtp_relay_bottom_port_int;

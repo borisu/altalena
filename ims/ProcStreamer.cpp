@@ -64,7 +64,7 @@ ProcStreamer::real_run()
 
 	while (shutdownFlag != TRUE)
 	{
-		CcuApiErrorCode res = CCU_API_SUCCESS;
+		IxApiErrorCode res = CCU_API_SUCCESS;
 
 		// we should hit the check point once in 
 		// polling period. If not - adapt sleeping 
@@ -101,7 +101,7 @@ ProcStreamer::real_run()
 
 		if (InboundPending())
 		{
-			CcuMsgPtr ptr = GetInboundMessage(Seconds(0),res);
+			IxMsgPtr ptr = GetInboundMessage(Seconds(0),res);
 			if (CCU_FAILURE(res))
 			{
 				throw;
@@ -142,7 +142,7 @@ ProcStreamer::real_run()
 		{
 			StreamingObject *obj = (*iter); 
 
-			CcuApiErrorCode streaming_result = obj->Process();
+			IxApiErrorCode streaming_result = obj->Process();
 			if (streaming_result != CCU_API_OPERATION_IN_PROGRESS)
 			{
 				iter = _streamingObjectsSet.erase(iter);
@@ -163,7 +163,7 @@ ProcStreamer::real_run()
 }
 
 void
-ProcStreamer::AddStreamingObject(CcuMsgPtr req)
+ProcStreamer::AddStreamingObject(IxMsgPtr req)
 {
 	shared_ptr<CcuMsgAddStreamingObjectReq> add_req 
 		= dynamic_pointer_cast<CcuMsgAddStreamingObjectReq> (req);
@@ -172,7 +172,7 @@ ProcStreamer::AddStreamingObject(CcuMsgPtr req)
 }
 
 void 
-ProcStreamer::RemoveStreamingObject(CcuMsgPtr req)
+ProcStreamer::RemoveStreamingObject(IxMsgPtr req)
 {
 	shared_ptr<CcuMsgAddStreamingObjectReq> remove_req 
 		= dynamic_pointer_cast<CcuMsgAddStreamingObjectReq> (remove_req);

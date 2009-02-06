@@ -83,7 +83,7 @@ UACDialogUsageManager::CreateSdp(IN CnxInfo &data)
 
 }
 
-CcuApiErrorCode 
+IxApiErrorCode 
 UACDialogUsageManager::HangupCall(SipDialogContextPtr ptr)
 {
 	FUNCTRACKER;
@@ -99,8 +99,8 @@ UACDialogUsageManager::HangupCall(SipDialogContextPtr ptr)
 }
 
 
-CcuApiErrorCode 
-UACDialogUsageManager::MakeCall(IN CcuMsgPtr ptr)
+IxApiErrorCode 
+UACDialogUsageManager::MakeCall(IN IxMsgPtr ptr)
 {
 	FUNCTRACKER;
 

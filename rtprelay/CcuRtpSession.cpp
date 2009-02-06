@@ -23,14 +23,14 @@
 
 
 CcuRtpSession::CcuRtpSession(LightweightProcess &facade):
-_connectionId(CCU_UNDEFINED),
+_connectionId(IX_UNDEFINED),
 _facade(facade)
 {
 }
 
 CcuRtpSession::~CcuRtpSession(void)
 {
-	if (_connectionId != CCU_UNDEFINED)
+	if (_connectionId != IX_UNDEFINED)
 	{
 		CloseRTPConnection();
 	}
@@ -39,32 +39,26 @@ CcuRtpSession::~CcuRtpSession(void)
 }
 
 
-CcuApiErrorCode
+IxApiErrorCode
 CcuRtpSession::AllocateRTPConnection()
 {
 	return AllocateRTPConnection(CnxInfo());
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 CcuRtpSession::AllocateRTPConnection(IN CnxInfo remote_end)
 {
 	FUNCTRACKER;
 	IX_PROFILE_FUNCTION();
 
-	CcuMsgPtr response = CCU_NULL_MSG;
-
-	EventsSet map;
-	map.insert(CCU_MSG_ALLOCATE_NEW_CONNECTION_ACK);
-	map.insert(CCU_MSG_ALLOCATE_NEW_CONNECTION_NACK);
-
+	IxMsgPtr response = CCU_NULL_MSG;
 
 	CcuMsgRtpAllocateNewConnectionReq *msg = new CcuMsgRtpAllocateNewConnectionReq();
 	msg->remote_end = remote_end;
 
-	CcuApiErrorCode res = _facade.DoRequestResponseTransaction(
+	IxApiErrorCode res = _facade.DoRequestResponseTransaction(
 		RTP_RELAY_Q,
-		CcuMsgPtr(msg),
-		map,
+		IxMsgPtr(msg),
 		response,
 		Time(MilliSeconds(_facade.TransactionTimeout())),
 		L"Allocate RTP Connection TXN");
@@ -103,26 +97,20 @@ CcuRtpSession::AllocateRTPConnection(IN CnxInfo remote_end)
 
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 CcuRtpSession::ModifyRTPConnection(IN CnxInfo media_data)
 {
 	FUNCTRACKER;
 
-	CcuMsgPtr response = CCU_NULL_MSG;
+	IxMsgPtr response = CCU_NULL_MSG;
 
 	CcuMsgModifyConnectionReq *msg = new CcuMsgModifyConnectionReq();
 	msg->remote_media_data = media_data;
 	msg->connection_id = _connectionId;
 
-	EventsSet map;
-	map.insert(CCU_MSG_MODIFY_CONNECTION_REQ);
-	map.insert(CCU_MSG_ACK);
-	map.insert(CCU_MSG_NACK);
-
-	CcuApiErrorCode res = _facade.DoRequestResponseTransaction(
+	IxApiErrorCode res = _facade.DoRequestResponseTransaction(
 		RTP_RELAY_Q,
-		CcuMsgPtr(msg),
-		map,
+		IxMsgPtr(msg),
 		response,
 		MilliSeconds(_facade.TransactionTimeout()),
 		L"Modify Connection TXN");
@@ -156,24 +144,19 @@ CcuRtpSession::ModifyRTPConnection(IN CnxInfo media_data)
 
 
 
-CcuApiErrorCode
+IxApiErrorCode
 CcuRtpSession::BridgeRTPConnection(IN const CcuRtpSession &other)
 {
 	FUNCTRACKER;
-	CcuMsgPtr response = CCU_NULL_MSG;
+	IxMsgPtr response = CCU_NULL_MSG;
 
 	CcuMsgRtpBridgeConnectionsReq *msg = new CcuMsgRtpBridgeConnectionsReq();
 	msg->connection_id1 = _connectionId;
 	msg->connection_id2 = other._connectionId;
 
-	EventsSet map;
-	map.insert(CCU_MSG_BRIDGE_CONNECTIONS_ACK);
-	map.insert(CCU_MSG_BRIDGE_CONNECTIONS_NACK);
-
-	CcuApiErrorCode res = _facade.DoRequestResponseTransaction(
+	IxApiErrorCode res = _facade.DoRequestResponseTransaction(
 		RTP_RELAY_Q,
-		CcuMsgPtr(msg),
-		map,
+		IxMsgPtr(msg),
 		response,
 		MilliSeconds(_facade.TransactionTimeout()),
 		L"Bridge RTP Connection TXN");
@@ -187,6 +170,7 @@ CcuRtpSession::BridgeRTPConnection(IN const CcuRtpSession &other)
 	{
 	case CCU_MSG_BRIDGE_CONNECTIONS_ACK:
 		{
+			res = CCU_API_SUCCESS;
 			break;
 		}
 	case CCU_MSG_BRIDGE_CONNECTIONS_NACK:
@@ -203,34 +187,28 @@ CcuRtpSession::BridgeRTPConnection(IN const CcuRtpSession &other)
 
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 CcuRtpSession::CloseRTPConnection()
 {
 	FUNCTRACKER;
 	IX_PROFILE_FUNCTION();
 
-	if (_connectionId == CCU_UNDEFINED)
+	if (_connectionId == IX_UNDEFINED)
 	{
 		return CCU_API_SUCCESS;
 	}
 
-	CcuMsgPtr response = CCU_NULL_MSG;
+	IxMsgPtr response = CCU_NULL_MSG;
 
 	CcuMsgRtpCloseConnectionReq *msg = new CcuMsgRtpCloseConnectionReq();
 	msg->connection_id = _connectionId;
 
-
-	EventsSet map;
-	map.insert(CCU_MSG_ACK);
-	map.insert(CCU_MSG_NACK);
-
 	//
-	_connectionId = CCU_UNDEFINED;
+	_connectionId = IX_UNDEFINED;
 
-	CcuApiErrorCode res = _facade.DoRequestResponseTransaction(
+	IxApiErrorCode res = _facade.DoRequestResponseTransaction(
 		RTP_RELAY_Q,
-		CcuMsgPtr(msg),
-		map,
+		IxMsgPtr(msg),
 		response,
 		MilliSeconds(_facade.TransactionTimeout()),
 		L"Close Connection RTP Connection TXN");

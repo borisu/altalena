@@ -37,17 +37,17 @@ typedef
 set<StreamingObject*> StreamingObjectSet;
 
 class CcuMsgAddStreamingObjectReq
-	: public CcuMessage
+	: public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(id);
 	}
 public:
 
 	CcuMsgAddStreamingObjectReq():
-	CcuMessage(CCU_MSG_STREAMER_ADD_REQ, NAME(CCU_MSG_STREAMER_ADD_REQ)),
+	IxMessage(CCU_MSG_STREAMER_ADD_REQ, NAME(CCU_MSG_STREAMER_ADD_REQ)),
 		obj(NULL){};
 
 	StreamingObject *obj;
@@ -58,18 +58,18 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgAddStreamingObjectReq)
 
 class CcuMsgRemoveStreamingObjectReq
-	: public CcuMessage
+	: public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(handle);
 	}
 public:
 
 	CcuMsgRemoveStreamingObjectReq():
-	CcuMessage(CCU_MSG_STREAMER_REMOVE_REQ, NAME(CCU_MSG_STREAMER_REMOVE_REQ)),
-		handle(CCU_UNDEFINED){};
+	IxMessage(CCU_MSG_STREAMER_REMOVE_REQ, NAME(CCU_MSG_STREAMER_REMOVE_REQ)),
+		handle(IX_UNDEFINED){};
 
 	int handle;
 };
@@ -77,16 +77,16 @@ BOOST_CLASS_EXPORT(CcuMsgRemoveStreamingObjectReq)
 
 
 class CcuMsgRemoveStreamingObjectAck
-	: public CcuMessage
+	: public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 public:
 
 	CcuMsgRemoveStreamingObjectAck():
-	  CcuMessage(CCU_MSG_STREAMER_REMOVE_ACK, NAME(CCU_MSG_STREAMER_REMOVE_ACK)),
+	  IxMessage(CCU_MSG_STREAMER_REMOVE_ACK, NAME(CCU_MSG_STREAMER_REMOVE_ACK)),
 		  obj(NULL){};
 
 	  StreamingObject *obj;
@@ -94,22 +94,22 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgRemoveStreamingObjectAck)
 
 class CcuMsgStreamingStopped
-	: public CcuMessage
+	: public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(error);
 	}
 public:
 
 	CcuMsgStreamingStopped():
-	CcuMessage(CCU_MSG_STREAMING_STOPPED_EVT, NAME(CCU_MSG_STREAMING_STOPPED_EVT)),
+	IxMessage(CCU_MSG_STREAMING_STOPPED_EVT, NAME(CCU_MSG_STREAMING_STOPPED_EVT)),
 		obj(NULL){};
 
 	StreamingObject *obj;
 
-	CcuApiErrorCode error;
+	IxApiErrorCode error;
 };
 BOOST_CLASS_EXPORT(CcuMsgStreamingStopped)
 
@@ -125,9 +125,9 @@ public:
 
 private:
 
-	virtual void AddStreamingObject(CcuMsgPtr req);
+	virtual void AddStreamingObject(IxMsgPtr req);
 
-	virtual void RemoveStreamingObject(CcuMsgPtr req);
+	virtual void RemoveStreamingObject(IxMsgPtr req);
 
 	StreamingObjectSet _streamingObjectsSet;
 

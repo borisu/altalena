@@ -17,65 +17,67 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 #pragma once
 #include "Ccu.h"
 
-
 using namespace std;
 
-class CcuConfiguration
+namespace ivrworx
 {
-public:
 
-	CcuConfiguration(void);
-	
-	virtual ~CcuConfiguration(void);
+	class CcuConfiguration
+	{
+	public:
 
-	virtual int RtpRelayBottomPort();
+		CcuConfiguration(void);
 
-	virtual int RtpRelayTopPort();
+		virtual ~CcuConfiguration(void);
 
-	virtual CnxInfo DefaultCnxInfo();
+		virtual int RtpRelayBottomPort();
 
-	virtual CnxInfo VcsCnxInfo();
+		virtual int RtpRelayTopPort();
 
-	virtual CnxInfo RtpRelayIp();
+		virtual CnxInfo DefaultCnxInfo();
 
-	virtual wstring ScriptFile();
+		virtual CnxInfo VcsCnxInfo();
 
-	virtual void AddCodec(const IxCodec& codec);
+		virtual CnxInfo RtpRelayIp();
 
-	virtual void AddCodec(const IxCodec* codec);
+		virtual wstring ScriptFile();
 
-	virtual const CodecsList& CodecList();
+		virtual void AddCodec(const IxCodec& codec);
 
-	virtual wstring From();
+		virtual void AddCodec(const IxCodec* codec);
 
-	virtual wstring FromDisplay();
+		virtual const CodecsList& CodecList();
 
-protected:
+		virtual wstring From();
 
-	mutex _mutex;
+		virtual wstring FromDisplay();
 
-	CnxInfo _defaultIp;
+	protected:
 
-	CnxInfo _vcsMediaData;
+		mutex _mutex;
 
-	CnxInfo _rtpRelayIp;
+		CnxInfo _defaultIp;
 
-	int _rtpRelayTopPort;
+		CnxInfo _vcsMediaData;
 
-	int _rtpRelayBottomPort;
+		CnxInfo _rtpRelayIp;
 
-	wstring _scriptFile;
+		int _rtpRelayTopPort;
 
-	CodecsList _codecsList;
+		int _rtpRelayBottomPort;
 
-	wstring _from;
+		wstring _scriptFile;
 
-	wstring _fromDisplay;
+		CodecsList _codecsList;
 
-};
+		wstring _from;
 
+		wstring _fromDisplay;
+
+	};
+
+}
 

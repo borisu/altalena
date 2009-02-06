@@ -36,11 +36,11 @@ public:
 
 	virtual ~StreamingObject(void);
 
-	virtual CcuApiErrorCode Process();
+	virtual IxApiErrorCode Process();
 
-	CcuApiErrorCode Init(PortManager &portManager);
+	IxApiErrorCode Init(PortManager &portManager);
 
-	CcuApiErrorCode Close(PortManager &portManager);
+	IxApiErrorCode Close(PortManager &portManager);
 
 	ImsHandleId ImsHandle();
 

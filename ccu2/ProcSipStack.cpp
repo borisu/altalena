@@ -81,7 +81,7 @@ ProcSipStack::~ProcSipStack(void)
 }
 
 
-CcuApiErrorCode
+IxApiErrorCode
 ProcSipStack::Init()
 {
 	FUNCTRACKER;
@@ -124,7 +124,7 @@ ProcSipStack::Init()
 }
 
 void 
-ProcSipStack::UponHangupCall(CcuMsgPtr ptr)
+ProcSipStack::UponHangupCall(IxMsgPtr ptr)
 {
 	FUNCTRACKER;
 
@@ -181,7 +181,7 @@ ProcSipStack::ShutDown()
 }
 
 void
-ProcSipStack::ShutDown(CcuMsgPtr req)
+ProcSipStack::ShutDown(IxMsgPtr req)
 {
 	FUNCTRACKER;
 
@@ -190,11 +190,11 @@ ProcSipStack::ShutDown(CcuMsgPtr req)
 }
 
 void
-ProcSipStack::UponMakeCall(CcuMsgPtr ptr)
+ProcSipStack::UponMakeCall(IxMsgPtr ptr)
 {
  	FUNCTRACKER;
  
- 	CcuApiErrorCode res = _dumUac->MakeCall(ptr);
+ 	IxApiErrorCode res = _dumUac->MakeCall(ptr);
 
 	if (res != CCU_API_SUCCESS)
 	{
@@ -204,7 +204,7 @@ ProcSipStack::UponMakeCall(CcuMsgPtr ptr)
 }
 
 void
-ProcSipStack::UponStartRegistration(CcuMsgPtr ptr)
+ProcSipStack::UponStartRegistration(IxMsgPtr ptr)
 {
 // 	FUNCTRACKER;
 // 
@@ -228,7 +228,7 @@ ProcSipStack::UponStartRegistration(CcuMsgPtr ptr)
 
 
 void
-ProcSipStack::UponCallOfferedAck(CcuMsgPtr req)
+ProcSipStack::UponCallOfferedAck(IxMsgPtr req)
 {
 	FUNCTRACKER;
 
@@ -239,7 +239,7 @@ ProcSipStack::UponCallOfferedAck(CcuMsgPtr req)
 }
 
 void
-ProcSipStack::UponCallOfferedNack(CcuMsgPtr req)
+ProcSipStack::UponCallOfferedNack(IxMsgPtr req)
 {
 	FUNCTRACKER;
 
@@ -260,23 +260,14 @@ ProcSipStack::ProcessCcuMessages()
 	bool shutdown = false;
 	while (InboundPending())
 	{
-		CcuApiErrorCode res;
+		IxApiErrorCode res;
+		IxMsgPtr msg;
 
-		int start = ::GetTickCount();
-
-		CcuMsgPtr msg = GetInboundMessage(Seconds(0),res);
-		int end = ::GetTickCount();
-
-		LogCrit("GetInboundMessage(Seconds(0),res); took " << (start - end));
+		IX_PROFILE_CODE(msg = GetInboundMessage(Seconds(0),res));
 		if (CCU_FAILURE(res))
 		{
 			throw;
 		}
-
-		//LogInfo(L" Processing msg=[" << msg->message_id_str <<"]");
-
-		if (msg.get() == NULL)
-			break;
 
 		switch (msg->message_id)
 		{
@@ -318,7 +309,8 @@ ProcSipStack::ProcessCcuMessages()
 			{ 
 				if (HandleOOBMessage(msg) == FALSE)
 				{
-					LogInfo(L" Received unknown message " << msg->message_id_str)
+					LogCrit(L" Received unknown message " << msg->message_id_str);
+					throw;
 				}
 				
 			}

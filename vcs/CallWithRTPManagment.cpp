@@ -48,12 +48,12 @@ CallWithRTPManagment::~CallWithRTPManagment(void)
 	_callerRtpSession.CloseRTPConnection();
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 CallWithRTPManagment::MakeCall(IN const wstring &destination_uri)
 {
 	FUNCTRACKER;
 
-	CcuApiErrorCode res = _callerRtpSession.AllocateRTPConnection();
+	IxApiErrorCode res = _callerRtpSession.AllocateRTPConnection();
 	if (CCU_FAILURE(res))
 	{
 		LogWarn("Error allocating RTP connection res=[" << res << "]");
@@ -78,12 +78,12 @@ CallWithRTPManagment::MakeCall(IN const wstring &destination_uri)
 	return CCU_API_SUCCESS;
 }
 
-CcuApiErrorCode CallWithRTPManagment::AcceptCall()
+IxApiErrorCode CallWithRTPManagment::AcceptCall()
 {
 	FUNCTRACKER;
 	IX_PROFILE_FUNCTION();
 
-	CcuApiErrorCode res = _callerRtpSession.AllocateRTPConnection();
+	IxApiErrorCode res = _callerRtpSession.AllocateRTPConnection();
 	if (CCU_FAILURE(res))
 	{
 		return res;
@@ -94,7 +94,7 @@ CcuApiErrorCode CallWithRTPManagment::AcceptCall()
 
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 CallWithRTPManagment::PlayFile(IN const wstring &file_name)
 {
 	FUNCTRACKER;
@@ -102,7 +102,7 @@ CallWithRTPManagment::PlayFile(IN const wstring &file_name)
 	
 	// allocate Rtp Relay connection for Ims
 	CcuRtpSession ims_rtp_session(_parentProcess);
-	CcuApiErrorCode res = ims_rtp_session.AllocateRTPConnection();
+	IxApiErrorCode res = ims_rtp_session.AllocateRTPConnection();
 	if (CCU_FAILURE(res))
 	{
 		LogWarn("Error allocating RTP connection res=[" << res << "]");

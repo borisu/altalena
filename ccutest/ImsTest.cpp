@@ -65,7 +65,7 @@ ImsTester::real_run()
 
 	ImsSessionPtr ims_session(new ImsSession(*this));
 
-	CcuConnectionId id = CCU_UNDEFINED;
+	CcuConnectionId id = IX_UNDEFINED;
 	
 	assert(CCU_SUCCESS(ims_session->PlayFile(CnxInfo("192.168.100.231", 5666), L"C:\\SOUNDS\\welcome.wav")));
 	

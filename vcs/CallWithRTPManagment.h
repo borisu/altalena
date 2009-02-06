@@ -42,13 +42,13 @@ public:
 
 	virtual ~CallWithRTPManagment(void);
 
-	CcuApiErrorCode MakeCall(
+	IxApiErrorCode MakeCall(
 		IN const wstring &destination_uri);
 
-	CcuApiErrorCode PlayFile(
+	IxApiErrorCode PlayFile(
 		IN const wstring &file_name);
 
-	CcuApiErrorCode AcceptCall();
+	IxApiErrorCode AcceptCall();
 
 private:
 

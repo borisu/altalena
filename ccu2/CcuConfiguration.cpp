@@ -24,6 +24,9 @@
 
 using namespace boost;
 
+namespace ivrworx
+{
+
 
 CcuConfiguration::CcuConfiguration(void)
 {
@@ -137,6 +140,8 @@ CcuConfiguration::FromDisplay()
 	mutex::scoped_lock lock(_mutex);
 
 	return _fromDisplay;
+
+}
 
 }
 

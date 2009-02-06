@@ -27,7 +27,7 @@
 PortManager::PortManager(int abs_top, int abs_bottom):
 _absTop(abs_top),
 _absBottom(abs_bottom),
-_lastAllocatedPortSlot(CCU_UNDEFINED),
+_lastAllocatedPortSlot(IX_UNDEFINED),
 _portsMap(abs(abs_top - abs_bottom)), 
 _counter(0)
 {
@@ -67,8 +67,8 @@ PortManager::GetNextCandidate()
 	//
 	// find new port slot
 	// 
-	int curr_port_slot_candidate = CCU_UNDEFINED;
-	if ( _lastAllocatedPortSlot == CCU_UNDEFINED)
+	int curr_port_slot_candidate = IX_UNDEFINED;
+	if ( _lastAllocatedPortSlot == IX_UNDEFINED)
 	{
 		curr_port_slot_candidate = _absBottom;
 	} else 
@@ -80,7 +80,7 @@ PortManager::GetNextCandidate()
 
 	if (_counter == NumOfPortSlots())
 	{
-		return CCU_UNDEFINED;
+		return IX_UNDEFINED;
 	}
 
 	while (_counter < NumOfPortSlots())
@@ -98,7 +98,7 @@ PortManager::GetNextCandidate()
 		_counter ++;
 	}
 
-	return CCU_UNDEFINED;
+	return IX_UNDEFINED;
 
 
 }

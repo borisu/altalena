@@ -48,7 +48,7 @@ class CcuMsgMakeCallReq :
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(destination_uri);
 		SERIALIZE_FIELD(on_behalf_of);
 		SERIALIZE_FIELD(local_media);
@@ -71,22 +71,22 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgMakeCallReq);
 
 class CcuMsgMakeCallAck: 
-	public CcuMessage
+	public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(stack_call_handle);
 		SERIALIZE_FIELD(remote_media);
 	}
 public:
 
 	CcuMsgMakeCallAck(): 
-	  CcuMessage(CCU_MSG_MAKE_CALL_ACK, NAME(CCU_MSG_MAKE_CALL_ACK)),
-		  stack_call_handle(CCU_UNDEFINED){};
+	  IxMessage(CCU_MSG_MAKE_CALL_ACK, NAME(CCU_MSG_MAKE_CALL_ACK)),
+		  stack_call_handle(IX_UNDEFINED){};
 
 	  CcuMsgMakeCallAck(int handle):
-	  CcuMessage(CCU_MSG_MAKE_CALL_ACK, NAME(CCU_MSG_MAKE_CALL_ACK)),
+	  IxMessage(CCU_MSG_MAKE_CALL_ACK, NAME(CCU_MSG_MAKE_CALL_ACK)),
 		  stack_call_handle(handle){};
 
 	  int stack_call_handle;
@@ -96,16 +96,16 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgMakeCallAck);
 
 class CcuMsgMakeCallNack: 
-	public CcuMessage
+	public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(stack_call_handle);
 	}
 public:
 	CcuMsgMakeCallNack():
-	  CcuMessage(CCU_MSG_MAKE_CALL_NACK, NAME(CCU_MSG_MAKE_CALL_NACK)){};
+	  IxMessage(CCU_MSG_MAKE_CALL_NACK, NAME(CCU_MSG_MAKE_CALL_NACK)){};
 
 	  unsigned long stack_call_handle;
 };
@@ -116,13 +116,13 @@ class CcuMsgHangupCallReq:
 {
 	BOOST_SERIALIZATION_REGION
 	{
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(stack_call_handle);
 	}
 public:
 	CcuMsgHangupCallReq():
 	  CcuMsgRequest(CCU_MSG_HANGUP_CALL_REQ, NAME(CCU_MSG_HANGUP_CALL_REQ)),
-		  stack_call_handle(CCU_UNDEFINED){};
+		  stack_call_handle(IX_UNDEFINED){};
 
 	  CcuMsgHangupCallReq(int handle):
 	  CcuMsgRequest(CCU_MSG_HANGUP_CALL_REQ, NAME(CCU_MSG_HANGUP_CALL_REQ)),
@@ -149,7 +149,7 @@ public:
 
 	CnxInfo remote_media;
 
-	virtual void copy_data_on_response(IN CcuMessage *msg)
+	virtual void copy_data_on_response(IN IxMessage *msg)
 	{
 		CcuMsgStackMixin *req = dynamic_cast<CcuMsgStackMixin*>(msg);
 
@@ -168,7 +168,7 @@ class CcuMsgCallOfferedReq:
 	BOOST_SERIALIZATION_REGION
 	{
 		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 public:
 	CcuMsgCallOfferedReq():CcuMsgRequest(CCU_MSG_CALL_OFFERED, 
@@ -177,83 +177,83 @@ public:
 BOOST_CLASS_EXPORT(CcuMsgCallOfferedReq);
 
 class CcuMsgCalOfferedlAck:
-	public CcuMsgStackMixin,public CcuMessage
+	public CcuMsgStackMixin,public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
 		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 public:
-	CcuMsgCalOfferedlAck():CcuMessage(CCU_MSG_CALL_OFFERED_ACK, 
+	CcuMsgCalOfferedlAck():IxMessage(CCU_MSG_CALL_OFFERED_ACK, 
 		NAME(CCU_MSG_CALL_OFFERED_ACK)){}
 
-	virtual void copy_data_on_response(IN CcuMessage *request)
+	virtual void copy_data_on_response(IN IxMessage *request)
 	{
 		CcuMsgStackMixin::copy_data_on_response(request);
-		CcuMessage::copy_data_on_response(request);
+		IxMessage::copy_data_on_response(request);
 	}
 };
 BOOST_CLASS_EXPORT(CcuMsgCalOfferedlAck);
 
 class CcuMsgCallOfferedNack:
-	public CcuMsgStackMixin, public CcuMessage
+	public CcuMsgStackMixin, public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
 		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(code);
 	}
 public:
 	CcuMsgCallOfferedNack():
-	  CcuMessage(CCU_MSG_CALL_OFFERED_NACK, NAME(CCU_MSG_CALL_OFFERED_NACK))
+	  IxMessage(CCU_MSG_CALL_OFFERED_NACK, NAME(CCU_MSG_CALL_OFFERED_NACK))
 		  ,code(CCU_API_FAILURE){}
 
-	  virtual void copy_data_on_response(IN CcuMessage *request)
+	  virtual void copy_data_on_response(IN IxMessage *request)
 	  {
 		  CcuMsgStackMixin::copy_data_on_response(request);
-		  CcuMessage::copy_data_on_response(request);
+		  IxMessage::copy_data_on_response(request);
 	  }
 
-	  CcuApiErrorCode code;
+	  IxApiErrorCode code;
 
 };
 BOOST_CLASS_EXPORT(CcuMsgCallOfferedNack);
 
 class CcuMsgNewCallConnected:
-	public CcuMsgStackMixin,public CcuMessage
+	public CcuMsgStackMixin,public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
 		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 
 public:
-	CcuMsgNewCallConnected():CcuMessage(CCU_MSG_CALL_CONNECTED, 
+	CcuMsgNewCallConnected():IxMessage(CCU_MSG_CALL_CONNECTED, 
 		NAME(CCU_MSG_CALL_CONNECTED)){}
 
-	virtual void copy_data_on_response(IN CcuMessage *request)
+	virtual void copy_data_on_response(IN IxMessage *request)
 	{
 		CcuMsgStackMixin::copy_data_on_response(request);
-		CcuMessage::copy_data_on_response(request);
+		IxMessage::copy_data_on_response(request);
 	}
 
 };
 BOOST_CLASS_EXPORT(CcuMsgNewCallConnected);
 
 class CcuMsgCallHangupEvt:
-	public CcuMsgStackMixin,public CcuMessage
+	public CcuMsgStackMixin,public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
 		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 
 public:
-	CcuMsgCallHangupEvt():CcuMessage(CCU_MSG_CALL_HANG_UP_EVT, 
+	CcuMsgCallHangupEvt():IxMessage(CCU_MSG_CALL_HANG_UP_EVT, 
 		NAME(CCU_MSG_CALL_HANG_UP_EVT)){}
 
 };
@@ -261,17 +261,17 @@ BOOST_CLASS_EXPORT(CcuMsgCallHangupEvt);
 
 
 class CcuMsgCallDtmfEvt:
-	public CcuMsgStackMixin,public CcuMessage
+	public CcuMsgStackMixin,public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
 	{
 		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
-		SERIALIZE_BASE_CLASS(CcuMessage);
+		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(dtmf_digit)
 	}
 
 public:
-	CcuMsgCallDtmfEvt():CcuMessage(CCU_MSG_CALL_DTMF_EVT, 
+	CcuMsgCallDtmfEvt():IxMessage(CCU_MSG_CALL_DTMF_EVT, 
 		NAME(CCU_MSG_CALL_DTMF_EVT)){}
 
 	wstring dtmf_digit;
@@ -308,18 +308,18 @@ namespace ivrworx
 
 		virtual ~Call(void);
 
-		CcuApiErrorCode AcceptCall(
+		IxApiErrorCode AcceptCall(
 			IN CnxInfo local_data);
 
-		CcuApiErrorCode RejectCall();
+		IxApiErrorCode RejectCall();
 
-		CcuApiErrorCode MakeCall(
+		IxApiErrorCode MakeCall(
 			IN wstring destination_uri, 
 			IN CnxInfo local_media);
 
-		CcuApiErrorCode HagupCall();
+		IxApiErrorCode HagupCall();
 
-		CcuApiErrorCode WaitForDtmf(
+		IxApiErrorCode WaitForDtmf(
 			IN wstring &dtmf_digit,
 			IN Time timeout);
 

@@ -73,7 +73,7 @@ struct SipDialogContext :
 	// used to send responses as it is 
 	// temporary process used to run transaction
 	//
-	CcuMsgPtr last_user_request;
+	IxMsgPtr last_user_request;
 
 	CcuStackHandle stack_handle;
 };

@@ -54,11 +54,11 @@ public:
 };
 
 class CcuMsgRtpReceiverRemoveAck :
-	public CcuMessage
+	public IxMessage
 {
 public:
 	CcuMsgRtpReceiverRemoveAck():
-	  CcuMessage(CCU_MSG_RTPRECEIVER_REMOVE_ACK, NAME(CCU_MSG_RTPRECEIVER_REMOVE_ACK)){};
+	  IxMessage(CCU_MSG_RTPRECEIVER_REMOVE_ACK, NAME(CCU_MSG_RTPRECEIVER_REMOVE_ACK)){};
 
 };
 
@@ -100,7 +100,7 @@ public:
 	ProcRtpReceiver(
 		IN LpHandlePair pair, IN RelayMemoryManager *mngr);
 
-	void AddConnection(CcuMsgPtr ptr);
+	void AddConnection(IxMsgPtr ptr);
 
 	void ModifyConnection(
 		IN RTPConnection *connection, 

@@ -26,13 +26,13 @@ using namespace std;
 
 struct StreamingCtx
 {
-	StreamingCtx(StreamingObject *streaming_object, CcuMsgPtr orig_req);
+	StreamingCtx(StreamingObject *streaming_object, IxMsgPtr orig_req);
 
 	StreamingCtx(const StreamingCtx &other);
 	
 	StreamingObject *streaming_object;
 
-	CcuMsgPtr orig_req;
+	IxMsgPtr orig_req;
 };
 
 typedef
@@ -48,13 +48,13 @@ public:
 
 	virtual ~ProcIms(void);
 
-	virtual void AllocatePlaybackSession(CcuMsgPtr msg);
+	virtual void AllocatePlaybackSession(IxMsgPtr msg);
 
-	virtual void StartPlayback(CcuMsgPtr msg);
+	virtual void StartPlayback(IxMsgPtr msg);
 
-	virtual void StopPlayback(CcuMsgPtr msg, ScopedForking &forking);
+	virtual void StopPlayback(IxMsgPtr msg, ScopedForking &forking);
 
-	virtual void UponPlaybackStopped(CcuMsgPtr msg);
+	virtual void UponPlaybackStopped(IxMsgPtr msg);
 
 	virtual void FreeResources();
 

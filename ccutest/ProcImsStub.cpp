@@ -4,7 +4,7 @@
 
 ProcImsStub::ProcImsStub(LpHandlePair pair)
 :LightweightProcess(pair,IMS_Q,__FUNCTIONW__),
-_currHandle(CCU_UNDEFINED)
+_currHandle(IX_UNDEFINED)
 {
 
 }
@@ -21,8 +21,8 @@ ProcImsStub::real_run()
 	BOOL shutdownFlag = FALSE;
 	while (shutdownFlag  == FALSE)
 	{
-		CcuApiErrorCode err_code = CCU_API_SUCCESS;
-		CcuMsgPtr ptr =  _inbound->Wait(Seconds(60), err_code);
+		IxApiErrorCode err_code = CCU_API_SUCCESS;
+		IxMsgPtr ptr =  _inbound->Wait(Seconds(60), err_code);
 
 
 		if (err_code == CCU_API_TIMEOUT)
@@ -67,7 +67,7 @@ ProcImsStub::real_run()
 }
 
 void 
-ProcImsStub::AllocatePlaybackSession(CcuMsgPtr msg)
+ProcImsStub::AllocatePlaybackSession(IxMsgPtr msg)
 {
 	FUNCTRACKER;
 
@@ -88,7 +88,7 @@ ProcImsStub::AllocatePlaybackSession(CcuMsgPtr msg)
 }
 
 void 
-ProcImsStub::StartPlayback(CcuMsgPtr msg)
+ProcImsStub::StartPlayback(IxMsgPtr msg)
 {
 
 	FUNCTRACKER;
@@ -101,7 +101,7 @@ ProcImsStub::StartPlayback(CcuMsgPtr msg)
 }
 
 void 
-ProcImsStub::StopPlayback(CcuMsgPtr msg)
+ProcImsStub::StopPlayback(IxMsgPtr msg)
 {
 	FUNCTRACKER;
 

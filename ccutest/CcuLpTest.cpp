@@ -68,7 +68,7 @@ CcuLightweightProcessTest::test_txn_termination()
 	END_FORKING_REGION;
 }
 
-CcuApiErrorCode
+IxApiErrorCode
 CcuLightweightProcessTest::throw_std()
 {
 	throw std::exception();
@@ -81,14 +81,14 @@ CcuLightweightProcessTest::test_func_runner()
 {
 
 		
-	CcuApiErrorCode res = CCU_API_FAILURE;
+	IxApiErrorCode res = CCU_API_FAILURE;
 
 	DECLARE_NAMED_HANDLE_PAIR(test_pair);
 
-	ProcFuncRunner<CcuApiErrorCode,CcuLightweightProcessTest> 
-			*test_proc = new ProcFuncRunner<CcuApiErrorCode,CcuLightweightProcessTest>(		
+	ProcFuncRunner<IxApiErrorCode,CcuLightweightProcessTest> 
+			*test_proc = new ProcFuncRunner<IxApiErrorCode,CcuLightweightProcessTest>(		
 				test_pair,
-				bind<CcuApiErrorCode>(&CcuLightweightProcessTest::throw_std, _1),
+				bind<IxApiErrorCode>(&CcuLightweightProcessTest::throw_std, _1),
 				this,
 				res,
 				__FUNCTIONW__);

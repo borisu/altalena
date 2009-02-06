@@ -42,9 +42,9 @@ public:
 
 	virtual ~UACDialogUsageManager(void);
 
-	virtual CcuApiErrorCode MakeCall(IN CcuMsgPtr request);
+	virtual IxApiErrorCode MakeCall(IN IxMsgPtr request);
 
-	virtual CcuApiErrorCode HangupCall(SipDialogContextPtr ptr);
+	virtual IxApiErrorCode HangupCall(SipDialogContextPtr ptr);
 
 	virtual string CreateSdp(IN CnxInfo &data);
 

@@ -33,7 +33,7 @@ public:
 
 	void test_func_runner();
 
-	CcuApiErrorCode throw_std(void);
+	IxApiErrorCode throw_std(void);
 
 
 };

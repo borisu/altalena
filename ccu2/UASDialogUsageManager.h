@@ -43,9 +43,9 @@ public:
 
 	virtual ~UASDialogUsageManager(void);
 
-	virtual void UponCallOfferedAck(CcuMsgPtr req);
+	virtual void UponCallOfferedAck(IxMsgPtr req);
 
-	virtual void UponCallOfferedNack(CcuMsgPtr req);
+	virtual void UponCallOfferedNack(IxMsgPtr req);
 
 	virtual void onNewSession(ServerInviteSessionHandle sis, InviteSession::OfferAnswerType oat, const SipMessage& msg);
 
@@ -57,7 +57,7 @@ public:
 
 	virtual void onAnswer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp); 
 
-	virtual CcuApiErrorCode HangupCall(SipDialogContextPtr ptr);
+	virtual IxApiErrorCode HangupCall(SipDialogContextPtr ptr);
 
 	virtual void onReceivedRequest(ServerOutOfDialogReqHandle ood, const SipMessage& request);
 

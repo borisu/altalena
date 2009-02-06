@@ -34,13 +34,13 @@ public:
 
 	virtual void real_run();
 
-	virtual void AllocateAudioConnection(IN CcuMsgPtr ptr);
+	virtual void AllocateAudioConnection(IN IxMsgPtr ptr);
 
-	virtual void CloseAudioConnection(IN CcuMsgPtr ptr);
+	virtual void CloseAudioConnection(IN IxMsgPtr ptr);
 
-	virtual void BridgeConnections(IN CcuMsgPtr ptr);
+	virtual void BridgeConnections(IN IxMsgPtr ptr);
 
-	virtual void ModifyConnection(IN CcuMsgPtr ptr);
+	virtual void ModifyConnection(IN IxMsgPtr ptr);
 
 	MockRtpConnectionsMap _mockConnections;
 

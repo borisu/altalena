@@ -22,8 +22,8 @@ ProcStackStub::real_run()
 	BOOL shutdownFlag = FALSE;
 	while (!shutdownFlag)
 	{
-		CcuApiErrorCode res;
-		CcuMsgPtr msg = GetInboundMessage(Seconds(0),res);
+		IxApiErrorCode res;
+		IxMsgPtr msg = GetInboundMessage(Seconds(0),res);
 		if (CCU_FAILURE(res))
 		{
 			throw;
@@ -72,14 +72,14 @@ ProcStackStub::real_run()
 }
 
 void
-ProcStackStub::UponCallOfferedAck(CcuMsgPtr msg)
+ProcStackStub::UponCallOfferedAck(IxMsgPtr msg)
 {
 
 }
 
 
 void
-ProcStackStub::UponMakeCall(CcuMsgPtr ptr)
+ProcStackStub::UponMakeCall(IxMsgPtr ptr)
 {
 	CcuMsgMakeCallReq *req  = 
 		boost::shared_dynamic_cast<CcuMsgMakeCallReq>(ptr).get();
@@ -96,7 +96,7 @@ ProcStackStub::UponMakeCall(CcuMsgPtr ptr)
 }
 
 void
-ProcStackStub::UponHangupCall(CcuMsgPtr msg)
+ProcStackStub::UponHangupCall(IxMsgPtr msg)
 {
 
 }

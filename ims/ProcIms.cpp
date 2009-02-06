@@ -38,7 +38,7 @@ GetNewImsHandle()
 	return i++; 
 }
 
-StreamingCtx::StreamingCtx(StreamingObject *object, CcuMsgPtr req):
+StreamingCtx::StreamingCtx(StreamingObject *object, IxMsgPtr req):
 streaming_object(object),
 orig_req(req)
 {
@@ -111,8 +111,8 @@ ProcIms::real_run()
 	BOOL shutdownFlag = FALSE;
 	while (shutdownFlag  == FALSE)
 	{
-		CcuApiErrorCode err_code = CCU_API_SUCCESS;
-		CcuMsgPtr ptr =  _inbound->Wait(Seconds(60), err_code);
+		IxApiErrorCode err_code = CCU_API_SUCCESS;
+		IxMsgPtr ptr =  _inbound->Wait(Seconds(60), err_code);
 
 
 		if (err_code == CCU_API_TIMEOUT)
@@ -176,7 +176,7 @@ ProcIms::real_run()
 }
 
 void 
-ProcIms::UponPlaybackStopped(CcuMsgPtr msg)
+ProcIms::UponPlaybackStopped(IxMsgPtr msg)
 {
 	FUNCTRACKER;
 
@@ -220,7 +220,7 @@ ProcIms::FreeResources()
 }
 
 void 
-ProcIms::AllocatePlaybackSession(CcuMsgPtr msg)
+ProcIms::AllocatePlaybackSession(IxMsgPtr msg)
 {
 	FUNCTRACKER;
 
@@ -262,7 +262,7 @@ ProcIms::AllocatePlaybackSession(CcuMsgPtr msg)
 }
 
 void 
-ProcIms::StartPlayback(CcuMsgPtr msg)
+ProcIms::StartPlayback(IxMsgPtr msg)
 {
 
 	FUNCTRACKER;
@@ -293,7 +293,7 @@ ProcIms::StartPlayback(CcuMsgPtr msg)
 }
 
 void 
-ProcIms::StopPlayback(CcuMsgPtr msg, ScopedForking &forking)
+ProcIms::StopPlayback(IxMsgPtr msg, ScopedForking &forking)
 {
 	FUNCTRACKER;
 
@@ -353,14 +353,11 @@ ProcStreamingObjectRemover::real_run()
 
 	msg->handle = _streamHandle;
 
-	CcuMsgPtr response_ptr;
-	EventsSet responses;
-	responses.insert(CCU_MSG_STREAMER_REMOVE_ACK);
+	IxMsgPtr response_ptr;
 
-	CcuApiErrorCode res = DoRequestResponseTransaction(
+	IxApiErrorCode res = DoRequestResponseTransaction(
 		_streamerInbound,
-		CcuMsgPtr(msg),
-		responses,
+		IxMsgPtr(msg),
 		response_ptr,
 		Seconds(60),
 		L"Close RTP Connection TXN"

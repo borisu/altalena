@@ -33,11 +33,11 @@ public:
 
 	virtual ~ImsSession (void);
 
-	CcuApiErrorCode	AllocateIMSConnection(
+	IxApiErrorCode	AllocateIMSConnection(
 		IN CnxInfo remote_end, 
 		IN const wstring &file_name);
 
-	virtual CcuApiErrorCode PlayFile(
+	virtual IxApiErrorCode PlayFile(
 		IN CnxInfo destination, 
 		IN const wstring &file_name);
 
@@ -49,7 +49,7 @@ private:
 
 	
 
-	CcuApiErrorCode	SyncStreamFile();
+	IxApiErrorCode	SyncStreamFile();
 
 	CcuConnectionId _imsSessionHandle;
 
