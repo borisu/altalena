@@ -98,9 +98,6 @@ public:
 
 	void TransactionTimeout(long val);
 
-	IxApiErrorCode TerminatePendingTransaction(
-		IN std::exception e);
-
 	IxApiErrorCode SendReadyMessage();
 
 	//
@@ -151,8 +148,6 @@ public:
 protected:
 
 	long _transactionTimeout;
-
-	LpHandlePtr _transactionTerminator;
 
 	wstring _name;
 	

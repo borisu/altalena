@@ -70,6 +70,8 @@ private:
 
 	
 
+	
+
 };
 
 typedef 
@@ -91,6 +93,8 @@ public:
 
 	virtual void real_run();
 
+	virtual BOOL HandleOOBMessage(IN IxMsgPtr msg);
+
 private:
 
 	IxMsgPtr _initialMsg;
@@ -98,6 +102,8 @@ private:
 	LpHandlePair _stackPair;
 
 	CcuConfiguration &_conf;
+
+	int _stackHandle;
 
 };
 

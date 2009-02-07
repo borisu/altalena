@@ -77,23 +77,24 @@ UASDialogUsageManager::~UASDialogUsageManager(void)
 void
 UASDialogUsageManager::UponCallOfferedNack(IxMsgPtr req)
 {
+	FUNCTRACKER;
+
 	shared_ptr<CcuMsgCallOfferedNack> ack = 
 		dynamic_pointer_cast<CcuMsgCallOfferedNack>(req);
 
 	CcuHandlesMap::iterator iter = _refCcuHandlesMap.find(ack->stack_call_handle);
 	if (iter == _refCcuHandlesMap.end())
 	{
-		LogWarn("Handle=[" << ack->stack_call_handle<< "] >>not found<<. Has caller disconnected???");
+		LogWarn("ix handle=[" << ack->stack_call_handle<< "] not found. Has caller disconnected already?");
 		return;
 	}
 
-	SipDialogContextPtr ptr = (*iter).second;
+	SipDialogContextPtr ctx_ptr = (*iter).second;
+	LogDebug("Ix rejected the call eith ix handle=[" << ctx_ptr->stack_handle << "].");
 
-	LogDebug(">>Closing<< call handle=[" << ptr->stack_handle << "]");
-
-	_refCcuHandlesMap.erase(ptr->stack_handle);
+	CleanUpCall(ctx_ptr);
 	
-	IX_PROFILE_CODE(ptr->uas_invite_handle->end());
+	IX_PROFILE_CODE(ctx_ptr->uas_invite_handle->end());
 
 }
 
@@ -235,7 +236,13 @@ UASDialogUsageManager::onNewSession(ServerInviteSessionHandle sis, InviteSession
 
 }
 
-#pragma TODO("Handle early and late termination")
+void 
+UASDialogUsageManager::CleanUpCall(IN SipDialogContextPtr ctx_ptr)
+{
+	_refCcuHandlesMap.erase(ctx_ptr->stack_handle);
+	_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
+}
+
 
 void 
 UASDialogUsageManager::onTerminated(InviteSessionHandle handle , InviteSessionHandler::TerminatedReason reason, const SipMessage* msg)
@@ -247,9 +254,13 @@ UASDialogUsageManager::onTerminated(InviteSessionHandle handle , InviteSessionHa
 	ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(handle->getAppDialog());
 	if (iter != _resipHandlesMap.end())
 	{
+		// early termination
 		SipDialogContextPtr ctx_ptr = (*iter).second;
 		ixhandle = ctx_ptr->stack_handle;
-		throw "what situation is this";
+		ctx_ptr->call_handler_inbound->Send(new CcuMsgCallHangupEvt());
+		
+		CleanUpCall(ctx_ptr);
+		
 	}
 
 
@@ -276,8 +287,9 @@ UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, co
 	DECLARE_NAMED_HANDLE_PAIR(call_handler_pair);
 
 	CcuMsgCallOfferedReq *offered = new CcuMsgCallOfferedReq();
-	offered->remote_media = CnxInfo(addr,port);
-	offered->stack_call_handle = ctx_ptr->stack_handle;
+	offered->remote_media		= CnxInfo(addr,port);
+	offered->stack_call_handle	= ctx_ptr->stack_handle;
+	offered->call_handler_inbound = call_handler_pair;
 
 	_ccu_stack._outbound->Send(offered);
 

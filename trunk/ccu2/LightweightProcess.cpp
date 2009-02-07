@@ -42,7 +42,6 @@ namespace ivrworx
 	_outbound(pair.outbound),
 	_bucket(new Bucket()),
 	_transactionTimeout(5000),
-	_transactionTerminator(pair.inbound),
 	_processAlias(IX_UNDEFINED)
 	{
 		FUNCTRACKER;
@@ -61,7 +60,6 @@ namespace ivrworx
 	_outbound(pair.outbound),
 	_bucket(new Bucket()),
 	_transactionTimeout(5000),
-	_transactionTerminator(pair.inbound),
 	_processAlias(process_alias)
 	{
 		FUNCTRACKER;
@@ -280,14 +278,6 @@ namespace ivrworx
 
 
 	IxApiErrorCode
-	LightweightProcess::TerminatePendingTransaction(IN std::exception e)
-	{
-		_transactionTerminator->Send(new CcuMsgShutdownReq());
-
-		return CCU_API_SUCCESS;
-	}
-
-	IxApiErrorCode
 		LightweightProcess::DoRequestResponseTransaction(
 		IN LpHandlePtr dest_handle, 
 		IN IxMsgPtr request, 
@@ -366,7 +356,7 @@ namespace ivrworx
 	}
 
 	IxApiErrorCode	
-		LightweightProcess::WaitForTxnResponse(
+	LightweightProcess::WaitForTxnResponse(
 		IN LpHandlePtr txn_handle,
 		OUT IxMsgPtr &response,
 		IN Time timeout)
@@ -379,12 +369,8 @@ namespace ivrworx
 		HandlesList list;
 		int interrupted_handle_index = 0;
 
-#pragma TODO("Transaction interruptor disabled - I think it caused troubles that many lp process were waiting on the same handle")
-
-		DECLARE_NAMED_HANDLE(transactionTerminator);
-		list.push_back(transactionTerminator);
+		list.push_back(_inbound);
 		const int txn_term_index = interrupted_handle_index++;
-
 		list.push_back(txn_handle);
 		const int txn_inbound_index = interrupted_handle_index++;
 
@@ -416,7 +402,7 @@ namespace ivrworx
 
 			if (interrupted_handle_index == txn_term_index)
 			{
-				BOOL res = HandleOOBMessage(response);
+				BOOL res = this->HandleOOBMessage(response);
 				if (res == FALSE)
 				{
 					throw std::exception("Transaction was terminated");
