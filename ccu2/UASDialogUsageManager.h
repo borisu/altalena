@@ -65,6 +65,8 @@ public:
 
 	virtual string CreateSdp(CnxInfo &offered_sdp);
 
+	virtual void CleanUpCall(IN SipDialogContextPtr ctx_ptr);
+
 private:
 
 	CcuConfiguration &_conf;

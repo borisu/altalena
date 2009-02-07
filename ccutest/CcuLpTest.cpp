@@ -62,7 +62,9 @@ CcuLightweightProcessTest::test_txn_termination()
 
 	FORK(f);
 
-	f->TerminatePendingTransaction(std::exception("cool"));
+#pragma  TODO ("complete the test")
+
+	//f->TerminatePendingTransaction(std::exception("cool"));
 
 
 	END_FORKING_REGION;

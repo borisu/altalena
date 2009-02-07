@@ -138,7 +138,7 @@ ProcSipStack::UponHangupCall(IxMsgPtr ptr)
 	CcuHandlesMap::iterator iter = _ccuHandlesMap.find(handle);
 	if (iter == _ccuHandlesMap.end())
 	{
-		LogWarn("The call with IX handle =[" << hangup_msg->stack_call_handle << "] already hanged up");
+		LogWarn("The call with ix handle =[" << hangup_msg->stack_call_handle << "] already hanged up.");
 		return;
 	}
 

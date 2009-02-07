@@ -148,10 +148,9 @@ ProcIxMain::ProcessInboundMessage(IN IxMsgPtr event, IN ScopedForking &forking)
 			BOOL oob_res = HandleOOBMessage(event);
 			if (oob_res = FALSE)
 			{
-				LogWarn("Unknown message received id=[" << event->message_id_str << "]");
-				_ASSERT(false);
+				LogCrit("Unknown message received id=[" << event->message_id_str << "]");
+				throw;
 			}
-			
 		}
 	}
 
@@ -169,8 +168,16 @@ ProcIxMain::ProcessStackMessage(IN IxMsgPtr ptr, IN ScopedForking &forking)
 	case CCU_MSG_CALL_OFFERED:
 		{
 			
-			DECLARE_NAMED_HANDLE_PAIR(script_pair);
-			FORK_IN_THIS_THREAD(new ProcScriptRunner(_conf,ptr,_stackPair,script_pair));
+			shared_ptr<CcuMsgCallOfferedReq> call_offered = 
+				shared_polymorphic_cast<CcuMsgCallOfferedReq> (ptr);
+
+			FORK_IN_THIS_THREAD(
+				new ProcScriptRunner(
+				_conf, // configuration
+				ptr,   // original message
+				_stackPair, // handle to stack
+				call_offered->call_handler_inbound) // handle created by stack for events
+				);
 
 			break;
 
@@ -211,11 +218,13 @@ ProcScriptRunner::~ProcScriptRunner()
 void 
 ProcScriptRunner::real_run()
 {
-#pragma TODO ("Initializing vm and compiling script file is a terrible bottelneck")
+#pragma TODO ("Initializing vm and compiling script file is a terrible bottleneck")
 	try
 	{
 		shared_ptr<CcuMsgCallOfferedReq> start_script_msg  = 
 			dynamic_pointer_cast<CcuMsgCallOfferedReq>(_initialMsg);
+
+		_stackHandle = start_script_msg->stack_call_handle;
 
 		CallWithRTPManagment call_session(
 			_stackPair,
@@ -241,6 +250,31 @@ ProcScriptRunner::real_run()
 	catch (std::exception e)
 	{
 		LogWarn("Exception while running script=[ " << _conf.ScriptFile() <<"] e=[" << e.what() << "].");
+	}
+
+}
+
+BOOL 
+ProcScriptRunner::HandleOOBMessage(IN IxMsgPtr msg)
+{
+	if (TRUE == LightweightProcess::HandleOOBMessage(msg))
+	{
+		return TRUE;
+	}
+	switch (msg->message_id)
+	{
+	case CCU_MSG_CALL_HANG_UP_EVT:
+		{
+			
+			LogDebug("Call running script=[" << _conf.ScriptFile() << "], ix call handle=[" << _stackHandle <<"] received hangup event.");
+			break;
+
+		}
+	default:
+		{
+			return FALSE;
+		}
+
 	}
 
 }

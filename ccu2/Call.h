@@ -173,6 +173,11 @@ class CcuMsgCallOfferedReq:
 public:
 	CcuMsgCallOfferedReq():CcuMsgRequest(CCU_MSG_CALL_OFFERED, 
 		NAME(CCU_MSG_CALL_OFFERED)){}
+
+#pragma TODO ("Support IPC")
+
+	LpHandlePair call_handler_inbound;
+
 };
 BOOST_CLASS_EXPORT(CcuMsgCallOfferedReq);
 
