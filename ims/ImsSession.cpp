@@ -20,13 +20,12 @@
 #include "StdAfx.h"
 #include "ProcIms.h"
 #include "ImsSession.h"
-#include "CcuLogger.h"
 #include "Ims.h"
 
 using namespace boost;
 
-#pragma TODO ("Unify facade initiation logic into base class")
-#pragma TODO ("Make it more efficient and able to play different files on the same IMS session handle")
+namespace ivrworx
+{
 
 ImsSession::ImsSession(LightweightProcess &facade):
 _imsSessionHandle(IX_UNDEFINED),
@@ -39,38 +38,60 @@ ImsSession::~ImsSession(void)
 {
 	if (_imsSessionHandle != IX_UNDEFINED)
 	{
-#pragma TODO ("Implement Close Stream Logic")		
 
 	}
 }
 
-
-
 IxApiErrorCode
-ImsSession::PlayFile(IN CnxInfo destination, 
-					 IN const wstring &file_name)
+ImsSession::PlayFile( IN const wstring &file_name, IN BOOL sync)
 {
-	
-	IxApiErrorCode res = CCU_API_SUCCESS;
+
 	if (_imsSessionHandle == IX_UNDEFINED)
 	{
-		
-		res = AllocateIMSConnection(destination, file_name);
-		if (CCU_FAILURE(res))
-		{
-			return res;
-		}
+		return CCU_API_FAILURE;
 	}
-	
-	res = SyncStreamFile();
 
-	return res;
+	FUNCTRACKER;
+	IxMsgPtr response = CCU_NULL_MSG;
+
+	CcuMsgStartPlayReq *msg = new CcuMsgStartPlayReq();
+	msg->playback_handle = _imsSessionHandle;
+	msg->file_name = file_name;
+
+	IxApiErrorCode res =_facade.DoRequestResponseTransaction(
+		IMS_Q,
+		IxMsgPtr(msg),
+		response,
+		Time(Seconds(60)),
+		L"Start Streaming File TXN");
+
+	if (CCU_FAILURE(res))
+	{
+		return res;
+	}
+
+	switch (msg->message_id)
+	{
+	case CCU_MSG_IMS_START_PLAY_REQ_ACK:
+		{
+			if (!sync)
+			{
+				return CCU_API_SUCCESS;
+			};
+
+			break;
+		}
+	default:
+		return CCU_API_FAILURE;
+	}
+
+	throw "Not implemented";
 
 }
 
 IxApiErrorCode
 ImsSession::AllocateIMSConnection(IN CnxInfo remote_end, 
-								  IN const wstring &file_name)
+								  IN IxCodec codec)
 {
 	FUNCTRACKER;
 
@@ -82,8 +103,9 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 	IxMsgPtr response = CCU_NULL_MSG;
 
 	CcuMsgAllocateImsSessionReq *msg = new CcuMsgAllocateImsSessionReq();
-	msg->file_name = file_name;
+	throw;
 	msg->remote_media_data = remote_end;
+	msg->codec = codec;
 
 	IxApiErrorCode res = _facade.DoRequestResponseTransaction(
 		IMS_Q,
@@ -107,7 +129,8 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 				shared_polymorphic_cast<CcuMsgAllocateImsSessionAck>(response);
 
 			_imsSessionHandle = ack->playback_handle;
-			_imsMediaData = ack->ims_media;
+			throw;
+			//_imsMediaData = ack->ims_media;
 
 			break;
 
@@ -127,31 +150,6 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 }
 
 
-IxApiErrorCode
-ImsSession::SyncStreamFile()
-{
-	FUNCTRACKER;
-	IxMsgPtr response = CCU_NULL_MSG;
-
-	CcuMsgStartPlayReq *msg = new CcuMsgStartPlayReq();
-	msg->playback_handle = _imsSessionHandle;
-	msg->send_provisional = false;
-
-	IxApiErrorCode res =_facade.DoRequestResponseTransaction(
-		IMS_Q,
-		IxMsgPtr(msg),
-		response,
-		Time(Seconds(60)),
-		L"Synchronous Streaming File TXN");
-
-#pragma  TODO ("Make Ims session reusable")
-
-	_imsSessionHandle = IX_UNDEFINED;
-
-	return res;
-
-}
-
 
 CnxInfo ImsSession::ImsMediaData() const 
 { 
@@ -161,4 +159,5 @@ CnxInfo ImsSession::ImsMediaData() const
 void ImsSession::ImsMediaData(IN CnxInfo val) 
 { 
 	_imsMediaData = val; 
+}
 }

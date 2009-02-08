@@ -54,4 +54,8 @@ private:
 
 	CcuRtpSession _callerRtpSession;
 
+	CcuRtpSession _imsRtpSession;
+
+	ImsSession _imsSession;
+
 };

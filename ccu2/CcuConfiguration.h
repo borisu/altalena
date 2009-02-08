@@ -41,6 +41,8 @@ namespace ivrworx
 
 		virtual CnxInfo VcsCnxInfo();
 
+		virtual CnxInfo ImsCnxInfo();
+
 		virtual CnxInfo RtpRelayIp();
 
 		virtual wstring ScriptFile();
@@ -64,6 +66,8 @@ namespace ivrworx
 		CnxInfo _vcsMediaData;
 
 		CnxInfo _rtpRelayIp;
+
+		CnxInfo _imsCnxInfo;
 
 		int _rtpRelayTopPort;
 

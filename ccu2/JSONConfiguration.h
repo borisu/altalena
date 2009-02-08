@@ -23,24 +23,30 @@
 using namespace std;
 using namespace json_spirit;
 
-class JSONConfiguration :
-	public CcuConfiguration
+namespace ivrworx
 {
-public:
-	JSONConfiguration();
-
-	virtual ~JSONConfiguration(void);
-
-	IxApiErrorCode InitFromFile(const wstring &filename);
-
-	IxApiErrorCode InitFromString(const wstring &is);
-
-	IxApiErrorCode InitDb();
 
 
-private:
+	class JSONConfiguration :
+		public CcuConfiguration
+	{
+	public:
 
-	wValue _value;
-};
+		JSONConfiguration();
 
+		virtual ~JSONConfiguration(void);
+
+		IxApiErrorCode InitFromFile(const wstring &filename);
+
+		IxApiErrorCode InitFromString(const wstring &is);
+
+		IxApiErrorCode InitDb();
+
+
+	private:
+
+		wValue _value;
+	};
+
+}
 

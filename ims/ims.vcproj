@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;..\jthread-1.2.1\src&quot;;&quot;..\jrtplib-3.7.1\src&quot;;&quot;..\emiplib-0.16.1\include&quot;;..\ccu2;..\rtprelay"
+				AdditionalIncludeDirectories="..\ccu2;..\rtprelay"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -162,10 +162,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ProcStreamer.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -184,10 +180,6 @@
 						UsePrecompiledHeader="1"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\StreamingObject.cpp"
-				>
 			</File>
 		</Filter>
 		<Filter
@@ -212,15 +204,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ProcStreamer.h"
-				>
-			</File>
-			<File
 				RelativePath=".\stdafx.h"
-				>
-			</File>
-			<File
-				RelativePath=".\StreamingObject.h"
 				>
 			</File>
 		</Filter>

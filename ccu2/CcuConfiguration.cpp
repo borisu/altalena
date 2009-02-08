@@ -28,120 +28,129 @@ namespace ivrworx
 {
 
 
-CcuConfiguration::CcuConfiguration(void)
-{
-}
-
-CcuConfiguration::~CcuConfiguration(void)
-{
-	while (_codecsList.empty() != 0)
+	CcuConfiguration::CcuConfiguration(void)
 	{
-		const IxCodec *ptr = *_codecsList.end();
-		_codecsList.pop_back();
-		delete const_cast<IxCodec *> (ptr);
 	}
-}
 
-CnxInfo
-CcuConfiguration::DefaultCnxInfo()
-{
-	mutex::scoped_lock lock(_mutex);
+	CcuConfiguration::~CcuConfiguration(void)
+	{
+		while (_codecsList.empty() != 0)
+		{
+			const IxCodec *ptr = *_codecsList.end();
+			_codecsList.pop_back();
+			delete const_cast<IxCodec *> (ptr);
+		}
+	}
 
-	return _defaultIp;
+	CnxInfo
+	CcuConfiguration::DefaultCnxInfo()
+	{
+		mutex::scoped_lock lock(_mutex);
 
-}
+		return _defaultIp;
 
-CnxInfo
-CcuConfiguration::VcsCnxInfo()
-{
-	mutex::scoped_lock lock(_mutex);
+	}
 
-	return _vcsMediaData;
+	CnxInfo
+	CcuConfiguration::VcsCnxInfo()
+	{
+		mutex::scoped_lock lock(_mutex);
 
-}
+		return _vcsMediaData;
 
-int
-CcuConfiguration::RtpRelayTopPort()
-{
-	mutex::scoped_lock lock(_mutex);
+	}
 
-	return _rtpRelayTopPort;
+	CnxInfo
+	CcuConfiguration::ImsCnxInfo()
+	{
+		mutex::scoped_lock lock(_mutex);
 
-}
+		return _imsCnxInfo;
 
-int
-CcuConfiguration::RtpRelayBottomPort()
-{
-	mutex::scoped_lock lock(_mutex);
+	}
 
-	return _rtpRelayBottomPort;
+	int
+	CcuConfiguration::RtpRelayTopPort()
+	{
+		mutex::scoped_lock lock(_mutex);
 
-}
+		return _rtpRelayTopPort;
 
-CnxInfo
-CcuConfiguration::RtpRelayIp()
-{
-	mutex::scoped_lock lock(_mutex);
+	}
 
-	return _rtpRelayIp;
+	int
+	CcuConfiguration::RtpRelayBottomPort()
+	{
+		mutex::scoped_lock lock(_mutex);
 
-}
+		return _rtpRelayBottomPort;
 
-wstring
-CcuConfiguration::ScriptFile()
-{
-	mutex::scoped_lock lock(_mutex);
+	}
 
-	return  _scriptFile;
-}
+	CnxInfo
+	CcuConfiguration::RtpRelayIp()
+	{
+		mutex::scoped_lock lock(_mutex);
 
+		return _rtpRelayIp;
 
-void
-CcuConfiguration::AddCodec(const IxCodec& codec)
-{
-	mutex::scoped_lock lock(_mutex);
+	}
 
-	_codecsList.push_front(new IxCodec(codec));
+	wstring
+	CcuConfiguration::ScriptFile()
+	{
+		mutex::scoped_lock lock(_mutex);
 
-}
-
-
-void
-CcuConfiguration::AddCodec(const IxCodec* codec)
-{
-	mutex::scoped_lock lock(_mutex);
-
-	_codecsList.push_front(codec);
-
-}
+		return  _scriptFile;
+	}
 
 
-const CodecsList& 
-CcuConfiguration::CodecList()
-{
-	mutex::scoped_lock lock(_mutex);
+	void
+	CcuConfiguration::AddCodec(const IxCodec& codec)
+	{
+		mutex::scoped_lock lock(_mutex);
 
-	return _codecsList;
+		_codecsList.push_front(new IxCodec(codec));
 
-}
+	}
 
-wstring 
-CcuConfiguration::From()
-{
-	mutex::scoped_lock lock(_mutex);
 
-	return _from;
+	void
+	CcuConfiguration::AddCodec(const IxCodec* codec)
+	{
+		mutex::scoped_lock lock(_mutex);
 
-}
+		_codecsList.push_front(codec);
 
-wstring 
-CcuConfiguration::FromDisplay()
-{
-	mutex::scoped_lock lock(_mutex);
+	}
 
-	return _fromDisplay;
 
-}
+	const CodecsList& 
+	CcuConfiguration::CodecList()
+	{
+		mutex::scoped_lock lock(_mutex);
+
+		return _codecsList;
+
+	}
+
+	wstring 
+	CcuConfiguration::From()
+	{
+		mutex::scoped_lock lock(_mutex);
+
+		return _from;
+
+	}
+
+	wstring 
+	CcuConfiguration::FromDisplay()
+	{
+		mutex::scoped_lock lock(_mutex);
+
+		return _fromDisplay;
+
+	}
 
 }
 

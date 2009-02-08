@@ -44,16 +44,16 @@ class CcuMsgAllocateImsSessionReq:
 	{
 		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(remote_media_data);
-		SERIALIZE_FIELD(file_name);
 	}
 public:
 	CcuMsgAllocateImsSessionReq():
 	  CcuMsgRequest(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST, 
 		  NAME(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST)){};
 
-	  CnxInfo remote_media_data;
+	 CnxInfo remote_media_data;
 
-	  wstring file_name;
+	 IxCodec codec;
+
 };
 BOOST_CLASS_EXPORT(CcuMsgAllocateImsSessionReq)
 
@@ -64,7 +64,6 @@ class CcuMsgAllocateImsSessionAck:
 	{
 		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(playback_handle);
-		SERIALIZE_FIELD(ims_media);
 	}
 public:
 	CcuMsgAllocateImsSessionAck():
@@ -74,7 +73,8 @@ public:
 
 	  int playback_handle;
 
-	  CnxInfo ims_media;
+
+	 
 };
 BOOST_CLASS_EXPORT(CcuMsgAllocateImsSessionAck)
 
@@ -100,17 +100,17 @@ class CcuMsgStartPlayReq:
 	{
 		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(playback_handle);
-		SERIALIZE_FIELD(send_provisional);
 	}
 public:
 	CcuMsgStartPlayReq():
 	  CcuMsgRequest(CCU_MSG_START_PLAYBACK_REQUEST, NAME(CCU_MSG_START_PLAYBACK_REQUEST)),
-	  playback_handle(IX_UNDEFINED),
-	  send_provisional(false){};
+	  playback_handle(IX_UNDEFINED) {};
 
 	  int playback_handle;
 
-	  bool send_provisional;
+	
+
+	  wstring file_name;
 };
 BOOST_CLASS_EXPORT(CcuMsgStartPlayReq)
 

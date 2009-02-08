@@ -21,7 +21,8 @@
 
 #include "CallWithRTPManagment.h"
 
-using namespace ivrworx;
+namespace ivrworx
+{
 
 CallWithRTPManagment::CallWithRTPManagment(
 	IN LpHandlePair stack_pair,
@@ -37,7 +38,8 @@ CallWithRTPManagment::CallWithRTPManagment(
 	IN CnxInfo offered_media,
 	IN LightweightProcess &facade)
 :Call(_stackPair, call_handle, offered_media, facade),
-_callerRtpSession(facade)
+_callerRtpSession(facade),
+_imsRtpSession(facade)
 {
 }
 
@@ -83,12 +85,22 @@ IxApiErrorCode CallWithRTPManagment::AcceptCall()
 	FUNCTRACKER;
 	IX_PROFILE_FUNCTION();
 
-	IxApiErrorCode res = _callerRtpSession.AllocateRTPConnection();
+	IxApiErrorCode res = _callerRtpSession.AllocateRTPConnection
+		();
 	if (CCU_FAILURE(res))
 	{
 		return res;
 	};
 
+	IxApiErrorCode res = _imsRtpSession.AllocateRTPConnection();
+	if (CCU_FAILURE(res))
+	{
+		return res;
+	};
+
+	_imsSession.AllocateIMSConnection()
+
+	
 	res = Call::AcceptCall(_callerRtpSession.LocalMediaData());
 	return res;
 
@@ -99,7 +111,6 @@ CallWithRTPManagment::PlayFile(IN const wstring &file_name)
 {
 	FUNCTRACKER;
 
-	
 	// allocate Rtp Relay connection for Ims
 	CcuRtpSession ims_rtp_session(_parentProcess);
 	IxApiErrorCode res = ims_rtp_session.AllocateRTPConnection();
@@ -143,5 +154,6 @@ CallWithRTPManagment::PlayFile(IN const wstring &file_name)
 
 	return CCU_API_SUCCESS;
 
+}
 }
 

@@ -19,9 +19,8 @@
 
 #include "StdAfx.h"
 #include "ProcVcs.h"
-#include "ProcPipeIPCDispatcher.h"
 #include "CallWithRTPManagment.h"
-#include "SipStackFactory.h"
+
 
 using namespace ivrworx;
 
@@ -239,7 +238,7 @@ ProcScriptRunner::real_run()
 
 		bool res = false;
 		IX_PROFILE_CODE(script.CompileFile(WStringToString(_conf.ScriptFile()).c_str()));
-		if (res == false);
+		if (res == false)
 		{
 			LogWarn("Error Compiling/Running script=[" << _conf.ScriptFile() << "]");
 			return;

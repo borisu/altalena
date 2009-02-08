@@ -19,22 +19,20 @@
 
 #pragma once
 
-#include "LightweightProcess.h"
 #include "ImsSession.h"
 
-//
-// Wrapper class to hide dependencies
-//
-//
-
-class ImsFactory
+namespace ivrworx
 {
-public:
-	ImsFactory(void);
+	class ImsFactory
+	{
+	public:
+		ImsFactory(void);
 
-	static LightweightProcess *CreateProcIms(LpHandlePair pair, CnxInfo data);
+		static LightweightProcess *CreateProcIms(LpHandlePair pair, CcuConfiguration &conf);
 
-	static ImsSessionPtr CreateImsSession();
+		static ImsSessionPtr CreateImsSession();
 
-	virtual ~ImsFactory(void);
-};
+		virtual ~ImsFactory(void);
+	};
+
+}

@@ -31,6 +31,11 @@
 #include "CcuUtils.h"
 #include "CcuLogger.h"
 #include "Profiler.h"
+#include "LightweightProcess.h"
+#include "CcuConfiguration.h"
+#include "Call.h"
+#include "ProcPipeIPCDispatcher.h"
+#include "SipStackFactory.h"
 
 extern "C"
 {
