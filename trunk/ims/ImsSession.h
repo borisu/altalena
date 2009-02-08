@@ -18,44 +18,47 @@
 */
 
 #pragma once
-
-#include "Ccu.h"
-#include "LightweightProcess.h"
-
 using namespace boost;
 
-class ImsSession
+namespace ivrworx
 {
-public:
 
-	ImsSession (
-		IN LightweightProcess &facade);
+	typedef 
+	int ImsHandleId;
 
-	virtual ~ImsSession (void);
+	class ImsSession
+	{
+	public:
 
-	IxApiErrorCode	AllocateIMSConnection(
-		IN CnxInfo remote_end, 
-		IN const wstring &file_name);
+		ImsSession (IN LightweightProcess &facade);
 
-	virtual IxApiErrorCode PlayFile(
-		IN CnxInfo destination, 
-		IN const wstring &file_name);
+		virtual ~ImsSession (void);
 
-	CnxInfo ImsMediaData() const;
+		IxApiErrorCode	AllocateIMSConnection(
+			IN CnxInfo remote_end, 
+			IN IxCodec codec);
 
-	void ImsMediaData(IN CnxInfo val);
+		virtual IxApiErrorCode PlayFile(
+			IN const wstring &file_name,
+			IN BOOL sync);
 
-private:
+		CnxInfo ImsMediaData() const;
 
-	
+		void ImsMediaData(IN CnxInfo val);
 
-	IxApiErrorCode	SyncStreamFile();
+	private:
 
-	CcuConnectionId _imsSessionHandle;
+		IxApiErrorCode	SyncStreamFile();
 
-	CnxInfo _imsMediaData;
+		CcuConnectionId _imsSessionHandle;
 
-	LightweightProcess &_facade;
-};
+		CnxInfo _imsMediaData;
 
-typedef shared_ptr<ImsSession> ImsSessionPtr;
+		LightweightProcess &_facade;
+	};
+
+	typedef shared_ptr<ImsSession> ImsSessionPtr;
+
+
+}
+

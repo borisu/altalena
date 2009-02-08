@@ -19,13 +19,9 @@
 
 #pragma once
 
-#include "LightweightProcess.h"
-#include "CcuConfiguration.h"
-#include "Call.h"
 #include "LuaVirtualMachine.h"
 #include "LuaScript.h"
 #include "CallWithRTPManagment.h"
-
 
 using namespace std;
 
@@ -33,110 +29,106 @@ namespace ivrworx
 {
 
 
-class ProcIxMain :
-	public LightweightProcess
-{
+	class ProcIxMain :
+		public LightweightProcess
+	{
 
-public:
+	public:
 
-	ProcIxMain(IN LpHandlePair pair, IN CcuConfiguration &conf);
+		ProcIxMain(IN LpHandlePair pair, IN CcuConfiguration &conf);
 
-	virtual void real_run();
+		virtual void real_run();
 
-	virtual ~ProcIxMain(void);
+		virtual ~ProcIxMain(void);
 
-protected:
+	protected:
 
-	BOOL ProcessStackMessage(
-		IN IxMsgPtr event,
-		IN ScopedForking &forking
-		);
+		BOOL ProcessStackMessage(
+			IN IxMsgPtr event,
+			IN ScopedForking &forking
+			);
 
-	BOOL ProcessInboundMessage(
-		IN IxMsgPtr event,
-		IN ScopedForking &forking
-		);
+		BOOL ProcessInboundMessage(
+			IN IxMsgPtr event,
+			IN ScopedForking &forking
+			);
 
-	void StartScript(
-		IN IxMsgPtr msg);
+		void StartScript(
+			IN IxMsgPtr msg);
 
-private:
+	private:
 
-	LpHandlePair _stackPair;
+		LpHandlePair _stackPair;
 
-	CnxInfo _sipStackData;
+		CnxInfo _sipStackData;
 
-	CcuConfiguration &_conf;
+		CcuConfiguration &_conf;
 
-	
+	};
 
-	
+	typedef 
+		shared_ptr<CLuaVirtualMachine> CLuaVirtualMachinePtr;
 
-};
+	class ProcScriptRunner
+		: public LightweightProcess
 
-typedef 
-shared_ptr<CLuaVirtualMachine> CLuaVirtualMachinePtr;
+	{
+	public:
 
-class ProcScriptRunner
-	: public LightweightProcess
-	
-{
-public:
+		ProcScriptRunner(
+			IN CcuConfiguration &conf,
+			IN IxMsgPtr msg, 
+			IN LpHandlePair stack_pair, 
+			IN LpHandlePair pair);
 
-	ProcScriptRunner(
-		IN CcuConfiguration &conf,
-		IN IxMsgPtr msg, 
-		IN LpHandlePair stack_pair, 
-		IN LpHandlePair pair);
+		~ProcScriptRunner();
 
-	~ProcScriptRunner();
+		virtual void real_run();
 
-	virtual void real_run();
+		virtual BOOL HandleOOBMessage(IN IxMsgPtr msg);
 
-	virtual BOOL HandleOOBMessage(IN IxMsgPtr msg);
+	private:
 
-private:
+		IxMsgPtr _initialMsg;
 
-	IxMsgPtr _initialMsg;
+		LpHandlePair _stackPair;
 
-	LpHandlePair _stackPair;
+		CcuConfiguration &_conf;
 
-	CcuConfiguration &_conf;
+		int _stackHandle;
 
-	int _stackHandle;
+	};
 
-};
+	class IxScript : 
+		public CLuaScript
+	{
+	public:
 
-class IxScript : 
-	public CLuaScript
-{
-public:
+		IxScript(IN CLuaVirtualMachine &_vmPtr, IN CallWithRTPManagment &_callSession);
 
-	IxScript(IN CLuaVirtualMachine &_vmPtr, IN CallWithRTPManagment &_callSession);
+		~IxScript();
 
-	~IxScript();
+	private:
 
-private:
+		// When the script calls a class method, this is called
+		virtual int ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber) ;
 
-	// When the script calls a class method, this is called
-	virtual int ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber) ;
+		// When the script function has returns
+		virtual void HandleReturns (CLuaVirtualMachine& vm, const char *strFunc);
 
-	// When the script function has returns
-	virtual void HandleReturns (CLuaVirtualMachine& vm, const char *strFunc);
+		int LuaAnswerCall(CLuaVirtualMachine& vm);
 
-	int LuaAnswerCall(CLuaVirtualMachine& vm);
+		int LuaHangupCall(CLuaVirtualMachine& vm);
 
-	int LuaHangupCall(CLuaVirtualMachine& vm);
+		int LuaWait(CLuaVirtualMachine& vm);
 
-	int LuaWait(CLuaVirtualMachine& vm);
+		CallWithRTPManagment &_callSession;
 
-	CallWithRTPManagment &_callSession;
+		int _methodBase;
 
-	int _methodBase;
+		CLuaVirtualMachine &_vmPtr;
 
-	CLuaVirtualMachine &_vmPtr;
-
-};
+	};
 
 }
 

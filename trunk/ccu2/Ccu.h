@@ -224,9 +224,10 @@ private:
 	string sport;
 
 	wstring wsport;
+
+	IxCodec codec;
 	
 public:
-
 
 	CnxInfo(wstring s, int p_port)
 	{

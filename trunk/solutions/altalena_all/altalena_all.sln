@@ -84,6 +84,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "eXosip", "..\..\..\mediastr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libspeex", "..\..\..\mediastreamer2-antisip-4.1.1-rc10\codecs\speex\win32\VS2005\libspeex\libspeex.vcproj", "{E972C52F-9E85-4D65-B19C-031E511E9DB4}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mediastreamer2", "..\..\..\mediastreamer2-antisip-4.1.1-rc10\mediastreamer2\build\win32native\mediastreamer2.vcproj", "{4A07BB2B-F56E-4F1B-A729-D28B782AC128}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mediastream", "..\..\..\mediastreamer2-antisip-4.1.1-rc10\mediastreamer2\build\win32native\mediastream.vcproj", "{92C82019-2DAC-4923-A05C-681AD5BDD04B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Dll|Any CPU = Debug Dll|Any CPU
@@ -766,6 +770,66 @@ Global
 		{E972C52F-9E85-4D65-B19C-031E511E9DB4}.SSL-Release|Mixed Platforms.Build.0 = Release|Win32
 		{E972C52F-9E85-4D65-B19C-031E511E9DB4}.SSL-Release|Win32.ActiveCfg = Release|Win32
 		{E972C52F-9E85-4D65-B19C-031E511E9DB4}.SSL-Release|Win32.Build.0 = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Debug Dll|Any CPU.ActiveCfg = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Debug Dll|Mixed Platforms.ActiveCfg = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Debug Dll|Mixed Platforms.Build.0 = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Debug Dll|Win32.ActiveCfg = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Debug Dll|Win32.Build.0 = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Debug|Win32.Build.0 = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Release Dll|Any CPU.ActiveCfg = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Release Dll|Mixed Platforms.ActiveCfg = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Release Dll|Mixed Platforms.Build.0 = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Release Dll|Win32.ActiveCfg = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Release Dll|Win32.Build.0 = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Release|Any CPU.ActiveCfg = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Release|Win32.ActiveCfg = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.Release|Win32.Build.0 = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.SSL-Debug|Any CPU.ActiveCfg = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.SSL-Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.SSL-Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.SSL-Debug|Win32.ActiveCfg = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.SSL-Debug|Win32.Build.0 = Debug|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.SSL-Release|Any CPU.ActiveCfg = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.SSL-Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.SSL-Release|Mixed Platforms.Build.0 = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.SSL-Release|Win32.ActiveCfg = Release|Win32
+		{4A07BB2B-F56E-4F1B-A729-D28B782AC128}.SSL-Release|Win32.Build.0 = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Debug Dll|Any CPU.ActiveCfg = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Debug Dll|Mixed Platforms.ActiveCfg = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Debug Dll|Mixed Platforms.Build.0 = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Debug Dll|Win32.ActiveCfg = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Debug Dll|Win32.Build.0 = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Debug|Win32.Build.0 = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Release Dll|Any CPU.ActiveCfg = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Release Dll|Mixed Platforms.ActiveCfg = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Release Dll|Mixed Platforms.Build.0 = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Release Dll|Win32.ActiveCfg = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Release Dll|Win32.Build.0 = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Release|Any CPU.ActiveCfg = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Release|Win32.ActiveCfg = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.Release|Win32.Build.0 = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.SSL-Debug|Any CPU.ActiveCfg = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.SSL-Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.SSL-Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.SSL-Debug|Win32.ActiveCfg = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.SSL-Debug|Win32.Build.0 = Debug|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.SSL-Release|Any CPU.ActiveCfg = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.SSL-Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.SSL-Release|Mixed Platforms.Build.0 = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.SSL-Release|Win32.ActiveCfg = Release|Win32
+		{92C82019-2DAC-4923-A05C-681AD5BDD04B}.SSL-Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -18,78 +18,79 @@
 */
 
 #pragma once
-#include "LightweightProcess.h"
-#include "StreamingObject.h"
+
+
+
+#include "Ims.h"
 
 using namespace std;
 
-
-struct StreamingCtx
+namespace ivrworx
 {
-	StreamingCtx(StreamingObject *streaming_object, IxMsgPtr orig_req);
 
-	StreamingCtx(const StreamingCtx &other);
+	struct StreamingCtx
+	{
+		StreamingCtx();
+
+		~StreamingCtx();
+
+		AudioStream *stream;
+
+	};
+
+	typedef 
+	shared_ptr<StreamingCtx> StreamingCtxPtr;
+
 	
-	StreamingObject *streaming_object;
 
-	IxMsgPtr orig_req;
-};
+	class ProcIms :
+		public LightweightProcess
+	{
+	public:
+		ProcIms(LpHandlePair pair, CcuConfiguration &conf);
 
-typedef
-map<ImsHandleId, StreamingCtx> StreamingCtxsMap;
+		void real_run();
 
-class ProcIms :
-	public LightweightProcess
-{
-public:
-	ProcIms(LpHandlePair pair, CnxInfo local_media);
+		virtual ~ProcIms(void);
 
-	void real_run();
+		virtual void AllocatePlaybackSession(IxMsgPtr msg);
 
-	virtual ~ProcIms(void);
+		virtual void StartPlayback(IxMsgPtr msg);
 
-	virtual void AllocatePlaybackSession(IxMsgPtr msg);
+		virtual void StopPlayback(IxMsgPtr msg, ScopedForking &forking);
 
-	virtual void StartPlayback(IxMsgPtr msg);
+		virtual void UponPlaybackStopped(IxMsgPtr msg);
 
-	virtual void StopPlayback(IxMsgPtr msg, ScopedForking &forking);
+		virtual void FreeResources();
 
-	virtual void UponPlaybackStopped(IxMsgPtr msg);
+		int audio_stream_start_full(AudioStream *stream, RtpProfile *profile, const char *remip,int remport, int payload,int jitt_comp, const char *infile, const char *outfile, MSSndCard *playcard, MSSndCard *captcard, bool_t use_ec);
 
-	virtual void FreeResources();
+		int 
+			GetNewImsHandle()
+		{
+			static int i = 700000;
+			return i++; 
+		}
 
-private:
+	private:
 
-	CnxInfo _localMedia;
+		void InitCodecs();
 
-	LpHandlePtr _streamerInbound;
+		CnxInfo _localMedia;
 
-	StreamingCtxsMap _streamingObjectSet;
+		PortManager _portManager;
 
-	PortManager _portManager;
-};
+		MSTicker *_ticker;
 
-class ProcStreamingObjectRemover :
-	public LightweightProcess 
-{
-public:
+		typedef	map<ImsHandleId, StreamingCtxPtr> StreamingCtxsMap;
+		StreamingCtxsMap _streamingObjectSet;
 
-	ProcStreamingObjectRemover(
-		IN LpHandlePair pair,
-		IN LpHandlePtr stream_handle,
-		IN ImsHandleId handle,
-		IN PortManager &ports_map);
+		typedef map<wstring, PayloadType*> PayloadTypeMap;
+		PayloadTypeMap _payloadTypeMap;
 
-	~ProcStreamingObjectRemover();
+		CcuConfiguration &_conf;
 
-	void virtual real_run();
+	};
 
-private:
+}
 
-	LpHandlePtr _streamerInbound;
-
-	PortManager &_portsManager;
-
-	int _streamHandle;
-
-};

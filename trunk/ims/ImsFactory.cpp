@@ -22,19 +22,24 @@
 #include "ProcIms.h"
 #include "ImsSession.h"
 
-ImsFactory::ImsFactory(void)
+namespace ivrworx
 {
-}
 
-ImsFactory::~ImsFactory(void)
-{
-}
+	ImsFactory::ImsFactory(void)
+	{
+	}
+
+	ImsFactory::~ImsFactory(void)
+	{
+	}
 
 
-LightweightProcess *
-ImsFactory::CreateProcIms(LpHandlePair pair, CnxInfo data)
-{
-	return new ProcIms(pair, data);
+	LightweightProcess *
+	ImsFactory::CreateProcIms(LpHandlePair pair,CcuConfiguration &conf)
+	{
+		return new ProcIms(pair, conf);
+
+	}
 
 }
 

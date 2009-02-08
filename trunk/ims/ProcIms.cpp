@@ -19,363 +19,365 @@
 
 #include "StdAfx.h"
 #include "ProcIms.h"
-#include "ProcPipeIPCDispatcher.h"
-#include "StreamingObject.h"
-#include "ProcStreamer.h"
-#include "CcuLogger.h"
 #include "Ims.h"
+
+namespace ivrworx
+{
 
 #define CCU_DEFAULT_IMS_TOP_PORT	6000
 #define CCU_DEFAULT_IMS_BOTTOM_PORT 5000
 
-static int 
-GetNewImsHandle()
-{
-	FUNCTRACKER;
+	VAR_DECLSPEC RtpProfile av_profile;
 
-	static int i = 700000;
-
-	return i++; 
-}
-
-StreamingCtx::StreamingCtx(StreamingObject *object, IxMsgPtr req):
-streaming_object(object),
-orig_req(req)
-{
-
-}
-
-StreamingCtx::StreamingCtx(const StreamingCtx &other)
-{
-	streaming_object = other.streaming_object;
-	orig_req = other.orig_req;
-}
-
-
-ProcIms::ProcIms(LpHandlePair pair, CnxInfo local_media)
-:LightweightProcess(pair,IMS_Q,__FUNCTIONW__),
-_localMedia(local_media),
-_portManager(CCU_DEFAULT_IMS_TOP_PORT,CCU_DEFAULT_IMS_BOTTOM_PORT)
-{
-	FUNCTRACKER;
-
-}
-
-ProcIms::~ProcIms(void)
-{
-	FUNCTRACKER;
-}
-
-void
-ProcIms::real_run()
-{
-	FUNCTRACKER;
-
-	WSADATA dat;
-	if (WSAStartup(MAKEWORD(2,2),&dat)!=0)
+	StreamingCtx::StreamingCtx():
+	stream(NULL)
 	{
-		LogSysError("Error starting up WIN socket");
-		throw;
 	}
 
-	START_FORKING_REGION;
-
-	DECLARE_NAMED_HANDLE_PAIR(ipc_pair);
-
-	//
-	// Start IPC
-	//
-	FORK(new ProcPipeIPCDispatcher(ipc_pair,IMS_Q));
-	if (CCU_FAILURE(WaitTillReady(Seconds(5), ipc_pair)))
+	StreamingCtx::~StreamingCtx()
 	{
-		LogCrit("Cannot start IMS IPC interface exiting...");
-		throw;
+		if (stream->session!=NULL) rtp_session_destroy(stream->session);
+		if (stream->rtpsend!=NULL) ms_filter_destroy(stream->rtpsend);
+		if (stream->rtprecv!=NULL) ms_filter_destroy(stream->rtprecv);
+		if (stream->soundread!=NULL) ms_filter_destroy(stream->soundread);
+		if (stream->soundwrite!=NULL) ms_filter_destroy(stream->soundwrite);
+		if (stream->encoder!=NULL) ms_filter_destroy(stream->encoder);
+		if (stream->decoder!=NULL) ms_filter_destroy(stream->decoder);
+		if (stream->dtmfgen!=NULL) ms_filter_destroy(stream->dtmfgen);
+		if (stream->ec!=NULL)	ms_filter_destroy(stream->ec);
+		//if (stream->ticker!=NULL) ms_ticker_destroy(stream->ticker);
+		ms_free(stream);
 	}
 
-	//
-	// Start streamer
-	// 
-	DECLARE_NAMED_HANDLE_PAIR(streamer_pair);
-	_streamerInbound = streamer_pair.inbound;
-
-	FORK(new ProcStreamer(streamer_pair, _inbound));
-	if (CCU_FAILURE(WaitTillReady(Seconds(5), streamer_pair)))
+	static void 
+	on_dtmf_received(RtpSession *s, int dtmf, void * user_data)
 	{
-		LogCrit("Cannot start Streamer process exiting...");
+		LogCrit("Not implemented");
 		throw;
+
 	}
 
-
-	I_AM_READY;
-
-	BOOL shutdownFlag = FALSE;
-	while (shutdownFlag  == FALSE)
+	ProcIms::ProcIms(IN LpHandlePair pair, IN CcuConfiguration &conf)
+		:LightweightProcess(pair, IMS_Q, __FUNCTIONW__),
+		_conf(conf),
+		_localMedia(conf.ImsCnxInfo()),
+		_portManager(CCU_DEFAULT_IMS_TOP_PORT,CCU_DEFAULT_IMS_BOTTOM_PORT)
 	{
-		IxApiErrorCode err_code = CCU_API_SUCCESS;
-		IxMsgPtr ptr =  _inbound->Wait(Seconds(60), err_code);
+		FUNCTRACKER;
 
+		_payloadTypeMap[L"pcma"] = &payload_type_pcma8000;
+		_payloadTypeMap[L"pcmu"] = &payload_type_pcmu8000;
+	}
 
-		if (err_code == CCU_API_TIMEOUT)
+	ProcIms::~ProcIms(void)
+	{
+		FUNCTRACKER;
+	}
+
+	void
+	ProcIms::InitCodecs()
+	{
+		for (CodecsList::const_iterator iter = _conf.CodecList().begin();
+			iter != _conf.CodecList().end();iter++)
 		{
-			LogDebug("IMS >>Keep Alive<<");
-			continue;
+
+			const IxCodec *codec = *(iter);
+			rtp_profile_set_payload(
+				&av_profile,
+				codec->sdp_mapping(),
+				_payloadTypeMap[codec->sdp_name()]);
 		}
 
-		switch (ptr->message_id)
-		{
-		case CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST:
-			{
-				AllocatePlaybackSession(ptr);
-				break;
-			}
-		case CCU_MSG_START_PLAYBACK_REQUEST:
-			{
-				StartPlayback(ptr);
-				break;
-			}
-		case CCU_MSG_PROC_SHUTDOWN_REQ:
-			{
-				shutdownFlag = TRUE;
-				
-				// release objects only if process that uses them is down. 
-				// Leak is better than crash or unstable behavior
-				if (Shutdown(Seconds(5),streamer_pair) == CCU_API_SUCCESS)
-				{
-					FreeResources();
-				} 
-				else 
-				{
-					LogWarn("Cannot stop streamer in a timely fashion");
-				}
+	}
 
-				SendResponse(ptr,new CcuMsgShutdownAck());
+	void
+	ProcIms::real_run()
+	{
+		FUNCTRACKER;
+
+		WSADATA dat;
+		if (WSAStartup(MAKEWORD(2,2),&dat)!=0)
+		{
+			LogSysError("Error starting up WIN socket");
+			throw;
+		}
+
+		//
+		// initialize ortp
+		//
+		ortp_init();
+		ortp_set_log_level_mask(ORTP_MESSAGE|ORTP_WARNING|ORTP_ERROR|ORTP_FATAL);
+
+		// 
+		// set master RTP profile
+		//
+		InitCodecs();
+
+		
+		START_FORKING_REGION;
+		DECLARE_NAMED_HANDLE_PAIR(ipc_pair);
+
+		//
+		// Start IPC
+		//
+		FORK(new ProcPipeIPCDispatcher(ipc_pair,IMS_Q));
+		if (CCU_FAILURE(WaitTillReady(Seconds(5), ipc_pair)))
+		{
+			LogCrit("Cannot start IMS IPC interface exiting...");
+			throw;
+		}
+
+		I_AM_READY;
+
+		BOOL shutdownFlag = FALSE;
+		while (shutdownFlag  == FALSE)
+		{
+			IxApiErrorCode err_code = CCU_API_SUCCESS;
+			IxMsgPtr ptr =  _inbound->Wait(Seconds(60), err_code);
+
+			if (err_code == CCU_API_TIMEOUT)
+			{
+				LogDebug("Streamer keep alive.");
 				continue;
 			}
-		case CCU_MSG_STREAMING_STOPPED_EVT:
-			{
-				//UponPlaybackStopped();
-				break;
-			}
-		default:
-			{
-				BOOL  oob_res = HandleOOBMessage(ptr);
 
-				if (oob_res == FALSE)
+			switch (ptr->message_id)
+			{
+			case CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST:
 				{
-					LogWarn("Received OOB message id=[" << ptr->message_id << "]");
-					_ASSERT	(false);
+					AllocatePlaybackSession(ptr);
+					break;
+				}
+			case CCU_MSG_START_PLAYBACK_REQUEST:
+				{
+					StartPlayback(ptr);
+					break;
+				}
+			case CCU_MSG_PROC_SHUTDOWN_REQ:
+				{
+					shutdownFlag = TRUE;
+					FreeResources();
+					SendResponse(ptr,new CcuMsgShutdownAck());
+					break;
+				}
+			default:
+				{
+					BOOL oob_res = HandleOOBMessage(ptr);
+					if (oob_res == FALSE)
+					{
+						LogCrit("Received unknown OOB message id=[" << ptr->message_id << "]");
+						throw;
+					}
 				}
 			}
 		}
+
+		END_FORKING_REGION
+		WSACleanup();
 	}
 
-	END_FORKING_REGION
 
-	WSACleanup();
-
-}
-
-void 
-ProcIms::UponPlaybackStopped(IxMsgPtr msg)
-{
-	FUNCTRACKER;
-
-	shared_ptr<CcuMsgStreamingStopped> stopped_msg = 
-		dynamic_pointer_cast<CcuMsgStreamingStopped> (msg);
-
-	StreamingCtxsMap::iterator iter = 
-		_streamingObjectSet.find(stopped_msg->obj->ImsHandle());
-
-	_streamingObjectSet.erase(iter);
-
-	
-
-
-
-}
-
-void 
-ProcIms::FreeResources()
-{
-	FUNCTRACKER;
-
-	for ( StreamingCtxsMap::iterator iter = _streamingObjectSet.begin();
-		 iter != _streamingObjectSet.end();
-		 iter ++)
+	void 
+	ProcIms::AllocatePlaybackSession(IxMsgPtr msg)
 	{
-		StreamingCtx ctx = (*iter).second;
+		FUNCTRACKER;
 
-		SendResponse(ctx.orig_req, new CcuMsgImsPlayStopped());
+		shared_ptr<CcuMsgAllocateImsSessionReq> req  =
+			dynamic_pointer_cast<CcuMsgAllocateImsSessionReq> (msg);
 
-		ctx.streaming_object->Close(_portManager);
-		delete ctx.streaming_object;
+		//
+		// create new context
+		//
+		StreamingCtxPtr ctx(new StreamingCtx());
 
-		iter = _streamingObjectSet.erase(iter);
-		if (iter == _streamingObjectSet.end())
-		{	
-			break;
+		//
+		// create ortp stream with and initialize with available port
+		//
+		_portManager.BeginSearch();
+		do 
+		{
+			int local_port = _portManager.GetNextCandidate();
+			if (local_port == IX_UNDEFINED)
+			{
+				break;
+			};
+
+			// creates stream and session
+			ctx->stream = audio_stream_new(local_port, ms_is_ipv6(_localMedia.iptoa()));
+			if (ctx->stream!=NULL)
+			{
+				_portManager.MarkUnavailable(local_port);
+			}
+
+		} while (ctx->stream!=NULL);
+
+		// failed to find available port
+		if (ctx->stream == NULL)
+		{
+			goto error;
 		}
-	}
 
-}
+		//
+		// create local rtp profile and associate it with session
+		//
+		RtpSession *rtps=ctx->stream->session;
+		RtpProfile *profile=rtp_profile_clone_full(&av_profile);
+		rtp_session_set_profile(rtps,profile);
 
-void 
-ProcIms::AllocatePlaybackSession(IxMsgPtr msg)
-{
-	FUNCTRACKER;
+		//
+		// create remote rtp session
+		//
+		int remport  = req->remote_media_data.port_ho();
+		char *remip  = (char *)req->remote_media_data.iptoa();
+		int res = rtp_session_set_remote_addr(rtps,remip,remport);
+		if (res == 0) 
+			goto error;
+		
+		rtp_session_set_payload_type(rtps,req->codec.sdp_mapping());
+		if (res == 0) 
+			goto error;
 
-	shared_ptr<CcuMsgAllocateImsSessionReq> req  =
-		dynamic_pointer_cast<CcuMsgAllocateImsSessionReq> (msg);
+		rtp_session_set_jitter_compensation(rtps,0/*jitt_comp*/);
+		if (res == 0) 
+			goto error;
 
-	StreamingObject *streaming_obj = 
-		new StreamingObject(req->remote_media_data,req->file_name, 0);
+		//
+		// create sending filter
+		//
+		ctx->stream->rtpsend=ms_filter_new(MS_RTP_SEND_ID);
+		ms_filter_call_method(ctx->stream->rtpsend,MS_RTP_SEND_SET_SESSION,rtps);
+		if (res == 0) 
+			goto error;
 
-	if (CCU_FAILURE(streaming_obj->Init(_portManager)))
-	{
-		CcuMsgAllocateImsSessionNack *nack = 
-			new CcuMsgAllocateImsSessionNack();
+		//
+		// DTMF detection filter
+		//
+		ctx->stream->dtmfgen=ms_filter_new(MS_DTMF_GEN_ID);
+		rtp_session_signal_connect(rtps,"telephone-event",(RtpCallback)on_dtmf_received,(unsigned long)ctx->stream->dtmfgen);
+		if (res == 0) 
+			goto error;
+		
 
-		delete streaming_obj;
+		//
+		// creates encoder
+		//
+		PayloadType *pt = NULL;
+		pt = rtp_profile_get_payload(&av_profile,req->codec.sdp_mapping() );
+		if (pt==NULL)
+			goto error;
 
-		SendResponse(req,nack);
+		ctx->stream->encoder = ms_filter_create_encoder(pt->mime_type);
+		ms_filter_call_method(ctx->stream->encoder,MS_FILTER_SET_SAMPLE_RATE,&pt->clock_rate);
+		if (pt==NULL)
+			goto error;
 
+		if (pt->normal_bitrate>0)
+		{
+			LogDebug("Setting audio encoder network bitrate to " << pt->normal_bitrate);
+			ms_filter_call_method(ctx->stream->encoder,MS_FILTER_SET_BITRATE,&pt->normal_bitrate);
+			if (pt==NULL)
+				goto error;
+		}
+		
+		//
+		// initialize file reading
+		//
+		ctx->stream->soundread = ms_filter_new(MS_FILE_PLAYER_ID);
+		ms_filter_call_method(ctx->stream->soundread,MS_FILTER_SET_SAMPLE_RATE,&pt->clock_rate);
+
+		ms_filter_link(ctx->stream->soundread,0,ctx->stream->encoder,0);
+		ms_filter_link(ctx->stream->dtmfgen,0,ctx->stream->soundwrite,0);
+
+		int handle = GetNewImsHandle();
+		_streamingObjectSet[handle] = ctx;
+
+		CcuMsgAllocateImsSessionAck *ack = 
+			new CcuMsgAllocateImsSessionAck();
+		ack->playback_handle = handle;
+
+		SendResponse(req,ack);
 		return;
 
-	}
-
-	CcuMsgAddStreamingObjectReq *str_req = new CcuMsgAddStreamingObjectReq();
-	str_req->obj = streaming_obj;
-
-	StreamingCtx ctx(streaming_obj,msg);
-
-	int handle = GetNewImsHandle();
-	_streamingObjectSet.insert(pair<ImsHandleId,StreamingCtx>(handle,ctx));
-
-	CcuMsgAllocateImsSessionAck *ack = 
-		new CcuMsgAllocateImsSessionAck();
-
-	ack->playback_handle = handle;
-	ack->ims_media = CnxInfo("127.0.0.1", streaming_obj->Port());
-
-	SendResponse(req,ack);
-
-}
-
-void 
-ProcIms::StartPlayback(IxMsgPtr msg)
-{
-
-	FUNCTRACKER;
-
-	shared_ptr<CcuMsgStartPlayReq> req  =
-		dynamic_pointer_cast<CcuMsgStartPlayReq> (msg);
-
-	StreamingCtxsMap::iterator iter = 
-		_streamingObjectSet.find(req->playback_handle);
-
-	if (iter == _streamingObjectSet.end())
-	{
-		SendResponse(msg, new CcuMsgStartPlayReqNack());
+error:
+		SendResponse(req,new CcuMsgAllocateImsSessionNack());
 		return;
 	}
 
-	CcuMsgAddStreamingObjectReq *strm_req = new CcuMsgAddStreamingObjectReq();
-	strm_req->id = (*iter).first; 
-	StreamingObject *streaming_object = (*iter).second.streaming_object;
-	strm_req->obj = streaming_object;
-
-
-	LogDebug("Started >>streaming<< to dest=[" << streaming_object->RemoteMediaData().ipporttows() << "]")
-
-
-	_streamerInbound->Send(strm_req);
-
-}
-
-void 
-ProcIms::StopPlayback(IxMsgPtr msg, ScopedForking &forking)
-{
-	FUNCTRACKER;
-
-// 	shared_ptr<CcuMsgStopPlayback> req  =
-// 		dynamic_pointer_cast<CcuMsgStopPlayback> (msg);
-// 
-// 	StreamingObjectHandlesMap::iterator iter = _streamingObjectSet.find(req->playback_handle);	
-// 	if (iter == _streamingObjectSet.end())	
-// 	{
-// 		return;
-// 	}
-// 
-// 	_streamingObjectSet.erase(req->playback_handle);
-// 
-// 	// we have to receive ack on RTP remove in order
-// 	// to reclaim port but we cannot wait for response
-// 	// that's why we spawn another project
-// 	//
-// 	HANDLE_PAIR_DECLARE_(remover_pair);
-// 	forking.forkInThisThread(
-// 		new ProcStreamingObjectRemover(
-// 		remover_pair,
-// 		_streamerInbound,
-// 		req->playback_handle,
-// 		_portManager));
-
-}
-
-
-
-ProcStreamingObjectRemover::ProcStreamingObjectRemover(
-	IN LpHandlePair pair, 
-	IN LpHandlePtr streamer_handle,
-	IN int handle,
-	IN PortManager &ports_map
-	):
-LightweightProcess(pair,__FUNCTIONW__ ),
-_streamerInbound(streamer_handle),
-_portsManager(ports_map),
-_streamHandle(handle)
-{
-
-}
-
-ProcStreamingObjectRemover::~ProcStreamingObjectRemover()
-{
-	
-}
-
-void 
-ProcStreamingObjectRemover::real_run()
-{
-	
-	
-	CcuMsgRemoveStreamingObjectReq *msg = 
-		new CcuMsgRemoveStreamingObjectReq();
-
-	msg->handle = _streamHandle;
-
-	IxMsgPtr response_ptr;
-
-	IxApiErrorCode res = DoRequestResponseTransaction(
-		_streamerInbound,
-		IxMsgPtr(msg),
-		response_ptr,
-		Seconds(60),
-		L"Close RTP Connection TXN"
-		);
-
-	if (res!=CCU_API_SUCCESS)
+	void 
+	ProcIms::StartPlayback(IxMsgPtr msg)
 	{
-		LogCrit("Couldn't delete IMS streamer object in timely fashion - consider restarting IMS.");
-		throw;
+
+		FUNCTRACKER;
+
+		shared_ptr<CcuMsgStartPlayReq> req  =
+			dynamic_pointer_cast<CcuMsgStartPlayReq> (msg);
+
+		StreamingCtxsMap::iterator iter = 
+			_streamingObjectSet.find(req->playback_handle);
+
+		if (iter == _streamingObjectSet.end())
+		{
+			LogWarn("Ims context with handle=[" << req->playback_handle << "] not found");
+			SendResponse(msg, new CcuMsgStartPlayReqNack());
+			return;
+		}
+
+		StreamingCtxPtr ctx = (*iter).second;
+
+#pragma TODO ("Handle play twice")
+
+		audio_stream_play(ctx->stream,WStringToString(req->file_name).c_str());
+
+		ms_ticker_attach(ctx->stream->ticker,ctx->stream->soundread);
 	}
 
-	shared_ptr<CcuMsgRemoveStreamingObjectAck> ack = 
-		dynamic_pointer_cast<CcuMsgRemoveStreamingObjectAck> (response_ptr);
+	void 
+	ProcIms::UponPlaybackStopped(IxMsgPtr msg)
+	{
+		FUNCTRACKER;
+
+		// 	shared_ptr<CcuMsgStreamingStopped> stopped_msg = 
+		// 		dynamic_pointer_cast<CcuMsgStreamingStopped> (msg);
+		// 
+		// 	StreamingCtxsMap::iterator iter = 
+		// 		_streamingObjectSet.find(stopped_msg->obj->ImsHandle());
+		// 
+		// 	_streamingObjectSet.erase(iter);
+		// 
+		// 	
+
+	}
 
 
-	_portsManager.MarkAvailable(ack->obj->Port()); 
+	void 
+		ProcIms::StopPlayback(IxMsgPtr msg, ScopedForking &forking)
+	{
+		FUNCTRACKER;
 
-	delete ack->obj;
+		// 	shared_ptr<CcuMsgStopPlayback> req  =
+		// 		dynamic_pointer_cast<CcuMsgStopPlayback> (msg);
+		// 
+		// 	StreamingObjectHandlesMap::iterator iter = _streamingObjectSet.find(req->playback_handle);	
+		// 	if (iter == _streamingObjectSet.end())	
+		// 	{
+		// 		return;
+		// 	}
+		// 
+		// 	_streamingObjectSet.erase(req->playback_handle);
+		// 
+		// 	// we have to receive ack on RTP remove in order
+		// 	// to reclaim port but we cannot wait for response
+		// 	// that's why we spawn another project
+		// 	//
+		// 	HANDLE_PAIR_DECLARE_(remover_pair);
+		// 	forking.forkInThisThread(
+		// 		new ProcStreamingObjectRemover(
+		// 		remover_pair,
+		// 		_streamerInbound,
+		// 		req->playback_handle,
+		// 		_portManager));
 
+	}
 
 }
+
