@@ -147,6 +147,8 @@ public:
 
 	CnxInfo local_media;
 
+	IxCodec codec;
+
 	CnxInfo remote_media;
 
 	virtual void copy_data_on_response(IN IxMessage *msg)

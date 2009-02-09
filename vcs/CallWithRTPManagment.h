@@ -23,39 +23,43 @@
 #include "CcuRTPSession.h"
 #include "ImsSession.h"
 
-using namespace ivrworx;
-
-class CallWithRTPManagment :
-	public Call
+namespace ivrworx
 {
-public:
+	class CallWithRtpRelay :
+		public Call
+	{
+	public:
 
-	CallWithRTPManagment(
-		IN LpHandlePair stack_pair, 
-		IN LightweightProcess &facade);
+		CallWithRtpRelay(
+			IN LpHandlePair stack_pair, 
+			IN LightweightProcess &facade);
 
-	CallWithRTPManagment(
-		IN LpHandlePair _stackPair, 
-		IN int call_handle,
-		IN CnxInfo offered_media,
-		IN LightweightProcess &facade);
+		CallWithRtpRelay(
+			IN LpHandlePair _stackPair, 
+			IN int call_handle,
+			IN CnxInfo offered_media,
+			IN LightweightProcess &facade);
 
-	virtual ~CallWithRTPManagment(void);
+		virtual ~CallWithRtpRelay(void);
 
-	IxApiErrorCode MakeCall(
-		IN const wstring &destination_uri);
+		IxApiErrorCode MakeCall(
+			IN const wstring &destination_uri);
 
-	IxApiErrorCode PlayFile(
-		IN const wstring &file_name);
+		IxApiErrorCode PlayFile(
+			IN const wstring &file_name);
 
-	IxApiErrorCode AcceptCall();
+		IxApiErrorCode AcceptCall();
 
-private:
+	private:
 
-	CcuRtpSession _callerRtpSession;
+		CcuRtpSession _callerRtpSession;
 
-	CcuRtpSession _imsRtpSession;
+		CcuRtpSession _imsRtpSession;
 
-	ImsSession _imsSession;
+		ImsSession _imsSession;
 
-};
+	};
+
+
+}
+

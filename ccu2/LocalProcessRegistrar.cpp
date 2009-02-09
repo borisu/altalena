@@ -78,7 +78,7 @@ LocalProcessRegistrar::RegisterChannel(IN int handle_id, IN LpHandlePtr ptr)
 
 		_locProcessesMap[handle_id] = ptr;
 	}
-	LogDebug(">>Registered<< handle id=[" << dec << handle_id << "] -> [" << ptr.get() << "]");
+	LogDebug("Registered handle (" << ptr.get() << ")");
 }
 
 void
@@ -120,9 +120,9 @@ LocalProcessRegistrar::UnregisterChannel(int handle_id)
 			
 		}
 
-
 	}
-	LogDebug(">>Unregistered<< channel id=[" << dec << handle_id << "]");
+
+	LogDebug("Unregistered handle (" << handle_id << ")");
 }
 
 

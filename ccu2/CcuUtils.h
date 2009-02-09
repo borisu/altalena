@@ -67,6 +67,11 @@
 
 #pragma warning( pop )
 
+using namespace std;
+
+namespace ivrworx
+{
+
 #define _QUOTE(x) # x
 #define QUOTE(x) _QUOTE(x)
 #define __FILE__LINE__ __FILE__ "(" QUOTE(__LINE__) ") : "
@@ -103,18 +108,20 @@
 #define FORK_IN_THIS_THREAD(x) forking.forkInThisThread( x )
 #define END_FORKING_REGION }
 
+	wstring StringToWString(const string& s);
 
-using namespace std;
+	string WStringToString(const wstring& ws);
 
-//wostream& operator << (wostream &ostream, const string &ptr);
+	void StringToUpper(string strToConvert);
 
-wstring 
-StringToWString(const string& s);
+	void StringToLower(string strToConvert);
 
-string 
-WStringToString(const wstring& ws);
+	void WStringToUpper(wstring strToConvert);
 
+	void WStringToLower(wstring strToConvert);
 
 #define DISABLE_SRC_REF
-//#define NOLOGS
-//#define PROFILE
+	//#define NOLOGS
+	//#define PROFILE
+
+}

@@ -1,24 +1,25 @@
 {
     "default_ip": "192.168.100.232",
-    
-    "vcs_sip_ip"		: "192.168.100.232",
-    "vcs_sip_port"		: 5060,
-    
-    "ims_ip"			: "192.168.100.232",
-	"ims_port"			: 13555
-    
-    "rtp_relay_ip"			: "192.168.100.232",
-    "rtp_relay_top_port" 	: 62000,
+    "vcs_sip_ip": "192.168.100.232",
+    "vcs_sip_port": 5060,
+    "ims_ip": "192.168.100.232",
+    "ims_port": 13555,
+    "rtp_relay_ip": "192.168.100.232",
+    "rtp_relay_top_port" : 62000,
     "rtp_relay_bottom_port" : 61000,
-    
     "script_file" : "scripts\\answer_wait_hang-up.lua",
-    
-    "from_id"	        : "MyIvr",
-    "from_display_name"	: "My Ivr",
-    
-    "codecs": 
-    [
-		{"name":"PCMU" , "sdp_mapping":0, "sampling_rate":8000},
-		{"name":"PCMA" , "sdp_mapping":8, "sampling_rate":8000}
+    "from_id" : "MyIvr",
+    "from_display_name": "My Ivr",
+    "codecs": [
+        {
+            "name": "PCMU" ,
+            "sdp_mapping": 0,
+            "sampling_rate": 8000
+        },
+        {
+            "name": "PCMA" ,
+            "sdp_mapping": 8,
+            "sampling_rate": 8000
+        } 
     ]
 }

@@ -129,6 +129,8 @@ namespace ivrworx
 
 		FUNCTRACKER;
 
+		LogDebug("=== LP " << Name() << " pid=" << ProcessId() << ", alias=" << _processAlias << " START ===");
+
 		RegistrationGuard guard(_inbound,_processAlias);
 
 		// Created only once -  thread local storage 
@@ -160,7 +162,7 @@ namespace ivrworx
 
 		(*tl_procMap)[fiber] = this;
 
-		LogDebug("=== LP " << Name() << " START ===");
+		
 		try
 		{
 			real_run();
@@ -170,15 +172,17 @@ namespace ivrworx
 			LogWarn("Exception in process=[" << Name() << "] what=[" << e.what() << "]");
 		}
 
-		LogDebug("=== LP " << Name() << " END ===");
+		
 
 		_inbound->Poison();
 
 		_bucket->flush();
-
+         
 		tl_procMap->erase(fiber);
 
 		csp::CPPCSP_Yield();
+
+		LogDebug("=== LP " << Name() << " pid=" << ProcessId() << ", alias=" << _processAlias << " END ===");
 
 	}
 

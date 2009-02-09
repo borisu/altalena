@@ -82,6 +82,8 @@ namespace ivrworx
 
 		MSTicker *_ticker;
 
+		RtpProfile *av_profile;
+
 		typedef	map<ImsHandleId, StreamingCtxPtr> StreamingCtxsMap;
 		StreamingCtxsMap _streamingObjectSet;
 

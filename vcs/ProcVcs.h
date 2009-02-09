@@ -104,7 +104,7 @@ namespace ivrworx
 	{
 	public:
 
-		IxScript(IN CLuaVirtualMachine &_vmPtr, IN CallWithRTPManagment &_callSession);
+		IxScript(IN CLuaVirtualMachine &_vmPtr, IN CallWithRtpRelay &_callSession);
 
 		~IxScript();
 
@@ -122,7 +122,7 @@ namespace ivrworx
 
 		int LuaWait(CLuaVirtualMachine& vm);
 
-		CallWithRTPManagment &_callSession;
+		CallWithRtpRelay &_callSession;
 
 		int _methodBase;
 

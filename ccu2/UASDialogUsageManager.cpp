@@ -283,7 +283,6 @@ UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, co
 	const SdpContents::Session::Medium &medium = s.media().front();
 	int port = medium.port();
 	
-	
 	DECLARE_NAMED_HANDLE_PAIR(call_handler_pair);
 
 	CcuMsgCallOfferedReq *offered = new CcuMsgCallOfferedReq();
@@ -310,13 +309,32 @@ UASDialogUsageManager::onConnected(InviteSessionHandle is, const SipMessage& msg
 	if (iter == _resipHandlesMap.end())
 	{
 		LogWarn("Resip dialog handle=[" << is->getAppDialog().getId() << "] not found. Has user disconnected already???");
+		is->end();
 		return;
 	}
 
 	SipDialogContextPtr ctx_ptr = (*iter).second;
+
+	const SdpContents::Session &s = is->getRemoteSdp().session();
+	const SdpContents::Session::Medium &medium = s.media().front();
+	const std::list<Codec> &list = medium.codecs();
+
+	if (list.empty())
+	{
+		LogWarn("Cannot determine agreed codec for the call ix stack handle=[" << ctx_ptr->stack_handle <<"]");
+		is->end();
+		return;
+	}
+
+	const Codec &codec = *list.begin();
+	
+	CcuMsgNewCallConnected *conn_msg = 
+		new CcuMsgNewCallConnected();
+	conn_msg->codec = IxCodec(StringToWString(codec.getName().c_str()),codec.getRate(),codec.payloadType());
+	
 	_ccu_stack.SendResponse(
 		ctx_ptr->last_user_request, 
-		new CcuMsgNewCallConnected());
+		conn_msg);
 
 	LogDebug("Call connected - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid =[" << is->getCallId().c_str() << "], resip handle=[" << is.getId() << "]");
 	

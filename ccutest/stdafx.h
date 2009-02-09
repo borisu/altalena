@@ -44,4 +44,8 @@
 
 #include "CcuUtils.h"
 #include "CcuLogger.h"
+#include "Ccu.h"
+#include "LightweightProcess.h"
+#include "CcuConfiguration.h"
+#include "ConfigurationFactory.h"
 

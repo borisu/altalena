@@ -50,7 +50,7 @@ CallWithRtpTester::real_run()
 
 
 	// test make call
-	CallWithRTPManagment call(stack_stub_pair,*this);
+	CallWithRtpRelay call(stack_stub_pair,*this);
 	assert(CCU_SUCCESS(call.MakeCall(L"xxx@example.com")));
 
 	assert(call.RemoteMedia() == 

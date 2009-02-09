@@ -225,7 +225,7 @@ ProcScriptRunner::real_run()
 
 		_stackHandle = start_script_msg->stack_call_handle;
 
-		CallWithRTPManagment call_session(
+		CallWithRtpRelay call_session(
 			_stackPair,
 			start_script_msg->stack_call_handle,
 			start_script_msg->remote_media,
@@ -281,7 +281,7 @@ ProcScriptRunner::HandleOOBMessage(IN IxMsgPtr msg)
 
 
 IxScript::IxScript(IN CLuaVirtualMachine &vm_ptr, 
-				   IN CallWithRTPManagment &call_session)
+				   IN CallWithRtpRelay &call_session)
 :CLuaScript(vm_ptr),
 _callSession(call_session),
 _vmPtr(vm_ptr)

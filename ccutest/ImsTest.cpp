@@ -55,22 +55,33 @@ LightweightProcess(pair,__FUNCTIONW__)
 void 
 ImsTester::real_run()
 {
-	I_AM_READY;
+ 	I_AM_READY;
+ 
+ 	START_FORKING_REGION;
 
-	START_FORKING_REGION;
-
-	DECLARE_NAMED_HANDLE_PAIR(tester_pair);
-	FORK(ImsFactory::CreateProcIms(tester_pair, g_localAddr));
-	TransactionTimeout(600000);
-
-	ImsSessionPtr ims_session(new ImsSession(*this));
-
-	CcuConnectionId id = IX_UNDEFINED;
+	CcuConfigurationPtr conf = ConfigurationFactory::CreateJsonConfiguration(L"conf.json");
 	
-	assert(CCU_SUCCESS(ims_session->PlayFile(CnxInfo("192.168.100.231", 5666), L"C:\\SOUNDS\\welcome.wav")));
-	
+  	DECLARE_NAMED_HANDLE_PAIR(tester_pair);
+ 	FORK(ImsFactory::CreateProcIms(tester_pair, *conf));
+	if (CCU_FAILURE(WaitTillReady(Seconds(5),tester_pair)))
+	{
+		assert(false);
+	}
 
-	END_FORKING_REGION;	
+ 	TransactionTimeout(600000);
+ 
+ 	ImsSession ims_session(*this);
+ 
+ 	CcuConnectionId id = IX_UNDEFINED;
+
+ 	assert(CCU_SUCCESS(ims_session.AllocateIMSConnection(
+		CnxInfo("192.168.100.233",60555), 
+		IxCodec(L"pcmu",8000,0))));
+
+	assert(CCU_SUCCESS(ims_session.PlayFile(L"C:\\SOUNDS\\welcome.wav", FALSE)));
+ 	
+ 
+ 	END_FORKING_REGION;	
 
 }
 

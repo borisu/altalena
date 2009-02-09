@@ -21,42 +21,27 @@
 
 using namespace std;
 
-enum CcuPortState
+namespace ivrworx
 {
-	CCU_PORT_AVAILABLE,
-	CCU_PORT_UNAVAILABLE
-};
+	class PortManager
+	{
+	public:
+		PortManager(int abs_top, int abs_bottom);
 
-typedef vector<CcuPortState> PortStateMap;
+		int		GetNextPort();
 
-class PortManager
-{
-public:
-	PortManager(int abs_top, int abs_bottom);
+		void	Return(int port);
 
-	int		GetNextCandidate();
+		virtual ~PortManager(void);
 
-	void	MarkAvailable(int port);
+	private:
 
-	void	MarkUnavailable(int port);
+		typedef vector<int> PortStateList;
+		PortStateList _portsList;
 
-	int		NumOfPortSlots() const;
+	};
 
-	void	BeginSearch();
 
-	virtual ~PortManager(void);
+}
 
-private:
 
-	int _absTop;
-
-	int _absBottom;
-
-	int _numOfPortSlots;
-
-	PortStateMap _portsMap;
-
-	int _lastAllocatedPortSlot;
-
-	int _counter;
-};

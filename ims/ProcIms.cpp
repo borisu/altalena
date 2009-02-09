@@ -27,8 +27,6 @@ namespace ivrworx
 #define CCU_DEFAULT_IMS_TOP_PORT	6000
 #define CCU_DEFAULT_IMS_BOTTOM_PORT 5000
 
-	VAR_DECLSPEC RtpProfile av_profile;
-
 	StreamingCtx::StreamingCtx():
 	stream(NULL)
 	{
@@ -49,6 +47,7 @@ namespace ivrworx
 		ms_free(stream);
 	}
 
+	
 	static void 
 	on_dtmf_received(RtpSession *s, int dtmf, void * user_data)
 	{
@@ -65,13 +64,18 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_payloadTypeMap[L"pcma"] = &payload_type_pcma8000;
-		_payloadTypeMap[L"pcmu"] = &payload_type_pcmu8000;
+		_payloadTypeMap[L"PCMA"] = &payload_type_pcma8000;
+		_payloadTypeMap[L"PCMU"] = &payload_type_pcmu8000;
 	}
 
 	ProcIms::~ProcIms(void)
 	{
 		FUNCTRACKER;
+
+		ms_ticker_destroy(_ticker);
+		ms_exit();
+		rtp_profile_destroy(av_profile);
+		ortp_exit();
 	}
 
 	void
@@ -83,7 +87,7 @@ namespace ivrworx
 
 			const IxCodec *codec = *(iter);
 			rtp_profile_set_payload(
-				&av_profile,
+				av_profile,
 				codec->sdp_mapping(),
 				_payloadTypeMap[codec->sdp_name()]);
 		}
@@ -106,7 +110,18 @@ namespace ivrworx
 		// initialize ortp
 		//
 		ortp_init();
+		ms_init();
 		ortp_set_log_level_mask(ORTP_MESSAGE|ORTP_WARNING|ORTP_ERROR|ORTP_FATAL);
+
+		_ticker = ms_ticker_new();
+		if (_ticker == NULL)
+		{
+			LogCrit("Cannot start ms ticker");
+			throw;
+		}
+		
+
+		av_profile=rtp_profile_new("ivrworx profile");
 
 		// 
 		// set master RTP profile
@@ -190,13 +205,14 @@ namespace ivrworx
 		//
 		StreamingCtxPtr ctx(new StreamingCtx());
 
+		
+
 		//
 		// create ortp stream with and initialize with available port
 		//
-		_portManager.BeginSearch();
 		do 
 		{
-			int local_port = _portManager.GetNextCandidate();
+			int local_port = _portManager.GetNextPort();
 			if (local_port == IX_UNDEFINED)
 			{
 				break;
@@ -206,14 +222,17 @@ namespace ivrworx
 			ctx->stream = audio_stream_new(local_port, ms_is_ipv6(_localMedia.iptoa()));
 			if (ctx->stream!=NULL)
 			{
-				_portManager.MarkUnavailable(local_port);
+				break;
 			}
+
+			_portManager.Return(local_port);
 
 		} while (ctx->stream!=NULL);
 
 		// failed to find available port
 		if (ctx->stream == NULL)
 		{
+			LogWarn("Failed to find available port");
 			goto error;
 		}
 
@@ -221,7 +240,7 @@ namespace ivrworx
 		// create local rtp profile and associate it with session
 		//
 		RtpSession *rtps=ctx->stream->session;
-		RtpProfile *profile=rtp_profile_clone_full(&av_profile);
+		RtpProfile *profile=rtp_profile_clone_full(av_profile);
 		rtp_session_set_profile(rtps,profile);
 
 		//
@@ -230,63 +249,126 @@ namespace ivrworx
 		int remport  = req->remote_media_data.port_ho();
 		char *remip  = (char *)req->remote_media_data.iptoa();
 		int res = rtp_session_set_remote_addr(rtps,remip,remport);
-		if (res == 0) 
+		if (res < 0) 
+		{
+			LogWarn("error:rtp_session_set_remote_addr");
 			goto error;
+		}
+			
 		
-		rtp_session_set_payload_type(rtps,req->codec.sdp_mapping());
-		if (res == 0) 
+		res = rtp_session_set_payload_type(rtps,req->codec.sdp_mapping());
+		if (res < 0) 
+		{
+			LogWarn("error:rtp_session_set_payload_type ");
 			goto error;
+		}
 
 		rtp_session_set_jitter_compensation(rtps,0/*jitt_comp*/);
-		if (res == 0) 
-			goto error;
-
+		
 		//
 		// create sending filter
 		//
-		ctx->stream->rtpsend=ms_filter_new(MS_RTP_SEND_ID);
+		MSFilter *rtp_send =ms_filter_new(MS_RTP_SEND_ID);
+		ctx->stream->rtpsend = rtp_send;
 		ms_filter_call_method(ctx->stream->rtpsend,MS_RTP_SEND_SET_SESSION,rtps);
-		if (res == 0) 
+		if (res < 0) 
+		{
+			LogWarn("error:ms_filter_call_method");
 			goto error;
+		}
 
 		//
 		// DTMF detection filter
 		//
 		ctx->stream->dtmfgen=ms_filter_new(MS_DTMF_GEN_ID);
+
+#pragma warning (suppress :4311)
 		rtp_session_signal_connect(rtps,"telephone-event",(RtpCallback)on_dtmf_received,(unsigned long)ctx->stream->dtmfgen);
-		if (res == 0) 
+
+		if (res < 0) 
+		{
+			LogWarn("error:rtp_session_signal_connect");
 			goto error;
+		}
 		
 
 		//
 		// creates encoder
 		//
 		PayloadType *pt = NULL;
-		pt = rtp_profile_get_payload(&av_profile,req->codec.sdp_mapping() );
+		pt = rtp_profile_get_payload(av_profile,req->codec.sdp_mapping());
 		if (pt==NULL)
+		{
+			LogWarn("error:rtp_profile_get_payload");
 			goto error;
+		}
 
 		ctx->stream->encoder = ms_filter_create_encoder(pt->mime_type);
-		ms_filter_call_method(ctx->stream->encoder,MS_FILTER_SET_SAMPLE_RATE,&pt->clock_rate);
-		if (pt==NULL)
-			goto error;
-
-		if (pt->normal_bitrate>0)
+		if (ctx->stream->encoder == NULL) 
 		{
-			LogDebug("Setting audio encoder network bitrate to " << pt->normal_bitrate);
-			ms_filter_call_method(ctx->stream->encoder,MS_FILTER_SET_BITRATE,&pt->normal_bitrate);
-			if (pt==NULL)
-				goto error;
+			LogWarn("error:ms_filter_create_encoder");
+			goto error;
 		}
+
+
+// 		res = ms_filter_call_method(ctx->stream->encoder,MS_FILTER_SET_SAMPLE_RATE,&pt->clock_rate);
+// 		if (res < 0) 
+// 		{
+// 			LogWarn("error:ms_filter_call_method");
+// 			goto error;
+// 		}
+
+// 		if (pt->normal_bitrate>0)
+// 		{
+// 			LogDebug("Setting audio encoder network bitrate to " << pt->normal_bitrate);
+// 			res = ms_filter_call_method(ctx->stream->encoder,MS_FILTER_SET_BITRATE,&pt->normal_bitrate);
+// 			if (res < 0) 
+// 			{
+// 				LogWarn("error:ms_filter_call_method");
+// 				goto error;
+// 			}
+// 		}
 		
 		//
 		// initialize file reading
 		//
 		ctx->stream->soundread = ms_filter_new(MS_FILE_PLAYER_ID);
-		ms_filter_call_method(ctx->stream->soundread,MS_FILTER_SET_SAMPLE_RATE,&pt->clock_rate);
+		if (ctx->stream->soundread  == NULL) 
+		{
+			LogWarn("error:ms_filter_new(MS_FILE_PLAYER_ID)");
+			goto error;
+		}
 
-		ms_filter_link(ctx->stream->soundread,0,ctx->stream->encoder,0);
-		ms_filter_link(ctx->stream->dtmfgen,0,ctx->stream->soundwrite,0);
+// 		res = ms_filter_call_method(ctx->stream->soundread,MS_FILTER_SET_SAMPLE_RATE,&pt->clock_rate);
+// 		if (res < 0) 
+// 		{
+// 			LogWarn("error:ms_filter_call_method");
+// 			goto error;
+// 		}
+
+		res = ms_filter_link(ctx->stream->soundread,0,ctx->stream->encoder,0);
+		if (res < 0) 
+		{
+			LogWarn("error:ms_filter_link");
+			goto error;
+		}
+
+		OrtpEvQueue *q=ortp_ev_queue_new();	
+		if (q == NULL) 
+		{
+			LogWarn("error:ortp_ev_queue_new");
+			goto error;
+		}
+
+		rtp_session_register_event_queue(ctx->stream->session,q);
+
+// 		res = ms_filter_link(ctx->stream->dtmfgen,0,ctx->stream->soundwrite,0);
+// 		if (res < 0) 
+// 		{
+// 			LogWarn("error:ms_filter_link");
+// 			goto error;
+// 		}
+
 
 		int handle = GetNewImsHandle();
 		_streamingObjectSet[handle] = ctx;
@@ -324,9 +406,12 @@ error:
 
 		StreamingCtxPtr ctx = (*iter).second;
 
-#pragma TODO ("Handle play twice")
-
 		audio_stream_play(ctx->stream,WStringToString(req->file_name).c_str());
+
+		if (ctx->stream->ticker == NULL)
+		{
+			ctx->stream->ticker = _ticker;
+		};
 
 		ms_ticker_attach(ctx->stream->ticker,ctx->stream->soundread);
 	}
@@ -376,6 +461,12 @@ error:
 		// 		_streamerInbound,
 		// 		req->playback_handle,
 		// 		_portManager));
+
+	}
+
+	void 
+	ProcIms::FreeResources()
+	{
 
 	}
 

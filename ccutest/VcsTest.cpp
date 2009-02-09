@@ -73,13 +73,13 @@ ProcVcsTester::real_run()
 	assert(CCU_SUCCESS(Ping(RTP_RELAY_Q)));
 
 	//
-	// Start IMS 
-	//
-	DECLARE_NAMED_HANDLE_PAIR(ims_pair);
-	FORK(ImsFactory::CreateProcIms(ims_pair, g_localAddr));
-	assert(CCU_SUCCESS(WaitTillReady(Seconds(5), ims_pair)));
-	assert(CCU_SUCCESS(Ping(IMS_Q)));
-
+// 	Start IMS 
+// 	//
+// 	DECLARE_NAMED_HANDLE_PAIR(ims_pair);
+// 	FORK(ImsFactory::CreateProcIms(ims_pair, g_localAddr));
+// 	assert(CCU_SUCCESS(WaitTillReady(Seconds(5), ims_pair)));
+// 	assert(CCU_SUCCESS(Ping(IMS_Q)));
+// 
 
  	//
  	// Start VCS
