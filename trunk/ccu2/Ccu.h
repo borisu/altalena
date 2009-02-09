@@ -23,10 +23,11 @@
 #include "CcuMessage.h"
 
 
-
 using namespace std;
 using namespace boost;
 using namespace boost::serialization;
+
+
 
 enum CcuWellKnownProcesses
 {
@@ -62,76 +63,29 @@ namespace boost {
 struct IxCodec
 {
 
-	IxCodec()
-		:name(L"INVALID"),
-		rate(IX_UNDEFINED),
-		mapping(IX_UNDEFINED)
-	{
-		init_strings();
-	};
+	IxCodec();
 
-	IxCodec(wstring param_name, int param_sampling_rate,int param_sdp_mapping)
-		:name(param_name),
-		rate(param_sampling_rate),
-		mapping(param_sdp_mapping)
-	{
-		init_strings();
-	};
+	IxCodec(wstring param_name, int param_sampling_rate,int param_sdp_mapping);
 
-	IxCodec(const IxCodec &codec)
-	{
-		name = codec.name;
-		rate = codec.rate;
-		mapping = codec.mapping;
+	IxCodec(const IxCodec &codec);
 
-		init_strings();
+	int sampling_rate() const;
 
-	};
-	
-	int sampling_rate() const 
-	{ 
-		return rate; 
-	}
+	string sampling_rate_tos() const;
 
-	string sampling_rate_tos() const 
-	{ 
-		return rate_s; 
-	}
+	wstring sampling_rate_tows() const;
 
-	wstring sampling_rate_tows() const 
-	{ 
-		return rate_ws; 
-	}
+	int sdp_mapping() const;
 
-	int sdp_mapping() const 
-	{ 
-		return mapping; 
-	}
+	string sdp_mapping_tos() const;
 
-	string sdp_mapping_tos() const 
-	{ 
-		return mapping_s; 
-	}
+	string sdp_mapping_tows() const;
 
-	string sdp_mapping_tows() const 
-	{ 
-		return mapping_s; 
-	}
+	wstring sdp_name() const;
 
-	wstring sdp_name() const 
-	{ 
-		return name; 
-	}
+	string sdp_name_tos() const;
 
-	string sdp_name_tos() const 
-	{ 
-		return name_s; 
-	}
-
-	string get_sdp_a() const
-	{
-		return sdp_a;
-	}
+	string get_sdp_a() const;
 
 private:
 
@@ -142,40 +96,7 @@ private:
 		SERIALIZE_FIELD(name);
 	}
 
-	void init_strings()
-	{
-		// convert port
-		char buffer[10];
-		buffer[0] = '\0';
-
-		// rate
-		if ( _itoa_s(rate,buffer,10,10) != 0)
-		{
-			rate_s = "INVALID";
-			rate_ws = L"INVALID";
-		} 
-		else
-		{
-			rate_s = string(buffer);
-			rate_ws = StringToWString(rate_s);
-		}
-
-		// sdp mapping
-		if ( _itoa_s(mapping,buffer,10,10) != 0)
-		{
-			mapping_s = "INVALID";
-			mapping_ws = L"INVALID";
-		} 
-		else
-		{
-			mapping_s = string(buffer);
-			mapping_ws = StringToWString(rate_s);
-		}
-
-		name_s  = WStringToString(name);
-		sdp_a   += "a=rtpmap:" + sdp_mapping_tos() + " "  + sdp_name_tos() + "/" + sampling_rate_tos() + "\r\n";
-
-	}
+	void init_strings();
 
 	int rate;
 
@@ -226,163 +147,52 @@ private:
 	wstring wsport;
 
 	IxCodec codec;
-	
+
 public:
 
-	CnxInfo(wstring s, int p_port)
-	{
-		addr.sin_family = AF_INET;
-		addr.sin_port = ::htons(p_port);
-		addr.sin_addr.s_addr = ::inet_addr(WStringToString(s).c_str());
-		
-		init_strings();
-	}
+	CnxInfo(wstring s, int p_port);
 
-	CnxInfo(string s, int p_port)
-	{
-		addr.sin_family = AF_INET;
-		addr.sin_port = ::htons(p_port);
-		addr.sin_addr.s_addr = ::inet_addr(s.c_str());
-		
-		init_strings();
-	}
+	CnxInfo(string s, int p_port);
 
-	CnxInfo(char *ip, int p_port)
-	{
-		addr.sin_family = AF_INET;
-		addr.sin_port = ::htons(p_port);
-		addr.sin_addr.s_addr = ::inet_addr(ip);
+	CnxInfo(char *ip, int p_port);
 
-		init_strings();
-	}
+	CnxInfo(in_addr p_in_addr, int p_port);
 
- 	CnxInfo(in_addr p_in_addr, int p_port)
- 	{
- 		addr.sin_family = AF_INET;;
-		addr.sin_addr = p_in_addr;
-		addr.sin_port = ::htons(p_port);
- 		
+	CnxInfo(const CnxInfo &x);
 
-		init_strings();
- 	}
+	CnxInfo();
 
-	CnxInfo()
-	{
-		addr.sin_addr.s_addr = INADDR_NONE;
-		addr.sin_port = IX_UNDEFINED;
-	}
+	bool is_ip_valid() const;
 
-	bool is_ip_valid() const
-	{
-		return (addr.sin_addr.s_addr != INADDR_NONE );
-	}
+	bool is_port_valid() const;
 
-	bool is_port_valid() const
-	{
-		return (addr.sin_port != IX_UNDEFINED);
-	}
+	int port_ho() const;
 
-	CnxInfo(const CnxInfo &x)
-	{
-		addr = x.addr;
-		saddr = x.saddr;
+	int port_no() const;
 
-		init_strings();
-	}
+	in_addr inaddr();
 
-	int port_ho() const
-	{
-		return ::ntohs(addr.sin_port);
-	}
+	long iaddr_ho() const;
 
-	int port_no() const
-	{
-		return addr.sin_port;
-	}
+	long iaddr_no() const;
 
-	in_addr inaddr()
-	{
-		return addr.sin_addr;
-	}
+	sockaddr_in sockaddr() const;
 
-	long iaddr_ho() const
-	{
-		return ::ntohl(addr.sin_addr.s_addr);
-	}
+	string ipporttos() const;
 
-	long iaddr_no() const
-	{
-		return addr.sin_addr.s_addr;
-	}
+	wstring ipporttows() const;
 
-	sockaddr_in sockaddr() const
-	{
-		return addr;
-	}
+	string iptos() const;
 
-	string ipporttos() const
-	{
-		return saddrport;
-	}
+	string porttos() const;
 
-	wstring ipporttows() const
-	{
-		return wsaddrport;
-	}
+	const char *ipporttoa(char *buffer, int len) const;
 
-	string iptos() const
-	{
-		return saddr;
-	}
-
-	string porttos() const
-	{
-		return	sport;
-	}
-
-	const char *ipporttoa(char *buffer, int len) const
-	{
-		return saddrport.c_str();
-	}
-
-	const char *iptoa() const
-	{
-		return saddr.c_str();
-	}
+	const char *iptoa() const;
 
 private:
 
-	void init_strings()
-	{
-		// convert port
-		char buffer[10];
-		buffer[0] = '\0';
-
-		if ( _itoa_s(port_ho(),buffer,10,10) != 0)
-		{
-			sport = "INVALID";
-		} 
-		else
-		{
-			sport = buffer;
-		}
-
-		// convert address
-		saddr = string(::inet_ntoa(addr.sin_addr));
-
-		// build full address
-		saddrport.append(saddr);
-		saddrport.append(":");
-		saddrport.append(sport);
-
-		wsport = StringToWString(sport);
-		wsaddr = StringToWString(saddr);
-		wsaddrport = StringToWString(saddrport);
-
-
-
-	}
-
+	void init_strings();
 
 	friend int operator == (const CnxInfo &right,const CnxInfo &left);
 

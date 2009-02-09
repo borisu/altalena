@@ -349,17 +349,12 @@ ProcAudio::AllocateAudioConnection(IxMsgPtr ptr)
 	//
 	// find new port slot
 	// 
-	_portManager.BeginSearch();
-#pragma TODO ("This is crashes on load")
-	int curr_port_slot_candidate = _portManager.GetNextCandidate();
+	int curr_port_slot_candidate = _portManager.GetNextPort();
 
 	shared_ptr<CcuMsgRtpAllocateNewConnectionReq> ac_msg =
 		shared_dynamic_cast<CcuMsgRtpAllocateNewConnectionReq>(ptr);
 
-	_portManager.MarkUnavailable(curr_port_slot_candidate);
 
-	
-	
 
 	RTPConnection *conn = NULL;
 	while(curr_port_slot_candidate != IX_UNDEFINED)
@@ -381,7 +376,8 @@ ProcAudio::AllocateAudioConnection(IxMsgPtr ptr)
 
 			}
 
-			_portManager.MarkUnavailable(curr_port_slot_candidate);
+			throw;
+			//_portManager.MarkUnavailable(curr_port_slot_candidate);
 			break;
 		}
 
@@ -390,7 +386,8 @@ ProcAudio::AllocateAudioConnection(IxMsgPtr ptr)
 		{
 			delete conn;
 			conn = NULL;
-			curr_port_slot_candidate = _portManager.GetNextCandidate();
+			throw;
+			//curr_port_slot_candidate = _portManager.GetNextCandidate();
 		}
 		
 	} 
@@ -478,8 +475,9 @@ ProcRTPConnectionRemover::real_run()
 	}
 
 	delete _rtpConn;
+	throw;
 
-	_portsManager.MarkAvailable(port); 
+	//_portsManager.MarkAvailable(port); 
 
 
 }

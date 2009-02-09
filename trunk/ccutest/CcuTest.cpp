@@ -108,7 +108,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 
 	
-	IxSetLogLevel(IX_LOG_LEVEL_CRITICAL);
+	IxSetLogLevel(IX_LOG_LEVEL_DEBUG);
 	IxSetLogMask(IX_LOG_MASK_CONSOLE|IX_LOG_MASK_DEBUGVIEW);
 	LogInfo(">>>>>> START TEST <<<<<<");
 
@@ -152,9 +152,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	//
 	//////////////////////////////////////////////////////////////////////////
 
-	start_test_system();
- 
- 	return 0;
+// 	start_test_system();
+//  
+//  	return 0;
 
 
 // 	SimpleRTPStreamer r;
@@ -175,7 +175,7 @@ int _tmain(int argc, _TCHAR* argv[])
 // 	ProcPipeIPCDispatcherTest().test();
 // 	RTPRelayTest(CnxInfo(ip,port)).test();
 // 	VcsTest(CnxInfo(ip,port)).test();
-// 	ImsTest(CnxInfo(ip,port)).test();
+ 	ImsTest(CnxInfo(ip,port)).test();
 // 	CcuLightweightProcessTest().test();
 // 	JsonConfigurationTest().test();
 // 	LpHandleTest().test();
@@ -215,7 +215,7 @@ public:
 		// Start IMS 
 		//
 		DECLARE_NAMED_HANDLE_PAIR(ims_pair);
-		FORK(ImsFactory::CreateProcIms(ims_pair, conf->DefaultCnxInfo()));
+		FORK(ImsFactory::CreateProcIms(ims_pair, *conf));
 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), ims_pair)));
 		assert(CCU_SUCCESS(Ping(IMS_Q)));
 

@@ -22,101 +22,50 @@
 #include "Ccu.h"
 #include "CcuLogger.h"
 
-#define CCU_MAX_PORT_RANGE 65000
+using namespace std;
 
-PortManager::PortManager(int abs_top, int abs_bottom):
-_absTop(abs_top),
-_absBottom(abs_bottom),
-_lastAllocatedPortSlot(IX_UNDEFINED),
-_portsMap(abs(abs_top - abs_bottom)), 
-_counter(0)
+namespace ivrworx
 {
 
-	
-	if (_absBottom >= _absTop ||
-		_absBottom	& 0x01	  || 
-		_absTop		& 0x01	  || 
+#define CCU_MAX_PORT_RANGE 65000
+
+PortManager::PortManager(int abs_top, int abs_bottom)
+{
+
+	if (abs_bottom >= abs_top ||
+		abs_bottom	& 0x01	  || 
+		abs_top		& 0x01	  || 
 		abs(abs_top - abs_bottom) > CCU_MAX_PORT_RANGE)
 	{
-		LogCrit("Please check validity of the range bottom=[" << _absBottom  << "] top=[" << _absTop << "] and that all numbers are even.");
+		LogCrit("Please check validity of the range bottom=[" << abs_bottom  << "] top=[" << abs_top << "] and that all numbers are even.");
 		throw;
 	}
 
-	for (int i = _absBottom; i< abs_top; i++)
+	for (int i = abs_bottom; i <= abs_top; i++)
 	{
-		_portsMap[i - _absBottom] = CCU_PORT_AVAILABLE;
+		_portsList.push_back(i);
 	}
 
-	_numOfPortSlots =  _absTop - _absBottom;
 }
 
 PortManager::~PortManager(void)
 {
-	_portsMap.clear();
+	_portsList.clear();
 }
 
-int
-PortManager::NumOfPortSlots() const 
-{ 
-	return _numOfPortSlots; 
-}
 
 int 
-PortManager::GetNextCandidate()
+PortManager::GetNextPort()
 {
-	//
-	// find new port slot
-	// 
-	int curr_port_slot_candidate = IX_UNDEFINED;
-	if ( _lastAllocatedPortSlot == IX_UNDEFINED)
-	{
-		curr_port_slot_candidate = _absBottom;
-	} else 
-	{
-		curr_port_slot_candidate = (_lastAllocatedPortSlot + 2 <= _absTop) ?  
-			_lastAllocatedPortSlot + 2 : _absBottom; 
-
-	}
-
-	if (_counter == NumOfPortSlots())
-	{
-		return IX_UNDEFINED;
-	}
-
-	while (_counter < NumOfPortSlots())
-	{
-
-		if (_portsMap[curr_port_slot_candidate - _absBottom] != CCU_PORT_UNAVAILABLE)
-		{
-			_lastAllocatedPortSlot = curr_port_slot_candidate;
-			return curr_port_slot_candidate;
-		}
-
-		curr_port_slot_candidate = (_lastAllocatedPortSlot + 2 <= _absTop) ?  
-			_lastAllocatedPortSlot + 2 : _absBottom;
-
-		_counter ++;
-	}
-
-	return IX_UNDEFINED;
-
-
+	int port = _portsList.front();
+	_portsList.erase(_portsList.begin());;
+	return port;
 }
 
 void
-PortManager::MarkAvailable(int port)
+PortManager::Return(int port)
 {
-	_portsMap[port - _absBottom]  = CCU_PORT_AVAILABLE;
+	_portsList.push_back(port);
 }
 
-void 
-PortManager::MarkUnavailable(int port)
-{
-	_portsMap[port - _absBottom]  = CCU_PORT_UNAVAILABLE;
-}
-
-void 
-PortManager::BeginSearch()
-{
-	_counter = 0;
 }

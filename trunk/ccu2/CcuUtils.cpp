@@ -21,23 +21,43 @@
 
 
 using namespace std;
-
-wstring StringToWString(const string& s)
+namespace ivrworx
 {
-	wstring temp(s.length(),L' ');
-	copy(s.begin(), s.end(), temp.begin());
-	return temp;
-}
 
-string WStringToString(const wstring& ws)
-{
-	string temp(ws.begin(), ws.end());
-	temp.assign(ws.begin(), ws.end());
+	wstring StringToWString(const string& s)
+	{
+		wstring temp(s.length(),L' ');
+		copy(s.begin(), s.end(), temp.begin());
 
-	return temp;
-};
+		return temp;
+	}
 
-wostream& operator << (wostream &ostream, const string &ptr)
-{
-	return ostream << StringToWString(ptr);
+	string WStringToString(const wstring& ws)
+	{
+		string temp(ws.begin(), ws.end());
+		temp.assign(ws.begin(), ws.end());
+
+		return temp;
+	};
+
+	void StringToUpper(string strToConvert)
+	{
+		std::transform(strToConvert.begin(), strToConvert.end(), strToConvert.begin(), ::toupper);
+	}
+
+	void StringToLower(string strToConvert)
+	{
+		std::transform(strToConvert.begin(), strToConvert.end(), strToConvert.begin(), ::tolower);
+	}
+
+	void WStringToUpper(wstring strToConvert)
+	{
+		std::transform(strToConvert.begin(), strToConvert.end(), strToConvert.begin(), ::toupper);
+	}
+
+	void WStringToLower(wstring strToConvert)
+	{
+		std::transform(strToConvert.begin(), strToConvert.end(), strToConvert.begin(), ::tolower);
+	}
+
 }

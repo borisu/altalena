@@ -24,136 +24,139 @@
 namespace ivrworx
 {
 
-CallWithRTPManagment::CallWithRTPManagment(
-	IN LpHandlePair stack_pair,
-	IN LightweightProcess &facade)
-:Call(stack_pair,facade),
-_callerRtpSession(facade)
-{
-}
-
-CallWithRTPManagment::CallWithRTPManagment(
-	IN LpHandlePair _stackPair, 
-	IN int call_handle,
-	IN CnxInfo offered_media,
-	IN LightweightProcess &facade)
-:Call(_stackPair, call_handle, offered_media, facade),
-_callerRtpSession(facade),
-_imsRtpSession(facade)
-{
-}
-
-
-CallWithRTPManagment::~CallWithRTPManagment(void)
-{
-	FUNCTRACKER;
-	_callerRtpSession.CloseRTPConnection();
-}
-
-IxApiErrorCode
-CallWithRTPManagment::MakeCall(IN const wstring &destination_uri)
-{
-	FUNCTRACKER;
-
-	IxApiErrorCode res = _callerRtpSession.AllocateRTPConnection();
-	if (CCU_FAILURE(res))
+	CallWithRtpRelay::CallWithRtpRelay(
+		IN LpHandlePair stack_pair,
+		IN LightweightProcess &facade)
+		:Call(stack_pair,facade),
+		_callerRtpSession(facade),
+		_imsRtpSession(facade),
+		_imsSession(facade)
 	{
-		LogWarn("Error allocating RTP connection res=[" << res << "]");
-		return res;
+
 	}
 
-	res  = Call::MakeCall(destination_uri,_callerRtpSession.LocalMediaData());
-	if (CCU_FAILURE(res))
+	CallWithRtpRelay::CallWithRtpRelay(
+		IN LpHandlePair _stackPair, 
+		IN int call_handle,
+		IN CnxInfo offered_media,
+		IN LightweightProcess &facade)
+		:Call(_stackPair, call_handle, offered_media, facade),
+		_callerRtpSession(facade),
+		_imsRtpSession(facade),
+		_imsSession(facade)
 	{
-		LogWarn("Error Making call to destination_uri=[" << destination_uri << "],  res=[" << res << "]");
-		return res;
 	}
 
-	_callerRtpSession.ModifyRTPConnection(RemoteMedia());
-	if (CCU_FAILURE(res))
+
+	CallWithRtpRelay::~CallWithRtpRelay(void)
 	{
-		LogWarn("Error modifying RTP connection res=[" << res << "], hanging up the session");
-		HagupCall();
-		return res;
+		FUNCTRACKER;
+		_callerRtpSession.CloseRTPConnection();
 	}
 
-	return CCU_API_SUCCESS;
-}
-
-IxApiErrorCode CallWithRTPManagment::AcceptCall()
-{
-	FUNCTRACKER;
-	IX_PROFILE_FUNCTION();
-
-	IxApiErrorCode res = _callerRtpSession.AllocateRTPConnection
-		();
-	if (CCU_FAILURE(res))
+	IxApiErrorCode
+		CallWithRtpRelay::MakeCall(IN const wstring &destination_uri)
 	{
-		return res;
-	};
+		FUNCTRACKER;
 
-	IxApiErrorCode res = _imsRtpSession.AllocateRTPConnection();
-	if (CCU_FAILURE(res))
-	{
-		return res;
-	};
+		IxApiErrorCode res = _callerRtpSession.AllocateRTPConnection();
+		if (CCU_FAILURE(res))
+		{
+			LogWarn("Error allocating RTP connection res=[" << res << "]");
+			return res;
+		}
 
-	_imsSession.AllocateIMSConnection()
+		res  = Call::MakeCall(destination_uri,_callerRtpSession.LocalMediaData());
+		if (CCU_FAILURE(res))
+		{
+			LogWarn("Error Making call to destination_uri=[" << destination_uri << "],  res=[" << res << "]");
+			return res;
+		}
 
-	
-	res = Call::AcceptCall(_callerRtpSession.LocalMediaData());
-	return res;
+		_callerRtpSession.ModifyRTPConnection(RemoteMedia());
+		if (CCU_FAILURE(res))
+		{
+			LogWarn("Error modifying RTP connection res=[" << res << "], hanging up the session");
+			HagupCall();
+			return res;
+		}
 
-}
-
-IxApiErrorCode
-CallWithRTPManagment::PlayFile(IN const wstring &file_name)
-{
-	FUNCTRACKER;
-
-	// allocate Rtp Relay connection for Ims
-	CcuRtpSession ims_rtp_session(_parentProcess);
-	IxApiErrorCode res = ims_rtp_session.AllocateRTPConnection();
-	if (CCU_FAILURE(res))
-	{
-		LogWarn("Error allocating RTP connection res=[" << res << "]");
-		return res;
+		return CCU_API_SUCCESS;
 	}
 
-	// allocate Ims session
-	ImsSession ims_session(_parentProcess);
-	ims_session.AllocateIMSConnection(ims_rtp_session.LocalMediaData(),file_name);
-	if (CCU_FAILURE(res))
+	IxApiErrorCode CallWithRtpRelay::AcceptCall()
 	{
-		LogWarn("Error allocating IMS connection res=[" << res << "]");
+		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
+
+		IxApiErrorCode res = _callerRtpSession.AllocateRTPConnection();
+		if (CCU_FAILURE(res))
+		{
+			return res;
+		};
+
+		res = _imsRtpSession.AllocateRTPConnection();
+		if (CCU_FAILURE(res))
+		{
+			return res;
+		};
+
+//		_imsSession.AllocateIMSConnection()
+
+
+			res = Call::AcceptCall(_callerRtpSession.LocalMediaData());
 		return res;
+
 	}
 
-	// though Ims doesn't care, update the remote end of its Rtp connection
-	ims_rtp_session.ModifyRTPConnection(ims_session.ImsMediaData());
-	if (CCU_FAILURE(res))
+	IxApiErrorCode
+		CallWithRtpRelay::PlayFile(IN const wstring &file_name)
 	{
-		LogWarn("Error modifying RTP connection res=[" << res << "]");
-		return res;
-	}
-	
-	// bridge caller connection
-	res = _callerRtpSession.BridgeRTPConnection(ims_rtp_session);
-	if (CCU_FAILURE(res))
-	{
-		LogWarn("Error bridging RTP connection res=[" << res << "]");
-		return res;
-	}
+		FUNCTRACKER;
 
-	res = ims_session.PlayFile(ims_rtp_session.LocalMediaData(),file_name);
-	if (CCU_FAILURE(res))
-	{
-		LogWarn("Error Playing file=[" << file_name <<"] to=[" << ims_rtp_session.LocalMediaData() << "], res=[" << res << "]");
-		return res;
+// 		// allocate Rtp Relay connection for Ims
+// 		CcuRtpSession ims_rtp_session(_parentProcess);
+// 		IxApiErrorCode res = ims_rtp_session.AllocateRTPConnection();
+// 		if (CCU_FAILURE(res))
+// 		{
+// 			LogWarn("Error allocating RTP connection res=[" << res << "]");
+// 			return res;
+// 		}
+// 
+// 		// allocate Ims session
+// 		ImsSession ims_session(_parentProcess);
+// 		ims_session.AllocateIMSConnection(ims_rtp_session.LocalMediaData(),file_name);
+// 		if (CCU_FAILURE(res))
+// 		{
+// 			LogWarn("Error allocating IMS connection res=[" << res << "]");
+// 			return res;
+// 		}
+// 
+// 		// though Ims doesn't care, update the remote end of its Rtp connection
+// 		ims_rtp_session.ModifyRTPConnection(ims_session.ImsMediaData());
+// 		if (CCU_FAILURE(res))
+// 		{
+// 			LogWarn("Error modifying RTP connection res=[" << res << "]");
+// 			return res;
+// 		}
+// 
+// 		// bridge caller connection
+// 		res = _callerRtpSession.BridgeRTPConnection(ims_rtp_session);
+// 		if (CCU_FAILURE(res))
+// 		{
+// 			LogWarn("Error bridging RTP connection res=[" << res << "]");
+// 			return res;
+// 		}
+
+// 		res = ims_session.PlayFile(ims_rtp_session.LocalMediaData(),file_name);
+// 		if (CCU_FAILURE(res))
+// 		{
+// 			LogWarn("Error Playing file=[" << file_name <<"] to=[" << ims_rtp_session.LocalMediaData() << "], res=[" << res << "]");
+// 			return res;
+// 		}
+
+		return CCU_API_SUCCESS;
+
 	}
-
-	return CCU_API_SUCCESS;
-
-}
 }
 

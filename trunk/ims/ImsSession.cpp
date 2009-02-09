@@ -103,7 +103,6 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 	IxMsgPtr response = CCU_NULL_MSG;
 
 	CcuMsgAllocateImsSessionReq *msg = new CcuMsgAllocateImsSessionReq();
-	throw;
 	msg->remote_media_data = remote_end;
 	msg->codec = codec;
 
@@ -127,10 +126,7 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 
 			shared_ptr<CcuMsgAllocateImsSessionAck> ack = 
 				shared_polymorphic_cast<CcuMsgAllocateImsSessionAck>(response);
-
 			_imsSessionHandle = ack->playback_handle;
-			throw;
-			//_imsMediaData = ack->ims_media;
 
 			break;
 
