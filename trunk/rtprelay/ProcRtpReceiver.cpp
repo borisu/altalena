@@ -4,10 +4,6 @@
 
 #define CCU_DEFAULT_RTP_TIMEOUT 10000
 
-// ccu messages come with this completion keys
-// any other message indicates message handled
-// by RTP connection
-#define IOCP_UNIQUE_COMPLETION_KEY 555 
 
 ProcRtpReceiver::ProcRtpReceiver(LpHandlePair pair, RelayMemoryManager *mngr)
 :LightweightProcess(pair, 
@@ -15,28 +11,17 @@ ProcRtpReceiver::ProcRtpReceiver(LpHandlePair pair, RelayMemoryManager *mngr)
 _mngr(mngr)
 {
 
-	_iocpHandle = ::CreateIoCompletionPort(
-		INVALID_HANDLE_VALUE,
-		NULL,
-		0,
-		1);
-
 	IocpInterruptorPtr iocpPtr = 
-		IocpInterruptorPtr(new IocpInterruptor(_iocpHandle,IOCP_UNIQUE_COMPLETION_KEY));
+		IocpInterruptorPtr(new IocpInterruptor());
 
 	_inbound->HandleInterruptor(iocpPtr);
 
-	if (_iocpHandle == NULL)
-	{
-		LogSysError("::CreateIoCompletionPort");
-		throw;
-	}
 
 }
 
 ProcRtpReceiver::~ProcRtpReceiver(void)
 {
-	::CloseHandle(_iocpHandle);
+	
 }
 
 void

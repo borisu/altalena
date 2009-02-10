@@ -31,7 +31,7 @@ enum ImsEvents
 	CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK,
 	CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK,
 	CCU_MSG_START_PLAYBACK_REQUEST,
-	CCU_MSG_IMS_START_PLAY_REQ_ACK,
+	CCU_MSG_START_PLAY_REQ_ACK,
 	CCU_MSG_IMS_START_PLAY_REQ_NACK,
 	CCU_MSG_IMS_PLAY_STOPPED,
 };
@@ -44,6 +44,7 @@ class CcuMsgAllocateImsSessionReq:
 	{
 		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(remote_media_data);
+		SERIALIZE_FIELD(session_handler);
 	}
 public:
 	CcuMsgAllocateImsSessionReq():
@@ -53,6 +54,8 @@ public:
 	 CnxInfo remote_media_data;
 
 	 IxCodec codec;
+
+	 IpcAdddress session_handler;
 
 };
 BOOST_CLASS_EXPORT(CcuMsgAllocateImsSessionReq)
@@ -100,21 +103,24 @@ class CcuMsgStartPlayReq:
 	{
 		SERIALIZE_BASE_CLASS(IxMessage);
 		SERIALIZE_FIELD(playback_handle);
+		SERIALIZE_FIELD(loop);
 	}
 public:
 	CcuMsgStartPlayReq():
 	  CcuMsgRequest(CCU_MSG_START_PLAYBACK_REQUEST, NAME(CCU_MSG_START_PLAYBACK_REQUEST)),
-	  playback_handle(IX_UNDEFINED) {};
+	  playback_handle(IX_UNDEFINED),loop(false),send_provisional(false) {};
 
 	  int playback_handle;
 
-	
-
 	  wstring file_name;
+
+	  BOOL loop;
+
+	  BOOL send_provisional;
 };
 BOOST_CLASS_EXPORT(CcuMsgStartPlayReq)
 
-class CcuMsgImsStartPlayReqAck:
+class CcuMsgStartPlayReqAck:
 	public IxMessage
 {
 	BOOST_SERIALIZATION_REGION
@@ -122,11 +128,11 @@ class CcuMsgImsStartPlayReqAck:
 		SERIALIZE_BASE_CLASS(IxMessage);
 	}
 public:
-	CcuMsgImsStartPlayReqAck():
-	  IxMessage(CCU_MSG_IMS_START_PLAY_REQ_ACK, NAME(CCU_MSG_IMS_START_PLAY_REQ_ACK)){};
+	CcuMsgStartPlayReqAck():
+	  IxMessage(CCU_MSG_START_PLAY_REQ_ACK, NAME(CCU_MSG_START_PLAY_REQ_ACK)){};
 
 };
-BOOST_CLASS_EXPORT(CcuMsgImsStartPlayReqAck)
+BOOST_CLASS_EXPORT(CcuMsgStartPlayReqAck)
 
 class CcuMsgStartPlayReqNack:
 	public IxMessage

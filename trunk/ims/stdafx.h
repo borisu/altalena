@@ -15,6 +15,7 @@
 #include <ortp\payloadtype.h>
 #include <mediastreamer2\mediastream.h>
 #include <mediastreamer2\msrtp.h>
+#include <mediastreamer2\msfileplayer.h>
 
 #include "CcuUtils.h"
 #include "CcuLogger.h"

@@ -83,24 +83,37 @@ namespace ivrworx
 		BOOL res = ::ReleaseSemaphore(_handle, 1, NULL);
 		if (res == FALSE)
 		{
-			LogSysError("Cannot ::ReleaseSemaphore");
+			LogSysError("::ReleaseSemaphore");
 			throw;
 		}
 
 	}
 
 
-	IocpInterruptor::IocpInterruptor(IN HANDLE iocpHandle, IN DWORD dwCompletionKey)
-		:_iocpHandle(iocpHandle),
-		_dwCompletionKey(dwCompletionKey)
+	IocpInterruptor::IocpInterruptor()
 	{
-
+		_iocpHandle = ::CreateIoCompletionPort(
+			INVALID_HANDLE_VALUE,
+			NULL,
+			0,
+			1);
+		if (_iocpHandle == NULL)
+		{
+			LogSysError("::CreateIoCompletionPort");
+			throw;
+		}
 
 	}
 
 	IocpInterruptor::~IocpInterruptor()
 	{
+		::CloseHandle(_iocpHandle);
+	}
 
+	HANDLE 
+	IocpInterruptor::Handle()
+	{
+		return _iocpHandle;
 	}
 
 	void
@@ -113,7 +126,7 @@ namespace ivrworx
 		BOOL res = ::PostQueuedCompletionStatus(
 			_iocpHandle,				//A handle to an I/O completion port to which the I/O completion packet is to be posted.
 			dwNumberOfBytesTransferred,	//The value to be returned through the lpNumberOfBytesTransferred parameter of the GetQueuedCompletionStatus function.
-			_dwCompletionKey,			//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
+			IOCP_UNIQUE_COMPLETION_KEY,	//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
 			NULL						//The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
 			);
 

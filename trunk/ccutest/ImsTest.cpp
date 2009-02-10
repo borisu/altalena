@@ -75,7 +75,7 @@ ImsTester::real_run()
  	CcuConnectionId id = IX_UNDEFINED;
 
  	assert(CCU_SUCCESS(ims_session.AllocateIMSConnection(
-		CnxInfo("192.168.100.233",60555), 
+		CnxInfo("192.168.100.228",60555), 
 		IxCodec(L"pcmu",8000,0))));
 
 	assert(CCU_SUCCESS(ims_session.PlayFile(L"C:\\SOUNDS\\welcome.wav", FALSE)));
