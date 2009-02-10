@@ -23,20 +23,23 @@
 #include "CcuMessage.h"
 #include "UIDOwner.h"
 
-
-#define CCU_MAX_MESSAGES_IN_QUEUE 1000
-
-#define DECLARE_NAMED_HANDLE(P) LpHandlePtr P (new LpHandle())
-#define DECLARE_NAMED_HANDLE_PAIR(P) LpHandlePair P (LpHandlePtr(new LpHandle()), LpHandlePtr(new LpHandle()))
-#define HANDLE_PAIR LpHandlePair(LpHandlePtr(new LpHandle()), LpHandlePtr(new LpHandle()))
-
-
 using namespace csp;
 using namespace std;
 using namespace boost;
 
 namespace ivrworx 
 {
+
+	#define CCU_MAX_MESSAGES_IN_QUEUE 1000
+
+	#define DECLARE_NAMED_HANDLE(P) LpHandlePtr P (new LpHandle())
+	#define DECLARE_NAMED_HANDLE_PAIR(P) LpHandlePair P (LpHandlePtr(new LpHandle()), LpHandlePtr(new LpHandle()))
+	#define HANDLE_PAIR LpHandlePair(LpHandlePtr(new LpHandle()), LpHandlePtr(new LpHandle()))
+
+
+	// ix messages come with this completion keys
+	#define IOCP_UNIQUE_COMPLETION_KEY 555 
+
 
 
 	//
@@ -57,7 +60,7 @@ namespace ivrworx
 	};
 
 	typedef 
-	shared_ptr<IxInterruptor> InterruptorPtr;
+		shared_ptr<IxInterruptor> InterruptorPtr;
 
 	// use this interruptor if you want to receive messages 
 	// by waiting on specific HANDLE by means of WaitForMultipleObjects 
@@ -83,7 +86,7 @@ namespace ivrworx
 	};
 
 	typedef 
-	shared_ptr<SemaphoreInterruptor> SemaphoreInterruptorPtr;
+		shared_ptr<SemaphoreInterruptor> SemaphoreInterruptorPtr;
 
 
 	// use this interruptor if you want to receive messages 
@@ -93,7 +96,7 @@ namespace ivrworx
 	{
 	public:
 
-		IocpInterruptor(IN HANDLE iocpHandle, IN DWORD dwCompletionKey);
+		IocpInterruptor();
 
 		virtual ~IocpInterruptor();
 
@@ -101,28 +104,28 @@ namespace ivrworx
 
 		virtual void SignalDataOut();
 
+		HANDLE Handle();
+		
 	private:
 
 		HANDLE _iocpHandle;
 
-		ULONG_PTR _dwCompletionKey;
-
 	};
 
 	typedef 
-	shared_ptr<IocpInterruptor> IocpInterruptorPtr;
+		shared_ptr<IocpInterruptor> IocpInterruptorPtr;
 
 	typedef 
-	BufferedAny2OneChannel<IxMsgPtr> CcuChannel;
+		BufferedAny2OneChannel<IxMsgPtr> CcuChannel;
 
 	typedef 
-	shared_ptr<CcuChannel> CcuChannelPtr;
+		shared_ptr<CcuChannel> CcuChannelPtr;
 
 	typedef 
-	FIFOBuffer<IxMsgPtr> CCUFifoBuffer;
+		FIFOBuffer<IxMsgPtr> CCUFifoBuffer;
 
 	typedef 
-	SizedChannelBufferFactoryImpl<IxMsgPtr, CCUFifoBuffer> CcuBufferFactory;
+		SizedChannelBufferFactoryImpl<IxMsgPtr, CCUFifoBuffer> CcuBufferFactory;
 
 	enum IxHandleDirection
 	{
@@ -135,10 +138,10 @@ namespace ivrworx
 	class LpHandle;
 
 	typedef 
-	shared_ptr<LpHandle> LpHandlePtr;
+		shared_ptr<LpHandle> LpHandlePtr;
 
 	typedef 
-	vector<LpHandlePtr> HandlesList;
+		vector<LpHandlePtr> HandlesList;
 
 	class LpHandle :
 		public UIDOwner
@@ -180,7 +183,7 @@ namespace ivrworx
 	private:
 
 		IxMsgPtr Read();
-	
+
 		IxHandleDirection _direction;
 
 		CcuBufferFactory _bufferFactory;

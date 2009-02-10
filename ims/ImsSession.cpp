@@ -43,7 +43,10 @@ ImsSession::~ImsSession(void)
 }
 
 IxApiErrorCode
-ImsSession::PlayFile( IN const wstring &file_name, IN BOOL sync)
+ImsSession::PlayFile(IN const wstring &file_name,
+					 IN BOOL sync,
+					 IN BOOL loop,
+					 IN BOOL provisional)
 {
 
 	if (_imsSessionHandle == IX_UNDEFINED)
@@ -57,6 +60,8 @@ ImsSession::PlayFile( IN const wstring &file_name, IN BOOL sync)
 	CcuMsgStartPlayReq *msg = new CcuMsgStartPlayReq();
 	msg->playback_handle = _imsSessionHandle;
 	msg->file_name = file_name;
+	msg->send_provisional = provisional;
+	msg->loop = loop;
 
 	IxApiErrorCode res =_facade.DoRequestResponseTransaction(
 		IMS_Q,
@@ -72,7 +77,7 @@ ImsSession::PlayFile( IN const wstring &file_name, IN BOOL sync)
 
 	switch (msg->message_id)
 	{
-	case CCU_MSG_IMS_START_PLAY_REQ_ACK:
+	case CCU_MSG_START_PLAY_REQ_ACK:
 		{
 			if (!sync)
 			{

@@ -40,7 +40,9 @@ namespace ivrworx
 
 		virtual IxApiErrorCode PlayFile(
 			IN const wstring &file_name,
-			IN BOOL sync);
+			IN BOOL sync = FALSE,
+			IN BOOL loop = FALSE,
+			IN BOOL provisional = FALSE);
 
 		CnxInfo ImsMediaData() const;
 

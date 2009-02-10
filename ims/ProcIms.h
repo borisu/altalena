@@ -36,16 +36,17 @@ namespace ivrworx
 
 		AudioStream *stream;
 
+		IpcAdddress session_handler;
+
 	};
 
 	typedef 
 	shared_ptr<StreamingCtx> StreamingCtxPtr;
 
-	
-
 	class ProcIms :
 		public LightweightProcess
 	{
+
 	public:
 		ProcIms(LpHandlePair pair, CcuConfiguration &conf);
 
@@ -53,24 +54,17 @@ namespace ivrworx
 
 		virtual ~ProcIms(void);
 
+	protected:
+
 		virtual void AllocatePlaybackSession(IxMsgPtr msg);
 
 		virtual void StartPlayback(IxMsgPtr msg);
 
 		virtual void StopPlayback(IxMsgPtr msg, ScopedForking &forking);
 
-		virtual void UponPlaybackStopped(IxMsgPtr msg);
+		virtual void UponPlaybackStopped(OVERLAPPED* args);
 
 		virtual void FreeResources();
-
-		int audio_stream_start_full(AudioStream *stream, RtpProfile *profile, const char *remip,int remport, int payload,int jitt_comp, const char *infile, const char *outfile, MSSndCard *playcard, MSSndCard *captcard, bool_t use_ec);
-
-		int 
-			GetNewImsHandle()
-		{
-			static int i = 700000;
-			return i++; 
-		}
 
 	private:
 
@@ -91,6 +85,8 @@ namespace ivrworx
 		PayloadTypeMap _payloadTypeMap;
 
 		CcuConfiguration &_conf;
+
+		IocpInterruptorPtr _iocpPtr;
 
 	};
 
