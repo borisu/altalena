@@ -27,7 +27,7 @@ namespace ivrworx
 #define CCU_DEFAULT_IMS_TOP_PORT	6000
 #define CCU_DEFAULT_IMS_BOTTOM_PORT 5000
 
-#define	CCU_DEFAULT_IMS_TIMEOUT		INFINITE
+#define	CCU_DEFAULT_IMS_TIMEOUT		10000
 
 	static int GetNewImsHandle()
 	{
@@ -63,7 +63,7 @@ namespace ivrworx
 
 	}
 
-	boost::mutex g_args_mutes;
+	boost::mutex g_args_mutex;
 	
 	struct EventArgs 
 		: OVERLAPPED
@@ -80,6 +80,13 @@ namespace ivrworx
 	static void 
 	on_file_filter_event(void *userdata , unsigned int id, void *arg)
 	{
+
+		boost::mutex::scoped_lock lk(g_args_mutex); 
+
+		if (userdata == NULL)
+		{
+			return;
+		}
 
 		EventArgs * args = (EventArgs*)userdata;
 
@@ -224,6 +231,8 @@ namespace ivrworx
 				CCU_DEFAULT_IMS_TIMEOUT // The number of milliseconds that the caller is willing to wait for a completion packet to appear at the completion port. If a completion packet does not appear within the specified time, the function times out, returns FALSE, and sets *lpOverlapped to NULL.
 				);
 
+			IX_PROFILE_CHECK_INTERVAL(10000);
+
 			// error during overlapped I/O?
 			int err = ::GetLastError() ;
 			if (res == FALSE && err != WAIT_TIMEOUT)
@@ -306,6 +315,7 @@ namespace ivrworx
 	ProcIms::AllocatePlaybackSession(IxMsgPtr msg)
 	{
 		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
 
 		shared_ptr<CcuMsgAllocateImsSessionReq> req  =
 			dynamic_pointer_cast<CcuMsgAllocateImsSessionReq> (msg);
@@ -510,6 +520,7 @@ error:
 	{
 
 		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
 
 		shared_ptr<CcuMsgStartPlayReq> req  =
 			dynamic_pointer_cast<CcuMsgStartPlayReq> (msg);
@@ -561,9 +572,13 @@ error:
 	ProcIms::UponPlaybackStopped(OVERLAPPED *ovlp)
 	{
 		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
+
+		auto_ptr<EventArgs> args = auto_ptr<EventArgs>((EventArgs*)ovlp);
+		
 
 		// pointer guard
-		auto_ptr<EventArgs> args = auto_ptr<EventArgs>((EventArgs*)ovlp);
+		
 
 		CcuMsgImsPlayStopped *stopped_msg = new CcuMsgImsPlayStopped();
 		stopped_msg->playback_handle = args->ims_handle; 
@@ -576,8 +591,25 @@ error:
 		}
 
 		StreamingCtxPtr ctx = iter->second;
-		stopped_msg->dest = ctx->curr_txn_handler;
 
+		AudioStream *stream = ctx->stream;
+		{
+			boost::mutex::scoped_lock lk(g_args_mutex); 
+			ctx->stream->soundread->notify_ud = NULL;
+		}
+		if (stream->ticker)
+		{
+			int res = ms_ticker_detach(stream->ticker,stream->soundread);
+			if (res < 0)
+			{
+				LogWarn("ms2 error - ms_ticker_detach, res=" << res );
+			}
+
+		}
+
+		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_CLOSE);
+	
+		stopped_msg->dest = ctx->curr_txn_handler;
 		this->SendMessage(IxMsgPtr(stopped_msg));
 
 	}
@@ -586,6 +618,7 @@ error:
 	ProcIms::TearDown(IxMsgPtr msg)
 	{
 		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
 
 		shared_ptr<CcuMsgImsTearDownReq> req  =
 			dynamic_pointer_cast<CcuMsgImsTearDownReq> (msg);
@@ -614,8 +647,11 @@ error:
 	ProcIms::TearDown(StreamingCtxPtr ctx)
 	{
 		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
 
 		AudioStream *stream = ctx->stream;
+
+		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_CLOSE);
 
 		if (stream->ticker)
 		{
@@ -646,6 +682,7 @@ error:
 	ProcIms::StopPlayback(IxMsgPtr msg)
 	{
 		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
 
 		shared_ptr<CcuMsgStopPlaybackReq> req  =
 		 	dynamic_pointer_cast<CcuMsgStopPlaybackReq> (msg);
