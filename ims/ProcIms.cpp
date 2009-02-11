@@ -27,7 +27,7 @@ namespace ivrworx
 #define CCU_DEFAULT_IMS_TOP_PORT	6000
 #define CCU_DEFAULT_IMS_BOTTOM_PORT 5000
 
-#define	CCU_DEFAULT_IMS_TIMEOUT		7000
+#define	CCU_DEFAULT_IMS_TIMEOUT		INFINITE
 
 	static int GetNewImsHandle()
 	{
@@ -63,6 +63,8 @@ namespace ivrworx
 
 	}
 
+	boost::mutex g_args_mutes;
+	
 	struct EventArgs 
 		: OVERLAPPED
 	{
@@ -269,10 +271,15 @@ namespace ivrworx
 					StartPlayback(ptr);
 					break;
 				}
+
+			case CCU_MSG_IMS_TEARDOWN_REQ:
+				{
+					TearDown(ptr);
+					break;
+				}
 			case CCU_MSG_PROC_SHUTDOWN_REQ:
 				{
 					shutdown_flag = TRUE;
-					FreeResources();
 					SendResponse(ptr,new CcuMsgShutdownAck());
 					break;
 				}
@@ -286,12 +293,12 @@ namespace ivrworx
 					}// if
 				}// default
 			}// switch
-
-
 		}// while
 
+		FreeResources();
+
 		END_FORKING_REGION
-			WSACleanup();
+		WSACleanup();
 	}
 
 
@@ -307,8 +314,6 @@ namespace ivrworx
 		// create new context
 		//
 		StreamingCtxPtr ctx(new StreamingCtx());
-
-
 
 		//
 		// create ortp stream with and initialize with available port
@@ -436,20 +441,24 @@ namespace ivrworx
 		// initialize file reading
 		//
 		ctx->stream->soundread = ms_filter_new(MS_FILE_PLAYER_ID);
-		ctx->stream->soundread->notify = &on_file_filter_event;
-
-		long handle = GetNewImsHandle();
-		EventArgs *args = new EventArgs();
-		args->iocp_handle = _iocpPtr->Handle();
-		args->ims_handle = handle;
-
-		ctx->stream->soundread->notify_ud = new EventArgs();
-
 		if (ctx->stream->soundread  == NULL) 
 		{
 			LogWarn("error:ms_filter_new(MS_FILE_PLAYER_ID)");
 			goto error;
 		}
+
+		ctx->stream->soundread->notify = &on_file_filter_event;
+
+		long handle = GetNewImsHandle();
+
+		EventArgs *args = new EventArgs();
+		SecureZeroMemory(args, sizeof(EventArgs));
+		args->iocp_handle = _iocpPtr->Handle();
+		args->ims_handle = handle;
+
+		ctx->stream->soundread->notify_ud = args;
+
+		
 
 		// 		res = ms_filter_call_method(ctx->stream->soundread,MS_FILTER_SET_SAMPLE_RATE,&pt->clock_rate);
 		// 		if (res < 0) 
@@ -482,7 +491,7 @@ namespace ivrworx
 		
 		_streamingObjectSet[handle] = ctx;
 
-		ctx->session_handler = req->session_handler;
+		ctx->curr_txn_handler = req->session_handler;
 
 		CcuMsgAllocateImsSessionAck *ack = 
 			new CcuMsgAllocateImsSessionAck();
@@ -515,7 +524,8 @@ error:
 			return;
 		}
 
-		StreamingCtxPtr ctx = (*iter).second;
+		StreamingCtxPtr ctx = iter->second;
+		ctx->curr_txn_handler = req->source;
 
 		audio_stream_play(ctx->stream,WStringToString(req->file_name).c_str());
 		if (ctx->stream->ticker == NULL)
@@ -523,7 +533,17 @@ error:
 			ctx->stream->ticker = _ticker;
 		};
 
-		int res = ms_ticker_attach(ctx->stream->ticker,ctx->stream->soundread);
+		int loop_param = req->loop ? 0 : -1;
+		int res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_LOOP, &loop_param);
+		if (res < 0)
+		{
+			LogWarn("Cannot set loop parameter, ims handle " << req->playback_handle);
+			SendResponse(msg, new CcuMsgStartPlayReqNack());
+			return;
+		}
+		
+
+		res = ms_ticker_attach(ctx->stream->ticker,ctx->stream->soundread);
 		if (res < 0)
 		{
 			LogWarn("Cannot start palying (ms_ticker_attach), ims handle=" << req->playback_handle);
@@ -555,46 +575,126 @@ error:
 			return;
 		}
 
-		StreamingCtxPtr ctx = (*iter).second;
-		stopped_msg->dest = ctx->session_handler;
-		this->SendMessage(stopped_msg);
+		StreamingCtxPtr ctx = iter->second;
+		stopped_msg->dest = ctx->curr_txn_handler;
+
+		this->SendMessage(IxMsgPtr(stopped_msg));
 
 	}
 
-
-	void 
-		ProcIms::StopPlayback(IxMsgPtr msg, ScopedForking &forking)
+	void
+	ProcIms::TearDown(IxMsgPtr msg)
 	{
 		FUNCTRACKER;
 
-		// 	shared_ptr<CcuMsgStopPlayback> req  =
-		// 		dynamic_pointer_cast<CcuMsgStopPlayback> (msg);
-		// 
-		// 	StreamingObjectHandlesMap::iterator iter = _streamingObjectSet.find(req->playback_handle);	
-		// 	if (iter == _streamingObjectSet.end())	
-		// 	{
-		// 		return;
-		// 	}
-		// 
-		// 	_streamingObjectSet.erase(req->playback_handle);
-		// 
-		// 	// we have to receive ack on RTP remove in order
-		// 	// to reclaim port but we cannot wait for response
-		// 	// that's why we spawn another project
-		// 	//
-		// 	HANDLE_PAIR_DECLARE_(remover_pair);
-		// 	forking.forkInThisThread(
-		// 		new ProcStreamingObjectRemover(
-		// 		remover_pair,
-		// 		_streamerInbound,
-		// 		req->playback_handle,
-		// 		_portManager));
+		shared_ptr<CcuMsgImsTearDownReq> req  =
+			dynamic_pointer_cast<CcuMsgImsTearDownReq> (msg);
+
+		StreamingCtxsMap::iterator iter = 
+			_streamingObjectSet.find(req->handle);
+
+		if (iter == _streamingObjectSet.end())
+		{
+			LogWarn("Invalid ims handle " << req->handle);
+			return;
+		}
+
+		LogDebug("Tear down playback session, ims handle:" << req->handle);
+
+		StreamingCtxPtr ctx = iter->second;
+		
+		TearDown(ctx);
+		
+		// ctx dtor should release all associated resources
+		_streamingObjectSet.erase(iter);
+		
+	}
+
+	void 
+	ProcIms::TearDown(StreamingCtxPtr ctx)
+	{
+		FUNCTRACKER;
+
+		AudioStream *stream = ctx->stream;
+
+		if (stream->ticker)
+		{
+			ms_ticker_detach(stream->ticker,stream->soundread);
+			//ms_ticker_detach(stream->ticker,stream->rtprecv);
+
+			rtp_stats_display(rtp_session_get_stats(stream->session),"Audio session's RTP statistics");
+
+			if (stream->ec!=NULL){
+				ms_filter_unlink(stream->soundread,0,stream->ec,1);
+				ms_filter_unlink(stream->ec,1,stream->encoder,0);
+				ms_filter_unlink(stream->dtmfgen,0,stream->ec,0);
+				ms_filter_unlink(stream->ec,0,stream->soundwrite,0);
+			}else{
+				ms_filter_unlink(stream->soundread,0,stream->encoder,0);
+				ms_filter_unlink(stream->dtmfgen,0,stream->soundwrite,0);
+			}
+
+			ms_filter_unlink(stream->encoder,0,stream->rtpsend,0);
+			//ms_filter_unlink(stream->rtprecv,0,stream->decoder,0);
+			//ms_filter_unlink(stream->decoder,0,stream->dtmfgen,0);
+		}
+
+	}
+
+
+	void 
+	ProcIms::StopPlayback(IxMsgPtr msg)
+	{
+		FUNCTRACKER;
+
+		shared_ptr<CcuMsgStopPlaybackReq> req  =
+		 	dynamic_pointer_cast<CcuMsgStopPlaybackReq> (msg);
+
+		StreamingCtxsMap::iterator iter = 
+			_streamingObjectSet.find(req->handle);
+
+		if (iter == _streamingObjectSet.end())
+		{
+			LogWarn("Invalid ims handle " << req->handle);
+			return;
+		}
+
+		LogDebug("Stop playback, ims session:" << req->handle);
+
+		StreamingCtxPtr ctx = iter->second;
+		AudioStream *stream = ctx->stream;
+
+		if (stream->ticker)
+		{
+			int res = ms_ticker_detach(stream->ticker,stream->soundread);
+			if (res < 0)
+			{
+				LogWarn("ms2 error - ms_ticker_detach, res=" << res );
+				SendResponse(req,new CcuMsgStopPlaybackNack());
+			}
+			
+		}
+
+		SendResponse(req,new CcuMsgStopPlaybackAck());
 
 	}
 
 	void 
-		ProcIms::FreeResources()
+	ProcIms::FreeResources()
 	{
+
+		FUNCTRACKER;
+
+		for(StreamingCtxsMap::iterator iter = _streamingObjectSet.begin();
+			iter != _streamingObjectSet.end();
+			iter++)
+		{
+			TearDown(iter->second);
+		}
+
+		_streamingObjectSet.clear();
+
+		ms_ticker_destroy(_ticker);
 
 	}
 

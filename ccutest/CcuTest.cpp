@@ -108,7 +108,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 
 	
-	IxSetLogLevel(IX_LOG_LEVEL_DEBUG);
+	IxSetLogLevel(IX_LOG_LEVEL_TRACE);
 	IxSetLogMask(IX_LOG_MASK_CONSOLE|IX_LOG_MASK_DEBUGVIEW);
 	LogInfo(">>>>>> START TEST <<<<<<");
 

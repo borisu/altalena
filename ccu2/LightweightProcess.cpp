@@ -286,7 +286,7 @@ namespace ivrworx
 		IN LpHandlePtr dest_handle, 
 		IN IxMsgPtr request, 
 		OUT IxMsgPtr &response,
-		IN Time timout,
+		IN Time timeout,
 		IN wstring transaction_name)
 	{
 
@@ -306,7 +306,7 @@ namespace ivrworx
 		IxApiErrorCode res = WaitForTxnResponse(
 			txn_handle,
 			response,
-			timout);
+			timeout);
 
 		if (res == CCU_API_TIMEOUT)
 		{
@@ -386,7 +386,12 @@ namespace ivrworx
 		//
 		// Message waiting loop.
 		//
-		long timeLeftToWaitMs = GetMilliSeconds(timeout);
+		sign32 timeLeftToWaitMs = GetMilliSeconds(timeout);
+		if (timeLeftToWaitMs < 0)
+		{
+			LogWarn("Illegal value for timeout " << timeLeftToWaitMs);
+			return CCU_API_FAILURE;
+		}
 		while (timeLeftToWaitMs >= 0)
 		{
 			int start = ::GetTickCount();
@@ -409,6 +414,7 @@ namespace ivrworx
 				BOOL res = this->HandleOOBMessage(response);
 				if (res == FALSE)
 				{
+					LogWarn("Unhandled OOB message [" << response->message_id_str << "], throwing exception.");
 					throw std::exception("Transaction was terminated");
 				} 
 				else 

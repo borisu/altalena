@@ -70,18 +70,46 @@ ImsTester::real_run()
 
  	TransactionTimeout(600000);
  
- 	ImsSession ims_session(*this);
- 
- 	CcuConnectionId id = IX_UNDEFINED;
+ 	
 
- 	assert(CCU_SUCCESS(ims_session.AllocateIMSConnection(
-		CnxInfo("192.168.100.228",60555), 
-		IxCodec(L"pcmu",8000,0))));
+	testSync();
+	//testAsync();
 
-	assert(CCU_SUCCESS(ims_session.PlayFile(L"C:\\SOUNDS\\welcome.wav", FALSE)));
  	
  
  	END_FORKING_REGION;	
+
+}
+
+void
+ImsTester::testSync()
+{
+	ImsSession ims_session(*this);
+
+	CcuConnectionId id = IX_UNDEFINED;
+
+	assert(CCU_SUCCESS(ims_session.AllocateIMSConnection(
+		CnxInfo("192.168.100.228",60555), 
+		IxCodec(L"pcmu",8000,0))));
+
+	// test sync
+	assert(CCU_SUCCESS(ims_session.PlayFile(L"C:\\SOUNDS\\welcome.wav", TRUE)));
+
+}
+
+void
+ImsTester::testAsync()
+{
+	ImsSession ims_session(*this);
+
+	CcuConnectionId id = IX_UNDEFINED;
+
+	assert(CCU_SUCCESS(ims_session.AllocateIMSConnection(
+		CnxInfo("192.168.100.228",60555), 
+		IxCodec(L"pcmu",8000,0))));
+
+	// test sync
+	assert(CCU_SUCCESS(ims_session.PlayFile(L"C:\\SOUNDS\\welcome.wav", FALSE)));
 
 }
 

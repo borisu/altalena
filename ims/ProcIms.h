@@ -36,7 +36,7 @@ namespace ivrworx
 
 		AudioStream *stream;
 
-		IpcAdddress session_handler;
+		IpcAdddress curr_txn_handler;
 
 	};
 
@@ -60,7 +60,11 @@ namespace ivrworx
 
 		virtual void StartPlayback(IxMsgPtr msg);
 
-		virtual void StopPlayback(IxMsgPtr msg, ScopedForking &forking);
+		virtual void StopPlayback(IxMsgPtr msg);
+
+		virtual void TearDown(IxMsgPtr msg);
+
+		virtual void TearDown(StreamingCtxPtr ctx);
 
 		virtual void UponPlaybackStopped(OVERLAPPED* args);
 

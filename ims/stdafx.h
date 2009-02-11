@@ -22,6 +22,7 @@
 #include "CcuConfiguration.h"
 #include "LightweightProcess.h"
 #include "ProcPipeIPCDispatcher.h"
+#include "LocalProcessRegistrar.h"
 
 #include "PortManager.h"
 

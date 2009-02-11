@@ -42,5 +42,9 @@ public:
 
 	void real_run();
 
+	void testSync();
+
+	void testAsync();
+
 	~ImsTester();
 };
