@@ -121,7 +121,7 @@ namespace ivrworx
 	void WStringToLower(wstring strToConvert);
 
 #define DISABLE_SRC_REF
-	//#define NOLOGS
-	//#define PROFILE
+#define NOLOGS
+#define PROFILE
 
 }

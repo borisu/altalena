@@ -46,5 +46,7 @@ public:
 
 	void testAsync();
 
+	void testParallel();
+
 	~ImsTester();
 };

@@ -23,7 +23,7 @@
 #include "LightweightProcess.h"
 #include "ProcPipeIPCDispatcher.h"
 #include "LocalProcessRegistrar.h"
-
+#include "Profiler.h"
 #include "PortManager.h"
 
 //
