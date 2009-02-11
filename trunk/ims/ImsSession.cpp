@@ -38,7 +38,7 @@ ImsSession::~ImsSession(void)
 {
 	if (_imsSessionHandle != IX_UNDEFINED)
 	{
-
+		TearDown();
 	}
 }
 
@@ -49,49 +49,68 @@ ImsSession::PlayFile(IN const wstring &file_name,
 					 IN BOOL provisional)
 {
 
+	FUNCTRACKER;
+
 	if (_imsSessionHandle == IX_UNDEFINED)
 	{
 		return CCU_API_FAILURE;
 	}
 
-	FUNCTRACKER;
 	IxMsgPtr response = CCU_NULL_MSG;
+	
+	DECLARE_NAMED_HANDLE(ims_play_txn);
+	ims_play_txn->HandleName(L"Ims Play TXN"); // for logging purposes
+	ims_play_txn->Direction(CCU_MSG_DIRECTION_INBOUND);
 
+	RegistrationGuard guard(ims_play_txn);
+
+	
 	CcuMsgStartPlayReq *msg = new CcuMsgStartPlayReq();
-	msg->playback_handle = _imsSessionHandle;
-	msg->file_name = file_name;
-	msg->send_provisional = provisional;
-	msg->loop = loop;
-
-	IxApiErrorCode res =_facade.DoRequestResponseTransaction(
-		IMS_Q,
-		IxMsgPtr(msg),
-		response,
-		Time(Seconds(60)),
-		L"Start Streaming File TXN");
-
+	msg->playback_handle	= _imsSessionHandle;
+	msg->file_name			= file_name;
+	msg->send_provisional	= provisional;
+	msg->loop				= loop;
+	msg->source.handle_id	= ims_play_txn->GetObjectUid();
+	msg->transaction_id		= GenerateNewTxnId();
+	
+	IxApiErrorCode res = _facade.SendMessage(IMS_Q,IxMsgPtr(msg));
 	if (CCU_FAILURE(res))
 	{
 		return res;
 	}
 
-	switch (msg->message_id)
+	if (provisional)
 	{
-	case CCU_MSG_START_PLAY_REQ_ACK:
+		res = _facade.WaitForTxnResponse(ims_play_txn,response, MilliSeconds(_facade.TransactionTimeout()));
+		if (CCU_FAILURE(res))
 		{
-			if (!sync)
-			{
-				return CCU_API_SUCCESS;
-			};
-
-			break;
+			return res;
 		}
-	default:
+
+		if (response->message_id != CCU_MSG_START_PLAY_REQ_ACK)
+		{
+			return CCU_API_FAILURE;
+		}
+
+	}
+	
+	if (!sync)
+	{
+		return CCU_API_SUCCESS;
+	}
+
+	res = _facade.WaitForTxnResponse(ims_play_txn,response,  MilliSeconds(MAXLONG));
+	if (CCU_FAILURE(res))
+	{
+		return res;
+	}
+
+	if (response->message_id != CCU_MSG_IMS_PLAY_STOPPED)
+	{
 		return CCU_API_FAILURE;
 	}
 
-	throw "Not implemented";
-
+	return CCU_API_SUCCESS;
 }
 
 IxApiErrorCode
@@ -161,4 +180,23 @@ void ImsSession::ImsMediaData(IN CnxInfo val)
 { 
 	_imsMediaData = val; 
 }
+
+void
+ImsSession::TearDown()
+{
+	if(_imsSessionHandle == IX_UNDEFINED)
+	{
+		return;
+	}
+
+	CcuMsgImsTearDownReq *tear_req = new CcuMsgImsTearDownReq();
+	tear_req->handle = _imsSessionHandle;
+
+	// no way back
+	_imsSessionHandle = IX_UNDEFINED;
+
+	IxApiErrorCode res = _facade.SendMessage(IMS_Q,IxMsgPtr(tear_req));
+
+}
+
 }

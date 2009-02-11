@@ -44,9 +44,11 @@ namespace ivrworx
 			IN BOOL loop = FALSE,
 			IN BOOL provisional = FALSE);
 
-		CnxInfo ImsMediaData() const;
+		virtual void TearDown();
 
-		void ImsMediaData(IN CnxInfo val);
+		virtual CnxInfo ImsMediaData() const;
+
+		virtual void ImsMediaData(IN CnxInfo val);
 
 	private:
 

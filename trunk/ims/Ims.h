@@ -33,7 +33,11 @@ enum ImsEvents
 	CCU_MSG_START_PLAYBACK_REQUEST,
 	CCU_MSG_START_PLAY_REQ_ACK,
 	CCU_MSG_IMS_START_PLAY_REQ_NACK,
+	CCU_MSG_STOP_PLAYBACK_REQUEST,
+	CCU_MSG_STOP_PLAYBACK_REQUEST_ACK,
+	CCU_MSG_STOP_PLAYBACK_REQUEST_NACK,
 	CCU_MSG_IMS_PLAY_STOPPED,
+	CCU_MSG_IMS_TEARDOWN_REQ
 };
 
 
@@ -117,6 +121,7 @@ public:
 	  BOOL loop;
 
 	  BOOL send_provisional;
+
 };
 BOOST_CLASS_EXPORT(CcuMsgStartPlayReq)
 
@@ -172,6 +177,72 @@ public:
 	  IxApiErrorCode error;
 };
 BOOST_CLASS_EXPORT(CcuMsgImsPlayStopped)
+
+class CcuMsgImsTearDownReq:
+	public CcuMsgRequest
+{
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(IxMessage);
+		SERIALIZE_FIELD(handle);
+	}
+public:
+	CcuMsgImsTearDownReq():
+	  CcuMsgRequest(CCU_MSG_IMS_TEARDOWN_REQ, 
+		  NAME(CCU_MSG_IMS_TEARDOWN_REQ)){};
+
+	  ImsHandleId handle;
+
+};
+BOOST_CLASS_EXPORT(CcuMsgImsTearDownReq)
+
+class CcuMsgStopPlaybackReq:
+	public CcuMsgRequest
+{
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(IxMessage);
+		SERIALIZE_FIELD(handle);
+	}
+public:
+	CcuMsgStopPlaybackReq():
+	  CcuMsgRequest(CCU_MSG_STOP_PLAYBACK_REQUEST, 
+		  NAME(CCU_MSG_STOP_PLAYBACK_REQUEST)){};
+
+	  ImsHandleId handle;
+
+};
+BOOST_CLASS_EXPORT(CcuMsgStopPlaybackReq)
+
+class CcuMsgStopPlaybackAck:
+	public CcuMsgRequest
+{
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(IxMessage);
+	}
+public:
+	CcuMsgStopPlaybackAck():
+	  CcuMsgRequest(CCU_MSG_STOP_PLAYBACK_REQUEST_ACK, 
+		  NAME(CCU_MSG_STOP_PLAYBACK_REQUEST_ACK)){};
+
+};
+BOOST_CLASS_EXPORT(CcuMsgStopPlaybackAck)
+
+class CcuMsgStopPlaybackNack:
+	public CcuMsgRequest
+{
+	BOOST_SERIALIZATION_REGION
+	{
+		SERIALIZE_BASE_CLASS(IxMessage);
+	}
+public:
+	CcuMsgStopPlaybackNack():
+	  CcuMsgRequest(CCU_MSG_STOP_PLAYBACK_REQUEST_NACK, 
+		  NAME(CCU_MSG_STOP_PLAYBACK_REQUEST_NACK)){};
+
+};
+BOOST_CLASS_EXPORT(CcuMsgStopPlaybackNack)
 
 #pragma endregion Playback_Events
 
