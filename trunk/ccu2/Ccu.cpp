@@ -25,81 +25,92 @@ using namespace std;
 using namespace csp;
 
 
-IxCodec::IxCodec()
+MediaFormat::MediaFormat()
 :name(L"INVALID"),
 rate(IX_UNDEFINED),
-mapping(IX_UNDEFINED)
+mapping(IX_UNDEFINED),
+media_type(MediaType_UNKNOWN)
 {
 	init_strings();
 };
 
-IxCodec::IxCodec(wstring param_name, int param_sampling_rate,int param_sdp_mapping)
+MediaFormat::MediaFormat(wstring param_name, int param_sampling_rate,int param_sdp_mapping, MediaType _media_type)
 :name(param_name),
 rate(param_sampling_rate),
-mapping(param_sdp_mapping)
+mapping(param_sdp_mapping),
+media_type(_media_type)
 {
+	if (media_type == MediaFormat::MediaType_UNKNOWN)
+	{
+		media_type = GetMediaType(param_name);
+	}
 	init_strings();
 };
 
-IxCodec::IxCodec(const IxCodec &codec)
+MediaFormat::MediaFormat(const MediaFormat &other)
 {
-	name = codec.name;
-	rate = codec.rate;
-	mapping = codec.mapping;
+	name = other.name;
+	rate = other.rate;
+	mapping = other.mapping;
+	media_type = other.media_type;
 
 	init_strings();
 
 };
 
-int IxCodec::sampling_rate() const 
+int MediaFormat::sampling_rate() const 
 { 
 	return rate; 
 }
 
-string IxCodec::sampling_rate_tos() const 
+string MediaFormat::sampling_rate_tos() const 
 { 
 	return rate_s; 
 }
 
-wstring IxCodec::sampling_rate_tows() const 
+wstring MediaFormat::sampling_rate_tows() const 
 { 
 	return rate_ws; 
 }
 
-int IxCodec::sdp_mapping() const 
+int MediaFormat::sdp_mapping() const 
 { 
 	return mapping; 
 }
 
-string IxCodec::sdp_mapping_tos() const 
+string MediaFormat::sdp_mapping_tos() const 
 { 
 	return mapping_s; 
 }
 
-string IxCodec::sdp_mapping_tows() const 
+wstring MediaFormat::sdp_mapping_tows() const 
 { 
-	return mapping_s; 
+	return mapping_ws; 
 }
 
-wstring IxCodec::sdp_name() const 
+wstring MediaFormat::sdp_name() const 
 { 
 	return name; 
 }
 
-string IxCodec::sdp_name_tos() const 
+string MediaFormat::sdp_name_tos() const 
 { 
 	return name_s; 
 }
 
-string IxCodec::get_sdp_a() const
+string MediaFormat::get_sdp_a() const
 {
 	return sdp_a;
 }
 
-void IxCodec::init_strings()
+MediaFormat::MediaType MediaFormat::get_media_type() const
 {
-	WStringToUpper(name);
+	return media_type;
+}
 
+void MediaFormat::init_strings()
+{
+	
 	// convert port
 	char buffer[10];
 	buffer[0] = '\0';
@@ -131,6 +142,45 @@ void IxCodec::init_strings()
 	name_s  = WStringToString(name);
 	sdp_a   += "a=rtpmap:" + sdp_mapping_tos() + " "  + sdp_name_tos() + "/" + sampling_rate_tos() + "\r\n";
 
+}
+
+int
+MediaFormat::operator ==(const MediaFormat &other) const
+{
+	return (
+		(other.mapping == this->mapping) &&
+		(other.rate == this->rate) &&
+		(other.name == this->name));
+}
+
+const MediaFormat MediaFormat::PCMU(L"PCMU",8000,0, MediaType_SPEECH);
+
+const MediaFormat MediaFormat::PCMA(L"PCMA",8000,8, MediaType_SPEECH);
+
+const MediaFormat MediaFormat::DTMF(L"telephone-event", 8000, 8, MediaType_DTMF);
+
+MediaFormat::MediaType  MediaFormat::GetMediaType(wstring media_name)
+{
+	if (media_name == L"PCMA")
+	{
+		return MediaFormat::MediaType_SPEECH;
+	}
+	if (media_name == L"PCMU")
+	{
+		return MediaFormat::MediaType_SPEECH;
+	}
+	if (media_name == L"telephone-event")
+	{
+		return MediaFormat::MediaType_DTMF;
+	}
+
+	return MediaFormat::MediaType_UNKNOWN;
+
+}
+
+wostream& operator << (wostream &ostream,  const MediaFormat &ptr)
+{
+	return ostream << L"name:" << ptr.sdp_name()<< L" rate:" << ptr.sampling_rate_tows() << L" payload:" << ptr.sdp_mapping_tows();
 }
 
 wostream& operator << (wostream &ostream,  CnxInfo *ptr)

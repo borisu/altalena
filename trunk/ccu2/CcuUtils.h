@@ -61,6 +61,7 @@
 #include <boost/static_assert.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/bind.hpp>
+#include <boost/assign/list_of.hpp> 
 
 // Kent CSP
 #include <cppcsp.h>
@@ -121,7 +122,7 @@ namespace ivrworx
 	void WStringToLower(wstring strToConvert);
 
 #define DISABLE_SRC_REF
-#define NOLOGS
-#define PROFILE
+//#define NOLOGS
+//#define PROFILE
 
 }

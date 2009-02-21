@@ -60,14 +60,25 @@ namespace ivrworx
 		return find_value( obj, name ).get_str();
 	}
 
-	IxCodec *
+	MediaFormat *
 	read_codec( const wObject& obj)
 	{
+		wstring media_format_name = find_str( obj, L"name" );
+
+		
+		MediaFormat::MediaType media_type = MediaFormat::GetMediaType(media_format_name);
+		if ( media_type == MediaFormat::MediaType_UNKNOWN)
+		{
+			LogCrit("Unknown media format " << media_format_name);
+			throw;
+		}
+
 		return 
-			new IxCodec(
-				find_str( obj, L"name" ),
+			new MediaFormat(
+				media_format_name,
 				find_int( obj, L"sampling_rate" ),
-				find_int( obj, L"sdp_mapping" ));
+				find_int( obj, L"sdp_mapping" ),
+				media_type);
 	}
 
 
@@ -165,7 +176,7 @@ namespace ivrworx
 		wArray::const_iterator iter = codecs_array.begin();
 		while(iter != codecs_array.end())
 		{
-			IxCodec *codec;
+			MediaFormat *codec;
 			codec = read_codec(iter->get_obj());
 			_codecsList.push_front(codec);
 			iter++;

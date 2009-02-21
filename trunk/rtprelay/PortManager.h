@@ -28,9 +28,9 @@ namespace ivrworx
 	public:
 		PortManager(int abs_top, int abs_bottom);
 
-		int		GetNextPort();
+		int		GetNextPortFromPool();
 
-		void	Return(int port);
+		void	ReturnPortToPool(int port);
 
 		virtual ~PortManager(void);
 

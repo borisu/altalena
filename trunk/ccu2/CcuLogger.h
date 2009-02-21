@@ -149,14 +149,14 @@ IxSetLogLevel(IxLogLevel log_level);
 
 #define SCOPED_LOG(level ,x, color){ \
 	mutex::scoped_lock scoped_lock(g_loggerMutex);\
-if (g_logMask & IX_LOG_MASK_CONSOLE)  { std::cout << color;(std::wcout)  << PREFIX  << level << x << endl; }\
-	if (g_logMask & IX_LOG_MASK_DEBUGVIEW) { std::cout << color;(dbgout) << PREFIX  << level << x << endl; }\
+	if (g_logMask & IX_LOG_MASK_CONSOLE)   { std::cout << color;(std::wcout)  << PREFIX << level << x << endl; std::cout << con::bg_black;}\
+	if (g_logMask & IX_LOG_MASK_DEBUGVIEW) { std::cout << color;(dbgout)	  << PREFIX << level << x << endl; std::cout << con::bg_black;}\
 }
 
 #define SCOPED_LOG_RAW(x){ \
 	mutex::scoped_lock scoped_lock(g_loggerMutex);\
-	if (g_logMask & IX_LOG_MASK_CONSOLE)  { (std::wcout) << x << endl; }\
-	if (g_logMask & IX_LOG_MASK_DEBUGVIEW) { (dbgout) << x << endl; }\
+	if (g_logMask & IX_LOG_MASK_CONSOLE)   { (std::wcout) << x << endl; }\
+	if (g_logMask & IX_LOG_MASK_DEBUGVIEW) { (dbgout)	  << x << endl; }\
 }
 
 #define IsDebug()   (g_LogLevel >= IX_LOG_LEVEL_DEBUG)

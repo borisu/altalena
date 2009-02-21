@@ -91,7 +91,7 @@ ImsTester::testSync()
 
 	assert(CCU_SUCCESS(ims_session.AllocateIMSConnection(
 		CnxInfo("192.168.100.228",60555), 
-		IxCodec(L"pcmu",8000,0))));
+		MediaFormat(L"pcmu",8000,0))));
 
 	// test sync
 	assert(CCU_SUCCESS(ims_session.PlayFile(L"C:\\SOUNDS\\secs.wav", TRUE)));
@@ -107,7 +107,7 @@ ImsTester::testAsync()
 
 	assert(CCU_SUCCESS(ims_session.AllocateIMSConnection(
 		CnxInfo("192.168.100.228",60555), 
-		IxCodec(L"pcmu",8000,0))));
+		MediaFormat(L"pcmu",8000,0))));
 
 	// test sync
 	assert(CCU_SUCCESS(ims_session.PlayFile(L"C:\\SOUNDS\\welcome.wav", FALSE)));
@@ -126,10 +126,10 @@ ImsTester::testParallel()
 
 	assert(CCU_SUCCESS(ims_session.AllocateIMSConnection(
 		CnxInfo("192.168.100.228",60555), 
-		IxCodec(L"pcmu",8000,0))));
+		MediaFormat(L"pcmu",8000,0))));
 	assert(CCU_SUCCESS(ims_session1.AllocateIMSConnection(
 		CnxInfo("192.168.100.228",60555), 
-		IxCodec(L"pcmu",8000,0))));
+		MediaFormat(L"pcmu",8000,0))));
 
 	// test sync
 	assert(CCU_SUCCESS(ims_session.PlayFile(L"C:\\SOUNDS\\welcome.wav", TRUE)));

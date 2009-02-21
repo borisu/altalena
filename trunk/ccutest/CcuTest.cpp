@@ -37,7 +37,6 @@
 #include "RtpRelay.h"
 #include "ConfigurationFactory.h"
 #include "LpHandleTest.h"
-#include "CallWithRtpManagmentTest.h"
 #include "SimpleRTPStreamer.h"
 #include "IxCoreTest.h"
 #include "Profiler.h"
@@ -152,9 +151,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	//
 	//////////////////////////////////////////////////////////////////////////
 
-// 	start_test_system();
-//  
-//  	return 0;
+	start_test_system();
+ 
+ 	return 0;
 
 
 // 	SimpleRTPStreamer r;
@@ -175,7 +174,7 @@ int _tmain(int argc, _TCHAR* argv[])
 // 	ProcPipeIPCDispatcherTest().test();
 // 	RTPRelayTest(CnxInfo(ip,port)).test();
 // 	VcsTest(CnxInfo(ip,port)).test();
- 	ImsTest(CnxInfo(ip,port)).test();
+//	ImsTest(CnxInfo(ip,port)).test();
 // 	CcuLightweightProcessTest().test();
 // 	JsonConfigurationTest().test();
 // 	LpHandleTest().test();
@@ -206,10 +205,10 @@ public:
 		//
 		// Start RTP relay
 		//
-		DECLARE_NAMED_HANDLE_PAIR(rtp_pair);
-		FORK(RtpRelayFactory::CreateProcRtpRelay(rtp_pair, conf.get()));
-		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), rtp_pair)));
-		assert(CCU_SUCCESS(Ping(RTP_RELAY_Q)));
+// 		DECLARE_NAMED_HANDLE_PAIR(rtp_pair);
+// 		FORK(RtpRelayFactory::CreateProcRtpRelay(rtp_pair, conf.get()));
+// 		assert(CCU_SUCCESS(WaitTillReady(Seconds(5), rtp_pair)));
+// 		assert(CCU_SUCCESS(Ping(RTP_RELAY_Q)));
 
 		//
 		// Start IMS 

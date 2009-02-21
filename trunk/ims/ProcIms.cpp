@@ -27,40 +27,45 @@ namespace ivrworx
 #define CCU_DEFAULT_IMS_TOP_PORT	6000
 #define CCU_DEFAULT_IMS_BOTTOM_PORT 5000
 
-#define	CCU_DEFAULT_IMS_TIMEOUT		10000
+#define	CCU_DEFAULT_IMS_TIMEOUT		60000 // 1 min
 
 	static int GetNewImsHandle()
 	{
-		static volatile int handle_counter = 70000;
-		return handle_counter;
+		static volatile int handle_counter = 7000000;
+		return handle_counter++;
 	}
 
 	StreamingCtx::StreamingCtx()
-		:stream(NULL)
+		:stream(NULL),
+		profile(NULL)
 	{
+
 	}
 
 	StreamingCtx::~StreamingCtx()
 	{
-		if (stream->session!=NULL) rtp_session_destroy(stream->session);
-		if (stream->rtpsend!=NULL) ms_filter_destroy(stream->rtpsend);
-		if (stream->rtprecv!=NULL) ms_filter_destroy(stream->rtprecv);
-		if (stream->soundread!=NULL) ms_filter_destroy(stream->soundread);
-		if (stream->soundwrite!=NULL) ms_filter_destroy(stream->soundwrite);
-		if (stream->encoder!=NULL) ms_filter_destroy(stream->encoder);
-		if (stream->decoder!=NULL) ms_filter_destroy(stream->decoder);
-		if (stream->dtmfgen!=NULL) ms_filter_destroy(stream->dtmfgen);
-		if (stream->ec!=NULL)	ms_filter_destroy(stream->ec);
-		//if (stream->ticker!=NULL) ms_ticker_destroy(stream->ticker);
-		ms_free(stream);
+		if (stream)
+		{
+			if (stream->session!=NULL) rtp_session_destroy(stream->session);
+			if (stream->rtpsend!=NULL) ms_filter_destroy(stream->rtpsend);
+			if (stream->rtprecv!=NULL) ms_filter_destroy(stream->rtprecv);
+			if (stream->soundread!=NULL) ms_filter_destroy(stream->soundread);
+			if (stream->soundwrite!=NULL) ms_filter_destroy(stream->soundwrite);
+			if (stream->encoder!=NULL) ms_filter_destroy(stream->encoder);
+			if (stream->decoder!=NULL) ms_filter_destroy(stream->decoder);
+			if (stream->dtmfgen!=NULL) ms_filter_destroy(stream->dtmfgen);
+			if (stream->ec!=NULL)	ms_filter_destroy(stream->ec);
+			//if (stream->ticker!=NULL) ms_ticker_destroy(stream->ticker);
+			ms_free(stream);
+		}
+		if (profile) rtp_profile_destroy(profile);
 	}
-
 
 
 	static void 
 	on_dtmf_received(RtpSession *s, int dtmf, void * user_data)
 	{
-
+		std::cout << "DTMF --> " << dtmf;
 	}
 
 	boost::mutex g_args_mutex;
@@ -152,11 +157,11 @@ namespace ivrworx
 	void
 	ProcIms::InitCodecs()
 	{
-		for (CodecsList::const_iterator iter = _conf.CodecList().begin();
+		for (CodecsPtrList::const_iterator iter = _conf.CodecList().begin();
 			iter != _conf.CodecList().end();iter++)
 		{
 
-			const IxCodec *codec = *(iter);
+			const MediaFormat *codec = *(iter);
 			rtp_profile_set_payload(
 				av_profile,
 				codec->sdp_mapping(),
@@ -258,7 +263,7 @@ namespace ivrworx
 				{
 					if (completion_key!=IOCP_UNIQUE_COMPLETION_KEY)
 					{
-						LogCrit("Unknonwn overlapped structure received");
+						LogCrit("Unknown overlapped structure received");
 						throw;
 					}
 				}
@@ -324,13 +329,15 @@ namespace ivrworx
 		// create new context
 		//
 		StreamingCtxPtr ctx(new StreamingCtx());
+		long handle = GetNewImsHandle();
 
 		//
-		// create ortp stream with and initialize with available port
+		// create ortp stream and initialize it with available port
 		//
+		int local_port = 0;
 		do 
 		{
-			int local_port = _portManager.GetNextPort();
+			local_port = _portManager.GetNextPortFromPool();
 			if (local_port == IX_UNDEFINED)
 			{
 				break;
@@ -340,10 +347,11 @@ namespace ivrworx
 			ctx->stream = audio_stream_new(local_port, ms_is_ipv6(_localMedia.iptoa()));
 			if (ctx->stream!=NULL)
 			{
+				ctx->port = local_port;
 				break;
 			}
 
-			_portManager.Return(local_port);
+			_portManager.ReturnPortToPool(local_port);
 
 		} while (ctx->stream!=NULL);
 
@@ -354,16 +362,18 @@ namespace ivrworx
 			goto error;
 		}
 
-		//
+		/********************
+		*
+		*		Session 
+		*
+		*********************/
 		// create local rtp profile and associate it with session
-		//
 		RtpSession *rtps=ctx->stream->session;
 		RtpProfile *profile=rtp_profile_clone_full(av_profile);
 		rtp_session_set_profile(rtps,profile);
+		ctx->profile = profile;
 
-		//
-		// create remote rtp session
-		//
+		// update remote end for session
 		int remport  = req->remote_media_data.port_ho();
 		char *remip  = (char *)req->remote_media_data.iptoa();
 		int res = rtp_session_set_remote_addr(rtps,remip,remport);
@@ -373,54 +383,126 @@ namespace ivrworx
 			goto error;
 		}
 
-
+		// update session payload type
 		res = rtp_session_set_payload_type(rtps,req->codec.sdp_mapping());
 		if (res < 0) 
 		{
-			LogWarn("error:rtp_session_set_payload_type ");
+			LogWarn("error:rtp_session_set_payload_type " << req->codec.sdp_mapping_tows());
 			goto error;
 		}
 
+		// update session jitter compensation
 		rtp_session_set_jitter_compensation(rtps,0/*jitt_comp*/);
 
-		//
-		// create sending filter
-		//
-		MSFilter *rtp_send =ms_filter_new(MS_RTP_SEND_ID);
-		ctx->stream->rtpsend = rtp_send;
-		ms_filter_call_method(ctx->stream->rtpsend,MS_RTP_SEND_SET_SESSION,rtps);
-		if (res < 0) 
+		/********************
+		*
+		*		Receiver 
+		*
+		*********************/
+		ctx->stream->rtprecv=ms_filter_new(MS_RTP_RECV_ID);
+		if (ctx->stream->rtprecv == NULL)
 		{
-			LogWarn("error:ms_filter_call_method");
+			LogWarn("error:ms_filter_new MS_RTP_RECV_ID");
 			goto error;
 		}
 
-		//
-		// DTMF detection filter
-		//
+		res = ms_filter_call_method(ctx->stream->rtprecv,MS_RTP_RECV_SET_SESSION,rtps);
+		if (res < 0) 
+		{
+			LogWarn("error:ms_filter_call_method MS_RTP_RECV_SET_SESSION");
+			goto error;
+		}
+
+		/********************
+		*
+		*		Decoder 
+		*
+		*********************/
+		PayloadType *pt = rtp_profile_get_payload(av_profile,req->codec.sdp_mapping());
+		if (pt==NULL)
+		{
+			LogWarn("error:rtp_profile_get_payload " << req->codec.sdp_mapping_tows());
+			goto error;
+		}
+
+		ctx->stream->decoder=ms_filter_create_decoder(pt->mime_type);
+		if (ctx->stream->decoder == NULL)
+		{
+			LogWarn("error:ms_filter_create_decoder " << pt->mime_type);
+			goto error;
+		}
+
+// 		res = ms_filter_call_method(ctx->stream->decoder,MS_FILTER_SET_SAMPLE_RATE,&pt->clock_rate);
+// 		if (res < 0) 
+// 		{
+// 			LogWarn("error:ms_filter_call_method decoder MS_FILTER_SET_SAMPLE_RATE" << pt->clock_rate);
+// 			goto error;
+// 		}
+
+		if (pt->send_fmtp!=NULL) 
+		{
+			res = ms_filter_call_method(ctx->stream->encoder,MS_FILTER_ADD_FMTP, (void*)pt->send_fmtp);
+			if (res < 0) 
+			{
+				LogWarn("error:ms_filter_call_method decoder send_fmtp MS_FILTER_ADD_FMTP");
+				goto error;
+			}
+		}
+
+		if (pt->recv_fmtp!=NULL) 
+		{
+			res = ms_filter_call_method(ctx->stream->decoder,MS_FILTER_ADD_FMTP,(void*)pt->recv_fmtp);
+			if (res < 0) 
+			{
+				LogWarn("error:ms_filter_call_method decoder recv_fmtp MS_FILTER_ADD_FMTP");
+				goto error;
+			}
+		}
+
+		/********************
+		*
+		*		DTMF 
+		*
+		*********************/
 		ctx->stream->dtmfgen=ms_filter_new(MS_DTMF_GEN_ID);
+		if (ctx->stream->dtmfgen == NULL)
+		{
+			LogWarn("error:ms_filter_new MS_DTMF_GEN_ID");
+			goto error;
+		}
 
 #pragma warning (suppress :4311)
-		rtp_session_signal_connect(rtps,"telephone-event",(RtpCallback)on_dtmf_received,(unsigned long)ctx->stream->dtmfgen);
-
+		res = rtp_session_signal_connect(rtps,"telephone-event",(RtpCallback)on_dtmf_received,(unsigned long)ctx->stream->dtmfgen);
 		if (res < 0) 
 		{
 			LogWarn("error:rtp_session_signal_connect");
 			goto error;
 		}
 
-
-		//
-		// creates encoder
-		//
-		PayloadType *pt = NULL;
-		pt = rtp_profile_get_payload(av_profile,req->codec.sdp_mapping());
-		if (pt==NULL)
+		/********************
+		*
+		*		Sender 
+		*
+		*********************/
+		ctx->stream->rtpsend =ms_filter_new(MS_RTP_SEND_ID);
+		if (ctx->stream->rtpsend == NULL)
 		{
-			LogWarn("error:rtp_profile_get_payload");
+			LogWarn("error:ms_filter_new MS_RTP_SEND_ID");
 			goto error;
 		}
 
+		res = ms_filter_call_method(ctx->stream->rtpsend,MS_RTP_SEND_SET_SESSION,rtps);
+		if (res < 0) 
+		{
+			LogWarn("error:ms_filter_call_method MS_RTP_SEND_SET_SESSION");
+			goto error;
+		}
+
+		/********************
+		*
+		*		Encoder 
+		*
+		*********************/
 		ctx->stream->encoder = ms_filter_create_encoder(pt->mime_type);
 		if (ctx->stream->encoder == NULL) 
 		{
@@ -429,27 +511,11 @@ namespace ivrworx
 		}
 
 
-		// 		res = ms_filter_call_method(ctx->stream->encoder,MS_FILTER_SET_SAMPLE_RATE,&pt->clock_rate);
-		// 		if (res < 0) 
-		// 		{
-		// 			LogWarn("error:ms_filter_call_method");
-		// 			goto error;
-		// 		}
-
-		// 		if (pt->normal_bitrate>0)
-		// 		{
-		// 			LogDebug("Setting audio encoder network bitrate to " << pt->normal_bitrate);
-		// 			res = ms_filter_call_method(ctx->stream->encoder,MS_FILTER_SET_BITRATE,&pt->normal_bitrate);
-		// 			if (res < 0) 
-		// 			{
-		// 				LogWarn("error:ms_filter_call_method");
-		// 				goto error;
-		// 			}
-		// 		}
-
-		//
-		// initialize file reading
-		//
+		/********************
+		*
+		*		Reader 
+		*
+		*********************/
 		ctx->stream->soundread = ms_filter_new(MS_FILE_PLAYER_ID);
 		if (ctx->stream->soundread  == NULL) 
 		{
@@ -459,8 +525,9 @@ namespace ivrworx
 
 		ctx->stream->soundread->notify = &on_file_filter_event;
 
-		long handle = GetNewImsHandle();
+		
 
+		// prepare arguments for the EOF callback
 		EventArgs *args = new EventArgs();
 		SecureZeroMemory(args, sizeof(EventArgs));
 		args->iocp_handle = _iocpPtr->Handle();
@@ -470,42 +537,63 @@ namespace ivrworx
 
 		
 
-		// 		res = ms_filter_call_method(ctx->stream->soundread,MS_FILTER_SET_SAMPLE_RATE,&pt->clock_rate);
-		// 		if (res < 0) 
-		// 		{
-		// 			LogWarn("error:ms_filter_call_method");
-		// 			goto error;
-		// 		}
-
+		/*********************************************************************
+		*
+		*	file_reader -> encoder ->  + -> rtp_sender 
+		*                 dtmf_gen <-> |
+		*                              + <- decoder <- rtp_receiver
+		*
+		***********************************************************************/
+		
 		res = ms_filter_link(ctx->stream->soundread,0,ctx->stream->encoder,0);
 		if (res < 0) 
 		{
-			LogWarn("error:ms_filter_link");
+			LogWarn("error:ms_filter_link soundread->encoder");
 			goto error;
 		}
 
-		ms_filter_link(ctx->stream->encoder,0,ctx->stream->rtpsend,0);
-		// 		ms_filter_link(ctx->stream->rtprecv,0,stream->decoder,0);
-		// 		ms_filter_link(stream->decoder,0,stream->dtmfgen,0);
+		res = ms_filter_link(ctx->stream->encoder,0,ctx->stream->rtpsend,0);
+		if (res < 0) 
+		{
+			LogWarn("error:ms_filter_link encoder->rtpsend");
+			goto error;
+		}
+
+// 		res = ms_filter_link(ctx->stream->dtmfgen,0,ctx->stream->soundwrite,0);
+// 		if (res < 0) 
+// 		{
+// 			LogWarn("error:ms_filter_link dtmfgen->soundwrite");
+// 			goto error;
+// 		}
+
+		res = ms_filter_link(ctx->stream->rtprecv,0,ctx->stream->decoder,0);
+		if (res < 0) 
+		{
+			LogWarn("error:ms_filter_link rtprecv->decoder");
+			goto error;
+		}
+
+		res = ms_filter_link(ctx->stream->decoder,0,ctx->stream->dtmfgen,0);
+		if (res < 0) 
+		{
+			LogWarn("error:ms_filter_link decoder->dtmfgen");
+			goto error;
+		}
 
 
-		// 		res = ms_filter_link(ctx->stream->dtmfgen,0,ctx->stream->soundwrite,0);
-		// 		if (res < 0) 
-		// 		{
-		// 			LogWarn("error:ms_filter_link");
-		// 			goto error;
-		// 		}
-
-
-		// use stream pointer as a handle
-		
+		//
+		// update map and send acknowledgment
+		//
+	
 		_streamingObjectSet[handle] = ctx;
 
 		ctx->curr_txn_handler = req->session_handler;
 
 		CcuMsgAllocateImsSessionAck *ack = 
 			new CcuMsgAllocateImsSessionAck();
+
 		ack->playback_handle = handle;
+		ack->ims_media_data = CnxInfo(_localMedia.iptoa(),local_port);
 
 		SendResponse(req,ack);
 		return;
@@ -597,6 +685,10 @@ error:
 			boost::mutex::scoped_lock lk(g_args_mutex); 
 			ctx->stream->soundread->notify_ud = NULL;
 		}
+
+		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_STOP);
+		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_CLOSE);
+
 		if (stream->ticker)
 		{
 			int res = ms_ticker_detach(stream->ticker,stream->soundread);
@@ -606,8 +698,8 @@ error:
 			}
 
 		}
-
-		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_CLOSE);
+		
+		
 	
 		stopped_msg->dest = ctx->curr_txn_handler;
 		this->SendMessage(IxMsgPtr(stopped_msg));
@@ -637,6 +729,7 @@ error:
 		StreamingCtxPtr ctx = iter->second;
 		
 		TearDown(ctx);
+		_portManager.ReturnPortToPool(ctx->port);
 		
 		// ctx dtor should release all associated resources
 		_streamingObjectSet.erase(iter);

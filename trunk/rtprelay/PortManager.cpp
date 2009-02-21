@@ -55,7 +55,7 @@ PortManager::~PortManager(void)
 
 
 int 
-PortManager::GetNextPort()
+PortManager::GetNextPortFromPool()
 {
 	int port = _portsList.front();
 	_portsList.erase(_portsList.begin());;
@@ -63,7 +63,7 @@ PortManager::GetNextPort()
 }
 
 void
-PortManager::Return(int port)
+PortManager::ReturnPortToPool(int port)
 {
 	_portsList.push_back(port);
 }

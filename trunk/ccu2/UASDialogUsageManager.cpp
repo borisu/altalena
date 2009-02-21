@@ -108,22 +108,53 @@ UASDialogUsageManager::UponCallOfferedAck(IxMsgPtr req)
 	CcuHandlesMap::iterator iter = _refCcuHandlesMap.find(ack->stack_call_handle);
 	if (iter == _refCcuHandlesMap.end())
 	{
-		LogWarn("Handle=[" << ack->stack_call_handle<< "] >>not found<<. Has caller disconnected???");
+		LogWarn("call handle " << ack->stack_call_handle<< " not found (caller disconnected?).");
 		return;
 	}
 
 	SipDialogContextPtr ptr = (*iter).second;
 	ptr->last_user_request = req;
+
+	if (ack->accepted_codecs.empty())
+	{
+		LogWarn("No accepted codec found, call handle = " << ack->stack_call_handle);
+		HangupCall(ptr);
+	}
+
+	SdpContents sdp;
+
+	unsigned long tm = ::GetTickCount();
+	unsigned long sessionId((unsigned long) tm);
+
+
+	SdpContents::Session::Origin origin("-", sessionId, sessionId, SdpContents::IP4, ack->local_media.iptoa());
+	SdpContents::Session session(0, origin, "ivrworks session");
+
+	session.connection() = SdpContents::Session::Connection(SdpContents::IP4, ack->local_media.iptoa());
+	session.addTime(SdpContents::Session::Time(tm, 0));
+
+	SdpContents::Session::Medium medium("audio", ack->local_media.port_ho(), 0, "RTP/AVP");
+
+	for (MediaFormatsList::iterator iter = ack->accepted_codecs.begin(); 
+		iter != ack->accepted_codecs.end(); iter ++)	
+	{
+		
+		MediaFormat &media_format = *iter;
+
+		medium.addFormat(media_format.sdp_mapping_tos().c_str());
+
+		string rtpmap = media_format.sdp_mapping_tos() + " " + media_format.sdp_name_tos() + "/" + media_format.sampling_rate_tos();
+		medium.addAttribute("rtpmap", rtpmap.c_str());
+	}
 	
-	string sdpStr = 
-		CreateSdp(ack->local_media);
+	session.addMedium(medium);
+	sdp.session() = session;
 
-	Data data_buffer(sdpStr.c_str());
-
-	HeaderFieldValue header(data_buffer.data(), (unsigned int)data_buffer.size());
-
-	Mime type("application", "sdp");
-	SdpContents sdp(&header, type);
+ 	Data encoded(Data::from(sdp));
+// 
+// 	HeaderFieldValue hfv(encoded.c_str(),encoded.size());
+// 	Mime type("application", "sdp");
+// 	SdpContents sdp(&hfv, type);
 	
 
 	IX_PROFILE_CODE(ptr->uas_invite_handle.get()->provideAnswer(sdp));
@@ -132,7 +163,7 @@ UASDialogUsageManager::UponCallOfferedAck(IxMsgPtr req)
 
 
 string
-UASDialogUsageManager::CreateSdp(CnxInfo &offered_sdp)
+UASDialogUsageManager::CreateSdp(CnxInfo &offered_sdp, const MediaFormat &codec)
 {
 #define IX_MSX_SDP_SIZE		1024
 
@@ -186,22 +217,14 @@ UASDialogUsageManager::CreateSdp(CnxInfo &offered_sdp)
 	STRCAT_COUNT(sdp_buf," RTP/AVP");
 	
 	
+	STRCAT_COUNT(sdp_buf," "); 
+	STRCAT_COUNT(sdp_buf,codec.sdp_mapping_tos().c_str());
 	
-	for (CodecsList::const_iterator iter = _conf.CodecList().begin(); 
-		iter != _conf.CodecList().end();
-		iter++)
-	{
-		STRCAT_COUNT(sdp_buf," "); 
-		STRCAT_COUNT(sdp_buf,(*iter)->sdp_mapping_tos().c_str());
-	}
 
 	STRCAT_COUNT(sdp_buf,"\r\n"); 
-	for (CodecsList::const_iterator iter = _conf.CodecList().begin(); 
-		iter != _conf.CodecList().end();
-		iter++)
-	{
-		STRCAT_COUNT(sdp_buf,(*iter)->get_sdp_a().c_str());
-	}
+	
+	STRCAT_COUNT(sdp_buf,codec.get_sdp_a().c_str());
+	
 
 
 	STRCAT_COUNT(sdp_buf,"\r\n"); 
@@ -273,16 +296,50 @@ UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, co
 {
 	FUNCTRACKER;
 
-	ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
-	SipDialogContextPtr ctx_ptr = (*iter).second;
+	ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(is->getAppDialog());
+	if (ctx_iter == _resipHandlesMap.end())
+	{
+		LogCrit("'Offered' without created context, handle=[" << is.getId() << "]");
+		throw;
+	}
+	SipDialogContextPtr ctx_ptr = (*ctx_iter).second;
+
+
+	LogDebug("Call offered - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid=[" << is->getCallId().c_str() << "], resip handle=[" << is.getId() << "]");
 	
 	const SdpContents::Session &s = sdp.session();
 	const Data &addr_data = s.connection().getAddress();
 	const string addr = addr_data.c_str();
 
-	const SdpContents::Session::Medium &medium = s.media().front();
-	int port = medium.port();
-	
+	if (s.media().empty())
+	{
+		LogWarn("Empty medias list - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid=[" << is->getCallId().c_str() << "], resip handle=[" << is.getId() << "]");
+		HangupCall(ctx_ptr);
+		return;
+	}
+
+	// currently we support single audio argument
+	list<SdpContents::Session::Medium>::const_iterator iter = s.media().begin();
+	for (;iter != s.media().end();iter++)
+	{
+		const SdpContents::Session::Medium &curr_medium = (*iter);
+		if (_stricmp("audio",curr_medium.name().c_str()) == 0)
+		{
+			break;
+		}
+	}
+
+	if (iter == s.media().end())
+	{
+		LogWarn("Not found audio connection - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid=[" << is->getCallId().c_str() << "], resip handle=[" << is.getId() << "]");
+		HangupCall(ctx_ptr);
+		return;
+	}
+
+	const SdpContents::Session::Medium &medium = *iter;
+
+	int port =	medium.port();
+
 	DECLARE_NAMED_HANDLE_PAIR(call_handler_pair);
 
 	CcuMsgCallOfferedReq *offered = new CcuMsgCallOfferedReq();
@@ -290,12 +347,26 @@ UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, co
 	offered->stack_call_handle	= ctx_ptr->stack_handle;
 	offered->call_handler_inbound = call_handler_pair;
 
-	_ccu_stack._outbound->Send(offered);
+	
+	// send list of codecs to the main process
+	const list<Codec> &offered_codecs = medium.codecs();
+	for (list<Codec>::const_iterator codec_iter = offered_codecs.begin(); 
+		codec_iter != offered_codecs.end(); codec_iter++)
+	{
+		
+		offered->offered_codecs.push_front(
+			MediaFormat(
+				StringToWString(codec_iter->getName().c_str()),
+				codec_iter->getRate(),
+				codec_iter->payloadType()));
+	}
 
+
+	_ccu_stack._outbound->Send(offered);
 
 	ctx_ptr->call_handler_inbound = call_handler_pair.inbound;
 
-	LogDebug("Call offered - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid=[" << is->getCallId().c_str() << "], resip handle=[" << is.getId() << "]");
+	
 
 }
 
@@ -305,33 +376,19 @@ UASDialogUsageManager::onConnected(InviteSessionHandle is, const SipMessage& msg
 {
 	FUNCTRACKER;
 
-	ResipDialogHandlesMap::iterator iter = _resipHandlesMap.find(is->getAppDialog());
-	if (iter == _resipHandlesMap.end())
+	ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(is->getAppDialog());
+	if (ctx_iter == _resipHandlesMap.end())
 	{
-		LogWarn("Resip dialog handle=[" << is->getAppDialog().getId() << "] not found. Has user disconnected already???");
+		LogCrit("'Connected' without context, handle=[" << is.getId() << "]");
 		is->end();
 		return;
 	}
 
-	SipDialogContextPtr ctx_ptr = (*iter).second;
-
-	const SdpContents::Session &s = is->getRemoteSdp().session();
-	const SdpContents::Session::Medium &medium = s.media().front();
-	const std::list<Codec> &list = medium.codecs();
-
-	if (list.empty())
-	{
-		LogWarn("Cannot determine agreed codec for the call ix stack handle=[" << ctx_ptr->stack_handle <<"]");
-		is->end();
-		return;
-	}
-
-	const Codec &codec = *list.begin();
+	SipDialogContextPtr ctx_ptr = (*ctx_iter).second;
 	
 	CcuMsgNewCallConnected *conn_msg = 
 		new CcuMsgNewCallConnected();
-	conn_msg->codec = IxCodec(StringToWString(codec.getName().c_str()),codec.getRate(),codec.payloadType());
-	
+
 	_ccu_stack.SendResponse(
 		ctx_ptr->last_user_request, 
 		conn_msg);

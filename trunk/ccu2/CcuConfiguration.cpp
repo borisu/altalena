@@ -36,9 +36,9 @@ namespace ivrworx
 	{
 		while (_codecsList.empty() != 0)
 		{
-			const IxCodec *ptr = *_codecsList.end();
+			const MediaFormat *ptr = *_codecsList.end();
 			_codecsList.pop_back();
-			delete const_cast<IxCodec *> (ptr);
+			delete const_cast<MediaFormat *> (ptr);
 		}
 	}
 
@@ -106,17 +106,17 @@ namespace ivrworx
 
 
 	void
-	CcuConfiguration::AddCodec(const IxCodec& codec)
+	CcuConfiguration::AddCodec(const MediaFormat& codec)
 	{
 		mutex::scoped_lock lock(_mutex);
 
-		_codecsList.push_front(new IxCodec(codec));
+		_codecsList.push_front(new MediaFormat(codec));
 
 	}
 
 
 	void
-	CcuConfiguration::AddCodec(const IxCodec* codec)
+	CcuConfiguration::AddCodec(const MediaFormat* codec)
 	{
 		mutex::scoped_lock lock(_mutex);
 
@@ -125,7 +125,7 @@ namespace ivrworx
 	}
 
 
-	const CodecsList& 
+	const CodecsPtrList& 
 	CcuConfiguration::CodecList()
 	{
 		mutex::scoped_lock lock(_mutex);

@@ -57,7 +57,7 @@ public:
 
 	 CnxInfo remote_media_data;
 
-	 IxCodec codec;
+	 MediaFormat codec;
 
 	 IpcAdddress session_handler;
 
@@ -79,6 +79,8 @@ public:
 	  playback_handle(IX_UNDEFINED){};
 
 	  int playback_handle;
+
+	  CnxInfo ims_media_data;
 
 
 	 

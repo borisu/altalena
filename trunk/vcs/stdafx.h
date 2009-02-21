@@ -36,6 +36,9 @@
 #include "Call.h"
 #include "ProcPipeIPCDispatcher.h"
 #include "SipStackFactory.h"
+#include "CcuRTPSession.h"
+#include "ImsSession.h"
+
 
 extern "C"
 {

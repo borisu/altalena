@@ -36,7 +36,7 @@ namespace ivrworx
 
 	LightweightProcess::LightweightProcess(
 		IN LpHandlePair pair,
-		IN const wstring &owner_name ):
+		IN const wstring &owner_name):
 	_pair(pair),
 	_inbound(pair.inbound),
 	_outbound(pair.outbound),
@@ -273,6 +273,7 @@ namespace ivrworx
 	{
 		return _processId;
 	}
+
 
 	void
 	LightweightProcess::Join(BucketPtr bucket)

@@ -38,6 +38,10 @@ namespace ivrworx
 
 		IpcAdddress curr_txn_handler;
 
+		int  port;
+
+		RtpProfile *profile;
+
 	};
 
 	typedef 

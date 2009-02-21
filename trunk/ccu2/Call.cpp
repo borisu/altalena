@@ -23,59 +23,152 @@
 #include "CcuLogger.h"
 
 
-using namespace ivrworx;
+namespace ivrworx
+{
 
-Call::Call(IN LpHandlePair stack_pair, 
-		   IN LightweightProcess &parent_process):
+
+
+Call::Call(IN LpHandlePair stack_pair):
 _stackPair(stack_pair),
 _stackCallHandle(IX_UNDEFINED),
-_parentProcess(parent_process),
 _hangupDetected(FALSE),
 _handlerPair(HANDLE_PAIR)
 {
 	_callState = IX_CALL_NONE;
-	Init();
+	throw;
+
 }
 
 Call::Call(
-	 IN LpHandlePair stack_pair, 
-	 IN int stack_handle,
-	 IN CnxInfo offered_media,
-	 IN LightweightProcess &parent_process):
+	 IN LpHandlePair stack_pair,
+	 IN ScopedForking &forking,
+	 IN shared_ptr<CcuMsgCallOfferedReq> offered_msg):
  _stackPair(stack_pair),
- _stackCallHandle(stack_handle),
- _remoteMedia(offered_media),
- _parentProcess(parent_process),
- _handlerPair(HANDLE_PAIR)
+ _stackCallHandle(offered_msg->stack_call_handle),
+ _remoteMedia(offered_msg->remote_media),
+ _handlerPair(offered_msg->call_handler_inbound)
 {
+	FUNCTRACKER;
+
 	_callState = IX_CALL_OFFERED;
+
+	Start(forking,_handlerPair,__FUNCTIONW__);
 
 	LogDebug("Creating call session - ix stack handle=[" << _stackCallHandle << "].");
 
-	Init();
 }
 
-#pragma TODO ("Crashes on dtor")
 void
-Call::Init()
+Call::EnableMediaFormat(const MediaFormat& media_format)
 {
+	FUNCTRACKER;
 
-// 	_forking.forkInThisThread(
-// 		new ProcVoidFuncRunner<Call>(
-// 		_handlerPair,
-// 		bind<void>(&Call::call_handler_run, _1),
-// 		this,
-// 		L"Call Handler"));
+	LogDebug("Media format " << media_format << "  enabled for call " << _stackCallHandle );
+
+	_supportedMediaFormatsList.insert(
+		MediaFormatMapPair(media_format.sdp_mapping(), media_format));
+}
+
+IxApiErrorCode
+Call::NegotiateMediaFormats(IN const MediaFormatsList &offered_medias, 
+					  OUT MediaFormatsList &accepted_media)
+{
+	FUNCTRACKER;
+
+	IX_PROFILE_FUNCTION();
+
+	if (_supportedMediaFormatsList.empty() || offered_medias.empty())
+	{
+		LogWarn("Illegal parameters (empty?) for codecs negotiation.");
+		return CCU_API_FAILURE;
+	}
+
+	accepted_media.clear();
+
+	bool speech_chosen = false;
+	bool dtmf_chosen = false;
+
+	// firstly negotiate speech codec
+	for (MediaFormatsList::const_iterator iter1 = offered_medias.begin(); 
+		iter1 != offered_medias.end();
+		iter1++)
+	{
+
+
+		const MediaFormat &media_format1 = (*iter1);
+
+		MediaFormatsMap::iterator iter2 = 
+			_supportedMediaFormatsList.find(media_format1.sdp_mapping());
+		if (iter2 == _supportedMediaFormatsList.end())
+		{
+			continue;
+		}
+
+		const MediaFormat &media_format2 = (*iter2).second;
+
+		if (media_format1.get_media_type() == MediaFormat::MediaType_SPEECH && speech_chosen)
+			continue;
+
+		if (media_format1.get_media_type() == MediaFormat::MediaType_DTMF && dtmf_chosen)
+			continue;
+
+		if (media_format2 == media_format1)
+		{
+			accepted_media.push_back(media_format1);
+			switch (media_format1.get_media_type())
+			{
+			case MediaFormat::MediaType_DTMF:
+				{ 
+					dtmf_chosen = true; 
+					break;
+				}
+			case MediaFormat::MediaType_SPEECH:
+				{
+					speech_chosen = true;
+					_acceptedSpeechFormat = media_format2;
+					break;
+				}
+			}
+		}
+
+		if (dtmf_chosen && speech_chosen)
+		{
+			break;
+		}
+	}
+
+
+	if (accepted_media.empty() || speech_chosen == false)
+	{
+		LogWarn("Negotiation failure for call " << _stackCallHandle );
+		return CCU_API_FAILURE;
+	}
+
+	return CCU_API_SUCCESS;
 
 }
 
 Call::~Call(void)
 {
 	HagupCall();
+}
 
-	_parentProcess.Shutdown(Seconds(5), _handlerPair);
+void Call::UponActiveObjectEvent(IxMsgPtr ptr)
+{
+	switch (ptr->message_id)
+	{
+	case CCU_MSG_CALL_HANG_UP_EVT:
+		{
+			_callState = IX_CALL_TERMINATED;
+		}
+	default:
+		{
 
-	_hangupDetected = TRUE;
+		}
+	}
+
+	ActiveObject::UponActiveObjectEvent(ptr);
+
 }
 
 IxApiErrorCode
@@ -103,6 +196,8 @@ IxApiErrorCode
 Call::RejectCall()
 {
 	FUNCTRACKER;
+
+	LogDebug("Rejecting the call - ix stack handle=[" << _stackCallHandle << "].");
 
 	CcuMsgCallOfferedNack *msg = new CcuMsgCallOfferedNack();
 
@@ -141,7 +236,8 @@ Call::HagupCall()
 }
 
 IxApiErrorCode
-Call::AcceptCall(IN CnxInfo local_media)
+Call::AcceptCall(IN const CnxInfo &local_media, 
+				 IN const MediaFormatsList &accepted_codec)
 {
 	
 	FUNCTRACKER;
@@ -154,12 +250,14 @@ Call::AcceptCall(IN CnxInfo local_media)
 	CcuMsgCalOfferedlAck *ack = new CcuMsgCalOfferedlAck();
 	ack->stack_call_handle = _stackCallHandle;
 	ack->local_media = local_media;
+	ack->accepted_codecs = accepted_codec;
 
-	IxApiErrorCode res = _parentProcess.DoRequestResponseTransaction(
+	
+	IxApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
 		_stackPair.inbound,
 		IxMsgPtr(ack),
 		response,
-		MilliSeconds(_parentProcess.TransactionTimeout()),
+		MilliSeconds(GetCurrLightWeightProc()->TransactionTimeout()),
 		L"Accept Call TXN");
 
 	if (CCU_FAILURE(res))
@@ -196,55 +294,6 @@ Call::StackCallHandle() const
 }
 
 
-
-void
-Call::call_handler_run()
-{
-
-	BOOL shutdown_flag = FALSE;
-	while (!shutdown_flag)
-	{
-		IxApiErrorCode res = CCU_API_SUCCESS;
-		IxMsgPtr message = _handlerPair.inbound->Wait(Seconds(10),res);
-
-		if (res == CCU_API_TIMEOUT)
-		{
-			if (_hangupDetected)
-			{
-				return;
-			}
-
-			continue;
-		}
-
-		switch (message->message_id)
-		{
-		case CCU_MSG_CALL_DTMF_EVT:
-			{
-				_dtmfChannel.Send(message);
-				break;
-			}
-		case CCU_MSG_PROC_SHUTDOWN_REQ:
-			{
-				_parentProcess.SendResponse(message,new CcuMsgShutdownAck());
-				shutdown_flag = true;
-				break;
-			}
-		default:
-			{
-				BOOL res = _parentProcess.HandleOOBMessage(message);
-				if (res == FALSE)
-				{
-					LogCrit("OOB message");
-					throw;
-				}
-			} // default
-		}
-	}
-	
-
-}
-
 IxApiErrorCode
 Call::MakeCall(IN wstring destination_uri, 
 			   IN CnxInfo local_media)
@@ -261,7 +310,7 @@ Call::MakeCall(IN wstring destination_uri,
 	msg->call_handler_inbound = _handlerPair.inbound;
 
 
-	IxApiErrorCode res = _parentProcess.DoRequestResponseTransaction(
+	IxApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
 		_stackPair.inbound,
 		IxMsgPtr(msg),
 		response,
@@ -324,3 +373,4 @@ Call::LocalMedia(CnxInfo &val)
 	_localMedia = val; 
 }
 
+}

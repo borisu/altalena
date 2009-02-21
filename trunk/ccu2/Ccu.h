@@ -60,14 +60,24 @@ namespace boost {
 	}
 }
 
-struct IxCodec
+struct MediaFormat
 {
+	enum MediaType
+	{
+		MediaType_UNKNOWN,
+		MediaType_SPEECH,
+		MediaType_DTMF
+	};
 
-	IxCodec();
+	MediaFormat();
 
-	IxCodec(wstring param_name, int param_sampling_rate,int param_sdp_mapping);
+	MediaFormat(
+		IN wstring param_name, 
+		IN int param_sampling_rate,
+		IN int param_sdp_mapping,
+		IN MediaType media_type = MediaType_UNKNOWN);
 
-	IxCodec(const IxCodec &codec);
+	MediaFormat(const MediaFormat &codec);
 
 	int sampling_rate() const;
 
@@ -79,13 +89,25 @@ struct IxCodec
 
 	string sdp_mapping_tos() const;
 
-	string sdp_mapping_tows() const;
+	wstring sdp_mapping_tows() const;
 
 	wstring sdp_name() const;
 
 	string sdp_name_tos() const;
 
 	string get_sdp_a() const;
+
+	MediaType get_media_type() const;
+
+	static const MediaFormat PCMA;
+
+	static const MediaFormat PCMU;
+
+	static const MediaFormat DTMF;
+
+	int operator == (const MediaFormat &other) const;
+
+	static MediaType GetMediaType(wstring name);
 
 private:
 
@@ -116,11 +138,18 @@ private:
 
 	string sdp_a;
 
+	MediaType media_type;
+
 };
-BOOST_CLASS_EXPORT(IxCodec);
+BOOST_CLASS_EXPORT(MediaFormat);
 
 
-typedef list<const IxCodec*> CodecsList;
+typedef list<const MediaFormat*> CodecsPtrList;
+typedef list<const MediaFormat> MediaFormatsList;
+typedef map<int,const MediaFormat> MediaFormatsMap;
+typedef pair<int,const MediaFormat> MediaFormatMapPair;
+
+wostream& operator << (wostream &ostream, const MediaFormat &ptr);
 
 class CnxInfo
 {
@@ -146,7 +175,7 @@ private:
 
 	wstring wsport;
 
-	IxCodec codec;
+	MediaFormat codec;
 
 public:
 
@@ -206,4 +235,6 @@ list<CnxInfo> CcuMediaDataList;
 wostream& operator << (wostream &ostream, const CnxInfo *ptr);
 
 wostream& operator << (wostream &ostream, const CnxInfo &ptr);
+
+
 
