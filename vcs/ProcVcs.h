@@ -19,15 +19,11 @@
 
 #pragma once
 
-#include "LuaVirtualMachine.h"
-#include "LuaScript.h"
-#include "CallWithRTPManagment.h"
 
 using namespace std;
 
 namespace ivrworx
 {
-
 
 	class ProcIxMain :
 		public LightweightProcess
@@ -63,70 +59,6 @@ namespace ivrworx
 		CnxInfo _sipStackData;
 
 		CcuConfiguration &_conf;
-
-	};
-
-	typedef 
-		shared_ptr<CLuaVirtualMachine> CLuaVirtualMachinePtr;
-
-	class ProcScriptRunner
-		: public LightweightProcess
-
-	{
-	public:
-
-		ProcScriptRunner(
-			IN CcuConfiguration &conf,
-			IN IxMsgPtr msg, 
-			IN LpHandlePair stack_pair, 
-			IN LpHandlePair pair);
-
-		~ProcScriptRunner();
-
-		virtual void real_run();
-
-		virtual BOOL HandleOOBMessage(IN IxMsgPtr msg);
-
-	private:
-
-		IxMsgPtr _initialMsg;
-
-		LpHandlePair _stackPair;
-
-		CcuConfiguration &_conf;
-
-		int _stackHandle;
-
-	};
-
-	class IxScript : 
-		public CLuaScript
-	{
-	public:
-
-		IxScript(IN CLuaVirtualMachine &_vmPtr, IN CallWithRtpRelay &_callSession);
-
-		~IxScript();
-
-	private:
-
-		// When the script calls a class method, this is called
-		virtual int ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber) ;
-
-		// When the script function has returns
-		virtual void HandleReturns (CLuaVirtualMachine& vm, const char *strFunc);
-
-		int LuaAnswerCall(CLuaVirtualMachine& vm);
-
-		int LuaHangupCall(CLuaVirtualMachine& vm);
-
-		int LuaWait(CLuaVirtualMachine& vm);
-
-		CallWithRtpRelay &_callSession;
-
-		int _methodBase;
-
-		CLuaVirtualMachine &_vmPtr;
 
 	};
 

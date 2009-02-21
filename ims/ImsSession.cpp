@@ -115,10 +115,12 @@ ImsSession::PlayFile(IN const wstring &file_name,
 
 IxApiErrorCode
 ImsSession::AllocateIMSConnection(IN CnxInfo remote_end, 
-								  IN IxCodec codec)
+								  IN MediaFormat codec)
 {
 	FUNCTRACKER;
 
+	LogDebug("Allocating IMS session remote end = " <<  remote_end.ipporttows()  << ", codec = "  << codec);
+	
 	if (_imsSessionHandle != IX_UNDEFINED)
 	{
 		return CCU_API_SUCCESS;
@@ -139,6 +141,7 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 
 	if (res != CCU_API_SUCCESS)
 	{
+		LogWarn("Error allocating Ims connection " << res);
 		return res;
 	}
 
@@ -151,12 +154,16 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 			shared_ptr<CcuMsgAllocateImsSessionAck> ack = 
 				shared_polymorphic_cast<CcuMsgAllocateImsSessionAck>(response);
 			_imsSessionHandle = ack->playback_handle;
+			_imsMediaData = ack->ims_media_data;
+
+			LogDebug("IMS session allocated successfully, ims handle=[" << _imsSessionHandle << "]");
 
 			break;
 
 		}
 	case CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK:
 		{
+			LogDebug("Error allocating IMS session.");
 			res = CCU_API_SERVER_FAILURE;
 			break;
 		}

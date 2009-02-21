@@ -47,11 +47,11 @@ namespace ivrworx
 
 		virtual wstring ScriptFile();
 
-		virtual void AddCodec(const IxCodec& codec);
+		virtual void AddCodec(const MediaFormat& codec);
 
-		virtual void AddCodec(const IxCodec* codec);
+		virtual void AddCodec(const MediaFormat* codec);
 
-		virtual const CodecsList& CodecList();
+		virtual const CodecsPtrList& CodecList();
 
 		virtual wstring From();
 
@@ -75,7 +75,7 @@ namespace ivrworx
 
 		wstring _scriptFile;
 
-		CodecsList _codecsList;
+		CodecsPtrList _codecsList;
 
 		wstring _from;
 

@@ -55,15 +55,11 @@ public:
 
 	virtual ~LightweightProcess(void);
 
-	BucketPtr _bucket;
-
 	static void Join(BucketPtr bucket);
-
 
 	virtual void run();
 
 	virtual void real_run() = 0;
-
 
 	virtual wstring Name();
 
@@ -144,6 +140,8 @@ public:
 	LpHandlePtr _inbound;
 
 	LpHandlePtr _outbound;
+
+	BucketPtr _bucket;
 
 protected:
 

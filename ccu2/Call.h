@@ -20,6 +20,7 @@
 #pragma once
 
 #include "LightweightProcess.h"
+#include "ActiveObject.h"
 
 #pragma region Sip_Stack_Events
 
@@ -147,7 +148,9 @@ public:
 
 	CnxInfo local_media;
 
-	IxCodec codec;
+	MediaFormatsList offered_codecs;
+
+	MediaFormatsList accepted_codecs;
 
 	CnxInfo remote_media;
 
@@ -158,6 +161,8 @@ public:
 		stack_call_handle	= req->stack_call_handle;
 		local_media			= local_media.is_ip_valid()  ? req->local_media : local_media;
 		remote_media		= remote_media.is_ip_valid() ? req->remote_media : remote_media;
+		offered_codecs      = req->offered_codecs;
+		accepted_codecs		= req->accepted_codecs;
 
 	};
 
@@ -176,9 +181,9 @@ public:
 	CcuMsgCallOfferedReq():CcuMsgRequest(CCU_MSG_CALL_OFFERED, 
 		NAME(CCU_MSG_CALL_OFFERED)){}
 
-#pragma TODO ("Support IPC")
-
 	LpHandlePair call_handler_inbound;
+
+	MediaFormatsList offered_codecs;
 
 };
 BOOST_CLASS_EXPORT(CcuMsgCallOfferedReq);
@@ -291,7 +296,7 @@ BOOST_CLASS_EXPORT(CcuMsgCallDtmfEvt);
 namespace ivrworx
 {
 
-	enum IxCallStates
+	enum CallState
 	{
 		IX_CALL_NONE,
 		IX_CALL_OFFERED,
@@ -300,23 +305,28 @@ namespace ivrworx
 	};
 
 	
-	class Call 
+	class Call : 
+		public ActiveObject
 	{
 	public:
 
-		Call(IN LpHandlePair _stackPair, 
-			IN LightweightProcess &facade);
+		Call(IN LpHandlePair _stackPair);
 
-		Call(
-			IN LpHandlePair _stackPair, 
-			IN int call_handle,
-			IN CnxInfo offered_media,
-			IN LightweightProcess &facade);
+		Call(IN LpHandlePair _stackPair,
+			IN ScopedForking &forking,
+			IN shared_ptr<CcuMsgCallOfferedReq> offered_msg);
 
 		virtual ~Call(void);
 
+		void EnableMediaFormat(IN const MediaFormat& codec);
+
+		IxApiErrorCode NegotiateMediaFormats(
+			IN const MediaFormatsList &offered_medias, 
+			OUT MediaFormatsList &accepted_media);
+
 		IxApiErrorCode AcceptCall(
-			IN CnxInfo local_data);
+			IN const CnxInfo &local_media, 
+			IN const MediaFormatsList &accepted_codec);
 
 		IxApiErrorCode RejectCall();
 
@@ -338,11 +348,11 @@ namespace ivrworx
 
 		int StackCallHandle() const;
 
+		void UponActiveObjectEvent(IxMsgPtr ptr);
+
 	protected:
 
-		void Init();
-
-		void call_handler_run();
+		LpHandlePair _handlerPair;
 
 		LpHandlePair _stackPair;
 
@@ -352,17 +362,15 @@ namespace ivrworx
 
 		CnxInfo _localMedia;
 
-		LightweightProcess &_parentProcess;
-
-		ScopedForking _forking;
-
-		LpHandlePair _handlerPair;
-
 		BOOL _hangupDetected;
 
 		LpHandle _dtmfChannel;
 
-		IxCallStates _callState;
+		CallState _callState;
+
+		MediaFormatsMap _supportedMediaFormatsList;
+
+		MediaFormat _acceptedSpeechFormat;
 
 	};
 

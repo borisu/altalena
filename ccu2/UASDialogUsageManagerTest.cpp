@@ -40,8 +40,8 @@ UASDialogUsageManagerTest::test()
 
 	CcuConfiguration conf;
 
-	conf.AddCodec(new IxCodec(L"PCMU",8000,0));
-	conf.AddCodec(new IxCodec(L"PCMA",8000,8));
+	conf.AddCodec(new MediaFormat(L"PCMU",8000,0));
+	conf.AddCodec(new MediaFormat(L"PCMA",8000,8));
 	
 
 	MockResipStack mock_stack;
@@ -54,7 +54,7 @@ UASDialogUsageManagerTest::test()
 
 	CnxInfo info("1.2.3.4",6555);
 
-	string sdp = mngr.CreateSdp(info);
+	string sdp = mngr.CreateSdp(info, MediaFormat::PCMA);
 
 	// version depends on time so look only 
 	// for substring

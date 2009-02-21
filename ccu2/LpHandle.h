@@ -180,9 +180,16 @@ namespace ivrworx
 
 		virtual void Poison();
 
+
 	private:
 
+		void inline CheckReader();
+
 		IxMsgPtr Read();
+
+		DWORD _threadId;
+
+		PVOID _fiberId;
 
 		IxHandleDirection _direction;
 

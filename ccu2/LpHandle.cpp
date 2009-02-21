@@ -167,7 +167,9 @@ namespace ivrworx
 	LpHandle::LpHandle():
 	_bufferFactory(CCU_MAX_MESSAGES_IN_QUEUE),
 	_channel(_bufferFactory),
-	_direction(CCU_MSG_DIRECTION_UNDEFINED)
+	_direction(CCU_MSG_DIRECTION_UNDEFINED),
+	_threadId(IX_UNDEFINED),
+	_fiberId(NULL)
 	{
 
 	}
@@ -175,6 +177,8 @@ namespace ivrworx
 	bool 
 	LpHandle::InboundPending()
 	{
+		CheckReader();
+
 		return _channel.reader().pending();
 	}
 
@@ -228,10 +232,31 @@ namespace ivrworx
 		return CCU_API_SUCCESS;
 	}
 
+	void
+	LpHandle::CheckReader()
+	{
+		// We have to ensure that only one process can read from
+		// the handle. This is part of csp interface contract design.
+		if (_threadId == IX_UNDEFINED)
+		{
+			_threadId = ::GetCurrentThreadId();
+			_fiberId  = ::GetCurrentFiber();
+		}
+
+		if (_threadId != ::GetCurrentThreadId() || _fiberId != ::GetCurrentFiber())
+		{
+			LogCrit("Detected reading handle from different lightweight processes.");
+			throw;
+		}
+
+	}
+
 	IxMsgPtr
 	LpHandle::Read()
 	{
 		FUNCTRACKER;
+
+		CheckReader();
 
 		IxMsgPtr ptr;
 		try 
@@ -243,6 +268,7 @@ namespace ivrworx
 			}
 
 			IX_PROFILE_ADD_DATA(WStringToString(ptr->message_id_str), ptr->enter_queue_timestamp);
+			IX_PROFILE_ADD_DATA(L"MSG PUMP AVG", ptr->enter_queue_timestamp);
 		} 
 		catch(PoisonException p)
 		{
@@ -261,6 +287,9 @@ namespace ivrworx
 	{
 
 		FUNCTRACKER;
+
+		CheckReader();
+
 		LogTrace(L"Waiting on " << this << L" " << csp::GetMilliSeconds(timeout) << " ms.");
 
 		// if user passed 0 as timeout and there are messages 
@@ -275,10 +304,11 @@ namespace ivrworx
 		} 
 		else 
 		{
-			list<Guard*> list;
-			list.push_back(_channel.reader().inputGuard());
-			list.push_back (new RelTimeoutGuard(timeout));
-			Alternative alt(list);
+			
+			Guard * guards[2];
+			guards[0] = _channel.reader().inputGuard();
+			guards[1] = new RelTimeoutGuard(timeout);
+			Alternative alt(guards,2);
 			
 			switch (alt.priSelect())
 			{
@@ -343,6 +373,7 @@ read:
 			<< lpHandlePtr->GetObjectUid();
 	}
 
+#define MAX_NUM_OF_CHANNELS_IN_SELECT 10
 
 	IxApiErrorCode 
 		SelectFromChannels(
@@ -353,72 +384,62 @@ read:
 	{
 		FUNCTRACKER;
 
-		if (param_handles_list.size() == 0)
+		size_t count = param_handles_list.size();
+
+		if (count == 0 || 
+			count > MAX_NUM_OF_CHANNELS_IN_SELECT)
 		{
 			return CCU_API_FAILURE;
 		}
 
+		
+		// +1 for timeout
+		Guard* guards[MAX_NUM_OF_CHANNELS_IN_SELECT+1];
+		LpHandlePtr handles[MAX_NUM_OF_CHANNELS_IN_SELECT];
+		
 
 		// First loop is to check that may be there are already 
 		// messages	so we won't do heavy operations.
 		//
 		int index = 0;
-		for (HandlesList::iterator iter = param_handles_list.begin(); iter!= param_handles_list.end(); iter++)
+		for (HandlesList::iterator iter = param_handles_list.begin(); 
+			iter!= param_handles_list.end(); iter++)
 		{
 			LpHandlePtr ptr = (*iter);
-			bool pending	= ptr->InboundPending();
-
-			LogTrace(L"(" << (*iter).get() << L"), pending:" << pending);
-
-			if (pending)
+			if (ptr->InboundPending())
 			{
 				res_index = index;
 				res_event = ptr->Read();
 				return CCU_API_SUCCESS;
 			}
 
+			handles[index] = ptr;
+
 			index++;
 		}
 
-		// ok let's do it hard way
-		list<Guard*> list;
-
-		// index Zero is timeout
-		index = 0;
-		list.push_back (new RelTimeoutGuard(timeout));
-		LogTrace("(RelTimeoutGuard) added at index=[" << index <<"]");
-		for (HandlesList::iterator iter = param_handles_list.begin(); 
-			iter!= param_handles_list.end(); 
-			iter++)
+		for (size_t i = 0; i < count; i++)
 		{
-			index++;
-
-			LpHandlePtr curr_handle = (*iter);
-			list.push_back(curr_handle->_channel.reader().inputGuard());
-			LogTrace("(" << curr_handle.get() << ") added at index=[" << index <<"]");
+			guards[i] = handles[i]->_channel.reader().inputGuard();
 		}
+		guards[count] = new RelTimeoutGuard(timeout);
 
-		Alternative alt(list);
+		Alternative alt(guards,count+1);
 		int wait_res = alt.priSelect();
-		LogTrace("handle index=[" << wait_res << "] selected.");
+		
 
 		// timeout
-		if (wait_res == 0)
+		if (wait_res == count)
 		{
-			LogTrace("select timeout.");
+			LogDebug("Select timeout.");
 			res_index = IX_UNDEFINED;
 			return CCU_API_TIMEOUT;
 		} 
-		else
-		{
-			res_index = wait_res - 1;
-
-			HandlesList::iterator iter = param_handles_list.begin();
-			std::advance(iter, res_index);
-			res_event = (*iter)->Read();
-
-			return CCU_API_SUCCESS;
-		}
+		
+		res_index = wait_res;
+		res_event = handles[wait_res]->Read();
+		return CCU_API_SUCCESS;
+		
 	}
 
 #pragma region LpHandlePair

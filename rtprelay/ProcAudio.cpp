@@ -349,7 +349,7 @@ ProcAudio::AllocateAudioConnection(IxMsgPtr ptr)
 	//
 	// find new port slot
 	// 
-	int curr_port_slot_candidate = _portManager.GetNextPort();
+	int curr_port_slot_candidate = _portManager.GetNextPortFromPool();
 
 	shared_ptr<CcuMsgRtpAllocateNewConnectionReq> ac_msg =
 		shared_dynamic_cast<CcuMsgRtpAllocateNewConnectionReq>(ptr);

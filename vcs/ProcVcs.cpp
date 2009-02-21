@@ -19,10 +19,14 @@
 
 #include "StdAfx.h"
 #include "ProcVcs.h"
-#include "CallWithRTPManagment.h"
+#include "CallWithDirectRtp.h"
+#include "ProcScriptRunner.h"
 
 
-using namespace ivrworx;
+namespace ivrworx
+{
+
+
 
 ProcIxMain::ProcIxMain(IN LpHandlePair pair, IN CcuConfiguration &conf)
 :LightweightProcess(pair,VCS_Q,	__FUNCTIONW__),
@@ -102,7 +106,7 @@ ProcIxMain::real_run()
 
 		if (err_code == CCU_API_TIMEOUT)
 		{
-			LogInfo(">>VCS Keep Alive<<");
+			LogInfo("IxMain keep alive.");
 			continue;
 		}
 
@@ -170,12 +174,14 @@ ProcIxMain::ProcessStackMessage(IN IxMsgPtr ptr, IN ScopedForking &forking)
 			shared_ptr<CcuMsgCallOfferedReq> call_offered = 
 				shared_polymorphic_cast<CcuMsgCallOfferedReq> (ptr);
 
+			DECLARE_NAMED_HANDLE_PAIR(script_runner_handle);
+
 			FORK_IN_THIS_THREAD(
 				new ProcScriptRunner(
-				_conf, // configuration
-				ptr,   // original message
-				_stackPair, // handle to stack
-				call_offered->call_handler_inbound) // handle created by stack for events
+					_conf,                // configuration
+					call_offered,		  // original message
+					_stackPair,			  // handle to stack
+					script_runner_handle) // handle created by stack for events
 				);
 
 			break;
@@ -196,192 +202,7 @@ ProcIxMain::ProcessStackMessage(IN IxMsgPtr ptr, IN ScopedForking &forking)
 
 }
 
-ProcScriptRunner::ProcScriptRunner(IN CcuConfiguration &conf,
-								   IN IxMsgPtr msg, 
-								   IN LpHandlePair stack_pair, 
-								   IN LpHandlePair pair)
-:LightweightProcess(pair,__FUNCTIONW__),
-_conf(conf),
-_initialMsg(msg),
-_stackPair(stack_pair)
-{
-	FUNCTRACKER;
 }
 
-ProcScriptRunner::~ProcScriptRunner()
-{
-
-}
-
-
-void 
-ProcScriptRunner::real_run()
-{
-#pragma TODO ("Initializing vm and compiling script file is a terrible bottleneck")
-	try
-	{
-		shared_ptr<CcuMsgCallOfferedReq> start_script_msg  = 
-			dynamic_pointer_cast<CcuMsgCallOfferedReq>(_initialMsg);
-
-		_stackHandle = start_script_msg->stack_call_handle;
-
-		CallWithRtpRelay call_session(
-			_stackPair,
-			start_script_msg->stack_call_handle,
-			start_script_msg->remote_media,
-			*this);
-
-		CLuaVirtualMachine vm;
-		IX_PROFILE_CODE(vm.InitialiseVM());
-
-		IxScript script(vm,call_session);
-
-		bool res = false;
-		IX_PROFILE_CODE(script.CompileFile(WStringToString(_conf.ScriptFile()).c_str()));
-		if (res == false)
-		{
-			LogWarn("Error Compiling/Running script=[" << _conf.ScriptFile() << "]");
-			return;
-		}
-
-		LogDebug("Script=[" << _conf.ScriptFile() << "], ix call handle=[" << start_script_msg->stack_call_handle <<"] completed successfully.");
-	}
-	catch (std::exception e)
-	{
-		LogWarn("Exception while running script=[ " << _conf.ScriptFile() <<"] e=[" << e.what() << "].");
-	}
-
-}
-
-BOOL 
-ProcScriptRunner::HandleOOBMessage(IN IxMsgPtr msg)
-{
-	if (TRUE == LightweightProcess::HandleOOBMessage(msg))
-	{
-		return TRUE;
-	}
-	switch (msg->message_id)
-	{
-	case CCU_MSG_CALL_HANG_UP_EVT:
-		{
-			
-			LogDebug("Call running script=[" << _conf.ScriptFile() << "], ix call handle=[" << _stackHandle <<"] received hangup event.");
-			break;
-
-		}
-	default:
-		{
-			return FALSE;
-		}
-
-	}
-
-}
-
-
-
-IxScript::IxScript(IN CLuaVirtualMachine &vm_ptr, 
-				   IN CallWithRtpRelay &call_session)
-:CLuaScript(vm_ptr),
-_callSession(call_session),
-_vmPtr(vm_ptr)
-{
-	
-	// !!! The order should be preserved for later switch statement !!!
-	_methodBase = RegisterFunction("answer");
-	 RegisterFunction("hangup");
-	 RegisterFunction("wait");
-
-}
-
-
-IxScript::~IxScript()
-{
-
-}
-
-int 
-IxScript::ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber) 
-{
-	switch (iFunctionNumber - _methodBase)
-	{
-	case 0:
-		{
-			return LuaAnswerCall(vm);
-		}
-	case 1:
-		{
-			return LuaHangupCall(vm);
-		}
-	case 2:
-		{
-			return LuaWait(vm);
-		}
-		
-	}
-
-	return 0;
-
-}
-
-
-void 
-IxScript::HandleReturns (CLuaVirtualMachine& vm, const char *strFunc)
-{
-
-}
-
-int
-IxScript::LuaAnswerCall(CLuaVirtualMachine& vm)
-{
-	FUNCTRACKER;
-	IX_PROFILE_FUNCTION();
-
-	IxApiErrorCode res = _callSession.AcceptCall();
-
-	if (CCU_SUCCESS(res))
-	{
-		return 0;
-	} else 
-	{
-		return -1;
-	}
-
-}
-
-int
-IxScript::LuaHangupCall(CLuaVirtualMachine& vm)
-{
-	FUNCTRACKER;
-	IX_PROFILE_FUNCTION();
-
-	IxApiErrorCode res = _callSession.HagupCall();
-
-	if (CCU_SUCCESS(res))
-	{
-		return 0;
-	} else 
-	{
-		return -1;
-	}
-
-}
-
-int
-IxScript::LuaWait(CLuaVirtualMachine& vm)
-{
-	FUNCTRACKER;
-	IX_PROFILE_FUNCTION();
-
-	lua_State *state = (lua_State *) vm;
-	long time_to_sleep  = (long) lua_tonumber (state, -1);
-
-	LogDebug("Sleep for " << time_to_sleep << " ms. ix stack handle=[" << _callSession.StackCallHandle() << "].");
-
-	csp::SleepFor(MilliSeconds(time_to_sleep));
-	return 0;
-
-
-}
 
 

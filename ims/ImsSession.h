@@ -36,7 +36,7 @@ namespace ivrworx
 
 		IxApiErrorCode	AllocateIMSConnection(
 			IN CnxInfo remote_end, 
-			IN IxCodec codec);
+			IN MediaFormat codec);
 
 		virtual IxApiErrorCode PlayFile(
 			IN const wstring &file_name,
