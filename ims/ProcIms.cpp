@@ -24,16 +24,60 @@
 namespace ivrworx 
 {
 
-#define CCU_DEFAULT_IMS_TOP_PORT	6000
-#define CCU_DEFAULT_IMS_BOTTOM_PORT 5000
+#define CCU_DEFAULT_IMS_TOP_PORT	60000
+#define CCU_DEFAULT_IMS_BOTTOM_PORT 50000
 
 #define	CCU_DEFAULT_IMS_TIMEOUT		60000 // 1 min
+
+	HANDLE g_iocpHandle = NULL;
 
 	static int GetNewImsHandle()
 	{
 		static volatile int handle_counter = 7000000;
 		return handle_counter++;
 	}
+
+	struct RtpWorkerParams
+	{
+		RtpWorkerParams():
+		shutdown_event(NULL),
+		q(NULL){}
+
+		HANDLE shutdown_event;
+
+		OrtpEvQueue *q;
+	};
+
+	DWORD WINAPI RtpWorker(LPVOID iValue)
+	{
+		FUNCTRACKER;
+
+		RtpWorkerParams *params = (RtpWorkerParams*) iValue;
+
+		// currently it is dummy thread which only destroys received packets
+		OrtpEvent *ev = NULL;
+		DWORD res = WAIT_TIMEOUT;
+		do
+		{
+			while ((ev = ortp_ev_queue_get(params->q))!=NULL)
+			{
+				ortp_event_destroy(ev);
+				res = ::WaitForSingleObject(params->shutdown_event,0);
+				if (res != WAIT_TIMEOUT)
+				{
+					break;
+				}
+			}
+
+			res = ::WaitForSingleObject(params->shutdown_event,5);
+
+		} while (res == WAIT_TIMEOUT);
+
+		delete params;
+
+		return 0;
+	}
+
 
 	StreamingCtx::StreamingCtx()
 		:stream(NULL),
@@ -61,52 +105,48 @@ namespace ivrworx
 		if (profile) rtp_profile_destroy(profile);
 	}
 
+#define IX_EOF_EVENT  1
+#define IX_DTMF_EVENT 2
+
 
 	static void 
 	on_dtmf_received(RtpSession *s, int dtmf, void * user_data)
 	{
-		std::cout << "DTMF --> " << dtmf;
+
+		#pragma warning (suppress :4311)
+		ImsHandleId handle = (ImsHandleId) user_data;
+
+		BOOL res = ::PostQueuedCompletionStatus(
+			g_iocpHandle,				//A handle to an I/O completion port to which the I/O completion packet is to be posted.
+			dtmf,						//The value to be returned through the lpNumberOfBytesTransferred parameter of the GetQueuedCompletionStatus function.
+			IX_DTMF_EVENT,				//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
+			handle						//The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
+			);
+
+		if (res == FALSE)
+		{
+			LogSysError("::PostQueuedCompletionStatus");
+			throw
+		}
 	}
 
-	boost::mutex g_args_mutex;
-	
-	struct EventArgs 
-		: OVERLAPPED
-	{
-		EventArgs():
-		iocp_handle(NULL),ims_handle(IX_UNDEFINED){}
-
-		HANDLE iocp_handle;
-
-		ImsHandleId ims_handle;
-
-	};
 
 	static void 
 	on_file_filter_event(void *userdata , unsigned int id, void *arg)
 	{
 
-		boost::mutex::scoped_lock lk(g_args_mutex); 
-
-		if (userdata == NULL)
-		{
-			return;
-		}
-
-		EventArgs * args = (EventArgs*)userdata;
+		ImsHandleId handle = (ImsHandleId) arg;
 
 		switch (id)
 		{
 		case MS_FILE_PLAYER_EOF:
 			{
-				ULONG dwNumberOfBytesTransferred = 0;
-
-
+			
 				BOOL res = ::PostQueuedCompletionStatus(
-					args->iocp_handle,			//A handle to an I/O completion port to which the I/O completion packet is to be posted.
-					dwNumberOfBytesTransferred,	//The value to be returned through the lpNumberOfBytesTransferred parameter of the GetQueuedCompletionStatus function.
-					MS_FILE_PLAYER_EOF,			//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
-					args						//The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
+					g_iocpHandle,			//A handle to an I/O completion port to which the I/O completion packet is to be posted.
+					0,						//The value to be returned through the lpNumberOfBytesTransferred parameter of the GetQueuedCompletionStatus function.
+					MS_FILE_PLAYER_EOF,		//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
+					handle					//The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
 					);
 
 				if (res == FALSE)
@@ -130,7 +170,9 @@ namespace ivrworx
 		:LightweightProcess(pair, IMS_Q, __FUNCTIONW__),
 		_conf(conf),
 		_localMedia(conf.ImsCnxInfo()),
-		_portManager(CCU_DEFAULT_IMS_TOP_PORT,CCU_DEFAULT_IMS_BOTTOM_PORT)
+		_rtp_q(NULL),
+		_portManager(CCU_DEFAULT_IMS_TOP_PORT,CCU_DEFAULT_IMS_BOTTOM_PORT),
+		_rtpWorkerShutdownEvt(NULL)
 	{
 		FUNCTRACKER;
 
@@ -140,6 +182,8 @@ namespace ivrworx
 
 		_payloadTypeMap[L"PCMA"] = &payload_type_pcma8000;
 		_payloadTypeMap[L"PCMU"] = &payload_type_pcmu8000;
+		_payloadTypeMap[L"telephone-event"]  = &payload_type_telephone_event;
+
 	}
 
 	ProcIms::~ProcIms(void)
@@ -148,24 +192,35 @@ namespace ivrworx
 
 		ms_ticker_destroy(_ticker);
 		ms_exit();
-		rtp_profile_destroy(av_profile);
+		rtp_profile_destroy(_avProfile);
+		ortp_ev_queue_destroy(_rtp_q);
 		ortp_exit();
+		::CloseHandle(_rtpWorkerShutdownEvt);
 	}
-
 
 
 	void
 	ProcIms::InitCodecs()
 	{
-		for (CodecsPtrList::const_iterator iter = _conf.CodecList().begin();
-			iter != _conf.CodecList().end();iter++)
+		for (CodecsPtrList::const_iterator conf_iter = _conf.CodecList().begin(); conf_iter != _conf.CodecList().end(); conf_iter++)
 		{
+			
+			const MediaFormat *media_format = *(conf_iter);
 
-			const MediaFormat *codec = *(iter);
+			PayloadTypeMap::iterator ms_map_iter = _payloadTypeMap.find(media_format->sdp_name());
+			if (ms_map_iter == _payloadTypeMap.end())
+			{
+				LogWarn("Ims encountered configured media format that is not supported " << *media_format);
+				continue;
+			}
+
 			rtp_profile_set_payload(
-				av_profile,
-				codec->sdp_mapping(),
-				_payloadTypeMap[codec->sdp_name()]);
+				_avProfile,
+				media_format->sdp_mapping(),
+				(*ms_map_iter).second
+				);
+
+			LogDebug("Ims added media format " << *media_format);
 		}
 
 	}
@@ -197,12 +252,49 @@ namespace ivrworx
 		}
 
 
-		av_profile=rtp_profile_new("ivrworx profile");
+		_avProfile=rtp_profile_new("ivrworx profile");
 
 		// 
 		// set master RTP profile
 		//
 		InitCodecs();
+
+		_rtp_q=ortp_ev_queue_new();	
+
+		//
+		// start rtp packets consuming thread
+		//
+		_rtpWorkerShutdownEvt = ::CreateEvent( 
+			NULL,               // default security attributes
+			TRUE,               // manual-reset event
+			FALSE,              // initial state is nonsignaled
+			NULL				// object name
+			);
+
+		if (_rtpWorkerShutdownEvt == NULL)
+		{
+			LogSysError("::CreateEvent");
+			throw;
+		}
+
+		RtpWorkerParams *params = new RtpWorkerParams();
+		params->q = _rtp_q;
+		params->shutdown_event = _rtpWorkerShutdownEvt;
+
+		DWORD dwThreadId = 0;
+		_rtpWorkerHandle = ::CreateThread( 
+			NULL,                   // default security attributes
+			0,                      // use default stack size  
+			RtpWorker,				 // thread function name
+			params,			        // argument to thread function 
+			0,                      // use default creation flags 
+			&dwThreadId);   // returns the thread identifier 
+
+		if (_rtpWorkerHandle == NULL)
+		{
+			LogSysError("::CreateThread");
+			throw;
+		}
 
 
 		START_FORKING_REGION;
@@ -254,9 +346,14 @@ namespace ivrworx
 			// oRTP event?
 			switch (completion_key)
 			{
-			case MS_FILE_PLAYER_EOF:
+			case IX_EOF_EVENT:
 				{
 					UponPlaybackStopped(lpOverlapped);
+					continue;
+				}
+			case IX_DTMF_EVENT:
+				{
+					UponDtmfEvent(lpOverlapped);
 					continue;
 				}
 			default:
@@ -309,7 +406,13 @@ namespace ivrworx
 			}// switch
 		}// while
 
-		FreeResources();
+		TearDownAllSessions();
+
+		ms_ticker_destroy(_ticker);
+
+		::SetEvent(_rtpWorkerShutdownEvt);
+		::Sleep(100);
+
 
 		END_FORKING_REGION
 		WSACleanup();
@@ -362,6 +465,8 @@ namespace ivrworx
 			goto error;
 		}
 
+		LogDebug("Allocated local ims address " << _localMedia.iptoa() << ":" << local_port);
+
 		/********************
 		*
 		*		Session 
@@ -369,7 +474,7 @@ namespace ivrworx
 		*********************/
 		// create local rtp profile and associate it with session
 		RtpSession *rtps=ctx->stream->session;
-		RtpProfile *profile=rtp_profile_clone_full(av_profile);
+		RtpProfile *profile=rtp_profile_clone_full(_avProfile);
 		rtp_session_set_profile(rtps,profile);
 		ctx->profile = profile;
 
@@ -393,6 +498,9 @@ namespace ivrworx
 
 		// update session jitter compensation
 		rtp_session_set_jitter_compensation(rtps,0/*jitt_comp*/);
+
+		// attach queue to a session
+		rtp_session_register_event_queue(rtps,_rtp_q);
 
 		/********************
 		*
@@ -418,7 +526,7 @@ namespace ivrworx
 		*		Decoder 
 		*
 		*********************/
-		PayloadType *pt = rtp_profile_get_payload(av_profile,req->codec.sdp_mapping());
+		PayloadType *pt = rtp_profile_get_payload(_avProfile,req->codec.sdp_mapping());
 		if (pt==NULL)
 		{
 			LogWarn("error:rtp_profile_get_payload " << req->codec.sdp_mapping_tows());
@@ -431,13 +539,6 @@ namespace ivrworx
 			LogWarn("error:ms_filter_create_decoder " << pt->mime_type);
 			goto error;
 		}
-
-// 		res = ms_filter_call_method(ctx->stream->decoder,MS_FILTER_SET_SAMPLE_RATE,&pt->clock_rate);
-// 		if (res < 0) 
-// 		{
-// 			LogWarn("error:ms_filter_call_method decoder MS_FILTER_SET_SAMPLE_RATE" << pt->clock_rate);
-// 			goto error;
-// 		}
 
 		if (pt->send_fmtp!=NULL) 
 		{
@@ -525,17 +626,22 @@ namespace ivrworx
 
 		ctx->stream->soundread->notify = &on_file_filter_event;
 
+		/********************
+		*
+		*		Sound Writer  
+		*
+		*********************/
+
+		ctx->stream->soundwrite=ms_filter_new(MS_FILE_REC_ID);
+		if (ctx->stream->soundwrite == NULL) 
+		{
+			LogWarn("error:ms_filter_new(MS_FILE_REC_ID)");
+			goto error;
+		}
+
+		g_iocpHandle= _iocpPtr->Handle();
 		
-
-		// prepare arguments for the EOF callback
-		EventArgs *args = new EventArgs();
-		SecureZeroMemory(args, sizeof(EventArgs));
-		args->iocp_handle = _iocpPtr->Handle();
-		args->ims_handle = handle;
-
-		ctx->stream->soundread->notify_ud = args;
-
-		
+		ctx->stream->soundread->notify_ud = (void*)handle;
 
 		/*********************************************************************
 		*
@@ -559,12 +665,12 @@ namespace ivrworx
 			goto error;
 		}
 
-// 		res = ms_filter_link(ctx->stream->dtmfgen,0,ctx->stream->soundwrite,0);
-// 		if (res < 0) 
-// 		{
-// 			LogWarn("error:ms_filter_link dtmfgen->soundwrite");
-// 			goto error;
-// 		}
+		res = ms_filter_link(ctx->stream->dtmfgen,0,ctx->stream->soundwrite,0);
+		if (res < 0) 
+		{
+			LogWarn("error:ms_filter_link dtmfgen->soundwrite");
+			goto error;
+		}
 
 		res = ms_filter_link(ctx->stream->rtprecv,0,ctx->stream->decoder,0);
 		if (res < 0) 
@@ -641,19 +747,37 @@ error:
 			return;
 		}
 		
-
+		// final touch
 		res = ms_ticker_attach(ctx->stream->ticker,ctx->stream->soundread);
 		if (res < 0)
 		{
-			LogWarn("Cannot start palying (ms_ticker_attach), ims handle=" << req->playback_handle);
+			LogWarn("Cannot start palying (ms_ticker_attach/sounread), ims handle=" << req->playback_handle);
 			SendResponse(msg, new CcuMsgStartPlayReqNack());
 			return;
 		}
+
+		res = ms_ticker_attach(ctx->stream->ticker,ctx->stream->rtprecv);
+		if (res < 0)
+		{
+			LogWarn("Cannot start palying (ms_ticker_attach/rtprecv), ims handle=" << req->playback_handle);
+			SendResponse(msg, new CcuMsgStartPlayReqNack());
+			return;
+		}
+
+		
 
 		if (req->send_provisional)
 		{
 			SendResponse(msg, new CcuMsgStartPlayReqAck());
 		}
+	}
+
+
+	void
+	ProcIms::UponDtmfEvent(OVERLAPPED* args)
+	{
+
+
 	}
 
 	void 
@@ -686,20 +810,26 @@ error:
 			ctx->stream->soundread->notify_ud = NULL;
 		}
 
-		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_STOP);
-		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_CLOSE);
-
+		
 		if (stream->ticker)
 		{
 			int res = ms_ticker_detach(stream->ticker,stream->soundread);
 			if (res < 0)
 			{
-				LogWarn("ms2 error - ms_ticker_detach, res=" << res );
-			}
+				LogWarn("error:ms_ticker_detach/soundread, res=" << res );
+			};
+
+			res = ms_ticker_detach(ctx->stream->ticker,ctx->stream->rtprecv);
+			if (res < 0)
+			{
+				LogWarn("error:ms_ticker_detach/rtprecv, res=" << res );
+			};
 
 		}
 		
-		
+		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_STOP);
+		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_CLOSE);
+
 	
 		stopped_msg->dest = ctx->curr_txn_handler;
 		this->SendMessage(IxMsgPtr(stopped_msg));
@@ -806,13 +936,11 @@ error:
 		}
 
 		SendResponse(req,new CcuMsgStopPlaybackAck());
-
 	}
 
 	void 
-	ProcIms::FreeResources()
+	ProcIms::TearDownAllSessions()
 	{
-
 		FUNCTRACKER;
 
 		for(StreamingCtxsMap::iterator iter = _streamingObjectSet.begin();
@@ -823,10 +951,6 @@ error:
 		}
 
 		_streamingObjectSet.clear();
-
-		ms_ticker_destroy(_ticker);
-
 	}
-
 }
 
