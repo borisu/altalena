@@ -72,7 +72,9 @@ namespace ivrworx
 
 		virtual void UponPlaybackStopped(OVERLAPPED* args);
 
-		virtual void FreeResources();
+		virtual void UponDtmfEvent(OVERLAPPED* args);
+
+		virtual void TearDownAllSessions();
 
 	private:
 
@@ -84,7 +86,7 @@ namespace ivrworx
 
 		MSTicker *_ticker;
 
-		RtpProfile *av_profile;
+		RtpProfile *_avProfile;
 
 		typedef	map<ImsHandleId, StreamingCtxPtr> StreamingCtxsMap;
 		StreamingCtxsMap _streamingObjectSet;
@@ -96,7 +98,16 @@ namespace ivrworx
 
 		IocpInterruptorPtr _iocpPtr;
 
+		OrtpEvQueue *_rtp_q;
+
+		HANDLE _rtpWorkerShutdownEvt;
+
+		HANDLE _rtpWorkerHandle;
+
 	};
+
+	
+	
 
 }
 
