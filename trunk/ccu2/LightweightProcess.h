@@ -18,7 +18,7 @@
 */
 
 #pragma once
-#include "ccu.h"
+#include "IwBase.h"
 #include "UIDOwner.h"
 #include "LpHandle.h"
 
@@ -45,12 +45,12 @@ public:
 	
 	LightweightProcess(
 		IN LpHandlePair pair, 
-		IN const wstring &owner_name = L"");
+		IN const string &owner_name = "");
 
 	LightweightProcess(
 		IN LpHandlePair pair, 
 		IN int inbound_channel_id, 
-		IN const wstring &owner_name = L"");
+		IN const string &owner_name = "");
 
 
 	virtual ~LightweightProcess(void);
@@ -61,82 +61,81 @@ public:
 
 	virtual void real_run() = 0;
 
-	virtual wstring Name();
+	virtual string Name();
 
 	virtual int ProcessId();
 
-	virtual void Name(IN const wstring &val);
+	virtual void Name(IN const string &val);
 
+	virtual ApiErrorCode SendMessage(
+		IN ProcId dest_channel_id, 
+		IN IwMessage* message);
 
-	virtual IxApiErrorCode SendMessage(
-		IN IxProcId dest_channel_id, 
-		IN IxMessage* message);
+	virtual ApiErrorCode SendMessage(
+		IN ProcId dest_channel_id, 
+		IN IwMessagePtr message);
 
-	virtual IxApiErrorCode SendMessage(
-		IN IxProcId dest_channel_id, 
-		IN IxMsgPtr message);
-
-	virtual IxApiErrorCode SendMessage(
+	virtual ApiErrorCode SendMessage(
 		IN LpHandlePtr dest_handle, 
-		IN IxMsgPtr message);
+		IN IwMessagePtr message);
 
-	virtual IxApiErrorCode SendMessage(
-		IN IxMsgPtr message);
+	virtual ApiErrorCode SendMessage(
+		IN IwMessagePtr message);
 
-	virtual IxApiErrorCode SendResponse(
-		IN IxMsgPtr request, 
-		IN IxMessage* response);
+	virtual ApiErrorCode SendResponse(
+		IN IwMessagePtr request, 
+		IN IwMessage* response);
 
 	virtual BOOL HandleOOBMessage(
-		IN IxMsgPtr msg);
+		IN IwMessagePtr msg);
 
 	virtual BOOL InboundPending();
 
-	virtual IxMsgPtr GetInboundMessage(IN Time timeout, OUT IxApiErrorCode &res);
+	virtual IwMessagePtr GetInboundMessage(IN Time timeout, OUT ApiErrorCode &res);
 
 	long TransactionTimeout() const ;
 
 	void TransactionTimeout(long val);
 
-	IxApiErrorCode SendReadyMessage();
+	ApiErrorCode SendReadyMessage();
 
 	//
 	// Process Management
 	//
-	IxApiErrorCode Ping(
-		IN IxProcId qid); 
+	ApiErrorCode Ping(
+		IN ProcId qid); 
 
-	IxApiErrorCode Ping(
+	ApiErrorCode Ping(
 		IN LpHandlePair pair); 
 
-	IxApiErrorCode Shutdown(
+	ApiErrorCode Shutdown(
 		IN Time timeout, 
 		IN LpHandlePair pair);
 
-	IxApiErrorCode WaitTillReady(
+	ApiErrorCode WaitTillReady(
 		IN Time timeout, 
 		IN LpHandlePair pair);
 
 	//
 	// Transaction Management
 	//
-	IxApiErrorCode	DoRequestResponseTransaction(
-		IN IxProcId dest_proc_id, 
-		IN IxMsgPtr request, 
-		OUT IxMsgPtr &response,
+	ApiErrorCode 	DoRequestResponseTransaction(
+		IN ProcId dest_proc_id, 
+		IN IwMessagePtr request, 
+		OUT IwMessagePtr &response,
 		IN Time timout,
-		IN wstring transaction_name);
+		IN string transaction_name);
 
-	IxApiErrorCode	DoRequestResponseTransaction(
+	ApiErrorCode 	DoRequestResponseTransaction(
 		IN LpHandlePtr dest_handle, 
-		IN IxMsgPtr request, 
-		OUT IxMsgPtr &response,
+		IN IwMessagePtr request, 
+		OUT IwMessagePtr &response,
 		IN Time timout,
-		IN wstring transaction_name);
+		IN string transaction_name);
 
-	IxApiErrorCode WaitForTxnResponse(
+	ApiErrorCode WaitForTxnResponse(
 		IN LpHandlePtr txn_handle,
-		OUT IxMsgPtr &response,
+		OUT IwMessagePtr &response,
 		IN Time timout);
 
 	LpHandlePair _pair;
@@ -151,7 +150,7 @@ protected:
 
 	long _transactionTimeout;
 
-	wstring _name;
+	string _name;
 	
 	int _processId;
 
@@ -159,86 +158,11 @@ protected:
 
 private:
 
-	void Init(int UID, wstring owner_name);
+	void Init(int UID, string owner_name);
 
 };
 
 #pragma endregion
-
-#pragma region ProcFuncRunner
-
-template <class T, class Y>
-class ProcFuncRunner: 
-	public LightweightProcess
-{
-private:
-
-	typename boost::function<T(Y*)> _function;
-
-	typename Y* _instance;
-
-protected:
-
-	void real_run()
-	{
-		_res = _function(_instance);
-	}
-
-public:
-
-	ProcFuncRunner(
-		LpHandlePair pair,
-		boost::function<T(Y *)> funct,
-		Y *instance, 
-		T res, 
-		wstring name = L"")
-		:LightweightProcess(pair,name),
-	_function(funct),
-	_instance(instance),
-	_res(res)
-	{
-
-	}
-
-	typename T &_res;
-};
-
-
-template <class Y>
-class ProcVoidFuncRunner: 
-	public LightweightProcess
-{
-private:
-
-	typename boost::function<void(Y*)> _function;
-
-	typename Y* _instance;
-
-protected:
-
-	void real_run()
-	{
-		_function(_instance);
-	}
-
-public:
-
-	ProcVoidFuncRunner(
-		LpHandlePair pair,
-		boost::function<void(Y *)> funct,
-		Y *instance, 
-		wstring name = L"")
-		:LightweightProcess(pair,name),
-		_function(funct),
-		_instance(instance)
-	{
-
-	}
-
-};
-
-#pragma endregion
-
 
 //
 // owners map, used for logging mostly
@@ -246,7 +170,7 @@ public:
 LightweightProcess*
 GetCurrLightWeightProc();
 
-wstring 
+string 
 IxGetCurrLpName();
 
 int

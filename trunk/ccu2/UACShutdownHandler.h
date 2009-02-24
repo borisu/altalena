@@ -20,10 +20,13 @@
 #pragma once
 #include "UACShutdownHandler.h"
 
-
-
 using namespace resip;
 using namespace std;
+
+namespace ivrworx
+{
+
+
 
 class UACShutdownHandler : public DumShutdownHandler
 {
@@ -38,5 +41,6 @@ public:
 	virtual void onDumCanBeDeleted();
 };
 
+}
 
 

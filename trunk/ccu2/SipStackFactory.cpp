@@ -2,22 +2,28 @@
 #include "SipStackFactory.h"
 #include  "ProcSipStack.h"
 
-SipStackFactory::SipStackFactory(void)
+namespace ivrworx
 {
-}
+	SipStackFactory::SipStackFactory(void)
+	{
+	}
 
-SipStackFactory::~SipStackFactory(void)
-{
-}
+	SipStackFactory::~SipStackFactory(void)
+	{
+	}
 
-LightweightProcess*
-SipStackFactory::CreateSipStack(IN LpHandlePair stack_pair, 
-								IN CcuConfiguration &conf)
-{
+	LightweightProcess*
+		SipStackFactory::CreateSipStack(IN LpHandlePair stack_pair, 
+		IN Configuration &conf)
+	{
 
-	return 
-		new ProcSipStack(
+		return 
+			new ProcSipStack(
 			stack_pair, 
 			conf);
 
+	}
+
+
 }
+

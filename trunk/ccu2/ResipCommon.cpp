@@ -37,50 +37,55 @@
 
 #include "stdafx.h"
 #include "ResipCommon.h"
-#include "Ccu.h"
-
+#include "IwBase.h"
 
 
 using namespace std;
 using namespace resip;
 
-wostream& 
-operator << (wostream &ostream, const Data &data)
-{
-	return ostream << data.c_str();
-}
-
-wostream& 
-operator<<(std::wostream& strm, 
-				  const Message& msg)
-{
-#pragma TODO("Add output");
-	return strm;
-}
-
-CcuStackHandle 
-GenerateSipHandle()
-{
-	static int index = 10000;
-	return index ++;
-};
-
-SipDialogContext::SipDialogContext():
-stack_handle(IX_UNDEFINED)
+namespace ivrworx
 {
 
-}
 
-CnxInfo 
-CreateMediaData(const SdpContents& sdp)
-{
-	const SdpContents::Session &s = sdp.session();
-	const Data &addr_data = s.connection().getAddress();
-	const string addr = addr_data.c_str();
+	ostream& 
+	operator << (ostream &ostream, const Data &data)
+	{
+		return ostream << data.c_str();
+	}
 
-	const SdpContents::Session::Medium &medium = s.media().front();
-	int port = medium.port();
+	ostream& 
+	operator<<(std::ostream& strm, 
+		const Message& msg)
+	{
+#pragma TODO("Add real output")
+		return strm;
+	}
 
-	return CnxInfo(addr,port);
+	CcuStackHandle 
+	GenerateSipHandle()
+	{
+		static int index = 10000;
+		return index ++;
+	};
+
+	SipDialogContext::SipDialogContext():
+	stack_handle(IW_UNDEFINED)
+	{
+
+	}
+
+	CnxInfo 
+	CreateMediaData(const SdpContents& sdp)
+	{
+		const SdpContents::Session &s = sdp.session();
+		const Data &addr_data = s.connection().getAddress();
+		const string addr = addr_data.c_str();
+
+		const SdpContents::Session::Medium &medium = s.media().front();
+		int port = medium.port();
+
+		return CnxInfo(addr,port);
+	}
+
 }
 

@@ -20,13 +20,13 @@
 #include "stdafx.h"
 #include "LightweightProcess.h"
 #include "LocalProcessRegistrar.h"
-#include "CcuLogger.h"
+#include "Logger.h"
 #include "Profiler.h"
 
 namespace ivrworx
 {
 
-#define  CCU_NON_FIBEROUS_THREAD ((PVOID)0x1E00)
+#define  NON_FIBEROUS_THREAD ((PVOID)0x1E00)
 
 	typedef 
 	map<PVOID, LightweightProcess*> ProcMap;
@@ -36,13 +36,13 @@ namespace ivrworx
 
 	LightweightProcess::LightweightProcess(
 		IN LpHandlePair pair,
-		IN const wstring &owner_name):
+		IN const string &owner_name):
 	_pair(pair),
 	_inbound(pair.inbound),
 	_outbound(pair.outbound),
 	_bucket(new Bucket()),
 	_transactionTimeout(5000),
-	_processAlias(IX_UNDEFINED)
+	_processAlias(IW_UNDEFINED)
 	{
 		FUNCTRACKER;
 
@@ -53,7 +53,7 @@ namespace ivrworx
 	LightweightProcess::LightweightProcess(
 		LpHandlePair pair,
 		int process_alias,
-		const wstring &owner_name
+		const string &owner_name
 		):
 	_pair(pair),
 	_inbound(pair.inbound),
@@ -69,7 +69,7 @@ namespace ivrworx
 	}
 
 	void
-	LightweightProcess::Init(int process_id, wstring owner_name)
+	LightweightProcess::Init(int process_id, string owner_name)
 	{
 
 		FUNCTRACKER;
@@ -91,8 +91,8 @@ namespace ivrworx
 
 		_processId = process_id;
 
-		_inbound->Direction(CCU_MSG_DIRECTION_INBOUND);
-		_outbound->Direction(CCU_MSG_DIRECTION_OUTBOUND);
+		_inbound->Direction(MSG_DIRECTION_INBOUND);
+		_outbound->Direction(MSG_DIRECTION_OUTBOUND);
 
 		_name = owner_name;
 
@@ -102,7 +102,7 @@ namespace ivrworx
 
 
 	BOOL 
-	LightweightProcess::HandleOOBMessage(IxMsgPtr msg)
+	LightweightProcess::HandleOOBMessage(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 
@@ -110,7 +110,7 @@ namespace ivrworx
 
 		switch (msg->message_id)
 		{
-		case CCU_MSG_PING:
+		case MSG_PING:
 			{
 				SendResponse(msg,new CcuMsgPong());
 				return  TRUE;
@@ -153,7 +153,7 @@ namespace ivrworx
 		}
 
 		if (fiber == (PVOID)NULL || 
-			fiber == CCU_NON_FIBEROUS_THREAD )
+			fiber == NON_FIBEROUS_THREAD )
 		{
 			// should never happen
 			LogCrit("Shut 'er down Clancy, she's pumping mud!")
@@ -186,63 +186,63 @@ namespace ivrworx
 
 	}
 
-	wstring 
+	string 
 	LightweightProcess::Name()
 	{ 
 		return _name; 
 	}
 
 	void 
-	LightweightProcess::Name(IN const wstring &val) 
+	LightweightProcess::Name(IN const string &val) 
 	{
 		_name = val; 
 	}
 
-	IxApiErrorCode
+	ApiErrorCode
 	LightweightProcess::SendMessage(
-		IN IxProcId qid, 
-		IN IxMessage *message)
+		IN ProcId qid, 
+		IN IwMessage *message)
 	{
-		return SendMessage(qid, IxMsgPtr(message));
+		return SendMessage(qid, IwMessagePtr(message));
 	}
 
 
-	IxApiErrorCode
+	ApiErrorCode
 	LightweightProcess::SendResponse(
-		IN IxMsgPtr request, 
-		IN IxMessage* response)
+		IN IwMessagePtr request, 
+		IN IwMessage* response)
 	{
 		IX_PROFILE_CODE(response->copy_data_on_response(request.get()));
-		return SendMessage(IxMsgPtr(response));
+		return SendMessage(IwMessagePtr(response));
 	}
 
-	IxApiErrorCode
+	ApiErrorCode
 	LightweightProcess::SendMessage(
-		IN IxProcId qid, 
-		IN IxMsgPtr message)
+		IN ProcId qid, 
+		IN IwMessagePtr message)
 	{
 
 		message->dest.handle_id = qid;
 		return SendMessage(message);
 	}
 
-	IxApiErrorCode
+	ApiErrorCode
 	LightweightProcess::SendMessage(
 		IN LpHandlePtr handle, 
-		IN IxMsgPtr message)
+		IN IwMessagePtr message)
 	{
 		return SendMessage(handle->GetObjectUid(), message);
 	}
 
 
-	IxApiErrorCode
-	LightweightProcess::SendMessage(IxMsgPtr message)
+	ApiErrorCode
+	LightweightProcess::SendMessage(IwMessagePtr message)
 	{
 
 		IX_PROFILE_FUNCTION();
 
 		int handle_id = message->dest.handle_id;
-		if (message->source.handle_id == IX_UNDEFINED)
+		if (message->source.handle_id == IW_UNDEFINED)
 		{
 			message->source.handle_id = _processId;
 		}
@@ -251,7 +251,7 @@ namespace ivrworx
 		LpHandlePtr localHandlePtr;
 
 		// send message via the same IPC interface they arrived from
-		if (message->preferrable_ipc_interface != IX_UNDEFINED)
+		if (message->preferrable_ipc_interface != IW_UNDEFINED)
 		{
 			localHandlePtr = LocalProcessRegistrar::Instance().GetHandle(message->preferrable_ipc_interface);
 		}
@@ -267,13 +267,13 @@ namespace ivrworx
 		if (localHandlePtr != CCU_NULL_LP_HANDLE)
 		{
 			localHandlePtr->Send(message);
-			return CCU_API_SUCCESS;
+			return API_SUCCESS;
 		}
 
 		LogWarn("Unknown destination for message=[" << message->message_id_str 
 			<< "] dest=["<< handle_id << "@" << message->dest.queue_path << "]");
 
-		return CCU_API_FAILURE;
+		return API_FAILURE;
 
 	}
 
@@ -291,20 +291,20 @@ namespace ivrworx
 	}
 
 
-	IxApiErrorCode
+	ApiErrorCode
 		LightweightProcess::DoRequestResponseTransaction(
 		IN LpHandlePtr dest_handle, 
-		IN IxMsgPtr request, 
-		OUT IxMsgPtr &response,
+		IN IwMessagePtr request, 
+		OUT IwMessagePtr &response,
 		IN Time timeout,
-		IN wstring transaction_name)
+		IN string transaction_name)
 	{
 
 		FUNCTRACKER;
 
 		DECLARE_NAMED_HANDLE(txn_handle);
 		txn_handle->HandleName(transaction_name); // for logging purposes
-		txn_handle->Direction(CCU_MSG_DIRECTION_INBOUND);
+		txn_handle->Direction(MSG_DIRECTION_INBOUND);
 
 		RegistrationGuard guard(txn_handle);
 
@@ -313,12 +313,12 @@ namespace ivrworx
 
 		IX_PROFILE_CODE(dest_handle->Send(request));
 
-		IxApiErrorCode res = WaitForTxnResponse(
+		ApiErrorCode res = WaitForTxnResponse(
 			txn_handle,
 			response,
 			timeout);
 
-		if (res == CCU_API_TIMEOUT)
+		if (res == API_TIMEOUT)
 		{
 			LogDebug("TIMEOUT txn=[" << request->transaction_id<< "]");
 		}
@@ -327,20 +327,20 @@ namespace ivrworx
 
 	}
 
-	IxApiErrorCode	
+	ApiErrorCode	
 		LightweightProcess::DoRequestResponseTransaction(
-		IN IxProcId dest_proc_id, 
-		IN IxMsgPtr request, 
-		OUT IxMsgPtr &response, 
+		IN ProcId dest_proc_id, 
+		IN IwMessagePtr request, 
+		OUT IwMessagePtr &response, 
 		IN Time timout, 
-		IN wstring transaction_name)
+		IN string transaction_name)
 	{
 
 		FUNCTRACKER;
 
 		DECLARE_NAMED_HANDLE(txn_handle);
 		txn_handle->HandleName(transaction_name);
-		txn_handle->Direction(CCU_MSG_DIRECTION_INBOUND);
+		txn_handle->Direction(MSG_DIRECTION_INBOUND);
 
 		RegistrationGuard guard(txn_handle);
 
@@ -349,8 +349,8 @@ namespace ivrworx
 		request->dest.handle_id = dest_proc_id;
 		request->transaction_id = GenerateNewTxnId();
 
-		IxApiErrorCode res = SendMessage(request);
-		if (CCU_FAILURE(res))
+		ApiErrorCode res = SendMessage(request);
+		if (IW_FAILURE(res))
 		{
 			return res;
 		}
@@ -360,7 +360,7 @@ namespace ivrworx
 			response,
 			timout);
 
-		if (res == CCU_API_TIMEOUT)
+		if (res == API_TIMEOUT)
 		{
 			LogDebug("TIMEOUT txn=[" << request->transaction_id<< "]");
 		}
@@ -369,10 +369,10 @@ namespace ivrworx
 
 	}
 
-	IxApiErrorCode	
+	ApiErrorCode	
 	LightweightProcess::WaitForTxnResponse(
 		IN LpHandlePtr txn_handle,
-		OUT IxMsgPtr &response,
+		OUT IwMessagePtr &response,
 		IN Time timeout)
 	{
 
@@ -389,8 +389,8 @@ namespace ivrworx
 		const int txn_inbound_index = interrupted_handle_index++;
 
 
-		interrupted_handle_index = IX_UNDEFINED;
-		IxApiErrorCode res= CCU_API_SUCCESS;
+		interrupted_handle_index = IW_UNDEFINED;
+		ApiErrorCode res= API_SUCCESS;
 
 
 		//
@@ -400,20 +400,20 @@ namespace ivrworx
 		if (timeLeftToWaitMs < 0)
 		{
 			LogWarn("Illegal value for timeout " << timeLeftToWaitMs);
-			return CCU_API_FAILURE;
+			return API_FAILURE;
 		}
 		while (timeLeftToWaitMs >= 0)
 		{
 			int start = ::GetTickCount();
 
-			IxApiErrorCode err_code = 
+			ApiErrorCode err_code = 
 				SelectFromChannels(
 				list,
 				MilliSeconds(timeLeftToWaitMs), 
 				interrupted_handle_index, 
 				response);
 
-			if (CCU_FAILURE(err_code))
+			if (IW_FAILURE(err_code))
 			{
 				return err_code;
 			}
@@ -455,111 +455,111 @@ namespace ivrworx
 	}
 
 
-	IxApiErrorCode
+	ApiErrorCode
 	LightweightProcess::SendReadyMessage()
 	{
 		_outbound->Send(new CcuMsgProcReady());
 
-		return CCU_API_SUCCESS;
+		return API_SUCCESS;
 	}
 
-	IxApiErrorCode
-	LightweightProcess::Ping(IxProcId qid)
+	ApiErrorCode
+	LightweightProcess::Ping(ProcId qid)
 	{
 		FUNCTRACKER;
 
-		IxMsgPtr dummy_response = CCU_NULL_MSG;
+		IwMessagePtr dummy_response = NULL_MSG;
 
-		IxApiErrorCode res = this->DoRequestResponseTransaction(
+		ApiErrorCode res = this->DoRequestResponseTransaction(
 			qid,
-			IxMsgPtr(new CcuMsgPing()),
+			IwMessagePtr(new CcuMsgPing()),
 			dummy_response,
 			MilliSeconds(_transactionTimeout),
-			L"Ping-Pong TXN");
+			"Ping-Pong TXN");
 
 		return res;
 
 	}
 
-	IxApiErrorCode
+	ApiErrorCode
 	LightweightProcess::Ping(IN LpHandlePair pair)
 	{
 		FUNCTRACKER;
 
-		IxMsgPtr dummy_response = CCU_NULL_MSG;
+		IwMessagePtr dummy_response = NULL_MSG;
 
-		IxApiErrorCode res = this->DoRequestResponseTransaction(
+		ApiErrorCode res = this->DoRequestResponseTransaction(
 			pair.inbound,
-			IxMsgPtr(new CcuMsgPing()),
+			IwMessagePtr(new CcuMsgPing()),
 			dummy_response,
 			MilliSeconds(_transactionTimeout),
-			L"Ping-Pong TXN");
+			"Ping-Pong TXN");
 
 		return res;
 
 	}
 
 
-	IxApiErrorCode
+	ApiErrorCode
 	LightweightProcess::WaitTillReady(Time time, LpHandlePair pair)
 	{
 
 
-		// CCU_MSG_PROC_READY must be the first message sent
+		// MSG_PROC_READY must be the first message sent
 		// so we do not create special process for running 
 		// the transaction
-		IxApiErrorCode res = CCU_API_FAILURE;
-		IxMsgPtr response = pair.outbound->Wait(
+		ApiErrorCode res = API_FAILURE;
+		IwMessagePtr response = pair.outbound->Wait(
 			time,
 			res);
 
-		if (res == CCU_API_TIMEOUT)
+		if (res == API_TIMEOUT)
 		{
 			Shutdown(Seconds(0),pair);
-			return CCU_API_FAILURE;
+			return API_FAILURE;
 		}
 
 		switch (response->message_id)
 		{
-		case CCU_MSG_PROC_READY:
+		case MSG_PROC_READY:
 			{
-				return CCU_API_SUCCESS;
+				return API_SUCCESS;
 			}
 		default:
 			{
-				return CCU_API_FAILURE;
+				return API_FAILURE;
 			}
 		}
 	}
 
-	IxApiErrorCode
+	ApiErrorCode
 	LightweightProcess::Shutdown(IN Time time, IN LpHandlePair pair)
 	{
 
 		FUNCTRACKER;
-		IxMsgPtr response = CCU_NULL_MSG;
+		IwMessagePtr response = NULL_MSG;
 
-		IxApiErrorCode res = this->DoRequestResponseTransaction(
+		ApiErrorCode res = this->DoRequestResponseTransaction(
 			pair.inbound,
-			IxMsgPtr(new CcuMsgShutdownReq()),
+			IwMessagePtr(new CcuMsgShutdownReq()),
 			response,
 			time,
-			L"Shutdown TXN");
+			"Shutdown TXN");
 
-		if (CCU_FAILURE(res))
+		if (IW_FAILURE(res))
 		{
 			return res;
 		}
 
 		switch (response->message_id)
 		{
-		case CCU_MSG_PROC_SHUTDOWN_ACK:
+		case MSG_PROC_SHUTDOWN_ACK:
 			{
-				return CCU_API_SUCCESS;
+				return API_SUCCESS;
 			}
 		default:
 			{
-				return CCU_API_FAILURE;
+				return API_FAILURE;
 			}
 		}
 	}
@@ -590,8 +590,8 @@ namespace ivrworx
 	}
 
 
-	IxMsgPtr 
-	LightweightProcess::GetInboundMessage(IN Time timeout, OUT IxApiErrorCode &res)
+	IwMessagePtr 
+	LightweightProcess::GetInboundMessage(IN Time timeout, OUT ApiErrorCode &res)
 	{
 		return _inbound->Wait(timeout, res);
 	}
@@ -606,7 +606,7 @@ namespace ivrworx
 		{
 			return proc->ProcessId();
 		} else {
-			return IX_UNDEFINED;
+			return IW_UNDEFINED;
 		}
 
 	}
@@ -616,7 +616,7 @@ namespace ivrworx
 	{
 		PVOID fiber = ::GetCurrentFiber();
 		if (tl_procMap== NULL || 
-			fiber == (PVOID)CCU_NON_FIBEROUS_THREAD || 
+			fiber == (PVOID)NON_FIBEROUS_THREAD || 
 			fiber == NULL)
 		{
 			return NULL;
@@ -629,7 +629,7 @@ namespace ivrworx
 
 	}
 
-	wstring 
+	string 
 	IxGetCurrLpName()
 	{
 
@@ -640,7 +640,7 @@ namespace ivrworx
 		{
 			return proc->Name();
 		} else {
-			return L"NOT CCU THREAD";
+			return "NOT CCU THREAD";
 		}
 	}
 }

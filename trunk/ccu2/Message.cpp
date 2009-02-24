@@ -17,38 +17,45 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#pragma once
+#include "stdafx.h"
+#include "Message.h"
+
+using namespace std;
+using namespace boost;
 
 namespace ivrworx
 {
-
-#define IX_UNDEFINED -1
-
-#define CCU_MAX_LONG_LENGTH 255
-#define CCU_MAX_INT_LENGTH	255
-
-	enum IxApiErrorCode
+	int GenerateNewTxnId()
 	{
-		CCU_API_SUCCESS = 0,
-		CCU_API_FAILURE,
-		CCU_API_SERVER_FAILURE,
-		CCU_API_TIMEOUT,
-		CCU_API_OUT_OF_BAND,
-		CCU_API_UNKNOWN_PROC_DESTINATION,
-		CCU_API_OPERATION_IN_PROGRESS 
+		static long txn_counter = 0;
+
+		return ::InterlockedExchangeAdd(&txn_counter,1);
+
+	}
+
+	IpcAdddress::IpcAdddress():
+	handle_id(IW_UNDEFINED)
+	{
+		
+	}
+
+	IpcAdddress::IpcAdddress(IN const IpcAdddress& other)
+	{
+		handle_id		= other.handle_id;
+		queue_path		= other.queue_path;
+	}
+
+	IwMessage::IwMessage (IN int message_id, IN const string &message_id_str):
+	transaction_id(-1),
+	is_response(FALSE),
+	preferrable_ipc_interface(IW_UNDEFINED)
+	{
+		::QueryPerformanceCounter(&enter_queue_timestamp);
+		this->message_id = message_id;
+		this->message_id_str = message_id_str;
 	};
 
-#define CCU_SUCCESS(x)	((x) == CCU_API_SUCCESS)
-#define CCU_FAILURE(x)	((x) != CCU_API_SUCCESS)
 
-
-	typedef int CcuHandleId;
-
-	typedef int IxProcId;
-
-	typedef LARGE_INTEGER IxTimeStamp;
-
-
+	
 }
-
 

@@ -19,7 +19,7 @@
 
 #include "StdAfx.h"
 #include "ActiveObject.h"
-#include "CcuLogger.h"
+#include "Logger.h"
 
 namespace ivrworx
 {
@@ -43,7 +43,7 @@ namespace ivrworx
 	}
 
 	void
-	ActiveObject::Start(IN ScopedForking &forking, IN LpHandlePair pair, IN const wstring &name)
+	ActiveObject::Start(IN ScopedForking &forking, IN LpHandlePair pair, IN const string &name)
 	{
 		FUNCTRACKER;
 
@@ -56,13 +56,13 @@ namespace ivrworx
 	}
 
 	void 
-	ActiveObject::SetEventListener(int ccu_msg_id, LpHandlePtr listener_handle)
+	ActiveObject::SetEventListener(int msg_id, LpHandlePtr listener_handle)
 	{
-		_listenersMap[ccu_msg_id] = listener_handle;
+		_listenersMap[msg_id] = listener_handle;
 	}
 
 	void
-	ActiveObject::UponActiveObjectEvent(IxMsgPtr ptr)
+	ActiveObject::UponActiveObjectEvent(IwMessagePtr ptr)
 	{
 		EventListenersMap::iterator iter = _listenersMap.find(ptr->message_id);
 		if (iter != _listenersMap.end())
@@ -74,7 +74,7 @@ namespace ivrworx
 	ProcEventListener::ProcEventListener(
 		IN ActiveObject &object,
 		IN LpHandlePair pair, 
-		IN wstring name):
+		IN string name):
 		LightweightProcess(pair,name),
 		_activeObject(object)
 	{
@@ -88,24 +88,24 @@ namespace ivrworx
 		FUNCTRACKER;
 
 		volatile BOOL &shutdown_flag = _activeObject._shutdownFlag;
-		IxApiErrorCode err_code = CCU_API_SUCCESS;
+		ApiErrorCode err_code = API_SUCCESS;
 
 		while (shutdown_flag != TRUE )
 		{
-			IxMsgPtr ptr =  _inbound->Wait(Seconds(1000), err_code);
+			IwMessagePtr ptr =  _inbound->Wait(Seconds(1000), err_code);
 			if (shutdown_flag == TRUE)
 			{
 				break;
 			}
 
-			if (err_code == CCU_API_TIMEOUT)	
+			if (err_code == API_TIMEOUT)	
 			{
 				continue;
 			}
 				
 			switch (ptr->message_id)
 			{
-			case CCU_MSG_PROC_SHUTDOWN_REQ:
+			case MSG_PROC_SHUTDOWN_REQ:
 				{
 					shutdown_flag = TRUE;
 					break;

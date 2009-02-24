@@ -20,37 +20,35 @@
 #pragma once
 #include "LpHandle.h"
 
-
 using namespace std;
 using namespace boost;
 
-enum LocalProcessRegistrarEvts
-{
-	CCU_MSG_PROC_SHUTDOWN_EVT = CCU_MSG_USER_DEFINED
-};
-
-class CcuMsgShutdownEvt: 
-	public CcuMsgResponse
-{
-	BOOST_SERIALIZATION_REGION
-	{
-		SERIALIZE_BASE_CLASS(CcuMsgResponse);
-		SERIALIZE_FIELD(proc_id);
-	}
-public:
-	CcuMsgShutdownEvt():
-	  CcuMsgResponse(CCU_MSG_PROC_SHUTDOWN_EVT, NAME(CCU_MSG_PROC_SHUTDOWN_EVT)),
-		  proc_id(IX_UNDEFINED){};
-	  CcuMsgShutdownEvt(IxProcId pproc_id):
-	  CcuMsgResponse(CCU_MSG_PROC_SHUTDOWN_EVT, NAME(CCU_MSG_PROC_SHUTDOWN_EVT)),
-		  proc_id(pproc_id){};
-
-	  IxProcId proc_id;
-};
-BOOST_CLASS_EXPORT(CcuMsgShutdownEvt);
-
 namespace ivrworx
 {
+
+	enum LocalProcessRegistrarEvts
+	{
+		MSG_PROC_SHUTDOWN_EVT = MSG_USER_DEFINED
+	};
+
+	class CcuMsgShutdownEvt: 
+		public CcuMsgResponse
+	{
+
+	public:
+		CcuMsgShutdownEvt():
+		  CcuMsgResponse(MSG_PROC_SHUTDOWN_EVT, NAME(MSG_PROC_SHUTDOWN_EVT)),
+			  proc_id(IW_UNDEFINED){};
+
+		  CcuMsgShutdownEvt(ProcId pproc_id):
+		  CcuMsgResponse(MSG_PROC_SHUTDOWN_EVT, NAME(MSG_PROC_SHUTDOWN_EVT)),
+			  proc_id(pproc_id){};
+
+		  ProcId proc_id;
+	};
+
+
+
 
 	class RegistrationGuard
 		:public UIDOwner
@@ -58,7 +56,7 @@ namespace ivrworx
 	public:
 
 		RegistrationGuard(IN LpHandlePtr ptr, 
-			IN int process_alias = IX_UNDEFINED);
+			IN int process_alias = IW_UNDEFINED);
 
 		~RegistrationGuard();
 
@@ -79,18 +77,15 @@ namespace ivrworx
 	private:
 
 		typedef 
-			map<int,LpHandlePtr> LocalProcessesMap;
-
+		map<int,LpHandlePtr> LocalProcessesMap;
 		LocalProcessesMap _locProcessesMap;
 
 		typedef
-			map<IxProcId, HandlesList> ListenersMap;
-
+		map<ProcId, HandlesList> ListenersMap;
 		ListenersMap _listenersMap;
 
 		typedef
-			map<int,int> AliasesMap;
-
+		map<int,int> AliasesMap;
 		AliasesMap _aliasesMap;
 
 		mutex _mutex;
@@ -119,7 +114,7 @@ namespace ivrworx
 
 		LpHandlePtr GetHandle(
 			IN int channel_id, 
-			IN const wstring &qpath);
+			IN const string &qpath);
 	};
 
 }

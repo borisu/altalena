@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "CcuCommon.h"
-#include "CcuMessage.h"
+#include "IwBase.h"
+#include "Message.h"
 #include "UIDOwner.h"
 
 using namespace csp;
@@ -30,7 +30,7 @@ using namespace boost;
 namespace ivrworx 
 {
 
-	#define CCU_MAX_MESSAGES_IN_QUEUE 1000
+	#define MAX_MESSAGES_IN_QUEUE 1000
 
 	#define DECLARE_NAMED_HANDLE(P) LpHandlePtr P (new LpHandle())
 	#define DECLARE_NAMED_HANDLE_PAIR(P) LpHandlePair P (LpHandlePtr(new LpHandle()), LpHandlePtr(new LpHandle()))
@@ -50,7 +50,7 @@ namespace ivrworx
 	// related facility which used to interrupt such a
 	// process and inform it that new message has arrived
 	//
-	class IxInterruptor
+	class WaitInterruptor
 	{
 	public:
 
@@ -60,12 +60,12 @@ namespace ivrworx
 	};
 
 	typedef 
-		shared_ptr<IxInterruptor> InterruptorPtr;
+		shared_ptr<WaitInterruptor> InterruptorPtr;
 
 	// use this interruptor if you want to receive messages 
 	// by waiting on specific HANDLE by means of WaitForMultipleObjects 
 	class SemaphoreInterruptor
-		:public IxInterruptor, boost::noncopyable
+	:public WaitInterruptor, noncopyable
 	{
 	public:
 
@@ -86,13 +86,13 @@ namespace ivrworx
 	};
 
 	typedef 
-		shared_ptr<SemaphoreInterruptor> SemaphoreInterruptorPtr;
+	shared_ptr<SemaphoreInterruptor> SemaphoreInterruptorPtr;
 
 
 	// use this interruptor if you want to receive messages 
 	// by waiting on io completion port by  means of  GetQueuedCompletionStatus  
 	class IocpInterruptor
-		:public IxInterruptor, boost::noncopyable
+		:public WaitInterruptor, noncopyable
 	{
 	public:
 
@@ -113,38 +113,38 @@ namespace ivrworx
 	};
 
 	typedef 
-		shared_ptr<IocpInterruptor> IocpInterruptorPtr;
+	shared_ptr<IocpInterruptor> IocpInterruptorPtr;
 
 	typedef 
-		BufferedAny2OneChannel<IxMsgPtr> CcuChannel;
+	BufferedAny2OneChannel<IwMessagePtr> CommChannel;
 
 	typedef 
-		shared_ptr<CcuChannel> CcuChannelPtr;
+	shared_ptr<CommChannel> CommChannelPtr;
 
 	typedef 
-		FIFOBuffer<IxMsgPtr> CCUFifoBuffer;
+	FIFOBuffer<IwMessagePtr> IwFifoBuffer;
 
 	typedef 
-		SizedChannelBufferFactoryImpl<IxMsgPtr, CCUFifoBuffer> CcuBufferFactory;
+	SizedChannelBufferFactoryImpl<IwMessagePtr, IwFifoBuffer> IwBufferFactory;
 
-	enum IxHandleDirection
+	enum HandleDirection
 	{
-		CCU_MSG_DIRECTION_UNDEFINED,
-		CCU_MSG_DIRECTION_INBOUND,
-		CCU_MSG_DIRECTION_OUTBOUND
+		MSG_DIRECTION_UNDEFINED,
+		MSG_DIRECTION_INBOUND,
+		MSG_DIRECTION_OUTBOUND
 	};
 
 
 	class LpHandle;
 
 	typedef 
-		shared_ptr<LpHandle> LpHandlePtr;
+	shared_ptr<LpHandle> LpHandlePtr;
 
 	typedef 
-		vector<LpHandlePtr> HandlesList;
+	vector<LpHandlePtr> HandlesList;
 
 	class LpHandle :
-		public UIDOwner
+	public UIDOwner
 	{
 
 	public:
@@ -153,70 +153,68 @@ namespace ivrworx
 
 		virtual ~LpHandle(void);
 
-		virtual void Direction(
-			IN IxHandleDirection val);
+		virtual void Direction(IN HandleDirection val);
 
-		virtual IxHandleDirection Direction() const;
+		virtual HandleDirection Direction() const;
 
 		virtual void HandleInterruptor(
 			IN InterruptorPtr interruptor);
 
-		virtual IxApiErrorCode Send(
-			IN IxMsgPtr message);
+		virtual ApiErrorCode Send(
+			IN IwMessagePtr message);
 
-		virtual IxApiErrorCode Send(
-			IN IxMessage *message);
+		virtual ApiErrorCode Send(
+			IN IwMessage *message);
 
-		virtual IxMsgPtr Wait(
+		virtual IwMessagePtr Wait(
 			IN Time timeout,
-			OUT IxApiErrorCode &res);
+			OUT ApiErrorCode &res);
 
 		virtual bool InboundPending();
 
-		virtual wstring HandleName() const;
+		virtual string HandleName() const;
 
 		virtual void HandleName(
-			IN const wstring &val);
+			IN const string &val);
 
 		virtual void Poison();
-
 
 	private:
 
 		void inline CheckReader();
 
-		IxMsgPtr Read();
+		IwMessagePtr Read();
 
 		DWORD _threadId;
 
 		PVOID _fiberId;
 
-		IxHandleDirection _direction;
+		HandleDirection _direction;
 
-		CcuBufferFactory _bufferFactory;
+		IwBufferFactory _bufferFactory;
 
-		CcuChannel _channel;
+		CommChannel _channel;
 
 		InterruptorPtr _interruptor;
 
-		wstring _name;
+		string _name;
 
-		friend wostream& operator << (wostream &ostream, const LpHandle *lpHandlePtr);
+		friend ostream& operator << (ostream &ostream, const LpHandle *lpHandlePtr);
 
-		friend IxApiErrorCode SelectFromChannels(
+		friend ApiErrorCode SelectFromChannels(
 			IN  HandlesList &map,
 			IN  Time timeout, 
 			OUT int &index, 
-			OUT IxMsgPtr &event);
+			OUT IwMessagePtr &event);
 
 	};
 
 
 
-	IxApiErrorCode SelectFromChannels(IN  HandlesList &map,
+	ApiErrorCode SelectFromChannels(IN  HandlesList &map,
 		IN  Time timeout, 
 		OUT int &index, 
-		OUT IxMsgPtr &event);
+		OUT IwMessagePtr &event);
 
 
 	struct LpHandlePair

@@ -19,7 +19,7 @@
 
 #include "StdAfx.h"
 #include "JSONConfiguration.h"
-#include "CcuLogger.h"
+#include "Logger.h"
 
 using namespace json_spirit;
 
@@ -27,45 +27,44 @@ namespace ivrworx
 {
 
 	static bool 
-	same_name( const wPair& pair, const wstring& name )
+	same_name(const Pair& pair, const string& name )
 	{
 		return pair.name_ == name;
 	}
 
-	static const wValue& 
-	find_value( const wObject& obj, const wstring& name )
+	static const Value& 
+	find_value( const Object& obj, const string& name )
 	{
-		wObject::const_iterator i = find_if( obj.begin(), obj.end(), bind( same_name, _1, ref( name ) ) );
+		Object::const_iterator i = find_if( obj.begin(), obj.end(), bind( same_name, _1, ref( name ) ) );
 
-		if( i == obj.end() ) return wValue::null;
+		if( i == obj.end() ) return Value::null;
 
 		return i->value_;
 	}
 
-	static const wArray& 
-	find_array( const wObject& obj, const wstring& name )
+	static const Array& 
+	find_array( const Object& obj, const string& name )
 	{
 		return find_value( obj, name ).get_array(); 
 	}
 
 	static int 
-	find_int( const wObject& obj, const wstring& name )
+	find_int( const Object& obj, const string& name )
 	{
 		return find_value( obj, name ).get_int();
 	}
 
-	static wstring 
-	find_str( const wObject& obj, const wstring& name )
+	static string 
+	find_str( const Object& obj, const string& name )
 	{
 		return find_value( obj, name ).get_str();
 	}
 
 	MediaFormat *
-	read_codec( const wObject& obj)
+	read_codec( const Object& obj)
 	{
-		wstring media_format_name = find_str( obj, L"name" );
+		string media_format_name = find_str(obj, "name" );
 
-		
 		MediaFormat::MediaType media_type = MediaFormat::GetMediaType(media_format_name);
 		if ( media_type == MediaFormat::MediaType_UNKNOWN)
 		{
@@ -76,8 +75,8 @@ namespace ivrworx
 		return 
 			new MediaFormat(
 				media_format_name,
-				find_int( obj, L"sampling_rate" ),
-				find_int( obj, L"sdp_mapping" ),
+				find_int( obj, "sampling_rate" ),
+				find_int( obj, "sdp_mapping" ),
 				media_type);
 	}
 
@@ -90,90 +89,78 @@ namespace ivrworx
 	{
 	}
 
-	IxApiErrorCode
-	JSONConfiguration::InitFromFile(const wstring &filename)
+	ApiErrorCode
+	JSONConfiguration::InitFromFile(const string &filename)
 	{
-		wifstream is(WStringToString(filename).c_str());
+		ifstream is(filename.c_str());
 
 		if (read(is, _value) == false)
 		{
-			LogCrit(L"Error reading JSON configuration file=[" << filename << L"]");
+			LogCrit("Error reading JSON configuration file [" << filename << "].");
 			throw;
 		}
 
 
-		IxApiErrorCode res = InitDb();
+		ApiErrorCode res = InitDb();
 		return res;
-
 	}
 
-	IxApiErrorCode
-	JSONConfiguration::InitFromString(const wstring &is)
+	ApiErrorCode
+	JSONConfiguration::InitFromString(const string &is)
 	{
 
 		if (read(is, _value) == false)
 		{
-			return CCU_API_FAILURE;
+			return API_FAILURE;
 		}
 
-		IxApiErrorCode res = InitDb();
+		ApiErrorCode res = InitDb();
 		return res;
 
 	}
 
 
 
-	IxApiErrorCode
+	ApiErrorCode
 	JSONConfiguration::InitDb()
 	{
 
-		wObject root_obj(_value.get_obj());
+		Object root_obj(_value.get_obj());
 
 		//
 		// default ip
 		//
-		const wstring default_ip_str = find_str(root_obj, L"default_ip" );
+		const string default_ip_str = find_str(root_obj, "default_ip" );
 
 		_defaultIp = CnxInfo(default_ip_str,5060);
 
 
 		//
-		// vcs 
+		// ivr 
 		//
-		const wstring vcs_ip_str = find_str(root_obj, L"vcs_sip_ip" );
-		const int vcs_ip_int = find_int(root_obj, L"vcs_sip_port" );
+		const string ivr_ip_str = find_str(root_obj, "ivr_sip_ip" );
+		const int ivr_ip_int = find_int(root_obj, "ivr_sip_port" );
 
-		_vcsMediaData = CnxInfo(vcs_ip_str,vcs_ip_int);
+		_ivrCnxInfo = CnxInfo(ivr_ip_str,ivr_ip_int);
 
 		//
 		// ims
 		//
-		const wstring ims_ip_str = find_str(root_obj, L"ims_ip" );
-		const int ims_ip_int = find_int(root_obj, L"ims_port" );
+		const string ims_ip_str = find_str(root_obj, "ims_ip" );
+		const int ims_ip_int = find_int(root_obj, "ims_port" );
 
 		_imsCnxInfo = CnxInfo(ims_ip_str,ims_ip_int);
 
 
-		// rtp 
-
-		const wstring rtp_relay_ip_str = find_str(root_obj, L"rtp_relay_ip" );
-
-		const int rtp_relay_top_port_int = find_int(root_obj, L"rtp_relay_top_port" );
-		const int rtp_relay_bottom_port_int = find_int(root_obj, L"rtp_relay_bottom_port" );
-
-		_rtpRelayIp = CnxInfo(vcs_ip_str,IX_UNDEFINED);
-
-		_rtpRelayTopPort = rtp_relay_top_port_int;
-		_rtpRelayBottomPort = rtp_relay_bottom_port_int;
 
 		// configuration file
-		_scriptFile = find_str(root_obj, L"script_file");
+		_scriptFile = find_str(root_obj, "script_file");
 
 		// codecs
 
-		const wArray &codecs_array = find_array(root_obj, L"codecs");
+		const Array &codecs_array = find_array(root_obj, "codecs");
 
-		wArray::const_iterator iter = codecs_array.begin();
+		Array::const_iterator iter = codecs_array.begin();
 		while(iter != codecs_array.end())
 		{
 			MediaFormat *codec;
@@ -183,10 +170,10 @@ namespace ivrworx
 		}
 
 		// from 
-		_from		 = find_str(root_obj, L"from_id");
-		_fromDisplay = find_str(root_obj, L"from_display_name");
+		_from		 = find_str(root_obj, "from_id");
+		_fromDisplay = find_str(root_obj, "from_display_name");
 
-		return CCU_API_SUCCESS;
+		return API_SUCCESS;
 
 	}
 

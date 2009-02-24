@@ -93,7 +93,7 @@ namespace ivrworx
 #define todo( x )  message( __FILE__LINE__" TODO :   " #x "\n" ) 
 #define fixme( x )  message( __FILE__LINE__" FIXME:   " #x "\n" ) 
 
-#define NAME(x) L#x
+#define NAME(x) #x
 
 #define BOOST_SERIALIZATION_REGION								\
 	friend class access;										\

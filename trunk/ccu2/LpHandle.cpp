@@ -19,23 +19,24 @@
 
 #include "StdAfx.h"
 #include "LpHandle.h"
-#include "CcuLogger.h"
+#include "Logger.h"
 #include "Profiler.h"
 
 
 
-#define CCU_MAX_NUM_OF_ARGUMENTS 10
+#define MAX_NUM_OF_ARGUMENTS 10
 
 using namespace boost;
 
 namespace ivrworx 
 {
 
-	wstring IxGetCurrLpName();
+	string GetCurrLpName();
 
-	int		IxGetCurrLpId();
+	int		GetCurrLpId();
 
 #pragma  region Interruptors
+
 	SemaphoreInterruptor::SemaphoreInterruptor():
 	_handle(NULL)
 	{
@@ -43,7 +44,7 @@ namespace ivrworx
 		_handle =  ::CreateSemaphore(
 			NULL,
 			0,
-			CCU_MAX_MESSAGES_IN_QUEUE,
+			MAX_MESSAGES_IN_QUEUE,
 			NULL
 			);
 
@@ -88,7 +89,6 @@ namespace ivrworx
 		}
 
 	}
-
 
 	IocpInterruptor::IocpInterruptor()
 	{
@@ -149,14 +149,14 @@ namespace ivrworx
 
 #pragma region Direction
 
-	IxHandleDirection 
+	HandleDirection 
 	LpHandle::Direction() const 
 	{ 
 		return _direction; 
 	}
 
 	void 
-	LpHandle::Direction(IxHandleDirection val) 
+	LpHandle::Direction(HandleDirection val) 
 	{ 
 		_direction = val; 
 	}
@@ -165,10 +165,10 @@ namespace ivrworx
 
 
 	LpHandle::LpHandle():
-	_bufferFactory(CCU_MAX_MESSAGES_IN_QUEUE),
+	_bufferFactory(MAX_MESSAGES_IN_QUEUE),
 	_channel(_bufferFactory),
-	_direction(CCU_MSG_DIRECTION_UNDEFINED),
-	_threadId(IX_UNDEFINED),
+	_direction(MSG_DIRECTION_UNDEFINED),
+	_threadId(IW_UNDEFINED),
 	_fiberId(NULL)
 	{
 
@@ -196,22 +196,22 @@ namespace ivrworx
 	}
 
 
-	IxApiErrorCode 
-	LpHandle::Send(IN IxMessage *message)
+	ApiErrorCode 
+	LpHandle::Send(IN IwMessage *message)
 	{
-		return Send(IxMsgPtr(message));
+		return Send(IwMessagePtr(message));
 	}
 
-	IxApiErrorCode 
-	LpHandle::Send(IN IxMsgPtr message)
+	ApiErrorCode 
+	LpHandle::Send(IN IwMessagePtr message)
 	{
 		FUNCTRACKER;
 
 		::QueryPerformanceCounter(&message->enter_queue_timestamp);
 
-		if (message->source.handle_id == IX_UNDEFINED)
+		if (message->source.handle_id == IW_UNDEFINED)
 		{
-			message->source.handle_id = IxGetCurrLpId();
+			message->source.handle_id = GetCurrLpId();
 		}
 
 		try 
@@ -225,11 +225,11 @@ namespace ivrworx
 		catch(PoisonException p)
 		{
 			LogWarn(this << " poisoned.");
-			return CCU_API_FAILURE;
+			return API_FAILURE;
 		}
 
-		LogDebug("SND (" << this << ") msg=[" << message->message_id_str << "] from proc=[" << IxGetCurrLpName() << "], rsp dst=[" << message->source.handle_id  << "] txn=[" << message->transaction_id << "]");
-		return CCU_API_SUCCESS;
+		LogDebug("SND (" << this << ") msg=[" << message->message_id_str << "] from proc=[" << GetCurrLpName() << "], rsp dst=[" << message->source.handle_id  << "] txn=[" << message->transaction_id << "]");
+		return API_SUCCESS;
 	}
 
 	void
@@ -237,7 +237,7 @@ namespace ivrworx
 	{
 		// We have to ensure that only one process can read from
 		// the handle. This is part of csp interface contract design.
-		if (_threadId == IX_UNDEFINED)
+		if (_threadId == IW_UNDEFINED)
 		{
 			_threadId = ::GetCurrentThreadId();
 			_fiberId  = ::GetCurrentFiber();
@@ -251,14 +251,14 @@ namespace ivrworx
 
 	}
 
-	IxMsgPtr
+	IwMessagePtr
 	LpHandle::Read()
 	{
 		FUNCTRACKER;
 
 		CheckReader();
 
-		IxMsgPtr ptr;
+		IwMessagePtr ptr;
 		try 
 		{
 			_channel.reader() >> ptr;
@@ -268,29 +268,29 @@ namespace ivrworx
 			}
 
 			IX_PROFILE_ADD_DATA(WStringToString(ptr->message_id_str), ptr->enter_queue_timestamp);
-			IX_PROFILE_ADD_DATA(L"MSG PUMP AVG", ptr->enter_queue_timestamp);
+			IX_PROFILE_ADD_DATA("MSG PUMP AVG", ptr->enter_queue_timestamp);
 		} 
 		catch(PoisonException p)
 		{
 			LogWarn(this << " poisoned.");
-			return CCU_NULL_MSG;
+			return NULL_MSG;
 		}
 
-		LogDebug("RCV (" << this << ") msg=[" << ptr->message_id_str << "] to=[" << IxGetCurrLpName() << "], rsp dst=[" << ptr->source.handle_id  << "] txn=[" << ptr->transaction_id << "]");
+		LogDebug("RCV (" << this << ") msg=[" << ptr->message_id_str << "] to=[" << GetCurrLpName() << "], rsp dst=[" << ptr->source.handle_id  << "] txn=[" << ptr->transaction_id << "]");
 		return ptr;
 
 	}
 
 
-	IxMsgPtr
-	LpHandle::Wait(IN Time timeout, IN IxApiErrorCode &res)
+	IwMessagePtr
+	LpHandle::Wait(IN Time timeout, IN ApiErrorCode &res)
 	{
 
 		FUNCTRACKER;
 
 		CheckReader();
 
-		LogTrace(L"Waiting on " << this << L" " << csp::GetMilliSeconds(timeout) << " ms.");
+		LogTrace("Waiting on " << this << " " << csp::GetMilliSeconds(timeout) << " ms.");
 
 		// if user passed 0 as timeout and there are messages 
 		// pending csp will prefer to return TIMEOUT code.
@@ -322,26 +322,25 @@ namespace ivrworx
 		throw;
 
 timeout:
-		LogDebug(L"TMT (" << this << ") - timeout");
-		res = CCU_API_TIMEOUT;
-		return CCU_NULL_MSG;
+		LogDebug("TMT (" << this << ") - timeout");
+		res = API_TIMEOUT;
+		return NULL_MSG;
 
 read:
-		res = CCU_API_SUCCESS;
+		res = API_SUCCESS;
 		return this->Read();
 
 
 	}
 
-
-	wstring 
+	string 
 	LpHandle::HandleName() const 
 	{ 
 		return _name; 
 	}
 
 	void 
-	LpHandle::HandleName(const wstring &val) 
+	LpHandle::HandleName(const string &val) 
 	{ 
 		_name = val; 
 	}
@@ -357,30 +356,30 @@ read:
 		this->outbound = other.outbound;	
 	}
 
-	wostream& 
-	operator << (wostream &ostream, const LpHandle *lpHandlePtr)
+	ostream& 
+	operator << (ostream &ostream, const LpHandle *lpHandlePtr)
 	{
 		if (lpHandlePtr == NULL)
 		{
-			return ostream << L"NULL";
+			return ostream << "NULL";
 
 		};
 
 		return ostream 
-			<< (lpHandlePtr->Direction() == CCU_MSG_DIRECTION_INBOUND ? L"IN ":L"OUT ") 
+			<< (lpHandlePtr->Direction() == MSG_DIRECTION_INBOUND ? "IN ":"OUT ") 
 			<<  lpHandlePtr->HandleName() 
-			<< L"," 
+			<< "," 
 			<< lpHandlePtr->GetObjectUid();
 	}
 
 #define MAX_NUM_OF_CHANNELS_IN_SELECT 10
 
-	IxApiErrorCode 
+	ApiErrorCode 
 		SelectFromChannels(
 		IN  HandlesList &param_handles_list,
 		IN  Time timeout, 
 		OUT int &res_index, 
-		OUT IxMsgPtr &res_event)
+		OUT IwMessagePtr &res_event)
 	{
 		FUNCTRACKER;
 
@@ -389,7 +388,7 @@ read:
 		if (count == 0 || 
 			count > MAX_NUM_OF_CHANNELS_IN_SELECT)
 		{
-			return CCU_API_FAILURE;
+			return API_FAILURE;
 		}
 
 		
@@ -410,7 +409,7 @@ read:
 			{
 				res_index = index;
 				res_event = ptr->Read();
-				return CCU_API_SUCCESS;
+				return API_SUCCESS;
 			}
 
 			handles[index] = ptr;
@@ -432,13 +431,13 @@ read:
 		if (wait_res == count)
 		{
 			LogDebug("Select timeout.");
-			res_index = IX_UNDEFINED;
-			return CCU_API_TIMEOUT;
+			res_index = IW_UNDEFINED;
+			return API_TIMEOUT;
 		} 
 		
 		res_index = wait_res;
 		res_event = handles[wait_res]->Read();
-		return CCU_API_SUCCESS;
+		return API_SUCCESS;
 		
 	}
 

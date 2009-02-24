@@ -18,18 +18,60 @@
 */
 
 #pragma once
+#include "IwBase.h"
 
-using namespace resip;
+using namespace std;
 
 namespace ivrworx
 {
-	class MockResipStack :
-		public SipStack
+
+	class Configuration
 	{
 	public:
-		MockResipStack(void);
-		virtual ~MockResipStack(void);
-	};
-}
 
+		Configuration(void);
+
+		virtual ~Configuration(void);
+
+		virtual CnxInfo DefaultCnxInfo();
+
+		virtual CnxInfo IvrCnxInfo();
+
+		virtual CnxInfo ImsCnxInfo();
+
+		virtual CnxInfo RtpRelayIp();
+
+		virtual string ScriptFile();
+
+		virtual void AddCodec(const MediaFormat& codec);
+
+		virtual void AddCodec(const MediaFormat* codec);
+
+		virtual const CodecsPtrList& CodecList();
+
+		virtual string From();
+
+		virtual string FromDisplay();
+
+	protected:
+
+		mutex _mutex;
+
+		CnxInfo _defaultIp;
+
+		CnxInfo _ivrCnxInfo;
+
+		CnxInfo _imsCnxInfo;
+
+		string _scriptFile;
+
+		CodecsPtrList _codecsList;
+
+		string _from;
+
+		string _fromDisplay;
+
+	};
+
+}
 

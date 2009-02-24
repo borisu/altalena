@@ -19,7 +19,7 @@
 
 #include "StdAfx.h"
 #include "Profiler.h"
-#include "CcuLogger.h"
+#include "Logger.h"
 
 using namespace std;
 

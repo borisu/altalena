@@ -24,17 +24,22 @@
 using namespace resip;
 using namespace std;
 
-class UASShutdownHandler : public DumShutdownHandler
+namespace ivrworx
 {
+	class UASShutdownHandler : public DumShutdownHandler
+	{
 
-public:
-	UASShutdownHandler(const Data& n); 
-	virtual ~UASShutdownHandler();
+	public:
+		UASShutdownHandler(const Data& n); 
+		virtual ~UASShutdownHandler();
 
-	Data name;
-	bool dumShutDown;
+		Data name;
+		bool dumShutDown;
 
-	virtual void onDumCanBeDeleted();
-};
+		virtual void onDumCanBeDeleted();
+	};
 
+
+
+}
 

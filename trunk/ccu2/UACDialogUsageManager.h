@@ -18,17 +18,15 @@
 */
 
 #pragma once
-#include "ccu.h"
+#include "IwBase.h"
 #include "ResipCommon.h"
-#include "UacSessionHandler.h"
-
+#include "SipSessionHandlerAdapter.h"
 
 using namespace resip;
 using namespace boost;
 
-typedef 
-shared_ptr<UACSessionHandler> UACSessionHandlerPtr;
-
+namespace ivrworx
+{
 
 class UACDialogUsageManager :
 	public DialogUsageManager,public SipSessionHandlerAdapter
@@ -42,9 +40,9 @@ public:
 
 	virtual ~UACDialogUsageManager(void);
 
-	virtual IxApiErrorCode MakeCall(IN IxMsgPtr request);
+	virtual ApiErrorCode MakeCall(IN IwMessagePtr request);
 
-	virtual IxApiErrorCode HangupCall(SipDialogContextPtr ptr);
+	virtual ApiErrorCode HangupCall(SipDialogContextPtr ptr);
 
 	virtual string CreateSdp(IN CnxInfo &data);
 
@@ -78,3 +76,4 @@ private:
 };
 
 
+}
