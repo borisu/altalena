@@ -18,6 +18,7 @@
 #include <mediastreamer2\msfileplayer.h>
 
 #include "CcuUtils.h"
+#include "ActiveObject.h"
 #include "CcuLogger.h"
 #include "CcuConfiguration.h"
 #include "LightweightProcess.h"

@@ -24,13 +24,15 @@ namespace ivrworx
 {
 
 	typedef 
+
 	int ImsHandleId;
 
-	class ImsSession
+	class ImsSession :
+		public ActiveObject
 	{
 	public:
 
-		ImsSession (IN LightweightProcess &facade);
+		ImsSession (IN ScopedForking &forking);
 
 		virtual ~ImsSession (void);
 
@@ -44,11 +46,17 @@ namespace ivrworx
 			IN BOOL loop = FALSE,
 			IN BOOL provisional = FALSE);
 
+		virtual IxApiErrorCode WaitForDtmf(
+			OUT int &dtmf, 
+			IN Time timeout);
+		
 		virtual void TearDown();
 
 		virtual CnxInfo ImsMediaData() const;
 
 		virtual void ImsMediaData(IN CnxInfo val);
+
+		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
 
 	private:
 
@@ -58,7 +66,9 @@ namespace ivrworx
 
 		CnxInfo _imsMediaData;
 
-		LightweightProcess &_facade;
+		ScopedForking &_forking;
+
+		LpHandlePtr _dtmfHandle;
 	};
 
 	typedef shared_ptr<ImsSession> ImsSessionPtr;

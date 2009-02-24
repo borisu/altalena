@@ -20,6 +20,8 @@
 #include "StdAfx.h"
 #include "ProcIms.h"
 #include "Ims.h"
+#include "ImsSession.h"
+#include "Call.h"
 
 namespace ivrworx 
 {
@@ -90,16 +92,33 @@ namespace ivrworx
 	{
 		if (stream)
 		{
-			if (stream->session!=NULL) rtp_session_destroy(stream->session);
-			if (stream->rtpsend!=NULL) ms_filter_destroy(stream->rtpsend);
-			if (stream->rtprecv!=NULL) ms_filter_destroy(stream->rtprecv);
-			if (stream->soundread!=NULL) ms_filter_destroy(stream->soundread);
-			if (stream->soundwrite!=NULL) ms_filter_destroy(stream->soundwrite);
-			if (stream->encoder!=NULL) ms_filter_destroy(stream->encoder);
-			if (stream->decoder!=NULL) ms_filter_destroy(stream->decoder);
-			if (stream->dtmfgen!=NULL) ms_filter_destroy(stream->dtmfgen);
-			if (stream->ec!=NULL)	ms_filter_destroy(stream->ec);
-			//if (stream->ticker!=NULL) ms_ticker_destroy(stream->ticker);
+			if (stream->session!=NULL)		
+				rtp_session_destroy(stream->session);
+
+			if (stream->rtpsend!=NULL)		
+				ms_filter_destroy(stream->rtpsend);
+
+			if (stream->rtprecv!=NULL)		
+				ms_filter_destroy(stream->rtprecv);
+
+			if (stream->soundread!=NULL)	
+				ms_filter_destroy(stream->soundread);
+
+			if (stream->soundwrite!=NULL) 
+				ms_filter_destroy(stream->soundwrite);
+
+			if (stream->encoder!=NULL) 
+				ms_filter_destroy(stream->encoder);
+
+			if (stream->decoder!=NULL) 
+				ms_filter_destroy(stream->decoder);
+
+			if (stream->dtmfgen!=NULL) 
+				ms_filter_destroy(stream->dtmfgen);
+
+			if (stream->ec!=NULL)	
+				ms_filter_destroy(stream->ec);
+			
 			ms_free(stream);
 		}
 		if (profile) rtp_profile_destroy(profile);
@@ -108,28 +127,31 @@ namespace ivrworx
 #define IX_EOF_EVENT  1
 #define IX_DTMF_EVENT 2
 
-
 	static void 
 	on_dtmf_received(RtpSession *s, int dtmf, void * user_data)
 	{
 
-		#pragma warning (suppress :4311)
-		ImsHandleId handle = (ImsHandleId) user_data;
+		MSFilter *filter = (MSFilter *) user_data;
+		ImsHandleId handle = (ImsHandleId) filter->notify_ud;
+
+		ImsOverlapped *olap = new ImsOverlapped();
+		SecureZeroMemory(olap, sizeof(ImsOverlapped));
+		olap->ims_handle_id = handle;
+		olap->dtmf = dtmf;
 
 		BOOL res = ::PostQueuedCompletionStatus(
 			g_iocpHandle,				//A handle to an I/O completion port to which the I/O completion packet is to be posted.
-			dtmf,						//The value to be returned through the lpNumberOfBytesTransferred parameter of the GetQueuedCompletionStatus function.
+			0,							//The value to be returned through the lpNumberOfBytesTransferred parameter of the GetQueuedCompletionStatus function.
 			IX_DTMF_EVENT,				//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
-			handle						//The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
+			olap						//The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
 			);
 
 		if (res == FALSE)
 		{
 			LogSysError("::PostQueuedCompletionStatus");
-			throw
+			throw;
 		}
 	}
-
 
 	static void 
 	on_file_filter_event(void *userdata , unsigned int id, void *arg)
@@ -142,11 +164,15 @@ namespace ivrworx
 		case MS_FILE_PLAYER_EOF:
 			{
 			
+				ImsOverlapped *olap = new ImsOverlapped();
+				SecureZeroMemory(olap, sizeof(ImsOverlapped));
+				olap->ims_handle_id = handle;
+
 				BOOL res = ::PostQueuedCompletionStatus(
 					g_iocpHandle,			//A handle to an I/O completion port to which the I/O completion packet is to be posted.
 					0,						//The value to be returned through the lpNumberOfBytesTransferred parameter of the GetQueuedCompletionStatus function.
-					MS_FILE_PLAYER_EOF,		//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
-					handle					//The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
+					IX_EOF_EVENT,			//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
+					olap					//The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
 					);
 
 				if (res == FALSE)
@@ -166,7 +192,7 @@ namespace ivrworx
 
 
 
-	ProcIms::ProcIms(IN LpHandlePair pair, IN CcuConfiguration &conf)
+	ProcIms::ProcIms(IN LpHandlePair pair, IN Configuration &conf)
 		:LightweightProcess(pair, IMS_Q, __FUNCTIONW__),
 		_conf(conf),
 		_localMedia(conf.ImsCnxInfo()),
@@ -348,12 +374,12 @@ namespace ivrworx
 			{
 			case IX_EOF_EVENT:
 				{
-					UponPlaybackStopped(lpOverlapped);
+					UponPlaybackStopped((ImsOverlapped*)lpOverlapped);
 					continue;
 				}
 			case IX_DTMF_EVENT:
 				{
-					UponDtmfEvent(lpOverlapped);
+					UponDtmfEvent((ImsOverlapped*)lpOverlapped);
 					continue;
 				}
 			default:
@@ -368,7 +394,7 @@ namespace ivrworx
 
 
 			IxApiErrorCode err_code = CCU_API_SUCCESS;
-			IxMsgPtr ptr =  _inbound->Wait(Seconds(0), err_code);
+			IwMessagePtr ptr =  _inbound->Wait(Seconds(0), err_code);
 
 			switch (ptr->message_id)
 			{
@@ -420,7 +446,7 @@ namespace ivrworx
 
 
 	void 
-	ProcIms::AllocatePlaybackSession(IxMsgPtr msg)
+	ProcIms::AllocatePlaybackSession(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
@@ -441,7 +467,7 @@ namespace ivrworx
 		do 
 		{
 			local_port = _portManager.GetNextPortFromPool();
-			if (local_port == IX_UNDEFINED)
+			if (local_port == IW_UNDEFINED)
 			{
 				break;
 			};
@@ -572,7 +598,10 @@ namespace ivrworx
 			goto error;
 		}
 
-#pragma warning (suppress :4311)
+		
+		ctx->stream->dtmfgen->notify_ud = (void*)handle;
+
+		
 		res = rtp_session_signal_connect(rtps,"telephone-event",(RtpCallback)on_dtmf_received,(unsigned long)ctx->stream->dtmfgen);
 		if (res < 0) 
 		{
@@ -641,7 +670,9 @@ namespace ivrworx
 
 		g_iocpHandle= _iocpPtr->Handle();
 		
+		
 		ctx->stream->soundread->notify_ud = (void*)handle;
+		
 
 		/*********************************************************************
 		*
@@ -692,8 +723,7 @@ namespace ivrworx
 		//
 	
 		_streamingObjectSet[handle] = ctx;
-
-		ctx->curr_txn_handler = req->session_handler;
+		ctx->session_handler	= req->session_handler;
 
 		CcuMsgAllocateImsSessionAck *ack = 
 			new CcuMsgAllocateImsSessionAck();
@@ -710,7 +740,7 @@ error:
 	}
 
 	void 
-	ProcIms::StartPlayback(IxMsgPtr msg)
+	ProcIms::StartPlayback(IwMessagePtr msg)
 	{
 
 		FUNCTRACKER;
@@ -729,8 +759,7 @@ error:
 			return;
 		}
 
-		StreamingCtxPtr ctx = iter->second;
-		ctx->curr_txn_handler = req->source;
+		StreamingCtxPtr ctx		= iter->second;
 
 		audio_stream_play(ctx->stream,WStringToString(req->file_name).c_str());
 		if (ctx->stream->ticker == NULL)
@@ -774,70 +803,64 @@ error:
 
 
 	void
-	ProcIms::UponDtmfEvent(OVERLAPPED* args)
-	{
-
-
-	}
-
-	void 
-	ProcIms::UponPlaybackStopped(OVERLAPPED *ovlp)
+	ProcIms::UponDtmfEvent(ImsOverlapped* ovlp)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
-
-		auto_ptr<EventArgs> args = auto_ptr<EventArgs>((EventArgs*)ovlp);
-		
-
-		// pointer guard
-		
-
-		CcuMsgImsPlayStopped *stopped_msg = new CcuMsgImsPlayStopped();
-		stopped_msg->playback_handle = args->ims_handle; 
-
-		StreamingCtxsMap::iterator iter = _streamingObjectSet.find(args->ims_handle);
+		auto_ptr<ImsOverlapped> args = auto_ptr<ImsOverlapped>(ovlp);
+		StreamingCtxsMap::iterator iter = _streamingObjectSet.find(ovlp->ims_handle_id);
 		if (iter == _streamingObjectSet.end())
 		{
-			LogWarn("Stopped playback on nen existent handle " << args->ims_handle);
+			LogWarn("DTMF event on non existent handle " << ovlp->ims_handle_id);
 			return;
 		}
 
 		StreamingCtxPtr ctx = iter->second;
 
-		AudioStream *stream = ctx->stream;
+		MsgCallDtmfEvt *evt = new MsgCallDtmfEvt();
+		evt->dtmf_digit = ovlp->dtmf;
+
+		this->SendMessage(ctx->session_handler.inbound, IwMessagePtr(evt));
+		
+
+	}
+
+	void 
+	ProcIms::UponPlaybackStopped(ImsOverlapped *ovlp)
+	{
+		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
+
+		auto_ptr<ImsOverlapped> args = auto_ptr<ImsOverlapped>(ovlp);
+		
+		CcuMsgImsPlayStopped *stopped_msg = new CcuMsgImsPlayStopped();
+		stopped_msg->playback_handle = ovlp->ims_handle_id; 
+
+		StreamingCtxsMap::iterator iter = _streamingObjectSet.find(ovlp->ims_handle_id);
+		if (iter == _streamingObjectSet.end())
 		{
-			boost::mutex::scoped_lock lk(g_args_mutex); 
-			ctx->stream->soundread->notify_ud = NULL;
+			LogWarn("Stopped playback on non existent handle " << ovlp->ims_handle_id);
+			return;
 		}
 
-		
-		if (stream->ticker)
+		StreamingCtxPtr ctx = iter->second;
+
+		if (ctx->stream->ticker)
 		{
-			int res = ms_ticker_detach(stream->ticker,stream->soundread);
+			int res = ms_ticker_detach(ctx->stream->ticker,ctx->stream->soundread);
 			if (res < 0)
 			{
 				LogWarn("error:ms_ticker_detach/soundread, res=" << res );
 			};
 
-			res = ms_ticker_detach(ctx->stream->ticker,ctx->stream->rtprecv);
-			if (res < 0)
-			{
-				LogWarn("error:ms_ticker_detach/rtprecv, res=" << res );
-			};
-
 		}
 		
-		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_STOP);
-		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_CLOSE);
-
 	
-		stopped_msg->dest = ctx->curr_txn_handler;
-		this->SendMessage(IxMsgPtr(stopped_msg));
+		this->SendMessage(ctx->session_handler.inbound, IwMessagePtr(stopped_msg));
 
 	}
 
 	void
-	ProcIms::TearDown(IxMsgPtr msg)
+	ProcIms::TearDown(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
@@ -874,12 +897,10 @@ error:
 
 		AudioStream *stream = ctx->stream;
 
-		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_CLOSE);
-
 		if (stream->ticker)
 		{
 			ms_ticker_detach(stream->ticker,stream->soundread);
-			//ms_ticker_detach(stream->ticker,stream->rtprecv);
+			ms_ticker_detach(stream->ticker,stream->rtprecv);
 
 			rtp_stats_display(rtp_session_get_stats(stream->session),"Audio session's RTP statistics");
 
@@ -894,15 +915,19 @@ error:
 			}
 
 			ms_filter_unlink(stream->encoder,0,stream->rtpsend,0);
-			//ms_filter_unlink(stream->rtprecv,0,stream->decoder,0);
-			//ms_filter_unlink(stream->decoder,0,stream->dtmfgen,0);
+			ms_filter_unlink(stream->rtprecv,0,stream->decoder,0);
+			ms_filter_unlink(stream->decoder,0,stream->dtmfgen,0);
 		}
+
+		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_STOP);
+		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_CLOSE);
+
 
 	}
 
 
 	void 
-	ProcIms::StopPlayback(IxMsgPtr msg)
+	ProcIms::StopPlayback(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();

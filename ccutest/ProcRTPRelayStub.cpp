@@ -14,7 +14,7 @@ MockRtpConnection::MockRtpConnection(const MockRtpConnection& other)
 
 ProcRTPRelayStub::ProcRTPRelayStub(LpHandlePair pair):
 LightweightProcess(pair,RTP_RELAY_Q,__FUNCTIONW__),
-_rtpHandleCounter(IX_UNDEFINED)
+_rtpHandleCounter(IW_UNDEFINED)
 {
 }
 
@@ -27,11 +27,11 @@ ProcRTPRelayStub::real_run()
 {
 	IxApiErrorCode err_code = CCU_API_SUCCESS;
 	BOOL shutdownFlag = FALSE;
-	IxMsgPtr shutdown_req = CCU_NULL_MSG;
+	IwMessagePtr shutdown_req = CCU_NULL_MSG;
 
 	while (shutdownFlag  == FALSE)
 	{
-		IxMsgPtr ptr =  _inbound->Wait(
+		IwMessagePtr ptr =  _inbound->Wait(
 			Seconds(60),
 			err_code);
 
@@ -86,7 +86,7 @@ ProcRTPRelayStub::real_run()
 
 
 void
-ProcRTPRelayStub::AllocateAudioConnection(IN IxMsgPtr ptr)
+ProcRTPRelayStub::AllocateAudioConnection(IN IwMessagePtr ptr)
 {
 	shared_ptr<CcuMsgRtpAllocateNewConnectionReq> ac_msg =
 		shared_dynamic_cast<CcuMsgRtpAllocateNewConnectionReq>(ptr);
@@ -111,7 +111,7 @@ ProcRTPRelayStub::AllocateAudioConnection(IN IxMsgPtr ptr)
 }
 
 void
-ProcRTPRelayStub::CloseAudioConnection(IN IxMsgPtr ptr)
+ProcRTPRelayStub::CloseAudioConnection(IN IwMessagePtr ptr)
 {
 	shared_ptr<CcuMsgRtpCloseConnectionReq> request =
 		shared_dynamic_cast<CcuMsgRtpCloseConnectionReq> (ptr);
@@ -122,7 +122,7 @@ ProcRTPRelayStub::CloseAudioConnection(IN IxMsgPtr ptr)
 }
 
 void
-ProcRTPRelayStub::BridgeConnections(IN IxMsgPtr ptr)
+ProcRTPRelayStub::BridgeConnections(IN IwMessagePtr ptr)
 {
 	shared_ptr<CcuMsgRtpBridgeConnectionsReq> request =
 		shared_dynamic_cast<CcuMsgRtpBridgeConnectionsReq> (ptr);
@@ -148,7 +148,7 @@ ProcRTPRelayStub::BridgeConnections(IN IxMsgPtr ptr)
 }
 
 void
-ProcRTPRelayStub:: ModifyConnection(IN IxMsgPtr ptr)
+ProcRTPRelayStub:: ModifyConnection(IN IwMessagePtr ptr)
 {
 	shared_ptr<CcuMsgModifyConnectionReq> request =
 		shared_dynamic_cast<CcuMsgModifyConnectionReq> (ptr);

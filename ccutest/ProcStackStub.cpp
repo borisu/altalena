@@ -23,7 +23,7 @@ ProcStackStub::real_run()
 	while (!shutdownFlag)
 	{
 		IxApiErrorCode res;
-		IxMsgPtr msg = GetInboundMessage(Seconds(0),res);
+		IwMessagePtr msg = GetInboundMessage(Seconds(0),res);
 		if (CCU_FAILURE(res))
 		{
 			throw;
@@ -36,7 +36,7 @@ ProcStackStub::real_run()
 
 		switch (msg->message_id)
 		{
-		case CCU_MSG_MAKE_CALL_REQ:
+		case MSG_MAKE_CALL_REQ:
 			{
 				UponMakeCall(msg);
 				break;
@@ -48,13 +48,13 @@ ProcStackStub::real_run()
 				SendResponse(msg, new CcuMsgShutdownAck());
 				break;
 			}
-		case CCU_MSG_HANGUP_CALL_REQ:
+		case MSG_HANGUP_CALL_REQ:
 			{
 				UponHangupCall(msg);
 				break;
 
 			}
-		case CCU_MSG_CALL_OFFERED_ACK:
+		case MSG_CALL_OFFERED_ACK:
 			{
 				UponCallOfferedAck(msg);
 				break;
@@ -72,20 +72,20 @@ ProcStackStub::real_run()
 }
 
 void
-ProcStackStub::UponCallOfferedAck(IxMsgPtr msg)
+ProcStackStub::UponCallOfferedAck(IwMessagePtr msg)
 {
 
 }
 
 
 void
-ProcStackStub::UponMakeCall(IxMsgPtr ptr)
+ProcStackStub::UponMakeCall(IwMessagePtr ptr)
 {
-	CcuMsgMakeCallReq *req  = 
-		boost::shared_dynamic_cast<CcuMsgMakeCallReq>(ptr).get();
+	MsgMakeCallReq *req  = 
+		boost::shared_dynamic_cast<MsgMakeCallReq>(ptr).get();
 
-	CcuMsgMakeCallAck *ack =
-		new CcuMsgMakeCallAck();
+	MsgMakeCallAck *ack =
+		new MsgMakeCallAck();
 
 	ack->stack_call_handle = handle_counter ++;
 
@@ -96,7 +96,7 @@ ProcStackStub::UponMakeCall(IxMsgPtr ptr)
 }
 
 void
-ProcStackStub::UponHangupCall(IxMsgPtr msg)
+ProcStackStub::UponHangupCall(IwMessagePtr msg)
 {
 
 }

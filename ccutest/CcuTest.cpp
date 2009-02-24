@@ -28,7 +28,6 @@
 #include "ProcPipeIPCDispatcherTest.h"
 #include "RTPRelayTest.h"
 #include "VcsTest.h"
-#include "ImsTest.h"
 #include "CmdLine.h"
 #include "CcuLpTest.h"
 #include "JsonConfigurationTest.h"

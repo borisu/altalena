@@ -274,10 +274,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ImsTest.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\JsonConfigurationTest.cpp"
 				>
 			</File>
@@ -345,10 +341,6 @@
 			>
 			<File
 				RelativePath=".\CcuLpTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ImsTest.h"
 				>
 			</File>
 			<File
