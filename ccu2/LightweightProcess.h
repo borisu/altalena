@@ -77,6 +77,10 @@ public:
 		IN IxMsgPtr message);
 
 	virtual IxApiErrorCode SendMessage(
+		IN LpHandlePtr dest_handle, 
+		IN IxMsgPtr message);
+
+	virtual IxApiErrorCode SendMessage(
 		IN IxMsgPtr message);
 
 	virtual IxApiErrorCode SendResponse(

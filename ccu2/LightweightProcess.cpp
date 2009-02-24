@@ -217,7 +217,7 @@ namespace ivrworx
 	}
 
 	IxApiErrorCode
-		LightweightProcess::SendMessage(
+	LightweightProcess::SendMessage(
 		IN IxProcId qid, 
 		IN IxMsgPtr message)
 	{
@@ -225,6 +225,15 @@ namespace ivrworx
 		message->dest.handle_id = qid;
 		return SendMessage(message);
 	}
+
+	IxApiErrorCode
+	LightweightProcess::SendMessage(
+		IN LpHandlePtr handle, 
+		IN IxMsgPtr message)
+	{
+		return SendMessage(handle->GetObjectUid(), message);
+	}
+
 
 	IxApiErrorCode
 	LightweightProcess::SendMessage(IxMsgPtr message)

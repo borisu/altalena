@@ -286,7 +286,7 @@ public:
 	CcuMsgCallDtmfEvt():IxMessage(CCU_MSG_CALL_DTMF_EVT, 
 		NAME(CCU_MSG_CALL_DTMF_EVT)){}
 
-	wstring dtmf_digit;
+	int dtmf_digit;
 
 };
 BOOST_CLASS_EXPORT(CcuMsgCallDtmfEvt);
