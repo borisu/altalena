@@ -234,7 +234,8 @@ StringType CCmdLine::GetArgument(const char* pSwitch, int iIdx)
       theIterator = find(pSwitch);
 	   if (theIterator!=end())
       {
-         if ((*theIterator).second.m_strings.size() > iIdx)
+		#pragma warning (suppress: 4018)
+		 if ((*theIterator).second.m_strings.size() > iIdx)
          {
             return (*theIterator).second.m_strings[iIdx];
          }
