@@ -113,13 +113,11 @@
 
 
 #ifdef __AFX_H__
-// if we're using MFC, use CStrings 
-#define StringType CString
-#elif _UNICODE 
-// if we're not using MFC, use STL strings
-#define StringType wstring
-#else
-#define StringType string
+	// if we're using MFC, use CStrings 
+	#define StringType CString
+#else 
+	// if we're not using MFC, use STL strings
+	#define StringType string
 #endif
 
 // tell the compiler to shut up
@@ -152,7 +150,7 @@ public:
 
       returns number of switches found
    ------------------------------------------------------*/
-   int         SplitLine(int argc, _TCHAR* argv[]);
+   int         SplitLine(int argc, char* argv[]);
 
    /*------------------------------------------------------
       bool CCmdLine::HasSwitch(const char *pSwitch)
@@ -166,7 +164,7 @@ public:
       cmdLine.HasSwitch("-a")       true
       cmdLine.HasSwitch("-z")       false
    ------------------------------------------------------*/   
-   bool        HasSwitch(const _TCHAR * pSwitch);
+   bool        HasSwitch(const char * pSwitch);
 
    /*------------------------------------------------------
 
@@ -189,7 +187,7 @@ public:
 
    ------------------------------------------------------*/
 
-   StringType  GetSafeArgument(const _TCHAR* pSwitch, int iIdx, const _TCHAR* pDefault);
+   StringType  GetSafeArgument(const char* pSwitch, int iIdx, const char* pDefault);
 
    /*------------------------------------------------------
 
@@ -208,7 +206,7 @@ public:
       cmdLine.GetArgument("-b", 1)     throws (int)0, returns an empty string
 
    ------------------------------------------------------*/
-   StringType  GetArgument(const _TCHAR* pSwitch, int iIdx); 
+   StringType  GetArgument(const char* pSwitch, int iIdx); 
 
    /*------------------------------------------------------
       int CCmdLine::GetArgumentCount(const char *pSwitch)
@@ -218,7 +216,7 @@ public:
       returns -1 if the switch was not found
 
    ------------------------------------------------------*/
-   int         GetArgumentCount(const _TCHAR* pSwitch);
+   int         GetArgumentCount(const char* pSwitch);
 
 protected:
    /*------------------------------------------------------
@@ -231,7 +229,7 @@ protected:
    the first character of a switch must be non-numeric!
 
    ------------------------------------------------------*/
-   bool        IsSwitch(const _TCHAR* pParam);
+   bool        IsSwitch(const char* pParam);
 };
 
 #endif

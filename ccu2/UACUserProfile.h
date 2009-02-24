@@ -22,12 +22,17 @@
 using namespace resip;
 using namespace std;
 
-class UACUserProfile :
-	public MasterProfile
+namespace ivrworx
 {
-public:
-	UACUserProfile(string From);
-	virtual ~UACUserProfile(void);
-};
+
+	class UACUserProfile :
+		public MasterProfile
+	{
+	public:
+		UACUserProfile(IN const string &from);
+		virtual ~UACUserProfile(void);
+	};
+
+}
 
 

@@ -22,16 +22,22 @@
 using namespace resip;
 using namespace std;
 
-class UASAppDialogSetFactory : public AppDialogSetFactory
+namespace ivrworx
 {
-public:
-	UASAppDialogSetFactory(void);
-	virtual ~UASAppDialogSetFactory(void);
+	class UASAppDialogSetFactory : public AppDialogSetFactory
+	{
+	public:
+		UASAppDialogSetFactory(void);
+		virtual ~UASAppDialogSetFactory(void);
 
-	// For a UAS the testAppDialogSet will be created by DUM using this function.  If you want to set 
-	// Application Data, then one approach is to wait for onNewSession(ServerInviteSessionHandle ...) 
-	// to be called, then use the ServerInviteSessionHandle to get at the AppDialogSet or AppDialog,
-	// then cast to your derived class and set the desired application data.
-	virtual AppDialogSet* createAppDialogSet(DialogUsageManager& dum, const SipMessage& msg);
-};
+		// For a UAS the testAppDialogSet will be created by DUM using this function.  If you want to set 
+		// Application Data, then one approach is to wait for onNewSession(ServerInviteSessionHandle ...) 
+		// to be called, then use the ServerInviteSessionHandle to get at the AppDialogSet or AppDialog,
+		// then cast to your derived class and set the desired application data.
+		virtual AppDialogSet* createAppDialogSet(DialogUsageManager& dum, const SipMessage& msg);
+	};
+
+}
+
+
 

@@ -43,7 +43,7 @@
 
   returns number of switches found
 ------------------------------------------------------*/
-int CCmdLine::SplitLine(int argc, _TCHAR* argv[])
+int CCmdLine::SplitLine(int argc, char * argv[])
 {
    clear();
 
@@ -72,7 +72,7 @@ int CCmdLine::SplitLine(int argc, _TCHAR* argv[])
             }
             else
             {
-               arg = L"";
+               arg = "";
             }
          }
 
@@ -80,7 +80,7 @@ int CCmdLine::SplitLine(int argc, _TCHAR* argv[])
          CCmdParam cmd;
 
          // only add non-empty args
-         if (arg != L"")
+         if (arg != "")
          {
             cmd.m_strings.push_back(arg);
          }
@@ -123,18 +123,13 @@ int CCmdLine::SplitLine(int argc, _TCHAR* argv[])
 
 ------------------------------------------------------*/
 
-bool CCmdLine::IsSwitch(const _TCHAR* pParam)
+bool CCmdLine::IsSwitch(const char* pParam)
 {
    if (pParam==NULL)
       return false;
 
-   // switches must non-empty
-   // must have at least one character after the '-'
-#ifdef _UNICODE
-   int len = wcslen(pParam);
-#elif
    int len = strlen(pParam);
-#endif
+
    if (len <= 1)
    {
       return false;
@@ -166,7 +161,7 @@ bool CCmdLine::IsSwitch(const _TCHAR* pParam)
    cmdLine.HasSwitch("-z")       false
 ------------------------------------------------------*/
 
-bool CCmdLine::HasSwitch(const _TCHAR* pSwitch)
+bool CCmdLine::HasSwitch(const char* pSwitch)
 {
 	CCmdLine::iterator theIterator;
 	theIterator = find(pSwitch);
@@ -194,7 +189,7 @@ bool CCmdLine::HasSwitch(const _TCHAR* pSwitch)
 
 ------------------------------------------------------*/
 
-StringType CCmdLine::GetSafeArgument(const _TCHAR* pSwitch, int iIdx, const _TCHAR* pDefault)
+StringType CCmdLine::GetSafeArgument(const char* pSwitch, int iIdx, const char* pDefault)
 {
    StringType sRet;
    
@@ -230,7 +225,7 @@ StringType CCmdLine::GetSafeArgument(const _TCHAR* pSwitch, int iIdx, const _TCH
 
 ------------------------------------------------------*/
 
-StringType CCmdLine::GetArgument(const _TCHAR* pSwitch, int iIdx)
+StringType CCmdLine::GetArgument(const char* pSwitch, int iIdx)
 {
    if (HasSwitch(pSwitch))
    {
@@ -248,7 +243,7 @@ StringType CCmdLine::GetArgument(const _TCHAR* pSwitch, int iIdx)
 
    throw (int)0;
 
-   return L"";
+   return "";
 }
 
 /*------------------------------------------------------
@@ -260,7 +255,7 @@ StringType CCmdLine::GetArgument(const _TCHAR* pSwitch, int iIdx)
 
 ------------------------------------------------------*/
 
-int CCmdLine::GetArgumentCount(const _TCHAR* pSwitch)
+int CCmdLine::GetArgumentCount(const char* pSwitch)
 {
    int iArgumentCount = -1;
 

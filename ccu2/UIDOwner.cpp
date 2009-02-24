@@ -21,34 +21,36 @@
 #include "UIDOwner.h"
 
 
-
-mutex UIDOwner::_mutex;
-
-int UIDOwner::_pidIndex = 6000;
-
-
-UIDOwner::UIDOwner(void)
+namespace ivrworx
 {
-	_lpid = GenerateNewUID();
+
+	mutex UIDOwner::_mutex;
+
+	int UIDOwner::_pidIndex = 6000;
+
+	UIDOwner::UIDOwner(void)
+	{
+		_lpid = GenerateNewUID();
+	}
+
+	UIDOwner::~UIDOwner(void)
+	{
+	}
+
+	int
+	UIDOwner::GenerateNewUID()
+	{
+		mutex::scoped_lock scoped_lock(_mutex);
+
+		int res = _pidIndex ++;
+
+		return res;
+	}
+
+	int
+	UIDOwner::GetObjectUid() const
+	{
+		return _lpid;
+	}
+	
 }
-
-UIDOwner::~UIDOwner(void)
-{
-}
-
-int
-UIDOwner::GenerateNewUID()
-{
-	mutex::scoped_lock scoped_lock(_mutex);
-
-	int res = _pidIndex ++;
-
-	return res;
-}
-
-int
-UIDOwner::GetObjectUid() const
-{
-	return _lpid;
-}
-

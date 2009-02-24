@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="ccu2"
+	Name="iw_core"
 	ProjectGUID="{2FCEFE58-70F8-4D68-8F39-8AD958596C42}"
 	RootNamespace="CCU2"
 	Keyword="Win32Proj"
@@ -50,7 +50,7 @@
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="1"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 				ShowIncludes="false"
 			/>
@@ -382,6 +382,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Logger.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Logger.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Profiler.cpp"
 				>
 			</File>
@@ -394,11 +402,11 @@
 			Name="configuration"
 			>
 			<File
-				RelativePath=".\CcuConfiguration.cpp"
+				RelativePath=".\Configuration.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\CcuConfiguration.h"
+				RelativePath=".\Configuration.h"
 				>
 			</File>
 			<File
@@ -410,11 +418,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\JSONConfiguration.cpp"
+				RelativePath=".\JsonConfiguration.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\JSONConfiguration.h"
+				RelativePath=".\JsonConfiguration.h"
 				>
 			</File>
 		</Filter>
@@ -430,39 +438,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Ccu.cpp"
+				RelativePath=".\IwBase.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Ccu.h"
+				RelativePath=".\IwBase.h"
 				>
 			</File>
 			<File
-				RelativePath=".\CcuCommon.h"
+				RelativePath=".\IwUtils.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\CcuLogger.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\CcuLogger.h"
-				>
-			</File>
-			<File
-				RelativePath=".\CcuMessage.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\CcuMessage.h"
-				>
-			</File>
-			<File
-				RelativePath=".\CcuUtils.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\CcuUtils.h"
+				RelativePath=".\IwUtils.h"
 				>
 			</File>
 			<File
@@ -490,59 +478,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Message.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Message.h"
+				>
+			</File>
+			<File
 				RelativePath=".\UIDOwner.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\UIDOwner.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="ipc"
-			>
-			<File
-				RelativePath=".\ProcPipeIPCDispatcher.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcPipeIPCDispatcher.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="tests"
-			>
-			<File
-				RelativePath=".\IxCoreTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IxCoreTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\MockResipStack.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\MockResipStack.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcTestStub.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcTestStub.h"
-				>
-			</File>
-			<File
-				RelativePath=".\UASDialogUsageManagerTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\UASDialogUsageManagerTest.h"
 				>
 			</File>
 		</Filter>

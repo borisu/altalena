@@ -25,8 +25,6 @@
 using namespace csp;
 using namespace std;
 
-
-
 namespace ivrworx
 {
 	typedef map<int,LpHandlePtr> EventListenersMap;
@@ -37,9 +35,9 @@ namespace ivrworx
 
 		ActiveObject();
 
-		virtual void Start(IN ScopedForking &forking, IN LpHandlePair pair, IN const wstring &name);
+		virtual void Start(IN ScopedForking &forking, IN LpHandlePair pair, IN const string &name);
 
-		virtual void UponActiveObjectEvent(IxMsgPtr ptr);
+		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
 
 		virtual void SetEventListener(int ccu_msg_id, LpHandlePtr listener_handle);
 
@@ -53,7 +51,7 @@ namespace ivrworx
 
 		BucketPtr _listenerBucket;
 
-		BOOL volatile _shutdownFlag;
+		volatile BOOL _shutdownFlag;
 
 		friend class ProcEventListener;
 	};
@@ -63,8 +61,7 @@ namespace ivrworx
 	{
 	public:
 
-		ProcEventListener(ActiveObject &object,LpHandlePair pair, wstring name);
-
+		ProcEventListener(ActiveObject &object,LpHandlePair pair, string name);
 
 		void real_run();
 

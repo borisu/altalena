@@ -22,24 +22,28 @@
 #include "ResipCommon.h"
 
 
-
 using namespace resip;
 using namespace std;
 
-class UACAppDialogSet : public AppDialogSet
+namespace ivrworx
 {
-public:
 
-	UACAppDialogSet(DialogUsageManager& dum, SipDialogContextPtr ptr);
+	class UACAppDialogSet : public AppDialogSet
+	{
+	public:
 
-	virtual ~UACAppDialogSet(void);
+		UACAppDialogSet(DialogUsageManager& dum, SipDialogContextPtr ptr);
 
-	virtual AppDialog* createAppDialog(const SipMessage& msg);
+		virtual ~UACAppDialogSet(void);
 
-	virtual SharedPtr<UserProfile> selectUACUserProfile(const SipMessage& msg);
+		virtual AppDialog* createAppDialog(const SipMessage& msg);
 
-	SipDialogContextPtr _ptr;
+		virtual SharedPtr<UserProfile> selectUACUserProfile(const SipMessage& msg);
 
-};
+		SipDialogContextPtr _ptr;
+
+	};
+
+}
 
 

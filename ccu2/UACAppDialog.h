@@ -23,13 +23,20 @@
 using namespace resip;
 using namespace std;
 
-class UACAppDialog : public AppDialog
+namespace ivrworx
 {
-public:
+	class UACAppDialog : public AppDialog
+	{
+	public:
 
-	UACAppDialog(HandleManager& ham);
+		UACAppDialog(HandleManager& ham);
 
-	virtual ~UACAppDialog(); 
+		virtual ~UACAppDialog(); 
 
-};
+	};
+
+
+
+}
+
 

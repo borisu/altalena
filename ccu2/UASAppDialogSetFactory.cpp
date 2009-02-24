@@ -21,22 +21,26 @@
 #include "UASAppDialogSetFactory.h"
 #include "UASAppDialogSet.h"
 
-
-
-UASAppDialogSetFactory::UASAppDialogSetFactory(void)
+namespace ivrworx
 {
+	UASAppDialogSetFactory::UASAppDialogSetFactory(void)
+	{
+	}
+
+	UASAppDialogSetFactory::~UASAppDialogSetFactory(void)
+	{
+	}
+
+	AppDialogSet* 
+		UASAppDialogSetFactory::createAppDialogSet(DialogUsageManager& dum, const SipMessage& msg) 
+	{  
+		return new UASAppDialogSet(
+			dum, 
+			Data("UAS") + 
+			Data("(") + getMethodName(msg.header(h_RequestLine).getMethod()) + Data(")")
+			);  
+	}
+
+
 }
 
-UASAppDialogSetFactory::~UASAppDialogSetFactory(void)
-{
-}
-
-AppDialogSet* 
-UASAppDialogSetFactory::createAppDialogSet(DialogUsageManager& dum, const SipMessage& msg) 
-{  
-	return new UASAppDialogSet(
-		dum, 
-		Data("UAS") + 
-		Data("(") + getMethodName(msg.header(h_RequestLine).getMethod()) + Data(")")
-		);  
-}

@@ -19,28 +19,33 @@
 
 #pragma once
 
-
 using namespace boost;
 
-class UIDOwner : 
-	public noncopyable
+namespace ivrworx
 {
-public:
-	UIDOwner(void);
+	class UIDOwner : 
+		public noncopyable
+	{
+	public:
+		UIDOwner(void);
 
-	virtual ~UIDOwner(void);
+		virtual ~UIDOwner(void);
 
-	int	GetObjectUid() const;
+		int	GetObjectUid() const;
 
-	int _lpid;
+		int _lpid;
 
-private:
+	private:
 
-	static mutex _mutex;
+		static mutex _mutex;
 
-	static int _pidIndex;
+		static int _pidIndex;
 
-	static int GenerateNewUID();
+		static int GenerateNewUID();
 
-};
+	};
+
+}
+
+
 

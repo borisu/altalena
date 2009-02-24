@@ -24,28 +24,28 @@
 namespace ivrworx
 {
 
-ConfigurationFactory::ConfigurationFactory(void)
-{
-}
-
-ConfigurationFactory::~ConfigurationFactory(void)
-{
-}
-
-CcuConfigurationPtr
-ConfigurationFactory::CreateJsonConfiguration(const wstring &filename)
-{
-	CcuConfigurationPtr res ((CcuConfiguration*)NULL);
-	
-	shared_ptr<JSONConfiguration> ptr(new JSONConfiguration());
-
-	if (CCU_SUCCESS(ptr->InitFromFile(filename)))
+	ConfigurationFactory::ConfigurationFactory(void)
 	{
-		res = ptr;
 	}
 
-	return res;
-}
+	ConfigurationFactory::~ConfigurationFactory(void)
+	{
+	}
+
+	CcuConfigurationPtr
+	ConfigurationFactory::CreateJsonConfiguration(const string &filename)
+	{
+		CcuConfigurationPtr res ((Configuration*)NULL);
+
+		shared_ptr<JSONConfiguration> ptr(new JSONConfiguration());
+
+		if (IW_SUCCESS(ptr->InitFromFile(filename)))
+		{
+			res = ptr;
+		}
+
+		return res;
+	}
 }
 
 

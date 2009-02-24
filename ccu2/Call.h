@@ -22,289 +22,221 @@
 #include "LightweightProcess.h"
 #include "ActiveObject.h"
 
-#pragma region Sip_Stack_Events
-
-enum CallEvts
-{
-	CCU_MSG_CALL_OFFERED = CCU_MSG_USER_DEFINED,
-	CCU_MSG_CALL_OFFERED_ACK,
-	CCU_MSG_CALL_OFFERED_NACK,
-	CCU_MSG_CALL_CONNECTED,
-	CCU_MSG_CALL_HANG_UP_EVT,
-	CCU_MSG_CALL_TERMINATED,
-	CCU_MSG_CALL_DTMF_EVT,
-
-	CCU_MSG_MAKE_CALL_REQ,
-	CCU_MSG_MAKE_CALL_ACK,
-	CCU_MSG_MAKE_CALL_NACK,
-	CCU_MSG_HANGUP_CALL_REQ,
-};
-
-
-//
-// CALL RELATED
-//
-class CcuMsgMakeCallReq : 
-	public CcuMsgRequest
-{
-	BOOST_SERIALIZATION_REGION
-	{
-		SERIALIZE_BASE_CLASS(IxMessage);
-		SERIALIZE_FIELD(destination_uri);
-		SERIALIZE_FIELD(on_behalf_of);
-		SERIALIZE_FIELD(local_media);
-	}
-public:
-	CcuMsgMakeCallReq():
-	  CcuMsgRequest(CCU_MSG_MAKE_CALL_REQ, NAME(CCU_MSG_MAKE_CALL_REQ)){};
-
-	  wstring destination_uri;
-
-	  wstring on_behalf_of;
-
-	  CnxInfo local_media;
-
-#pragma TODO ("TODO:This should support IPC IpcAddress instead of handle")
-
-	  LpHandlePtr call_handler_inbound;
-
-};
-BOOST_CLASS_EXPORT(CcuMsgMakeCallReq);
-
-class CcuMsgMakeCallAck: 
-	public IxMessage
-{
-	BOOST_SERIALIZATION_REGION
-	{
-		SERIALIZE_BASE_CLASS(IxMessage);
-		SERIALIZE_FIELD(stack_call_handle);
-		SERIALIZE_FIELD(remote_media);
-	}
-public:
-
-	CcuMsgMakeCallAck(): 
-	  IxMessage(CCU_MSG_MAKE_CALL_ACK, NAME(CCU_MSG_MAKE_CALL_ACK)),
-		  stack_call_handle(IX_UNDEFINED){};
-
-	  CcuMsgMakeCallAck(int handle):
-	  IxMessage(CCU_MSG_MAKE_CALL_ACK, NAME(CCU_MSG_MAKE_CALL_ACK)),
-		  stack_call_handle(handle){};
-
-	  int stack_call_handle;
-
-	  CnxInfo remote_media;
-};
-BOOST_CLASS_EXPORT(CcuMsgMakeCallAck);
-
-class CcuMsgMakeCallNack: 
-	public IxMessage
-{
-	BOOST_SERIALIZATION_REGION
-	{
-		SERIALIZE_BASE_CLASS(IxMessage);
-		SERIALIZE_FIELD(stack_call_handle);
-	}
-public:
-	CcuMsgMakeCallNack():
-	  IxMessage(CCU_MSG_MAKE_CALL_NACK, NAME(CCU_MSG_MAKE_CALL_NACK)){};
-
-	  unsigned long stack_call_handle;
-};
-BOOST_CLASS_EXPORT(CcuMsgMakeCallNack);
-
-class CcuMsgHangupCallReq: 
-	public CcuMsgRequest
-{
-	BOOST_SERIALIZATION_REGION
-	{
-		SERIALIZE_BASE_CLASS(IxMessage);
-		SERIALIZE_FIELD(stack_call_handle);
-	}
-public:
-	CcuMsgHangupCallReq():
-	  CcuMsgRequest(CCU_MSG_HANGUP_CALL_REQ, NAME(CCU_MSG_HANGUP_CALL_REQ)),
-		  stack_call_handle(IX_UNDEFINED){};
-
-	  CcuMsgHangupCallReq(int handle):
-	  CcuMsgRequest(CCU_MSG_HANGUP_CALL_REQ, NAME(CCU_MSG_HANGUP_CALL_REQ)),
-		  stack_call_handle(handle){};
-
-	  unsigned long stack_call_handle;
-};
-BOOST_CLASS_EXPORT(CcuMsgHangupCallReq);
-
-class  CcuMsgStackMixin 
-{
-	BOOST_SERIALIZATION_REGION
-	{
-		SERIALIZE_FIELD(stack_call_handle);
-		SERIALIZE_FIELD(local_media);
-		SERIALIZE_FIELD(remote_media);
-	}
-
-public:
-
-	int stack_call_handle;
-
-	CnxInfo local_media;
-
-	MediaFormatsList offered_codecs;
-
-	MediaFormatsList accepted_codecs;
-
-	CnxInfo remote_media;
-
-	virtual void copy_data_on_response(IN IxMessage *msg)
-	{
-		CcuMsgStackMixin *req = dynamic_cast<CcuMsgStackMixin*>(msg);
-
-		stack_call_handle	= req->stack_call_handle;
-		local_media			= local_media.is_ip_valid()  ? req->local_media : local_media;
-		remote_media		= remote_media.is_ip_valid() ? req->remote_media : remote_media;
-		offered_codecs      = req->offered_codecs;
-		accepted_codecs		= req->accepted_codecs;
-
-	};
-
-};
-BOOST_IS_ABSTRACT(CcuMsgStackMixin);
-
-class CcuMsgCallOfferedReq:
-	public CcuMsgStackMixin, public CcuMsgRequest
-{
-	BOOST_SERIALIZATION_REGION
-	{
-		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
-		SERIALIZE_BASE_CLASS(IxMessage);
-	}
-public:
-	CcuMsgCallOfferedReq():CcuMsgRequest(CCU_MSG_CALL_OFFERED, 
-		NAME(CCU_MSG_CALL_OFFERED)){}
-
-	LpHandlePair call_handler_inbound;
-
-	MediaFormatsList offered_codecs;
-
-};
-BOOST_CLASS_EXPORT(CcuMsgCallOfferedReq);
-
-class CcuMsgCalOfferedlAck:
-	public CcuMsgStackMixin,public IxMessage
-{
-	BOOST_SERIALIZATION_REGION
-	{
-		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
-		SERIALIZE_BASE_CLASS(IxMessage);
-	}
-public:
-	CcuMsgCalOfferedlAck():IxMessage(CCU_MSG_CALL_OFFERED_ACK, 
-		NAME(CCU_MSG_CALL_OFFERED_ACK)){}
-
-	virtual void copy_data_on_response(IN IxMessage *request)
-	{
-		CcuMsgStackMixin::copy_data_on_response(request);
-		IxMessage::copy_data_on_response(request);
-	}
-};
-BOOST_CLASS_EXPORT(CcuMsgCalOfferedlAck);
-
-class CcuMsgCallOfferedNack:
-	public CcuMsgStackMixin, public IxMessage
-{
-	BOOST_SERIALIZATION_REGION
-	{
-		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
-		SERIALIZE_BASE_CLASS(IxMessage);
-		SERIALIZE_FIELD(code);
-	}
-public:
-	CcuMsgCallOfferedNack():
-	  IxMessage(CCU_MSG_CALL_OFFERED_NACK, NAME(CCU_MSG_CALL_OFFERED_NACK))
-		  ,code(CCU_API_FAILURE){}
-
-	  virtual void copy_data_on_response(IN IxMessage *request)
-	  {
-		  CcuMsgStackMixin::copy_data_on_response(request);
-		  IxMessage::copy_data_on_response(request);
-	  }
-
-	  IxApiErrorCode code;
-
-};
-BOOST_CLASS_EXPORT(CcuMsgCallOfferedNack);
-
-class CcuMsgNewCallConnected:
-	public CcuMsgStackMixin,public IxMessage
-{
-	BOOST_SERIALIZATION_REGION
-	{
-		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
-		SERIALIZE_BASE_CLASS(IxMessage);
-	}
-
-public:
-	CcuMsgNewCallConnected():IxMessage(CCU_MSG_CALL_CONNECTED, 
-		NAME(CCU_MSG_CALL_CONNECTED)){}
-
-	virtual void copy_data_on_response(IN IxMessage *request)
-	{
-		CcuMsgStackMixin::copy_data_on_response(request);
-		IxMessage::copy_data_on_response(request);
-	}
-
-};
-BOOST_CLASS_EXPORT(CcuMsgNewCallConnected);
-
-class CcuMsgCallHangupEvt:
-	public CcuMsgStackMixin,public IxMessage
-{
-	BOOST_SERIALIZATION_REGION
-	{
-		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
-		SERIALIZE_BASE_CLASS(IxMessage);
-	}
-
-public:
-	CcuMsgCallHangupEvt():IxMessage(CCU_MSG_CALL_HANG_UP_EVT, 
-		NAME(CCU_MSG_CALL_HANG_UP_EVT)){}
-
-};
-BOOST_CLASS_EXPORT(CcuMsgCallHangupEvt);
-
-
-class CcuMsgCallDtmfEvt:
-	public CcuMsgStackMixin,public IxMessage
-{
-	BOOST_SERIALIZATION_REGION
-	{
-		SERIALIZE_BASE_CLASS(CcuMsgStackMixin);
-		SERIALIZE_BASE_CLASS(IxMessage);
-		SERIALIZE_FIELD(dtmf_digit)
-	}
-
-public:
-	CcuMsgCallDtmfEvt():IxMessage(CCU_MSG_CALL_DTMF_EVT, 
-		NAME(CCU_MSG_CALL_DTMF_EVT)){}
-
-	int dtmf_digit;
-
-};
-BOOST_CLASS_EXPORT(CcuMsgCallDtmfEvt);
-
-#pragma endregion Sip_Stack_Events
-
 namespace ivrworx
 {
 
-	enum CallState
+#pragma region Sip_Stack_Events
+
+	enum CallEvts
 	{
-		IX_CALL_NONE,
-		IX_CALL_OFFERED,
-		IX_CALL_CONNECTED,
-		IX_CALL_TERMINATED
+		MSG_CALL_OFFERED = MSG_USER_DEFINED,
+		MSG_CALL_OFFERED_ACK,
+		MSG_CALL_OFFERED_NACK,
+		MSG_CALL_CONNECTED,
+		MSG_CALL_HANG_UP_EVT,
+		MSG_CALL_TERMINATED,
+		MSG_CALL_DTMF_EVT,
+
+		MSG_MAKE_CALL_REQ,
+		MSG_MAKE_CALL_ACK,
+		MSG_MAKE_CALL_NACK,
+		MSG_HANGUP_CALL_REQ,
 	};
 
-	
+
+	//
+	// CALL RELATED
+	//
+	class MsgMakeCallReq : 
+		public MsgRequest
+	{
+
+	public:
+		MsgMakeCallReq():
+		  MsgRequest(MSG_MAKE_CALL_REQ, NAME(MSG_MAKE_CALL_REQ)){};
+
+		  string destination_uri;
+
+		  string on_behalf_of;
+
+		  CnxInfo local_media;
+
+		  LpHandlePtr call_handler_inbound;
+
+	};
+
+
+	class MsgMakeCallAck: 
+		public IwMessage
+	{
+	public:
+
+		MsgMakeCallAck(): 
+		  IwMessage(MSG_MAKE_CALL_ACK, NAME(MSG_MAKE_CALL_ACK)),
+			  stack_call_handle(IW_UNDEFINED){};
+
+		  MsgMakeCallAck(int handle):
+		  IwMessage(MSG_MAKE_CALL_ACK, NAME(MSG_MAKE_CALL_ACK)),
+			  stack_call_handle(handle){};
+
+		  int stack_call_handle;
+
+		  CnxInfo remote_media;
+	};
+
+
+	class MsgMakeCallNack: 
+		public IwMessage
+	{
+	public:
+		MsgMakeCallNack():
+		  IwMessage(MSG_MAKE_CALL_NACK, NAME(MSG_MAKE_CALL_NACK)){};
+
+		  unsigned long stack_call_handle;
+	};
+
+
+	class MsgHangupCallReq: 
+		public MsgRequest
+	{
+	public:
+		MsgHangupCallReq():
+		  MsgRequest(MSG_HANGUP_CALL_REQ, NAME(MSG_HANGUP_CALL_REQ)),
+			  stack_call_handle(IW_UNDEFINED){};
+
+		  MsgHangupCallReq(int handle):
+		  MsgRequest(MSG_HANGUP_CALL_REQ, NAME(MSG_HANGUP_CALL_REQ)),
+			  stack_call_handle(handle){};
+
+		  unsigned long stack_call_handle;
+	};
+
+
+	class  MsgStackMixin 
+	{
+	public:
+
+		int stack_call_handle;
+
+		CnxInfo local_media;
+
+		MediaFormatsList offered_codecs;
+
+		MediaFormatsList accepted_codecs;
+
+		CnxInfo remote_media;
+
+		virtual void copy_data_on_response(IN IwMessage *msg)
+		{
+			MsgStackMixin *req = dynamic_cast<MsgStackMixin*>(msg);
+
+			stack_call_handle	= req->stack_call_handle;
+			local_media			= local_media.is_ip_valid()  ? req->local_media : local_media;
+			remote_media		= remote_media.is_ip_valid() ? req->remote_media : remote_media;
+			offered_codecs      = req->offered_codecs;
+			accepted_codecs		= req->accepted_codecs;
+
+		};
+
+	};
+
+	class MsgCallOfferedReq:
+		public MsgStackMixin, public MsgRequest
+	{
+	public:
+		MsgCallOfferedReq():MsgRequest(MSG_CALL_OFFERED, 
+			NAME(MSG_CALL_OFFERED)){}
+
+		LpHandlePair call_handler_inbound;
+
+		MediaFormatsList offered_codecs;
+
+	};
+
+
+	class MsgCalOfferedlAck:
+		public MsgStackMixin,public IwMessage
+	{
+	public:
+		MsgCalOfferedlAck():IwMessage(MSG_CALL_OFFERED_ACK, 
+			NAME(MSG_CALL_OFFERED_ACK)){}
+
+		virtual void copy_data_on_response(IN IwMessage *request)
+		{
+			MsgStackMixin::copy_data_on_response(request);
+			IwMessage::copy_data_on_response(request);
+		}
+	};
+
+
+	class MsgCallOfferedNack:
+		public MsgStackMixin, public IwMessage
+	{
+	public:
+		MsgCallOfferedNack():
+		  IwMessage(MSG_CALL_OFFERED_NACK, NAME(MSG_CALL_OFFERED_NACK))
+			  ,code(API_FAILURE){}
+
+		  virtual void copy_data_on_response(IN IwMessage *request)
+		  {
+			  MsgStackMixin::copy_data_on_response(request);
+			  IwMessage::copy_data_on_response(request);
+		  }
+
+		  ApiErrorCode code;
+
+	};
+
+
+	class MsgNewCallConnected:
+		public MsgStackMixin,public IwMessage
+	{
+	public:
+		MsgNewCallConnected():IwMessage(MSG_CALL_CONNECTED, 
+			NAME(MSG_CALL_CONNECTED)){}
+
+		virtual void copy_data_on_response(IN IwMessage *request)
+		{
+			MsgStackMixin::copy_data_on_response(request);
+			IwMessage::copy_data_on_response(request);
+		}
+
+	};
+
+	class MsgCallHangupEvt:
+		public MsgStackMixin,public IwMessage
+	{
+	public:
+		MsgCallHangupEvt():IwMessage(MSG_CALL_HANG_UP_EVT, 
+			NAME(MSG_CALL_HANG_UP_EVT)){}
+
+	};
+
+
+	class MsgCallDtmfEvt:
+		public MsgStackMixin,public IwMessage
+	{
+	public:
+		MsgCallDtmfEvt():IwMessage(MSG_CALL_DTMF_EVT, 
+			NAME(MSG_CALL_DTMF_EVT)){}
+
+		int dtmf_digit;
+
+	};
+
+
+#pragma endregion Sip_Stack_Events
+
+
+	enum CallState
+	{
+		CALL_STATE_UKNOWN,
+		CALL_STATE_OFFERED,
+		CALL_STATE_CONNECTED,
+		CALL_STATE_TERMINATED
+	};
+
+
 	class Call : 
 		public ActiveObject
 	{
@@ -314,30 +246,30 @@ namespace ivrworx
 
 		Call(IN LpHandlePair _stackPair,
 			IN ScopedForking &forking,
-			IN shared_ptr<CcuMsgCallOfferedReq> offered_msg);
+			IN shared_ptr<MsgCallOfferedReq> offered_msg);
 
 		virtual ~Call(void);
 
 		void EnableMediaFormat(IN const MediaFormat& codec);
 
-		IxApiErrorCode NegotiateMediaFormats(
+		ApiErrorCode NegotiateMediaFormats(
 			IN const MediaFormatsList &offered_medias, 
 			OUT MediaFormatsList &accepted_media);
 
-		IxApiErrorCode AcceptCall(
+		ApiErrorCode AcceptCall(
 			IN const CnxInfo &local_media, 
 			IN const MediaFormatsList &accepted_codec);
 
-		IxApiErrorCode RejectCall();
+		ApiErrorCode RejectCall();
 
-		IxApiErrorCode MakeCall(
-			IN wstring destination_uri, 
-			IN CnxInfo local_media);
+		ApiErrorCode MakeCall(
+			IN const string &destination_uri, 
+			IN const CnxInfo &local_media);
 
-		IxApiErrorCode HagupCall();
+		ApiErrorCode HagupCall();
 
-		IxApiErrorCode WaitForDtmf(
-			IN wstring &dtmf_digit,
+		ApiErrorCode WaitForDtmf(
+			OUT int &dtmf_digit,
 			IN Time timeout);
 
 		CnxInfo RemoteMedia() const;
@@ -348,7 +280,7 @@ namespace ivrworx
 
 		int StackCallHandle() const;
 
-		void UponActiveObjectEvent(IxMsgPtr ptr);
+		void UponActiveObjectEvent(IwMessagePtr ptr);
 
 	protected:
 
@@ -357,14 +289,14 @@ namespace ivrworx
 		LpHandlePair _stackPair;
 
 		int _stackCallHandle;
-		
+
 		CnxInfo _remoteMedia;
 
 		CnxInfo _localMedia;
 
 		BOOL _hangupDetected;
 
-		LpHandle _dtmfChannel;
+		LpHandlePtr _dtmfChannel;
 
 		CallState _callState;
 
@@ -375,7 +307,7 @@ namespace ivrworx
 	};
 
 	typedef 
-		shared_ptr<Call> CallPtr;
+	shared_ptr<Call> CallPtr;
 
 }
 

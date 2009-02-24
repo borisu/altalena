@@ -20,6 +20,8 @@
 #include "StdAfx.h"
 #include "UASShutdownHandler.h"
 
+namespace ivrworx
+{
 
 
 UASShutdownHandler::UASShutdownHandler(const Data& n) : 
@@ -37,4 +39,6 @@ UASShutdownHandler::onDumCanBeDeleted()
 {
 	cout << name << ": onDumCanBeDeleted." << endl;
 	dumShutDown = true;
+}
+
 }

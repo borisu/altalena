@@ -18,13 +18,13 @@
 */
 
 #pragma once
-#include "CcuConfiguration.h"
+#include "Configuration.h"
 
 namespace ivrworx
 {
 
 	typedef 
-	shared_ptr<CcuConfiguration> CcuConfigurationPtr;
+	shared_ptr<Configuration> CcuConfigurationPtr;
 
 	class ConfigurationFactory
 	{
@@ -32,9 +32,9 @@ namespace ivrworx
 
 		ConfigurationFactory(void);
 
-		~ConfigurationFactory(void);
+		virtual ~ConfigurationFactory(void);
 
-		static CcuConfigurationPtr CreateJsonConfiguration(const wstring &filename);
+		static CcuConfigurationPtr CreateJsonConfiguration(const string &filename);
 
 	};
 

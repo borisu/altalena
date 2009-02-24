@@ -19,8 +19,8 @@
 
 
 #include "StdAfx.h"
-#include "CcuConfiguration.h"
-#include "CcuLogger.h"
+#include "Configuration.h"
+#include "Logger.h"
 
 using namespace boost;
 
@@ -28,11 +28,12 @@ namespace ivrworx
 {
 
 
-	CcuConfiguration::CcuConfiguration(void)
+	Configuration::Configuration(void)
 	{
+
 	}
 
-	CcuConfiguration::~CcuConfiguration(void)
+	Configuration::~Configuration(void)
 	{
 		while (_codecsList.empty() != 0)
 		{
@@ -43,7 +44,7 @@ namespace ivrworx
 	}
 
 	CnxInfo
-	CcuConfiguration::DefaultCnxInfo()
+	Configuration::DefaultCnxInfo()
 	{
 		mutex::scoped_lock lock(_mutex);
 
@@ -52,16 +53,16 @@ namespace ivrworx
 	}
 
 	CnxInfo
-	CcuConfiguration::VcsCnxInfo()
+	Configuration::IvrCnxInfo()
 	{
 		mutex::scoped_lock lock(_mutex);
 
-		return _vcsMediaData;
+		return _ivrCnxInfo;
 
 	}
 
 	CnxInfo
-	CcuConfiguration::ImsCnxInfo()
+	Configuration::ImsCnxInfo()
 	{
 		mutex::scoped_lock lock(_mutex);
 
@@ -69,35 +70,8 @@ namespace ivrworx
 
 	}
 
-	int
-	CcuConfiguration::RtpRelayTopPort()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _rtpRelayTopPort;
-
-	}
-
-	int
-	CcuConfiguration::RtpRelayBottomPort()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _rtpRelayBottomPort;
-
-	}
-
-	CnxInfo
-	CcuConfiguration::RtpRelayIp()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _rtpRelayIp;
-
-	}
-
-	wstring
-	CcuConfiguration::ScriptFile()
+	string
+	Configuration::ScriptFile()
 	{
 		mutex::scoped_lock lock(_mutex);
 
@@ -106,7 +80,7 @@ namespace ivrworx
 
 
 	void
-	CcuConfiguration::AddCodec(const MediaFormat& codec)
+	Configuration::AddCodec(const MediaFormat& codec)
 	{
 		mutex::scoped_lock lock(_mutex);
 
@@ -116,7 +90,7 @@ namespace ivrworx
 
 
 	void
-	CcuConfiguration::AddCodec(const MediaFormat* codec)
+	Configuration::AddCodec(const MediaFormat* codec)
 	{
 		mutex::scoped_lock lock(_mutex);
 
@@ -126,7 +100,7 @@ namespace ivrworx
 
 
 	const CodecsPtrList& 
-	CcuConfiguration::CodecList()
+	Configuration::CodecList()
 	{
 		mutex::scoped_lock lock(_mutex);
 
@@ -134,8 +108,8 @@ namespace ivrworx
 
 	}
 
-	wstring 
-	CcuConfiguration::From()
+	string 
+	Configuration::From()
 	{
 		mutex::scoped_lock lock(_mutex);
 
@@ -143,8 +117,8 @@ namespace ivrworx
 
 	}
 
-	wstring 
-	CcuConfiguration::FromDisplay()
+	string 
+	Configuration::FromDisplay()
 	{
 		mutex::scoped_lock lock(_mutex);
 
