@@ -31,7 +31,7 @@ namespace ivrworx
 
 	public:
 
-		ProcIxMain(IN LpHandlePair pair, IN CcuConfiguration &conf);
+		ProcIxMain(IN LpHandlePair pair, IN Configuration &conf);
 
 		virtual void real_run();
 
@@ -40,17 +40,17 @@ namespace ivrworx
 	protected:
 
 		BOOL ProcessStackMessage(
-			IN IxMsgPtr event,
+			IN IwMessagePtr event,
 			IN ScopedForking &forking
 			);
 
 		BOOL ProcessInboundMessage(
-			IN IxMsgPtr event,
+			IN IwMessagePtr event,
 			IN ScopedForking &forking
 			);
 
 		void StartScript(
-			IN IxMsgPtr msg);
+			IN IwMessagePtr msg);
 
 	private:
 
@@ -58,7 +58,7 @@ namespace ivrworx
 
 		CnxInfo _sipStackData;
 
-		CcuConfiguration &_conf;
+		Configuration &_conf;
 
 	};
 

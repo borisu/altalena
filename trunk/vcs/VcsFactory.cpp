@@ -33,7 +33,7 @@ VcsFactory::~VcsFactory(void)
 
 
 LightweightProcess*
-VcsFactory::CreateProcVcs(LpHandlePair pair, CcuConfiguration  &conf)
+VcsFactory::CreateProcVcs(LpHandlePair pair, Configuration  &conf)
 {
 	return new ProcIxMain(pair, conf);
 }

@@ -28,10 +28,10 @@ namespace ivrworx
 
 
 
-ProcIxMain::ProcIxMain(IN LpHandlePair pair, IN CcuConfiguration &conf)
+ProcIxMain::ProcIxMain(IN LpHandlePair pair, IN Configuration &conf)
 :LightweightProcess(pair,VCS_Q,	__FUNCTIONW__),
 _conf(conf),
-_sipStackData(conf.VcsCnxInfo())
+_sipStackData(conf.IvrCnxInfo())
 {
 }
 
@@ -91,7 +91,7 @@ ProcIxMain::real_run()
 	// Message Loop
 	// 
 	BOOL shutdown_flag = FALSE;
-	IxMsgPtr event;
+	IwMessagePtr event;
 	while(shutdown_flag == FALSE)
 	{
 		IX_PROFILE_CHECK_INTERVAL(25000);
@@ -137,7 +137,7 @@ ProcIxMain::real_run()
 }
 
 BOOL 
-ProcIxMain::ProcessInboundMessage(IN IxMsgPtr event, IN ScopedForking &forking)
+ProcIxMain::ProcessInboundMessage(IN IwMessagePtr event, IN ScopedForking &forking)
 {
 	FUNCTRACKER;
 	switch (event->message_id)
@@ -162,17 +162,17 @@ ProcIxMain::ProcessInboundMessage(IN IxMsgPtr event, IN ScopedForking &forking)
 }
 
 BOOL 
-ProcIxMain::ProcessStackMessage(IN IxMsgPtr ptr, IN ScopedForking &forking)
+ProcIxMain::ProcessStackMessage(IN IwMessagePtr ptr, IN ScopedForking &forking)
 {
 	FUNCTRACKER;
 
 	switch (ptr->message_id)
 	{
-	case CCU_MSG_CALL_OFFERED:
+	case MSG_CALL_OFFERED:
 		{
 			
-			shared_ptr<CcuMsgCallOfferedReq> call_offered = 
-				shared_polymorphic_cast<CcuMsgCallOfferedReq> (ptr);
+			shared_ptr<MsgCallOfferedReq> call_offered = 
+				shared_polymorphic_cast<MsgCallOfferedReq> (ptr);
 
 			DECLARE_NAMED_HANDLE_PAIR(script_runner_handle);
 

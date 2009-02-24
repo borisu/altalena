@@ -28,7 +28,7 @@ namespace ivrworx
 	public:
 		ImsFactory(void);
 
-		static LightweightProcess *CreateProcIms(LpHandlePair pair, CcuConfiguration &conf);
+		static LightweightProcess *CreateProcIms(LpHandlePair pair, Configuration &conf);
 
 		static ImsSessionPtr CreateImsSession();
 

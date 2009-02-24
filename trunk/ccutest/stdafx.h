@@ -48,4 +48,5 @@
 #include "LightweightProcess.h"
 #include "CcuConfiguration.h"
 #include "ConfigurationFactory.h"
+#include "ActiveObject.h"
 

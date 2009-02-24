@@ -39,7 +39,7 @@ JsonConfigurationTest::test()
 
 	assert(
 		ConfigurationFactory::CreateJsonConfiguration(L"conf.json") 
-		!= CcuConfigurationPtr((CcuConfiguration*)NULL));
+		!= CcuConfigurationPtr((Configuration*)NULL));
 
 
 }

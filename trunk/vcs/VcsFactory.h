@@ -30,6 +30,6 @@ public:
 
 	virtual ~VcsFactory(void);
 
-	static LightweightProcess *CreateProcVcs(LpHandlePair pair, CcuConfiguration  &conf);
+	static LightweightProcess *CreateProcVcs(LpHandlePair pair, Configuration  &conf);
 
 };

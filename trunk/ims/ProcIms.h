@@ -36,7 +36,7 @@ namespace ivrworx
 
 		AudioStream *stream;
 
-		IpcAdddress curr_txn_handler;
+		LpHandlePair session_handler;
 
 		int  port;
 
@@ -47,12 +47,20 @@ namespace ivrworx
 	typedef 
 	shared_ptr<StreamingCtx> StreamingCtxPtr;
 
+	struct ImsOverlapped:
+		public OVERLAPPED
+	{
+		ImsHandleId ims_handle_id;
+
+		int dtmf;
+	};
+
 	class ProcIms :
 		public LightweightProcess
 	{
 
 	public:
-		ProcIms(LpHandlePair pair, CcuConfiguration &conf);
+		ProcIms(LpHandlePair pair, Configuration &conf);
 
 		void real_run();
 
@@ -60,19 +68,19 @@ namespace ivrworx
 
 	protected:
 
-		virtual void AllocatePlaybackSession(IxMsgPtr msg);
+		virtual void AllocatePlaybackSession(IwMessagePtr msg);
 
-		virtual void StartPlayback(IxMsgPtr msg);
+		virtual void StartPlayback(IwMessagePtr msg);
 
-		virtual void StopPlayback(IxMsgPtr msg);
+		virtual void StopPlayback(IwMessagePtr msg);
 
-		virtual void TearDown(IxMsgPtr msg);
+		virtual void TearDown(IwMessagePtr msg);
 
 		virtual void TearDown(StreamingCtxPtr ctx);
 
-		virtual void UponPlaybackStopped(OVERLAPPED* args);
+		virtual void UponPlaybackStopped(ImsOverlapped* args);
 
-		virtual void UponDtmfEvent(OVERLAPPED* args);
+		virtual void UponDtmfEvent(ImsOverlapped* args);
 
 		virtual void TearDownAllSessions();
 
@@ -94,7 +102,7 @@ namespace ivrworx
 		typedef map<wstring, PayloadType*> PayloadTypeMap;
 		PayloadTypeMap _payloadTypeMap;
 
-		CcuConfiguration &_conf;
+		Configuration &_conf;
 
 		IocpInterruptorPtr _iocpPtr;
 

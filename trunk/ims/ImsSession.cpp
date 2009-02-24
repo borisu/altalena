@@ -21,22 +21,24 @@
 #include "ProcIms.h"
 #include "ImsSession.h"
 #include "Ims.h"
+#include "Call.h"
 
 using namespace boost;
 
 namespace ivrworx
 {
 
-ImsSession::ImsSession(LightweightProcess &facade):
-_imsSessionHandle(IX_UNDEFINED),
-_facade(facade)
+ImsSession::ImsSession(IN ScopedForking &forking):
+_imsSessionHandle(IW_UNDEFINED),
+_forking(forking),
+_dtmfHandle(new LpHandle())
 {
 
 }
 
 ImsSession::~ImsSession(void)
 {
-	if (_imsSessionHandle != IX_UNDEFINED)
+	if (_imsSessionHandle != IW_UNDEFINED)
 	{
 		TearDown();
 	}
@@ -51,12 +53,12 @@ ImsSession::PlayFile(IN const wstring &file_name,
 
 	FUNCTRACKER;
 
-	if (_imsSessionHandle == IX_UNDEFINED)
+	if (_imsSessionHandle == IW_UNDEFINED)
 	{
 		return CCU_API_FAILURE;
 	}
 
-	IxMsgPtr response = CCU_NULL_MSG;
+	IwMessagePtr response = CCU_NULL_MSG;
 	
 	DECLARE_NAMED_HANDLE(ims_play_txn);
 	ims_play_txn->HandleName(L"Ims Play TXN"); // for logging purposes
@@ -73,7 +75,7 @@ ImsSession::PlayFile(IN const wstring &file_name,
 	msg->source.handle_id	= ims_play_txn->GetObjectUid();
 	msg->transaction_id		= GenerateNewTxnId();
 	
-	IxApiErrorCode res = _facade.SendMessage(IMS_Q,IxMsgPtr(msg));
+	IxApiErrorCode res = GetCurrLightWeightProc()->SendMessage(IMS_Q,IwMessagePtr(msg));
 	if (CCU_FAILURE(res))
 	{
 		return res;
@@ -81,7 +83,10 @@ ImsSession::PlayFile(IN const wstring &file_name,
 
 	if (provisional)
 	{
-		res = _facade.WaitForTxnResponse(ims_play_txn,response, MilliSeconds(_facade.TransactionTimeout()));
+		res = GetCurrLightWeightProc()->WaitForTxnResponse(
+			ims_play_txn,
+			response, 
+			MilliSeconds(GetCurrLightWeightProc()->TransactionTimeout()));
 		if (CCU_FAILURE(res))
 		{
 			return res;
@@ -99,7 +104,7 @@ ImsSession::PlayFile(IN const wstring &file_name,
 		return CCU_API_SUCCESS;
 	}
 
-	res = _facade.WaitForTxnResponse(ims_play_txn,response,  MilliSeconds(MAXLONG));
+	res = GetCurrLightWeightProc()->WaitForTxnResponse(ims_play_txn,response,  Seconds(3600));
 	if (CCU_FAILURE(res))
 	{
 		return res;
@@ -114,6 +119,45 @@ ImsSession::PlayFile(IN const wstring &file_name,
 }
 
 IxApiErrorCode
+ImsSession::WaitForDtmf(OUT int &dtmf, IN Time timeout)
+{
+	
+	IwMessagePtr ptr = CCU_NULL_MSG;
+
+	IxApiErrorCode res = GetCurrLightWeightProc()->WaitForTxnResponse(_dtmfHandle,ptr,timeout);
+	if (CCU_FAILURE(res))
+	{
+		return res;
+	}
+
+	shared_ptr<MsgCallDtmfEvt> dtmf_event = shared_dynamic_cast<MsgCallDtmfEvt> (ptr);
+	dtmf = dtmf_event->dtmf_digit;
+
+	return CCU_API_SUCCESS;
+
+}
+
+void
+ImsSession::UponActiveObjectEvent(IwMessagePtr ptr)
+{
+	FUNCTRACKER;
+
+	switch (ptr->message_id)
+	{
+	case MSG_CALL_DTMF_EVT:
+		{
+			_dtmfHandle->Send(ptr);
+		}
+	default:
+		{
+
+		}
+	};
+
+	ActiveObject::UponActiveObjectEvent(ptr);
+}
+
+IxApiErrorCode
 ImsSession::AllocateIMSConnection(IN CnxInfo remote_end, 
 								  IN MediaFormat codec)
 {
@@ -121,22 +165,24 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 
 	LogDebug("Allocating IMS session remote end = " <<  remote_end.ipporttows()  << ", codec = "  << codec);
 	
-	if (_imsSessionHandle != IX_UNDEFINED)
+	if (_imsSessionHandle != IW_UNDEFINED)
 	{
-		return CCU_API_SUCCESS;
+		return CCU_API_FAILURE;
 	}
 
-	IxMsgPtr response = CCU_NULL_MSG;
+	DECLARE_NAMED_HANDLE_PAIR(session_handler_pair);
 
 	CcuMsgAllocateImsSessionReq *msg = new CcuMsgAllocateImsSessionReq();
 	msg->remote_media_data = remote_end;
 	msg->codec = codec;
+	msg->session_handler = session_handler_pair;
 
-	IxApiErrorCode res = _facade.DoRequestResponseTransaction(
+	IwMessagePtr response = CCU_NULL_MSG;
+	IxApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
 		IMS_Q,
-		IxMsgPtr(msg),
+		IwMessagePtr(msg),
 		response,
-		Time(MilliSeconds(_facade.TransactionTimeout())),
+		MilliSeconds(GetCurrLightWeightProc()->TransactionTimeout()),
 		L"Allocate IMS Connection TXN");
 
 	if (res != CCU_API_SUCCESS)
@@ -153,17 +199,19 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 
 			shared_ptr<CcuMsgAllocateImsSessionAck> ack = 
 				shared_polymorphic_cast<CcuMsgAllocateImsSessionAck>(response);
-			_imsSessionHandle = ack->playback_handle;
-			_imsMediaData = ack->ims_media_data;
+			_imsSessionHandle	= ack->playback_handle;
+			_imsMediaData		= ack->ims_media_data;
 
-			LogDebug("IMS session allocated successfully, ims handle=[" << _imsSessionHandle << "]");
+			Start(_forking,session_handler_pair,L"Ims Session handler");
+
+			LogDebug("Ims session allocated successfully, ims handle=[" << _imsSessionHandle << "]");
 
 			break;
 
 		}
 	case CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK:
 		{
-			LogDebug("Error allocating IMS session.");
+			LogDebug("Error allocating Ims session.");
 			res = CCU_API_SERVER_FAILURE;
 			break;
 		}
@@ -191,7 +239,7 @@ void ImsSession::ImsMediaData(IN CnxInfo val)
 void
 ImsSession::TearDown()
 {
-	if(_imsSessionHandle == IX_UNDEFINED)
+	if(_imsSessionHandle == IW_UNDEFINED)
 	{
 		return;
 	}
@@ -200,9 +248,9 @@ ImsSession::TearDown()
 	tear_req->handle = _imsSessionHandle;
 
 	// no way back
-	_imsSessionHandle = IX_UNDEFINED;
+	_imsSessionHandle = IW_UNDEFINED;
 
-	IxApiErrorCode res = _facade.SendMessage(IMS_Q,IxMsgPtr(tear_req));
+	IxApiErrorCode res = GetCurrLightWeightProc()->SendMessage(IMS_Q,IwMessagePtr(tear_req));
 
 }
 

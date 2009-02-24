@@ -13,11 +13,11 @@ public:
 
 	virtual void real_run();
 
-	virtual void UponMakeCall(IxMsgPtr msg);
+	virtual void UponMakeCall(IwMessagePtr msg);
 
-	virtual void UponHangupCall(IxMsgPtr msg);
+	virtual void UponHangupCall(IwMessagePtr msg);
 
-	virtual void UponCallOfferedAck(IxMsgPtr msg);
+	virtual void UponCallOfferedAck(IwMessagePtr msg);
 
 	int handle_counter;
 };
