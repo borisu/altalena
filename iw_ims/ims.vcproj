@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="ims"
+	Name="iw_ims"
 	ProjectGUID="{E4E14960-A4AD-4B7A-8471-8091D58C11F3}"
 	RootNamespace="ims"
 	Keyword="Win32Proj"
@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\ccu2;..\rtprelay"
+				AdditionalIncludeDirectories="..\iw_core;&quot;..\mediastreamer2-antisip-4.3.3-rc2\mediastreamer2\include&quot;;&quot;..\mediastreamer2-antisip-4.3.3-rc2\oRTP\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -223,6 +223,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PortManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ProcIms.cpp"
 				>
 			</File>
@@ -270,6 +274,10 @@
 			</File>
 			<File
 				RelativePath=".\ImsSession.h"
+				>
+			</File>
+			<File
+				RelativePath=".\PortManager.h"
 				>
 			</File>
 			<File

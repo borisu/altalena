@@ -44,8 +44,8 @@ ImsSession::~ImsSession(void)
 	}
 }
 
-IxApiErrorCode
-ImsSession::PlayFile(IN const wstring &file_name,
+ApiErrorCode
+ImsSession::PlayFile(IN const string &file_name,
 					 IN BOOL sync,
 					 IN BOOL loop,
 					 IN BOOL provisional)
@@ -55,14 +55,14 @@ ImsSession::PlayFile(IN const wstring &file_name,
 
 	if (_imsSessionHandle == IW_UNDEFINED)
 	{
-		return CCU_API_FAILURE;
+		return API_FAILURE;
 	}
 
-	IwMessagePtr response = CCU_NULL_MSG;
+	IwMessagePtr response = NULL_MSG;
 	
 	DECLARE_NAMED_HANDLE(ims_play_txn);
-	ims_play_txn->HandleName(L"Ims Play TXN"); // for logging purposes
-	ims_play_txn->Direction(CCU_MSG_DIRECTION_INBOUND);
+	ims_play_txn->HandleName("Ims Play TXN"); // for logging purposes
+	ims_play_txn->Direction(MSG_DIRECTION_INBOUND);
 
 	RegistrationGuard guard(ims_play_txn);
 
@@ -75,8 +75,8 @@ ImsSession::PlayFile(IN const wstring &file_name,
 	msg->source.handle_id	= ims_play_txn->GetObjectUid();
 	msg->transaction_id		= GenerateNewTxnId();
 	
-	IxApiErrorCode res = GetCurrLightWeightProc()->SendMessage(IMS_Q,IwMessagePtr(msg));
-	if (CCU_FAILURE(res))
+	ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(IMS_Q,IwMessagePtr(msg));
+	if (IW_FAILURE(res))
 	{
 		return res;
 	}
@@ -87,45 +87,45 @@ ImsSession::PlayFile(IN const wstring &file_name,
 			ims_play_txn,
 			response, 
 			MilliSeconds(GetCurrLightWeightProc()->TransactionTimeout()));
-		if (CCU_FAILURE(res))
+		if (IW_FAILURE(res))
 		{
 			return res;
 		}
 
 		if (response->message_id != CCU_MSG_START_PLAY_REQ_ACK)
 		{
-			return CCU_API_FAILURE;
+			return API_FAILURE;
 		}
 
 	}
 	
 	if (!sync)
 	{
-		return CCU_API_SUCCESS;
+		return API_SUCCESS;
 	}
 
 	res = GetCurrLightWeightProc()->WaitForTxnResponse(ims_play_txn,response,  Seconds(3600));
-	if (CCU_FAILURE(res))
+	if (IW_FAILURE(res))
 	{
 		return res;
 	}
 
 	if (response->message_id != CCU_MSG_IMS_PLAY_STOPPED)
 	{
-		return CCU_API_FAILURE;
+		return API_FAILURE;
 	}
 
-	return CCU_API_SUCCESS;
+	return API_SUCCESS;
 }
 
-IxApiErrorCode
+ApiErrorCode
 ImsSession::WaitForDtmf(OUT int &dtmf, IN Time timeout)
 {
 	
-	IwMessagePtr ptr = CCU_NULL_MSG;
+	IwMessagePtr ptr = NULL_MSG;
 
-	IxApiErrorCode res = GetCurrLightWeightProc()->WaitForTxnResponse(_dtmfHandle,ptr,timeout);
-	if (CCU_FAILURE(res))
+	ApiErrorCode res = GetCurrLightWeightProc()->WaitForTxnResponse(_dtmfHandle,ptr,timeout);
+	if (IW_FAILURE(res))
 	{
 		return res;
 	}
@@ -133,7 +133,7 @@ ImsSession::WaitForDtmf(OUT int &dtmf, IN Time timeout)
 	shared_ptr<MsgCallDtmfEvt> dtmf_event = shared_dynamic_cast<MsgCallDtmfEvt> (ptr);
 	dtmf = dtmf_event->dtmf_digit;
 
-	return CCU_API_SUCCESS;
+	return API_SUCCESS;
 
 }
 
@@ -157,17 +157,17 @@ ImsSession::UponActiveObjectEvent(IwMessagePtr ptr)
 	ActiveObject::UponActiveObjectEvent(ptr);
 }
 
-IxApiErrorCode
+ApiErrorCode
 ImsSession::AllocateIMSConnection(IN CnxInfo remote_end, 
 								  IN MediaFormat codec)
 {
 	FUNCTRACKER;
 
-	LogDebug("Allocating IMS session remote end = " <<  remote_end.ipporttows()  << ", codec = "  << codec);
+	LogDebug("Allocating IMS session remote end = " <<  remote_end.ipporttos()  << ", codec = "  << codec);
 	
 	if (_imsSessionHandle != IW_UNDEFINED)
 	{
-		return CCU_API_FAILURE;
+		return API_FAILURE;
 	}
 
 	DECLARE_NAMED_HANDLE_PAIR(session_handler_pair);
@@ -177,15 +177,15 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 	msg->codec = codec;
 	msg->session_handler = session_handler_pair;
 
-	IwMessagePtr response = CCU_NULL_MSG;
-	IxApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
+	IwMessagePtr response = NULL_MSG;
+	ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
 		IMS_Q,
 		IwMessagePtr(msg),
 		response,
 		MilliSeconds(GetCurrLightWeightProc()->TransactionTimeout()),
-		L"Allocate IMS Connection TXN");
+		"Allocate IMS Connection TXN");
 
-	if (res != CCU_API_SUCCESS)
+	if (res != API_SUCCESS)
 	{
 		LogWarn("Error allocating Ims connection " << res);
 		return res;
@@ -202,7 +202,7 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 			_imsSessionHandle	= ack->playback_handle;
 			_imsMediaData		= ack->ims_media_data;
 
-			Start(_forking,session_handler_pair,L"Ims Session handler");
+			Start(_forking,session_handler_pair,"Ims Session handler");
 
 			LogDebug("Ims session allocated successfully, ims handle=[" << _imsSessionHandle << "]");
 
@@ -212,7 +212,7 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 	case CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK:
 		{
 			LogDebug("Error allocating Ims session.");
-			res = CCU_API_SERVER_FAILURE;
+			res = API_SERVER_FAILURE;
 			break;
 		}
 	default:
@@ -250,7 +250,7 @@ ImsSession::TearDown()
 	// no way back
 	_imsSessionHandle = IW_UNDEFINED;
 
-	IxApiErrorCode res = GetCurrLightWeightProc()->SendMessage(IMS_Q,IwMessagePtr(tear_req));
+	ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(IMS_Q,IwMessagePtr(tear_req));
 
 }
 

@@ -18,61 +18,30 @@
 */
 
 #pragma once
-using namespace boost;
+
+using namespace std;
 
 namespace ivrworx
 {
-
-	typedef 
-
-	int ImsHandleId;
-
-	class ImsSession :
-		public ActiveObject
+	class PortManager
 	{
 	public:
+		PortManager(int abs_top, int abs_bottom);
 
-		ImsSession (IN ScopedForking &forking);
+		int		GetNextPortFromPool();
 
-		virtual ~ImsSession (void);
+		void	ReturnPortToPool(int port);
 
-		ApiErrorCode	AllocateIMSConnection(
-			IN CnxInfo remote_end, 
-			IN MediaFormat codec);
-
-		virtual ApiErrorCode PlayFile(
-			IN const string &file_name,
-			IN BOOL sync = FALSE,
-			IN BOOL loop = FALSE,
-			IN BOOL provisional = FALSE);
-
-		virtual ApiErrorCode WaitForDtmf(
-			OUT int &dtmf, 
-			IN Time timeout);
-		
-		virtual void TearDown();
-
-		virtual CnxInfo ImsMediaData() const;
-
-		virtual void ImsMediaData(IN CnxInfo val);
-
-		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
+		virtual ~PortManager(void);
 
 	private:
 
-		ApiErrorCode	SyncStreamFile();
+		typedef vector<int> PortStateList;
+		PortStateList _portsList;
 
-		ConnectionId _imsSessionHandle;
-
-		CnxInfo _imsMediaData;
-
-		ScopedForking &_forking;
-
-		LpHandlePtr _dtmfHandle;
 	};
-
-	typedef shared_ptr<ImsSession> ImsSessionPtr;
 
 
 }
+
 

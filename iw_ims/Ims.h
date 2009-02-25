@@ -22,228 +22,168 @@
 #include "ImsSession.h"
 #include "ImsFactory.h"
 
+namespace ivrworx
+{
 
 #pragma region Playback_Events
 
-enum ImsEvents
-{
-	CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST = CCU_MSG_USER_DEFINED,
-	CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK,
-	CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK,
-	CCU_MSG_START_PLAYBACK_REQUEST,
-	CCU_MSG_START_PLAY_REQ_ACK,
-	CCU_MSG_IMS_START_PLAY_REQ_NACK,
-	CCU_MSG_STOP_PLAYBACK_REQUEST,
-	CCU_MSG_STOP_PLAYBACK_REQUEST_ACK,
-	CCU_MSG_STOP_PLAYBACK_REQUEST_NACK,
-	CCU_MSG_IMS_PLAY_STOPPED,
-	CCU_MSG_IMS_TEARDOWN_REQ
-};
-
-
-class CcuMsgAllocateImsSessionReq:
-	public MsgRequest
-{
-	BOOST_SERIALIZATION_REGION
+	enum ImsEvents
 	{
-		SERIALIZE_BASE_CLASS(IwMessage);
-		SERIALIZE_FIELD(remote_media_data);
-	}
-public:
-	CcuMsgAllocateImsSessionReq():
-	  MsgRequest(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST, 
-		  NAME(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST)){};
+		CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST = MSG_USER_DEFINED,
+		CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK,
+		CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK,
+		CCU_MSG_START_PLAYBACK_REQUEST,
+		CCU_MSG_START_PLAY_REQ_ACK,
+		CCU_MSG_IMS_START_PLAY_REQ_NACK,
+		CCU_MSG_STOP_PLAYBACK_REQUEST,
+		CCU_MSG_STOP_PLAYBACK_REQUEST_ACK,
+		CCU_MSG_STOP_PLAYBACK_REQUEST_NACK,
+		CCU_MSG_IMS_PLAY_STOPPED,
+		CCU_MSG_IMS_TEARDOWN_REQ
+	};
 
-	 CnxInfo remote_media_data;
 
-	 MediaFormat codec;
-
-	 LpHandlePair session_handler;
-
-};
-BOOST_CLASS_EXPORT(CcuMsgAllocateImsSessionReq)
-
-class CcuMsgAllocateImsSessionAck:
-	public IwMessage
-{
-	BOOST_SERIALIZATION_REGION
+	class CcuMsgAllocateImsSessionReq:
+		public MsgRequest
 	{
-		SERIALIZE_BASE_CLASS(IwMessage);
-		SERIALIZE_FIELD(playback_handle);
-	}
-public:
-	CcuMsgAllocateImsSessionAck():
-	  IwMessage(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK, 
-		  NAME(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK)),
-	  playback_handle(IW_UNDEFINED){};
+	public:
+		CcuMsgAllocateImsSessionReq():
+		  MsgRequest(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST, 
+			  NAME(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST)){};
 
-	  int playback_handle;
+		  CnxInfo remote_media_data;
 
-	  CnxInfo ims_media_data;
+		  MediaFormat codec;
 
+		  LpHandlePair session_handler;
 
-	 
-};
-BOOST_CLASS_EXPORT(CcuMsgAllocateImsSessionAck)
+	};
 
-class CcuMsgAllocateImsSessionNack:
-	public IwMessage
-{
-	BOOST_SERIALIZATION_REGION
+	class CcuMsgAllocateImsSessionAck:
+		public IwMessage
 	{
-		SERIALIZE_BASE_CLASS(IwMessage);
-	}
-public:
-	CcuMsgAllocateImsSessionNack():
-	  IwMessage(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK, 
-		  NAME(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK)){};
+	public:
+		CcuMsgAllocateImsSessionAck():
+		  IwMessage(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK, 
+			  NAME(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK)),
+			  playback_handle(IW_UNDEFINED){};
 
-};
-BOOST_CLASS_EXPORT(CcuMsgAllocateImsSessionNack)
+		  int playback_handle;
 
-class CcuMsgStartPlayReq:
-	public MsgRequest
-{
-	BOOST_SERIALIZATION_REGION
+		  CnxInfo ims_media_data;
+
+	};
+
+	class CcuMsgAllocateImsSessionNack:
+		public IwMessage
 	{
-		SERIALIZE_BASE_CLASS(IwMessage);
-		SERIALIZE_FIELD(playback_handle);
-		SERIALIZE_FIELD(loop);
-	}
-public:
-	CcuMsgStartPlayReq():
-	  MsgRequest(CCU_MSG_START_PLAYBACK_REQUEST, NAME(CCU_MSG_START_PLAYBACK_REQUEST)),
-	  playback_handle(IW_UNDEFINED),loop(false),send_provisional(false) {};
+	public:
+		CcuMsgAllocateImsSessionNack():
+		  IwMessage(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK, 
+			  NAME(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK)){};
 
-	  int playback_handle;
+	};
 
-	  wstring file_name;
-
-	  BOOL loop;
-
-	  BOOL send_provisional;
-
-};
-BOOST_CLASS_EXPORT(CcuMsgStartPlayReq)
-
-class CcuMsgStartPlayReqAck:
-	public IwMessage
-{
-	BOOST_SERIALIZATION_REGION
+	class CcuMsgStartPlayReq:
+		public MsgRequest
 	{
-		SERIALIZE_BASE_CLASS(IwMessage);
-	}
-public:
-	CcuMsgStartPlayReqAck():
-	  IwMessage(CCU_MSG_START_PLAY_REQ_ACK, NAME(CCU_MSG_START_PLAY_REQ_ACK)){};
+	public:
+		CcuMsgStartPlayReq():
+		  MsgRequest(CCU_MSG_START_PLAYBACK_REQUEST, NAME(CCU_MSG_START_PLAYBACK_REQUEST)),
+			  playback_handle(IW_UNDEFINED),loop(false),send_provisional(false) {};
 
-};
-BOOST_CLASS_EXPORT(CcuMsgStartPlayReqAck)
+		  int playback_handle;
 
-class CcuMsgStartPlayReqNack:
-	public IwMessage
-{
-	BOOST_SERIALIZATION_REGION
+		  string file_name;
+
+		  BOOL loop;
+
+		  BOOL send_provisional;
+
+	};
+
+	class CcuMsgStartPlayReqAck:
+		public IwMessage
 	{
-		SERIALIZE_BASE_CLASS(IwMessage);
-		SERIALIZE_FIELD(playback_handle);
-	}
-public:
-	CcuMsgStartPlayReqNack():
-	  IwMessage(CCU_MSG_IMS_START_PLAY_REQ_NACK, NAME(CCU_MSG_IMS_START_PLAY_REQ_NACK)),
-	  playback_handle(IW_UNDEFINED){};
+	public:
+		CcuMsgStartPlayReqAck():
+		  IwMessage(CCU_MSG_START_PLAY_REQ_ACK, NAME(CCU_MSG_START_PLAY_REQ_ACK)){};
 
-	  int playback_handle;
-};
-BOOST_CLASS_EXPORT(CcuMsgStartPlayReqNack)
+	};
 
-
-class CcuMsgImsPlayStopped:
-	public IwMessage
-{
-	BOOST_SERIALIZATION_REGION
+	class CcuMsgStartPlayReqNack:
+		public IwMessage
 	{
-		SERIALIZE_BASE_CLASS(IwMessage);
-		SERIALIZE_FIELD(playback_handle);
-		SERIALIZE_FIELD(error);
-	}
-public:
-	CcuMsgImsPlayStopped():
-	  IwMessage(CCU_MSG_IMS_PLAY_STOPPED, NAME(CCU_MSG_IMS_PLAY_STOPPED)),
-	  playback_handle(IW_UNDEFINED),
-	  error(CCU_API_FAILURE){};
+	public:
+		CcuMsgStartPlayReqNack():
+		  IwMessage(CCU_MSG_IMS_START_PLAY_REQ_NACK, NAME(CCU_MSG_IMS_START_PLAY_REQ_NACK)),
+			  playback_handle(IW_UNDEFINED){};
 
-	  int playback_handle;
+		  int playback_handle;
+	};
 
-	  IxApiErrorCode error;
-};
-BOOST_CLASS_EXPORT(CcuMsgImsPlayStopped)
-
-class CcuMsgImsTearDownReq:
-	public MsgRequest
-{
-	BOOST_SERIALIZATION_REGION
+	class CcuMsgImsPlayStopped:
+		public IwMessage
 	{
-		SERIALIZE_BASE_CLASS(IwMessage);
-		SERIALIZE_FIELD(handle);
-	}
-public:
-	CcuMsgImsTearDownReq():
-	  MsgRequest(CCU_MSG_IMS_TEARDOWN_REQ, 
-		  NAME(CCU_MSG_IMS_TEARDOWN_REQ)){};
+	public:
+		CcuMsgImsPlayStopped():
+		  IwMessage(CCU_MSG_IMS_PLAY_STOPPED, NAME(CCU_MSG_IMS_PLAY_STOPPED)),
+			  playback_handle(IW_UNDEFINED),
+			  error(API_FAILURE){};
 
-	  ImsHandleId handle;
+		  int playback_handle;
 
-};
-BOOST_CLASS_EXPORT(CcuMsgImsTearDownReq)
+		  ApiErrorCode error;
+	};
 
-class CcuMsgStopPlaybackReq:
-	public MsgRequest
-{
-	BOOST_SERIALIZATION_REGION
+	class CcuMsgImsTearDownReq:
+		public MsgRequest
 	{
-		SERIALIZE_BASE_CLASS(IwMessage);
-		SERIALIZE_FIELD(handle);
-	}
-public:
-	CcuMsgStopPlaybackReq():
-	  MsgRequest(CCU_MSG_STOP_PLAYBACK_REQUEST, 
-		  NAME(CCU_MSG_STOP_PLAYBACK_REQUEST)){};
+	public:
+		CcuMsgImsTearDownReq():
+		  MsgRequest(CCU_MSG_IMS_TEARDOWN_REQ, 
+			  NAME(CCU_MSG_IMS_TEARDOWN_REQ)){};
 
-	  ImsHandleId handle;
+		  ImsHandleId handle;
 
-};
-BOOST_CLASS_EXPORT(CcuMsgStopPlaybackReq)
+	};
 
-class CcuMsgStopPlaybackAck:
-	public MsgRequest
-{
-	BOOST_SERIALIZATION_REGION
+	class CcuMsgStopPlaybackReq:
+		public MsgRequest
 	{
-		SERIALIZE_BASE_CLASS(IwMessage);
-	}
-public:
-	CcuMsgStopPlaybackAck():
-	  MsgRequest(CCU_MSG_STOP_PLAYBACK_REQUEST_ACK, 
-		  NAME(CCU_MSG_STOP_PLAYBACK_REQUEST_ACK)){};
 
-};
-BOOST_CLASS_EXPORT(CcuMsgStopPlaybackAck)
+	public:
+		CcuMsgStopPlaybackReq():
+		  MsgRequest(CCU_MSG_STOP_PLAYBACK_REQUEST, 
+			  NAME(CCU_MSG_STOP_PLAYBACK_REQUEST)){};
 
-class CcuMsgStopPlaybackNack:
-	public MsgRequest
-{
-	BOOST_SERIALIZATION_REGION
+		  ImsHandleId handle;
+
+	};
+
+
+	class CcuMsgStopPlaybackAck:
+		public MsgRequest
 	{
-		SERIALIZE_BASE_CLASS(IwMessage);
-	}
-public:
-	CcuMsgStopPlaybackNack():
-	  MsgRequest(CCU_MSG_STOP_PLAYBACK_REQUEST_NACK, 
-		  NAME(CCU_MSG_STOP_PLAYBACK_REQUEST_NACK)){};
+	public:
+		CcuMsgStopPlaybackAck():
+		  MsgRequest(CCU_MSG_STOP_PLAYBACK_REQUEST_ACK, 
+			  NAME(CCU_MSG_STOP_PLAYBACK_REQUEST_ACK)){};
 
-};
-BOOST_CLASS_EXPORT(CcuMsgStopPlaybackNack)
+	};
+
+
+	class CcuMsgStopPlaybackNack:
+		public MsgRequest
+	{
+	public:
+		CcuMsgStopPlaybackNack():
+		  MsgRequest(CCU_MSG_STOP_PLAYBACK_REQUEST_NACK, 
+			  NAME(CCU_MSG_STOP_PLAYBACK_REQUEST_NACK)){};
+
+	};
+
+}
 
 #pragma endregion Playback_Events
 

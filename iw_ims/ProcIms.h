@@ -99,7 +99,7 @@ namespace ivrworx
 		typedef	map<ImsHandleId, StreamingCtxPtr> StreamingCtxsMap;
 		StreamingCtxsMap _streamingObjectSet;
 
-		typedef map<wstring, PayloadType*> PayloadTypeMap;
+		typedef map<string, PayloadType*> PayloadTypeMap;
 		PayloadTypeMap _payloadTypeMap;
 
 		Configuration &_conf;
