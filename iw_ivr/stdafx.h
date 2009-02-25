@@ -28,15 +28,13 @@
 #define _WIN32_WINNT 0x0501	// Change this to the appropriate value to target other versions of Windows.
 #endif						
 
-#include "CcuUtils.h"
-#include "CcuLogger.h"
+#include "IwUtils.h"
+#include "Logger.h"
 #include "Profiler.h"
 #include "LightweightProcess.h"
-#include "CcuConfiguration.h"
+#include "Configuration.h"
 #include "Call.h"
-#include "ProcPipeIPCDispatcher.h"
 #include "SipStackFactory.h"
-#include "CcuRTPSession.h"
 #include "ImsSession.h"
 
 

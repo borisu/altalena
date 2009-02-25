@@ -33,11 +33,11 @@ namespace ivrworx
 
 		virtual ~CallWithDirectRtp(void);
 
-		virtual IxApiErrorCode AcceptCall();
+		virtual ApiErrorCode AcceptCall();
 
-		virtual IxApiErrorCode PlayFile(IN const wstring &file_name);
+		virtual ApiErrorCode PlayFile(IN const string &file_name);
 
-		virtual IxApiErrorCode WaitForDtmf(OUT int &dtmf, IN Time timeout);
+		virtual ApiErrorCode WaitForDtmf(OUT int &dtmf, IN Time timeout);
 
 	private:
 

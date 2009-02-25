@@ -35,21 +35,21 @@ namespace ivrworx
 		RemoteMedia(offered_msg->remote_media);
 	}
 
-	IxApiErrorCode CallWithDirectRtp::AcceptCall()
+	ApiErrorCode CallWithDirectRtp::AcceptCall()
 	{
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
 
 		MediaFormatsList accepted_media_formats;
-		IxApiErrorCode res = this->NegotiateMediaFormats(_origOffereReq->offered_codecs, accepted_media_formats);
-		if (CCU_FAILURE(res))
+		ApiErrorCode res = this->NegotiateMediaFormats(_origOffereReq->offered_codecs, accepted_media_formats);
+		if (IW_FAILURE(res))
 		{
 			RejectCall();
 			return res;
 		};
 
 		res = _imsSession.AllocateIMSConnection(RemoteMedia(),_acceptedSpeechFormat);
-		if (CCU_FAILURE(res))
+		if (IW_FAILURE(res))
 		{
 			RejectCall();
 			return res;
@@ -60,23 +60,23 @@ namespace ivrworx
 
 	}
 
-	IxApiErrorCode 
-	CallWithDirectRtp::PlayFile(IN const wstring &file_name)
+	ApiErrorCode 
+	CallWithDirectRtp::PlayFile(IN const string &file_name)
 	{
 		FUNCTRACKER;
 
-		IxApiErrorCode res = _imsSession.PlayFile(file_name, TRUE);
+		ApiErrorCode res = _imsSession.PlayFile(file_name, TRUE);
 
 		return res;
 
 	}
 
-	IxApiErrorCode 
+	ApiErrorCode 
 	CallWithDirectRtp::WaitForDtmf(OUT int &dtmf, IN Time timeout)
 	{
 		FUNCTRACKER;
 
-		IxApiErrorCode res = _imsSession.WaitForDtmf(dtmf, timeout);
+		ApiErrorCode res = _imsSession.WaitForDtmf(dtmf, timeout);
 
 		return res;
 
