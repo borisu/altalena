@@ -18,32 +18,58 @@
 */
 
 #pragma once
+
 #include "LpHandle.h"
-#include "ResipCommon.h"
+#include "LightweightProcess.h"
 
-
-using namespace resip;
+using namespace csp;
 using namespace std;
 
 namespace ivrworx
 {
+	typedef map<int,LpHandlePtr> EventListenersMap;
 
-	class UACAppDialogSet : public AppDialogSet
+	class ActiveObject
 	{
 	public:
 
-		UACAppDialogSet(DialogUsageManager& dum, SipDialogContextPtr ptr);
+		ActiveObject();
 
-		virtual ~UACAppDialogSet(void);
+		virtual void Start(IN ScopedForking &forking, IN LpHandlePair pair, IN const string &name);
 
-		virtual AppDialog* createAppDialog(const SipMessage& msg);
+		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
 
-		virtual SharedPtr<UserProfile> selectUACUserProfile(const SipMessage& msg);
+		virtual void SetEventListener(int ccu_msg_id, LpHandlePtr listener_handle);
 
-		SipDialogContextPtr _ptr;
+		virtual ~ActiveObject(void);
 
+	private:
+
+		LpHandlePair _handlePair;
+
+		EventListenersMap _listenersMap;
+
+		BucketPtr _listenerBucket;
+
+		volatile BOOL _shutdownFlag;
+
+		friend class ProcEventListener;
 	};
 
+	class ProcEventListener:
+		public LightweightProcess
+	{
+	public:
+
+		ProcEventListener(ActiveObject &object,LpHandlePair pair, string name);
+
+		void real_run();
+
+	private:
+
+		ActiveObject &_activeObject;
+		
+	};
+
+
 }
-
-

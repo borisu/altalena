@@ -18,17 +18,15 @@
 */
 
 #pragma once
-#include "ccu.h"
+#include "IwBase.h"
 #include "ResipCommon.h"
-#include "UacSessionHandler.h"
-
+#include "SipSessionHandlerAdapter.h"
 
 using namespace resip;
 using namespace boost;
 
-typedef 
-shared_ptr<UACSessionHandler> UACSessionHandlerPtr;
-
+namespace ivrworx
+{
 
 class UACDialogUsageManager :
 	public DialogUsageManager,public SipSessionHandlerAdapter
@@ -37,14 +35,14 @@ public:
 	UACDialogUsageManager(
 		IN SipStack &sipStack,
 		IN CnxInfo data,
-		IN CcuHandlesMap &ccu_handles_map,
+		IN IwHandlesMap &ccu_handles_map,
 		IN LightweightProcess &ccu_stack);
 
 	virtual ~UACDialogUsageManager(void);
 
-	virtual CcuApiErrorCode MakeCall(IN CcuMsgPtr request);
+	virtual ApiErrorCode MakeCall(IN IwMessagePtr request);
 
-	virtual CcuApiErrorCode HangupCall(SipDialogContextPtr ptr);
+	virtual ApiErrorCode HangupCall(SipDialogContextPtr ptr);
 
 	virtual string CreateSdp(IN CnxInfo &data);
 
@@ -69,12 +67,15 @@ private:
 
 	NameAddrPtr  _nameAddr;
 
-	CcuHandlesMap &_ccuHandlesMap;
+	IwHandlesMap &_iwHandlesMap;
 
 	ResipDialogHandlesMap _resipHandlesMap;
 
-	LightweightProcess &_ccu_stack;
+#pragma TODO ("Remove this field")
+
+	LightweightProcess &_procIwStack;
 
 };
 
 
+}

@@ -3,19 +3,24 @@
 using namespace resip;
 using namespace std;
 
-
-class UASAppDialogSet : public AppDialogSet
+namespace ivrworx
 {
-public:
-	
-	UASAppDialogSet(DialogUsageManager& dum, Data SampleAppData);
+	class UASAppDialogSet : public AppDialogSet
+	{
+	public:
 
-	virtual ~UASAppDialogSet(void);
+		UASAppDialogSet(DialogUsageManager& dum, Data SampleAppData);
 
-	virtual AppDialog* createAppDialog(const SipMessage& msg);
-	
-	virtual SharedPtr<UserProfile> selectUASUserProfile(const SipMessage& msg);
+		virtual ~UASAppDialogSet(void);
 
-};
+		virtual AppDialog* createAppDialog(const SipMessage& msg);
+
+		virtual SharedPtr<UserProfile> selectUASUserProfile(const SipMessage& msg);
+
+	};
+
+}
+
+
 
 

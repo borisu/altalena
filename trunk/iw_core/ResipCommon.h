@@ -18,7 +18,7 @@
 */
 
 #pragma once
-#include "Ccu.h"
+#include "IwBase.h"
 #include "LpHandle.h"
 #include "Call.h"
 
@@ -27,70 +27,77 @@ using namespace boost;
 using namespace resip;
 using namespace std;
 
-typedef 
-shared_ptr<NameAddr> NameAddrPtr;
-
-typedef
-shared_ptr<Data> DataPtr;
-
-typedef
-shared_ptr<HeaderFieldValue> HeaderFieldValuePtr;
-
-typedef
-shared_ptr<SdpContents> SdpContentsPtr;
-
-wostream& 
-operator <<(wostream &ostream, const Data &data);
-
-wostream& 
-operator <<(wostream& strm,  const Message& msg);
-
-typedef 
-int CcuStackHandle;
-
-CcuStackHandle 
-GenerateSipHandle();
-
-enum TransactionType
+namespace ivrworx
 {
-	CCU_UAS,
-	CCU_UAC
-};
-
-struct SipDialogContext :
-	public boost::noncopyable
-{
-	SipDialogContext();
-
-	TransactionType transaction_type;
-
-	ServerInviteSessionHandle uas_invite_handle;
-
-	ClientInviteSessionHandle uac_invite_handle;
-
-	LpHandlePtr call_handler_inbound;
-
-	// used to send responses as it is 
-	// temporary process used to run transaction
-	//
-	CcuMsgPtr last_user_request;
-
-	CcuStackHandle stack_handle;
-};
 
 
-typedef 
-shared_ptr<SipDialogContext> SipDialogContextPtr;
 
-typedef 
-map<CcuStackHandle,SipDialogContextPtr> CcuHandlesMap;
+	typedef 
+		shared_ptr<NameAddr> NameAddrPtr;
 
-typedef 
-map<AppDialogHandle,SipDialogContextPtr> ResipDialogHandlesMap;
+	typedef
+		shared_ptr<Data> DataPtr;
+
+	typedef
+		shared_ptr<HeaderFieldValue> HeaderFieldValuePtr;
+
+	typedef
+		shared_ptr<SdpContents> SdpContentsPtr;
+
+	ostream& 
+		operator <<(ostream &ostream, const Data &data);
+
+	ostream& 
+		operator <<(ostream& strm,  const Message& msg);
+
+	typedef 
+		int IwStackHandle;
+
+	IwStackHandle 
+		GenerateSipHandle();
+
+	enum TransactionType
+	{
+		TXN_TYPE_UAS,
+		TX_TYPE_UAC
+	};
+
+	struct SipDialogContext :
+		public noncopyable
+	{
+		SipDialogContext();
+
+		TransactionType transaction_type;
+
+		ServerInviteSessionHandle uas_invite_handle;
+
+		ClientInviteSessionHandle uac_invite_handle;
+
+		LpHandlePtr call_handler_inbound;
+
+		// used to send responses as it is 
+		// temporary process used to run transaction
+		//
+		IwMessagePtr last_user_request;
+
+		IwStackHandle stack_handle;
+	};
 
 
-CnxInfo 
-CreateMediaData(const SdpContents& sdp);
+	typedef 
+		shared_ptr<SipDialogContext> SipDialogContextPtr;
+
+	typedef 
+		map<IwStackHandle,SipDialogContextPtr> IwHandlesMap;
+
+	typedef 
+		map<AppDialogHandle,SipDialogContextPtr> ResipDialogHandlesMap;
+
+
+	CnxInfo 
+		CreateMediaData(const SdpContents& sdp);
+
+}
 
 
 

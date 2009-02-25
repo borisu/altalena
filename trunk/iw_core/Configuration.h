@@ -18,32 +18,60 @@
 */
 
 #pragma once
-#include "LpHandle.h"
-#include "ResipCommon.h"
+#include "IwBase.h"
 
-
-using namespace resip;
 using namespace std;
 
 namespace ivrworx
 {
 
-	class UACAppDialogSet : public AppDialogSet
+	class Configuration
 	{
 	public:
 
-		UACAppDialogSet(DialogUsageManager& dum, SipDialogContextPtr ptr);
+		Configuration(void);
 
-		virtual ~UACAppDialogSet(void);
+		virtual ~Configuration(void);
 
-		virtual AppDialog* createAppDialog(const SipMessage& msg);
+		virtual CnxInfo DefaultCnxInfo();
 
-		virtual SharedPtr<UserProfile> selectUACUserProfile(const SipMessage& msg);
+		virtual CnxInfo IvrCnxInfo();
 
-		SipDialogContextPtr _ptr;
+		virtual CnxInfo ImsCnxInfo();
+
+		virtual CnxInfo RtpRelayIp();
+
+		virtual string ScriptFile();
+
+		virtual void AddCodec(const MediaFormat& codec);
+
+		virtual void AddCodec(const MediaFormat* codec);
+
+		virtual const CodecsPtrList& CodecList();
+
+		virtual string From();
+
+		virtual string FromDisplay();
+
+	protected:
+
+		mutex _mutex;
+
+		CnxInfo _defaultIp;
+
+		CnxInfo _ivrCnxInfo;
+
+		CnxInfo _imsCnxInfo;
+
+		string _scriptFile;
+
+		CodecsPtrList _codecsList;
+
+		string _from;
+
+		string _fromDisplay;
 
 	};
 
 }
-
 

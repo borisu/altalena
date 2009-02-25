@@ -18,71 +18,77 @@
 */
 
 #pragma once
-#include "Ccu.h"
+#include "IwBase.h"
 #include "ResipCommon.h"
 #include "SipSessionHandlerAdapter.h"
-#include "CcuConfiguration.h"
+#include "Configuration.h"
 
 using namespace resip;
 using namespace boost;
 
-typedef
-map<AppDialogHandle,ServerInviteSessionHandle> DefaultHandlersMap;
-
-
-class UASDialogUsageManager:
-	public DialogUsageManager, 
-	public SipSessionHandlerAdapter
+namespace ivrworx
 {
-public:
-	UASDialogUsageManager(
-		IN CcuConfiguration &conf,
-		IN SipStack &resip_stack, 
-		IN CcuHandlesMap &ccu_handles_map,
-		IN LightweightProcess &ccu_stack);
 
-	virtual ~UASDialogUsageManager(void);
+	typedef
+		map<AppDialogHandle,ServerInviteSessionHandle> DefaultHandlersMap;
 
-	virtual void UponCallOfferedAck(CcuMsgPtr req);
 
-	virtual void UponCallOfferedNack(CcuMsgPtr req);
+	class UASDialogUsageManager:
+		public DialogUsageManager, 
+		public SipSessionHandlerAdapter
+	{
+	public:
+		UASDialogUsageManager(
+			IN Configuration &conf,
+			IN SipStack &resip_stack, 
+			IN IwHandlesMap &ccu_handles_map,
+			IN LightweightProcess &ccu_stack);
 
-	virtual void onNewSession(ServerInviteSessionHandle sis, InviteSession::OfferAnswerType oat, const SipMessage& msg);
+		virtual ~UASDialogUsageManager(void);
 
-	virtual void onTerminated(InviteSessionHandle, InviteSessionHandler::TerminatedReason reason, const SipMessage* msg);
+		virtual void UponCallOfferedAck(IwMessagePtr req);
 
-	virtual void onOffer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp);
+		virtual void UponCallOfferedNack(IwMessagePtr req);
 
-	virtual void onOfferRequired(InviteSessionHandle is, const SipMessage& msg);
+		virtual void onNewSession(ServerInviteSessionHandle sis, InviteSession::OfferAnswerType oat, const SipMessage& msg);
 
-	virtual void onAnswer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp); 
+		virtual void onTerminated(InviteSessionHandle, InviteSessionHandler::TerminatedReason reason, const SipMessage* msg);
 
-	virtual CcuApiErrorCode HangupCall(SipDialogContextPtr ptr);
+		virtual void onOffer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp);
 
-	virtual void onReceivedRequest(ServerOutOfDialogReqHandle ood, const SipMessage& request);
+		virtual void onOfferRequired(InviteSessionHandle is, const SipMessage& msg);
 
-	virtual void onConnected(InviteSessionHandle, const SipMessage& msg);
+		virtual void onAnswer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp); 
 
-	virtual string CreateSdp(CnxInfo &offered_sdp);
+		virtual ApiErrorCode HangupCall(SipDialogContextPtr ptr);
 
-private:
+		virtual void onReceivedRequest(ServerOutOfDialogReqHandle ood, const SipMessage& request);
 
-	CcuConfiguration &_conf;
-	
-	SharedPtr<MasterProfile> _uasMasterProfile;
+		virtual void onConnected(InviteSessionHandle, const SipMessage& msg);
 
-	NameAddrPtr _uasAor;
+		virtual string CreateSdp(CnxInfo &offered_sdp, const MediaFormat &codec);
 
-	ResipDialogHandlesMap _resipHandlesMap;
+		virtual void CleanUpCall(IN SipDialogContextPtr ctx_ptr);
 
-	CcuHandlesMap &_refCcuHandlesMap;
+	private:
 
-	LightweightProcess &_ccu_stack;
+		Configuration &_conf;
 
-	long _sdpVersionCounter;
+		SharedPtr<MasterProfile> _uasMasterProfile;
 
-};
+		NameAddrPtr _uasAor;
 
+		ResipDialogHandlesMap _resipHandlesMap;
+
+		IwHandlesMap &_refIwHandlesMap;
+
+		LightweightProcess &_sipStack;
+
+		long _sdpVersionCounter;
+
+	};
+
+}
 
 
 

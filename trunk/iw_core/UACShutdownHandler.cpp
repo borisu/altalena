@@ -19,7 +19,11 @@
 
 #include "StdAfx.h"
 #include "UACShutdownHandler.h"
-#include "CcuLogger.h"
+#include "Logger.h"
+
+namespace ivrworx
+{
+
 
 
 
@@ -36,6 +40,8 @@ UACShutdownHandler::~UACShutdownHandler(void)
 void 
 UACShutdownHandler::onDumCanBeDeleted() 
 {
-	LogDebug(L": onDumCanBeDeleted." );
+	LogDebug(": onDumCanBeDeleted." );
 	dumShutDown = true;
+}
+
 }

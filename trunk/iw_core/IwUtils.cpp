@@ -17,26 +17,47 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#pragma once
+#include "stdafx.h"
 
 
-using namespace resip;
 using namespace std;
-
 namespace ivrworx
 {
-	class UACAppDialog : public AppDialog
+
+	wstring StringToWString(const string& s)
 	{
-	public:
+		wstring temp(s.length(),L' ');
+		copy(s.begin(), s.end(), temp.begin());
 
-		UACAppDialog(HandleManager& ham);
+		return temp;
+	}
 
-		virtual ~UACAppDialog(); 
+	string WStringToString(const wstring& ws)
+	{
+		string temp(ws.begin(), ws.end());
+		temp.assign(ws.begin(), ws.end());
 
+		return temp;
 	};
 
+	void StringToUpper(string strToConvert)
+	{
+		std::transform(strToConvert.begin(), strToConvert.end(), strToConvert.begin(), ::toupper);
+	}
 
+	void StringToLower(string strToConvert)
+	{
+		std::transform(strToConvert.begin(), strToConvert.end(), strToConvert.begin(), ::tolower);
+	}
+
+	void WStringToUpper(wstring strToConvert)
+	{
+		std::transform(strToConvert.begin(), strToConvert.end(), strToConvert.begin(), ::toupper);
+	}
+
+	void WStringToLower(wstring strToConvert)
+	{
+		std::transform(strToConvert.begin(), strToConvert.end(), strToConvert.begin(), ::tolower);
+	}
 
 }
-
-

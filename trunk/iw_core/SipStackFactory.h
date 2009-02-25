@@ -1,16 +1,22 @@
 #pragma once
-#include "CcuConfiguration.h"
+#include "Configuration.h"
 #include "LightweightProcess.h"
 #include "Call.h"
 
 // wrapper class to hide dependencies
-class SipStackFactory
-{
-public:
-	SipStackFactory(void);
-	virtual ~SipStackFactory(void);
 
-	static LightweightProcess *CreateSipStack(
-		IN LpHandlePair stack_pair, 
-		IN CcuConfiguration &conf);
-};
+namespace ivrworx
+{
+	class SipStackFactory
+	{
+	public:
+		SipStackFactory(void);
+		virtual ~SipStackFactory(void);
+
+		static LightweightProcess *CreateSipStack(
+			IN LpHandlePair stack_pair, 
+			IN Configuration &conf);
+	};
+
+
+}

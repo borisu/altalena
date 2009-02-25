@@ -18,29 +18,34 @@
 */
 
 #pragma once
-#include "CcuConfiguration.h"
+
+#include "Configuration.h"
 
 using namespace std;
 using namespace json_spirit;
 
-class JSONConfiguration :
-	public CcuConfiguration
+namespace ivrworx
 {
-public:
-	JSONConfiguration();
 
-	virtual ~JSONConfiguration(void);
+	class JSONConfiguration :
+		public Configuration
+	{
+	public:
 
-	CcuApiErrorCode InitFromFile(const wstring &filename);
+		JSONConfiguration();
 
-	CcuApiErrorCode InitFromString(const wstring &is);
+		virtual ~JSONConfiguration(void);
 
-	CcuApiErrorCode InitDb();
+		ApiErrorCode InitFromFile(const string &filename);
 
+		ApiErrorCode InitFromString(const string &is);
 
-private:
+		ApiErrorCode InitDb();
 
-	wValue _value;
-};
+	private:
 
+		Value _value;
+	};
+
+}
 
