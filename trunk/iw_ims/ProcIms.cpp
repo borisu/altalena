@@ -193,7 +193,7 @@ namespace ivrworx
 
 
 	ProcIms::ProcIms(IN LpHandlePair pair, IN Configuration &conf)
-		:LightweightProcess(pair, IMS_Q, __FUNCTIONW__),
+		:LightweightProcess(pair, IMS_Q, __FUNCTION__),
 		_conf(conf),
 		_localMedia(conf.ImsCnxInfo()),
 		_rtp_q(NULL),
@@ -206,9 +206,9 @@ namespace ivrworx
 		_inbound->HandleInterruptor(_iocpPtr);
 
 
-		_payloadTypeMap[L"PCMA"] = &payload_type_pcma8000;
-		_payloadTypeMap[L"PCMU"] = &payload_type_pcmu8000;
-		_payloadTypeMap[L"telephone-event"]  = &payload_type_telephone_event;
+		_payloadTypeMap["PCMA"] = &payload_type_pcma8000;
+		_payloadTypeMap["PCMU"] = &payload_type_pcmu8000;
+		_payloadTypeMap["telephone-event"]  = &payload_type_telephone_event;
 
 	}
 
@@ -233,7 +233,7 @@ namespace ivrworx
 			
 			const MediaFormat *media_format = *(conf_iter);
 
-			PayloadTypeMap::iterator ms_map_iter = _payloadTypeMap.find(media_format->sdp_name());
+			PayloadTypeMap::iterator ms_map_iter = _payloadTypeMap.find(media_format->sdp_name_tos());
 			if (ms_map_iter == _payloadTypeMap.end())
 			{
 				LogWarn("Ims encountered configured media format that is not supported " << *media_format);
@@ -326,15 +326,6 @@ namespace ivrworx
 		START_FORKING_REGION;
 		DECLARE_NAMED_HANDLE_PAIR(ipc_pair);
 
-		//
-		// Start IPC
-		//
-		FORK(new ProcPipeIPCDispatcher(ipc_pair,IMS_Q));
-		if (CCU_FAILURE(WaitTillReady(Seconds(5), ipc_pair)))
-		{
-			LogCrit("Cannot start IMS IPC interface exiting...");
-			throw;
-		}
 
 		I_AM_READY;
 
@@ -393,7 +384,7 @@ namespace ivrworx
 			}
 
 
-			IxApiErrorCode err_code = CCU_API_SUCCESS;
+			ApiErrorCode err_code = API_SUCCESS;
 			IwMessagePtr ptr =  _inbound->Wait(Seconds(0), err_code);
 
 			switch (ptr->message_id)
@@ -414,7 +405,7 @@ namespace ivrworx
 					TearDown(ptr);
 					break;
 				}
-			case CCU_MSG_PROC_SHUTDOWN_REQ:
+			case MSG_PROC_SHUTDOWN_REQ:
 				{
 					shutdown_flag = TRUE;
 					SendResponse(ptr,new CcuMsgShutdownAck());
@@ -518,7 +509,7 @@ namespace ivrworx
 		res = rtp_session_set_payload_type(rtps,req->codec.sdp_mapping());
 		if (res < 0) 
 		{
-			LogWarn("error:rtp_session_set_payload_type " << req->codec.sdp_mapping_tows());
+			LogWarn("error:rtp_session_set_payload_type " << req->codec.sdp_mapping_tos());
 			goto error;
 		}
 
@@ -555,7 +546,7 @@ namespace ivrworx
 		PayloadType *pt = rtp_profile_get_payload(_avProfile,req->codec.sdp_mapping());
 		if (pt==NULL)
 		{
-			LogWarn("error:rtp_profile_get_payload " << req->codec.sdp_mapping_tows());
+			LogWarn("error:rtp_profile_get_payload " << req->codec.sdp_mapping_tos());
 			goto error;
 		}
 
@@ -761,7 +752,7 @@ error:
 
 		StreamingCtxPtr ctx		= iter->second;
 
-		audio_stream_play(ctx->stream,WStringToString(req->file_name).c_str());
+		audio_stream_play(ctx->stream,req->file_name.c_str());
 		if (ctx->stream->ticker == NULL)
 		{
 			ctx->stream->ticker = _ticker;
