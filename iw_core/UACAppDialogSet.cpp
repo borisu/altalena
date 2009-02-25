@@ -20,32 +20,37 @@
 #include "StdAfx.h"
 #include "UACAppDialogSet.h"
 #include "UACAppDialog.h"
-#include "CcuLogger.h"
+#include "Logger.h"
 
 
-
-UACAppDialogSet::UACAppDialogSet(DialogUsageManager& dum, SipDialogContextPtr ptr): 
-AppDialogSet(dum),
-_ptr(ptr)
+namespace ivrworx
 {
-	FUNCTRACKER;;
-}
 
-UACAppDialogSet::~UACAppDialogSet(void)
-{
-	FUNCTRACKER;;
-}
 
-AppDialog* 
-UACAppDialogSet::createAppDialog(const SipMessage& msg) 
-{  
-	FUNCTRACKER;;
-	return new UACAppDialog(mDum);  
-}
+	UACAppDialogSet::UACAppDialogSet(DialogUsageManager& dum, SipDialogContextPtr ptr): 
+	AppDialogSet(dum),
+	_ptr(ptr)
+	{
+		FUNCTRACKER;
+	}
 
-SharedPtr<UserProfile> 
-UACAppDialogSet::selectUACUserProfile(const SipMessage& msg) 
-{ 
-	FUNCTRACKER;;
-	return mDum.getMasterUserProfile(); 
+	UACAppDialogSet::~UACAppDialogSet(void)
+	{
+		FUNCTRACKER;
+	}
+
+	AppDialog* 
+	UACAppDialogSet::createAppDialog(const SipMessage& msg) 
+	{  
+		FUNCTRACKER;;
+		return new UACAppDialog(mDum);  
+	}
+
+	SharedPtr<UserProfile> 
+	UACAppDialogSet::selectUACUserProfile(const SipMessage& msg) 
+	{ 
+		FUNCTRACKER;;
+		return mDum.getMasterUserProfile(); 
+	}
+
 }

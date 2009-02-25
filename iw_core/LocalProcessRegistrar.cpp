@@ -1,7 +1,10 @@
 #include "StdAfx.h"
 #include "LocalProcessRegistrar.h"
-#include "CcuLogger.h"
-#include "Ccu.h"
+#include "Logger.h"
+#include "IwBase.h"
+
+namespace ivrworx
+{
 
 
 
@@ -57,7 +60,7 @@ void
 LocalProcessRegistrar::RegisterChannel(IN int handle_id, IN LpHandlePtr ptr)
 {
 	
-	if (handle_id == CCU_UNDEFINED)
+	if (handle_id == IW_UNDEFINED)
 	{
 		return;
 	}
@@ -69,19 +72,18 @@ LocalProcessRegistrar::RegisterChannel(IN int handle_id, IN LpHandlePtr ptr)
 		mutex::scoped_lock lock(_mutex);
 		if ( _locProcessesMap.find(handle_id) != _locProcessesMap.end())
 		{
-			LogCrit(L"Registered process=[" << handle_id << L"] >>twice<<");
 			throw;
 		}
 
 		_locProcessesMap[handle_id] = ptr;
 	}
-	LogDebug(">>Registered<< handle id=[" << dec << handle_id << "] -> [" << ptr.get() << "]");
+	LogDebug("Registered handle (" << ptr.get() << ")");
 }
 
 void
 LocalProcessRegistrar::UnregisterChannel(int handle_id)
 {
-	if (handle_id == CCU_UNDEFINED)
+	if (handle_id == IW_UNDEFINED)
 	{
 		return;
 	}
@@ -108,7 +110,7 @@ LocalProcessRegistrar::UnregisterChannel(int handle_id)
 				set_iter != list.end(); 
 				set_iter++)
 			{
-				(*set_iter)->Send(new CcuMsgShutdownEvt(handle_id));
+				(*set_iter)->Send(new MsgShutdownEvt(handle_id));
 			}
 
 			list.clear();
@@ -117,18 +119,16 @@ LocalProcessRegistrar::UnregisterChannel(int handle_id)
 			
 		}
 
-
 	}
-	LogDebug(">>Unregistered<< channel id=[" << dec << handle_id << "]");
+
+	LogDebug("Unregistered handle (" << handle_id << ")");
 }
 
 
 LpHandlePtr 
 LocalProcessRegistrar::GetHandle(int procId)
 {
-	return GetHandle(
-		procId,
-		L"");
+	return GetHandle(procId,"");
 
 }
 
@@ -155,7 +155,7 @@ LocalProcessRegistrar::AddShutdownListener(IN int procId, IN LpHandlePtr channel
 }
 
 LpHandlePtr
-LocalProcessRegistrar::GetHandle(int procId,const wstring &qpath)
+LocalProcessRegistrar::GetHandle(int procId,const string &qpath)
 {
 	//
 	// Scope to refrain taking nested locks
@@ -163,51 +163,6 @@ LocalProcessRegistrar::GetHandle(int procId,const wstring &qpath)
 	//
 	{
 		mutex::scoped_lock lock(_mutex);
-
-		//
-		// user specified q path
-		// => send it to IPC
-		//
-		if (!qpath.empty())
-		{
-			LocalProcessesMap::iterator i = 
-				_locProcessesMap.find(IPC_DISPATCHER_Q);
-
-			if (i==_locProcessesMap.end())
-			{
-				return CCU_NULL_LP_HANDLE;
-			}
-
-			return (*i).second;
-		}
-
-		
-		//
-		// user specified no destination queue 
-		// but pid is well known process
-		// => if the process found in registrar send 
-		// it locally, otherwise send it to IPC
-		//
-		if (qpath.empty() && IsWellKnownPid(procId))
-		{
-
-			LocalProcessesMap::iterator i = 
-				_locProcessesMap.find(procId);
-
-			if (i != _locProcessesMap.end())
-			{
-				return (*i).second;
-			}
-
-			i =	_locProcessesMap.find(IPC_DISPATCHER_Q);
-
-			if (i !=_locProcessesMap.end())
-			{
-				return (*i).second;
-			}
-
-			return CCU_NULL_LP_HANDLE;
-		}
 
 		//
 		// user specified no destination queue 
@@ -224,7 +179,9 @@ LocalProcessRegistrar::GetHandle(int procId,const wstring &qpath)
 		}
 
 		
-		return CCU_NULL_LP_HANDLE;
+		return IW_NULL_HANDLE;
 	}
+
+}
 
 }

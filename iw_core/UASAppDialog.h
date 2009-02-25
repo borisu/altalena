@@ -19,18 +19,22 @@
 
 #pragma once
 
-
 using namespace resip;
 using namespace std;
 
-class UASAppDialog : public AppDialog
+namespace ivrworx
 {
-public:
 
-	UASAppDialog(HandleManager& ham);
-	
-	virtual ~UASAppDialog(); 
-	
-};
+	class UASAppDialog : public AppDialog
+	{
+	public:
+
+		UASAppDialog(HandleManager& ham);
+
+		virtual ~UASAppDialog(); 
+
+	};
+
+}
 
 

@@ -20,13 +20,16 @@
 #include "StdAfx.h"
 #include "UACUserProfile.h"
 
-
-
-UACUserProfile::UACUserProfile(string from)
+namespace ivrworx
 {
-	setDefaultFrom(NameAddr(from.c_str()));
-}
 
-UACUserProfile::~UACUserProfile(void)
-{
+	UACUserProfile::UACUserProfile(IN const string &from)
+	{
+		setDefaultFrom(NameAddr(from.c_str()));
+	}
+
+	UACUserProfile::~UACUserProfile(void)
+	{
+	}
+
 }

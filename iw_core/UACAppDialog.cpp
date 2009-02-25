@@ -18,19 +18,23 @@
 */
 
 #include "StdAfx.h"
-#include "CcuMessage.h"
+#include "Message.h"
 #include "UACAppDialog.h"
-#include "CcuLogger.h"
+#include "Logger.h"
 
-
-
-UACAppDialog::UACAppDialog(HandleManager& ham) : 
-AppDialog(ham)
-{  
-	FUNCTRACKER;
-}
-
-UACAppDialog::~UACAppDialog(void)
+namespace ivrworx
 {
-	FUNCTRACKER;
+	UACAppDialog::UACAppDialog(HandleManager& ham) : 
+	AppDialog(ham)
+	{  
+		FUNCTRACKER;
+	}
+
+	UACAppDialog::~UACAppDialog(void)
+	{
+		FUNCTRACKER;
+	}
+
 }
+
+

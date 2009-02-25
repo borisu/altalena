@@ -20,103 +20,102 @@
 #pragma once
 #include "LpHandle.h"
 
-
 using namespace std;
 using namespace boost;
 
-enum LocalProcessRegistrarEvts
+namespace ivrworx
 {
-	CCU_MSG_PROC_SHUTDOWN_EVT = CCU_MSG_USER_DEFINED
-};
 
-class CcuMsgShutdownEvt: 
-	public CcuMsgResponse
-{
-	BOOST_SERIALIZATION_REGION
+	enum LocalProcessRegistrarEvts
 	{
-		SERIALIZE_BASE_CLASS(CcuMsgResponse);
-		SERIALIZE_FIELD(proc_id);
-	}
-public:
-	CcuMsgShutdownEvt():
-	  CcuMsgResponse(CCU_MSG_PROC_SHUTDOWN_EVT, NAME(CCU_MSG_PROC_SHUTDOWN_EVT)),
-		  proc_id(CCU_UNDEFINED){};
-	CcuMsgShutdownEvt(CcuProcId pproc_id):
-	  CcuMsgResponse(CCU_MSG_PROC_SHUTDOWN_EVT, NAME(CCU_MSG_PROC_SHUTDOWN_EVT)),
-		  proc_id(pproc_id){};
+		MSG_PROC_SHUTDOWN_EVT = MSG_USER_DEFINED
+	};
 
-	CcuProcId proc_id;
-};
-BOOST_CLASS_EXPORT(CcuMsgShutdownEvt);
+	class MsgShutdownEvt: 
+		public MsgResponse
+	{
+
+	public:
+		MsgShutdownEvt():
+		  MsgResponse(MSG_PROC_SHUTDOWN_EVT, NAME(MSG_PROC_SHUTDOWN_EVT)),
+			  proc_id(IW_UNDEFINED){};
+
+		  MsgShutdownEvt(ProcId pproc_id):
+		  MsgResponse(MSG_PROC_SHUTDOWN_EVT, NAME(MSG_PROC_SHUTDOWN_EVT)),
+			  proc_id(pproc_id){};
+
+		  ProcId proc_id;
+	};
 
 
-class RegistrationGuard
-	:public UIDOwner
-{
-public:
 
-	RegistrationGuard(IN LpHandlePtr ptr, 
-		IN int process_alias = CCU_UNDEFINED);
 
-	~RegistrationGuard();
+	class RegistrationGuard
+		:public UIDOwner
+	{
+	public:
 
-private:
+		RegistrationGuard(IN LpHandlePtr ptr, 
+			IN int process_alias = IW_UNDEFINED);
 
-	int _handleUid;
+		~RegistrationGuard();
 
-	int _aliasId;
+	private:
 
-};
+		int _handleUid;
 
-class LocalProcessRegistrar
-{
-	static mutex _instanceMutex;
+		int _aliasId;
 
-	static LocalProcessRegistrar *_instance;
+	};
 
-private:
+	class LocalProcessRegistrar
+	{
+		static mutex _instanceMutex;
 
-typedef 
-map<int,LpHandlePtr> LocalProcessesMap;
+		static LocalProcessRegistrar *_instance;
 
-	LocalProcessesMap _locProcessesMap;
+	private:
 
-typedef
-map<CcuProcId, HandlesList> ListenersMap;
+		typedef 
+		map<int,LpHandlePtr> LocalProcessesMap;
+		LocalProcessesMap _locProcessesMap;
 
-	ListenersMap _listenersMap;
+		typedef
+		map<ProcId, HandlesList> ListenersMap;
+		ListenersMap _listenersMap;
 
-typedef
-map<int,int> AliasesMap;
+		typedef
+		map<int,int> AliasesMap;
+		AliasesMap _aliasesMap;
 
-	AliasesMap _aliasesMap;
+		mutex _mutex;
 
-	mutex _mutex;
+	public:
 
-public:
+		static LocalProcessRegistrar&  Instance();
 
-	static LocalProcessRegistrar&  Instance();
+		LocalProcessRegistrar(void);
 
-	LocalProcessRegistrar(void);
+		virtual ~LocalProcessRegistrar(void);
 
-	virtual ~LocalProcessRegistrar(void);
+		void RegisterChannel(
+			IN int channel_id, 
+			IN LpHandlePtr hande);
 
-	void RegisterChannel(
-		IN int channel_id, 
-		IN LpHandlePtr hande);
+		void UnregisterChannel(
+			IN int channel_id);
 
-	void UnregisterChannel(
-		IN int channel_id);
+		void AddShutdownListener(
+			IN int channel_id, 
+			IN LpHandlePtr listener_handle);
 
-	void AddShutdownListener(
-		IN int channel_id, 
-		IN LpHandlePtr listener_handle);
+		LpHandlePtr GetHandle(
+			IN int channel_id);
 
-	LpHandlePtr GetHandle(
-		IN int channel_id);
+		LpHandlePtr GetHandle(
+			IN int channel_id, 
+			IN const string &qpath);
+	};
 
-	LpHandlePtr GetHandle(
-		IN int channel_id, 
-		IN const wstring &qpath);
-};
+}
 

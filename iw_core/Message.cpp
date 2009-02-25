@@ -17,33 +17,45 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#pragma once
-#include "LpHandle.h"
-#include "ResipCommon.h"
+#include "stdafx.h"
+#include "Message.h"
 
-
-using namespace resip;
 using namespace std;
+using namespace boost;
 
 namespace ivrworx
 {
-
-	class UACAppDialogSet : public AppDialogSet
+	int GenerateNewTxnId()
 	{
-	public:
+		static long txn_counter = 0;
 
-		UACAppDialogSet(DialogUsageManager& dum, SipDialogContextPtr ptr);
+		return ::InterlockedExchangeAdd(&txn_counter,1);
 
-		virtual ~UACAppDialogSet(void);
+	}
 
-		virtual AppDialog* createAppDialog(const SipMessage& msg);
+	IpcAdddress::IpcAdddress():
+	handle_id(IW_UNDEFINED)
+	{
+		
+	}
 
-		virtual SharedPtr<UserProfile> selectUACUserProfile(const SipMessage& msg);
+	IpcAdddress::IpcAdddress(IN const IpcAdddress& other)
+	{
+		handle_id		= other.handle_id;
+		queue_path		= other.queue_path;
+	}
 
-		SipDialogContextPtr _ptr;
-
+	IwMessage::IwMessage (IN int message_id, IN const string &message_id_str):
+	transaction_id(-1),
+	is_response(FALSE),
+	preferrable_ipc_interface(IW_UNDEFINED)
+	{
+		::QueryPerformanceCounter(&enter_queue_timestamp);
+		this->message_id = message_id;
+		this->message_id_str = message_id_str;
 	};
 
-}
 
+	
+}
 

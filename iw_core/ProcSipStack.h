@@ -19,126 +19,123 @@
 
 #pragma once
 
-#include "ccu.h"
+#include "IwBase.h"
 #include "LightweightProcess.h"
 #include "UASDialogUsageManager.h"
 #include "UACDialogUsageManager.h"
 #include "Call.h"
-#include "CcuLogger.h"
+#include "Logger.h"
 
 
 using namespace resip;
 
-
-
-class CcuResipLogger :
-	public ExternalLogger
-{
-public:
-	virtual ~CcuResipLogger();
-
-	/** return true to also do default logging, false to supress default logging. */
-	virtual bool operator()(Log::Level level,
-		const Subsystem& subsystem, 
-		const Data& appName,
-		const char* file,
-		int line,
-		const Data& message,
-		const Data& messageWithHeaders);
-
-};
-
-
-typedef
-SharedPtr<DialogUsageManager> DialogUsageManagerPtr;
-
-typedef
-shared_ptr<UASDialogUsageManager> UASDialogUsageManagerPtr;
-
-typedef
-shared_ptr<UACDialogUsageManager> UACDialogUsageManagerPtr;
-
-
-typedef
-shared_ptr<SelectInterruptor> SelectInterruptorPtr;
-
-class ResipInterruptor
-	:public Interruptor, boost::noncopyable
+namespace ivrworx
 {
 
-public:
+	class IxResipLogger :
+		public ExternalLogger
+	{
+	public:
+		virtual ~IxResipLogger();
 
-	ResipInterruptor(SelectInterruptorPtr ptr);
+		/** return true to also do default logging, false to supress default logging. */
+		virtual bool operator()(Log::Level level,
+			const Subsystem& subsystem, 
+			const Data& appName,
+			const char* file,
+			int line,
+			const Data& message,
+			const Data& messageWithHeaders);
 
-	virtual void SignalDataIn();
-
-	virtual void SignalDataOut();
-
-	SelectInterruptorPtr _siPtr;
-
-};
-
-typedef
-shared_ptr<ResipInterruptor> ResipInterruptorPtr;
-
-
-
-
-class ProcSipStack : 
-	public LightweightProcess
-{
-public:
-
-	ProcSipStack(
-		IN LpHandlePair pair, 
-		IN CcuConfiguration &conf);
-
-	virtual ~ProcSipStack(void);
-
-	virtual void real_run();
-
-	virtual CcuApiErrorCode Init();
-
-	virtual void UponMakeCall(CcuMsgPtr req);
-
-	virtual void UponHangupCall(CcuMsgPtr req);
-
-	virtual void UponStartRegistration(CcuMsgPtr req);
-
-	virtual void ShutDown(CcuMsgPtr req);
-
-	virtual void UponCallOfferedAck(CcuMsgPtr req);
-
-	virtual void UponCallOfferedNack(CcuMsgPtr req);
-
-	virtual void ShutDown();
-
-	Time _retryTimeout;
-
-protected:
-
-	virtual unsigned int getTimeTillNextProcessMS() const;
-
-	virtual bool ProcessCcuMessages();
-
-	SipStack _stack;
-
-	ResipInterruptorPtr _si;
-
-	bool _shutDownFlag;
-
-	UACDialogUsageManagerPtr _dumUac;
-
-	UASDialogUsageManagerPtr _dumUas;
-
-	CcuResipLogger _logger;
-
-	CcuHandlesMap _ccuHandlesMap;
-
-	CcuConfiguration &_conf;
+	};
 
 
-};
+	typedef
+		SharedPtr<DialogUsageManager> DialogUsageManagerPtr;
+
+	typedef
+		shared_ptr<UASDialogUsageManager> UASDialogUsageManagerPtr;
+
+	typedef
+		shared_ptr<UACDialogUsageManager> UACDialogUsageManagerPtr;
+
+	typedef
+		shared_ptr<SelectInterruptor> SelectInterruptorPtr;
+
+	class ResipInterruptor
+		:public WaitInterruptor, 
+		public SelectInterruptor, 
+		public noncopyable
+	{
+
+	public:
+
+		ResipInterruptor();
+
+		virtual void SignalDataIn();
+
+		virtual void SignalDataOut();
+
+	};
+
+	typedef
+		shared_ptr<ResipInterruptor> ResipInterruptorPtr;
+
+
+
+
+	class ProcSipStack : 
+		public LightweightProcess
+	{
+	public:
+
+		ProcSipStack(
+			IN LpHandlePair pair, 
+			IN Configuration &conf);
+
+		virtual ~ProcSipStack(void);
+
+		virtual void real_run();
+
+		virtual ApiErrorCode Init();
+
+		virtual void UponMakeCall(IwMessagePtr req);
+
+		virtual void UponHangupCall(IwMessagePtr req);
+
+		virtual void UponStartRegistration(IwMessagePtr req);
+
+		virtual void ShutDown(IwMessagePtr req);
+
+		virtual void UponCallOfferedAck(IwMessagePtr req);
+
+		virtual void UponCallOfferedNack(IwMessagePtr req);
+
+		virtual void ShutDown();
+
+	protected:
+
+		virtual bool ProcessIwMessages();
+
+		IxResipLogger _logger;
+
+		ResipInterruptorPtr _handleInterruptor;
+
+		SipStack _stack;
+
+		IwHandlesMap _iwHandlesMap;
+
+		UACDialogUsageManagerPtr _dumUac;
+
+		UASDialogUsageManagerPtr _dumUas;
+
+		bool _shutDownFlag;
+
+		Configuration &_conf;
+
+	};
+
+}
 
 
 

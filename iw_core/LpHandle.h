@@ -19,252 +19,219 @@
 
 #pragma once
 
-#include "CcuCommon.h"
-#include "CcuMessage.h"
+#include "IwBase.h"
+#include "Message.h"
 #include "UIDOwner.h"
-
-
-#define SL(...) CCU_MSG_MARKER,__VA_ARGS__,CCU_MSG_MARKER
-
-#define ARR(...) CCU_MSG_MARKER[]{__VA_ARGS__}
-
-#define CCU_MAX_MESSAGES_IN_QUEUE 1000
-
-#define DECLARE_NAMED_HANDLE(P) LpHandlePtr P (new LpHandle())
-#define DECLARE_NAMED_HANDLE_PAIR(P) LpHandlePair P (LpHandlePtr(new LpHandle()), LpHandlePtr(new LpHandle()))
-#define HANDLE_PAIR LpHandlePair(LpHandlePtr(new LpHandle()), LpHandlePtr(new LpHandle()))
-
 
 using namespace csp;
 using namespace std;
 using namespace boost;
 
-
-//
-// Some classes are not csp-fibers and need to be 
-// interrupted by setting some event or any other
-// OS related measure while they are waiting. This 
-// class represents the interface which wraps the OS 
-// related facility which used to interrupt such a
-// process and inform it that new message has arrived
-//
-class Interruptor
+namespace ivrworx 
 {
-public:
 
-	virtual void SignalDataIn() = 0;
+	#define MAX_MESSAGES_IN_QUEUE 1000
 
-	virtual void SignalDataOut() = 0;
-};
-
-typedef 
-shared_ptr<Interruptor> InterruptorPtr;
-
-// use this interruptor if you want to receive messages 
-// by waiting on specific HANDLE by means of WaitForMultipleObjects 
-class SemaphoreInterruptor
-	:public Interruptor, boost::noncopyable
-{
-public:
-
-	SemaphoreInterruptor();
-
-	virtual ~SemaphoreInterruptor();
-
-	virtual void SignalDataIn();
-
-	virtual void SignalDataOut();
-
-	virtual HANDLE Handle();
-
-private:
-
-	HANDLE _handle;
-
-};
-
-typedef 
-shared_ptr<SemaphoreInterruptor> SemaphoreInterruptorPtr;
+	#define DECLARE_NAMED_HANDLE(P) LpHandlePtr P (new LpHandle())
+	#define DECLARE_NAMED_HANDLE_PAIR(P) LpHandlePair P (LpHandlePtr(new LpHandle()), LpHandlePtr(new LpHandle()))
+	#define HANDLE_PAIR LpHandlePair(LpHandlePtr(new LpHandle()), LpHandlePtr(new LpHandle()))
 
 
-// use this interruptor if you want to receive messages 
-// by waiting on io completion port by  means of  GetQueuedCompletionStatus  
-class IocpInterruptor
-	:public Interruptor, boost::noncopyable
-{
-public:
-
-	IocpInterruptor(IN HANDLE iocpHandle, IN DWORD dwCompletionKey);
-
-	virtual ~IocpInterruptor();
-
-	virtual void SignalDataIn();
-
-	virtual void SignalDataOut();
-
-private:
-
-	HANDLE _iocpHandle;
-
-	ULONG_PTR _dwCompletionKey;
-
-};
-
-typedef 
-shared_ptr<IocpInterruptor> IocpInterruptorPtr;
+	// ix messages come with this completion keys
+	#define IOCP_UNIQUE_COMPLETION_KEY 555 
 
 
-typedef 
-BufferedAny2OneChannel<CcuMsgPtr> CcuChannel;
 
-typedef 
-shared_ptr<CcuChannel> CcuChannelPtr;
+	//
+	// Some classes are not csp-fibers and need to be 
+	// interrupted by setting some event or any other
+	// OS related measure while they are waiting. This 
+	// class represents the interface which wraps the OS 
+	// related facility which used to interrupt such a
+	// process and inform it that new message has arrived
+	//
+	class WaitInterruptor
+	{
+	public:
 
-typedef 
-FIFOBuffer<CcuMsgPtr> CCUFifoBuffer;
+		virtual void SignalDataIn() = 0;
 
-typedef 
-SizedChannelBufferFactoryImpl<CcuMsgPtr, CCUFifoBuffer> CcuBufferFactory;
+		virtual void SignalDataOut() = 0;
+	};
 
-typedef
-set<int> EventsSet;
+	typedef 
+		shared_ptr<WaitInterruptor> InterruptorPtr;
+
+	// use this interruptor if you want to receive messages 
+	// by waiting on specific HANDLE by means of WaitForMultipleObjects 
+	class SemaphoreInterruptor
+	:public WaitInterruptor, noncopyable
+	{
+	public:
+
+		SemaphoreInterruptor();
+
+		virtual ~SemaphoreInterruptor();
+
+		virtual void SignalDataIn();
+
+		virtual void SignalDataOut();
+
+		virtual HANDLE Handle();
+
+	private:
+
+		HANDLE _handle;
+
+	};
+
+	typedef 
+	shared_ptr<SemaphoreInterruptor> SemaphoreInterruptorPtr;
 
 
-class IFirstChanceOOBMsgHandler
-{
-public:
-	virtual BOOL HandleOOBMessage(CcuMsgPtr ptr) = 0;
-};
+	// use this interruptor if you want to receive messages 
+	// by waiting on io completion port by  means of  GetQueuedCompletionStatus  
+	class IocpInterruptor
+		:public WaitInterruptor, noncopyable
+	{
+	public:
 
-enum CcuHandleDirection
-{
-	CCU_MSG_DIRECTION_UNDEFINED,
-	CCU_MSG_DIRECTION_INBOUND,
-	CCU_MSG_DIRECTION_OUTBOUND
-};
+		IocpInterruptor();
+
+		virtual ~IocpInterruptor();
+
+		virtual void SignalDataIn();
+
+		virtual void SignalDataOut();
+
+		HANDLE Handle();
+		
+	private:
+
+		HANDLE _iocpHandle;
+
+	};
+
+	typedef 
+	shared_ptr<IocpInterruptor> IocpInterruptorPtr;
+
+	typedef 
+	BufferedAny2OneChannel<IwMessagePtr> CommChannel;
+
+	typedef 
+	shared_ptr<CommChannel> CommChannelPtr;
+
+	typedef 
+	FIFOBuffer<IwMessagePtr> IwFifoBuffer;
+
+	typedef 
+	SizedChannelBufferFactoryImpl<IwMessagePtr, IwFifoBuffer> IwBufferFactory;
+
+	enum HandleDirection
+	{
+		MSG_DIRECTION_UNDEFINED,
+		MSG_DIRECTION_INBOUND,
+		MSG_DIRECTION_OUTBOUND
+	};
 
 
-class LpHandle;
+	class LpHandle;
 
-typedef 
-shared_ptr<LpHandle> LpHandlePtr;
+	typedef 
+	shared_ptr<LpHandle> LpHandlePtr;
 
-typedef 
-vector<LpHandlePtr> HandlesList;
+	typedef 
+	vector<LpHandlePtr> HandlesList;
 
-class LpHandle :
+	class LpHandle :
 	public UIDOwner
-{
-	
-public:
+	{
 
-	LpHandle();
+	public:
 
-	virtual ~LpHandle(void);
+		LpHandle();
 
-	virtual void Direction(
-		IN CcuHandleDirection val);
+		virtual ~LpHandle(void);
 
-	virtual CcuHandleDirection Direction() const;
+		virtual void Direction(IN HandleDirection val);
 
-	virtual void HandleInterruptor(
-		IN InterruptorPtr interruptor);
+		virtual HandleDirection Direction() const;
 
-	virtual void FirstChanceOOBMsgHandler(
-		IN IFirstChanceOOBMsgHandler *handler);
+		virtual void HandleInterruptor(
+			IN InterruptorPtr interruptor);
 
-	virtual CcuApiErrorCode Send(
-		IN CcuMsgPtr message);
+		virtual ApiErrorCode Send(
+			IN IwMessagePtr message);
 
-	virtual CcuApiErrorCode Send(
-		IN CcuMessage *message);
-	
-	virtual CcuMsgPtr Wait();
+		virtual ApiErrorCode Send(
+			IN IwMessage *message);
 
-	virtual CcuMsgPtr Wait(
-		IN Time timeout,
-		OUT CcuApiErrorCode &res);
+		virtual IwMessagePtr Wait(
+			IN Time timeout,
+			OUT ApiErrorCode &res);
 
-	virtual CcuMsgPtr WaitForMessages(
-		IN Time timeout,
-		OUT CcuApiErrorCode &res,
-		IN CcuMessageId marker,
-		IN ...);
+		virtual bool InboundPending();
 
-	virtual CcuMsgPtr  WaitForMessages(
-		IN const  Time timeout, 
-		IN const EventsSet &msg_id_map, 
-		OUT CcuApiErrorCode &res);
+		virtual string HandleName() const;
 
-	virtual bool InboundPending();
+		virtual void HandleName(
+			IN const string &val);
 
-	virtual wstring HandleName() const;
+		virtual void Poison();
 
-	virtual void HandleName(
-		IN const wstring &val);
+	private:
 
-	virtual void Poison();
+		void inline CheckReader();
 
-private:
+		IwMessagePtr Read();
 
-	CcuHandleDirection _direction;
+		DWORD _threadId;
 
-	virtual CcuMsgPtr  WaitForMessages(
-		IN const  Time &timeout, 
-		IN const EventsSet &msg_id_map, 
-		IN CcuChannel &channel,
-		OUT CcuApiErrorCode &res);
+		PVOID _fiberId;
 
-	void SendToChannel(
-		IN CcuChannel &channel, 
-		IN CcuMsgPtr message, 
-		IN bool interrupt);
+		HandleDirection _direction;
 
-	CcuBufferFactory _bufferFactory;
+		IwBufferFactory _bufferFactory;
 
-	CcuChannel _channel;
+		CommChannel _channel;
 
-	InterruptorPtr _interruptor;
+		InterruptorPtr _interruptor;
 
-	int _ownerProcId ;
+		string _name;
 
-	wstring _name;
+		friend ostream& operator << (ostream &ostream, const LpHandle *lpHandlePtr);
 
-	IFirstChanceOOBMsgHandler *_firstChanceHandler;
-	
-	friend wostream& operator << (wostream &ostream, const LpHandle *lpHandlePtr);
-	
-	friend CcuApiErrorCode SelectFromChannels(
-		IN  HandlesList &map,
+		friend ApiErrorCode SelectFromChannels(
+			IN  HandlesList &map,
+			IN  Time timeout, 
+			OUT int &index, 
+			OUT IwMessagePtr &event);
+
+	};
+
+
+
+	ApiErrorCode SelectFromChannels(IN  HandlesList &map,
 		IN  Time timeout, 
 		OUT int &index, 
-		OUT CcuMsgPtr &event,
-		IN  bool peekOnly);
-
-};
+		OUT IwMessagePtr &event);
 
 
+	struct LpHandlePair
+	{
+		LpHandlePair();
 
-CcuApiErrorCode SelectFromChannels(IN  HandlesList &map,
-								   IN  Time timeout, 
-								   OUT int &index, 
-								   OUT CcuMsgPtr &event,
-								   IN  bool peekOnly = false);
+		LpHandlePair(IN LpHandlePtr inbound, IN LpHandlePtr outbound);
 
+		LpHandlePair(const LpHandlePair &other);
 
-struct LpHandlePair
-{
-	LpHandlePair();
+		LpHandlePtr inbound;
 
-	LpHandlePair(IN LpHandlePtr inbound, IN LpHandlePtr outbound);
+		LpHandlePtr outbound;
 
-	LpHandlePair(const LpHandlePair &other);
-	
-	LpHandlePtr inbound;
+	};
 
-	LpHandlePtr outbound;
+}
 
-};
-
-#define CCU_NULL_LP_HANDLE LpHandlePtr((LpHandle*) NULL)
+#define IW_NULL_HANDLE LpHandlePtr((LpHandle*) NULL)
 

@@ -18,14 +18,16 @@
 */
 
 #pragma once
-#include "ccu.h"
+#include "IwBase.h"
 #include "UIDOwner.h"
 #include "LpHandle.h"
-
 
 using namespace csp;
 using namespace boost;
 using namespace std;
+
+namespace ivrworx
+{
 
 #define I_AM_READY SendReadyMessage();
 
@@ -36,112 +38,104 @@ typedef
 shared_ptr<Bucket> BucketPtr;
 
 class LightweightProcess: 
-	public CSProcess, 
-	public IFirstChanceOOBMsgHandler
+	public CSProcess
 {
 public:
 
 	
 	LightweightProcess(
 		IN LpHandlePair pair, 
-		IN const wstring &owner_name = L"");
+		IN const string &owner_name = "");
 
 	LightweightProcess(
 		IN LpHandlePair pair, 
 		IN int inbound_channel_id, 
-		IN const wstring &owner_name = L"");
+		IN const string &owner_name = "");
 
 
 	virtual ~LightweightProcess(void);
 
-	BucketPtr _bucket;
-
 	static void Join(BucketPtr bucket);
-
 
 	virtual void run();
 
 	virtual void real_run() = 0;
 
-
-	virtual wstring Name();
+	virtual string Name();
 
 	virtual int ProcessId();
 
-	virtual void Name(IN const wstring &val);
+	virtual void Name(IN const string &val);
 
+	virtual ApiErrorCode SendMessage(
+		IN ProcId dest_channel_id, 
+		IN IwMessage* message);
 
-	virtual CcuApiErrorCode SendMessage(
-		IN CcuProcId dest_channel_id, 
-		IN CcuMessage* message);
+	virtual ApiErrorCode SendMessage(
+		IN ProcId dest_channel_id, 
+		IN IwMessagePtr message);
 
-	virtual CcuApiErrorCode SendMessage(
-		IN CcuProcId dest_channel_id, 
-		IN CcuMsgPtr message);
+	virtual ApiErrorCode SendMessage(
+		IN LpHandlePtr dest_handle, 
+		IN IwMessagePtr message);
 
-	virtual CcuApiErrorCode SendMessage(
-		IN CcuMsgPtr message);
+	virtual ApiErrorCode SendMessage(
+		IN IwMessagePtr message);
 
-	virtual CcuApiErrorCode SendResponse(
-		IN CcuMsgPtr request, 
-		IN CcuMessage* response);
+	virtual ApiErrorCode SendResponse(
+		IN IwMessagePtr request, 
+		IN IwMessage* response);
 
 	virtual BOOL HandleOOBMessage(
-		IN CcuMsgPtr msg);
+		IN IwMessagePtr msg);
 
 	virtual BOOL InboundPending();
 
-	virtual CcuMsgPtr GetInboundMessage();
+	virtual IwMessagePtr GetInboundMessage(IN Time timeout, OUT ApiErrorCode &res);
 
 	long TransactionTimeout() const ;
 
 	void TransactionTimeout(long val);
 
-	CcuApiErrorCode TerminatePendingTransaction(
-		IN std::exception e);
-
-	CcuApiErrorCode SendReadyMessage();
+	ApiErrorCode SendReadyMessage();
 
 	//
 	// Process Management
 	//
-	CcuApiErrorCode Ping(
-		IN CcuProcId qid); 
+	ApiErrorCode Ping(
+		IN ProcId qid); 
 
-	CcuApiErrorCode Ping(
+	ApiErrorCode Ping(
 		IN LpHandlePair pair); 
 
-	CcuApiErrorCode Shutdown(
+	ApiErrorCode Shutdown(
 		IN Time timeout, 
 		IN LpHandlePair pair);
 
-	CcuApiErrorCode WaitTillReady(
+	ApiErrorCode WaitTillReady(
 		IN Time timeout, 
 		IN LpHandlePair pair);
 
 	//
 	// Transaction Management
 	//
-	CcuApiErrorCode	DoRequestResponseTransaction(
-		IN CcuProcId dest_proc_id, 
-		IN CcuMsgPtr request, 
-		IN EventsSet &responses,
-		OUT CcuMsgPtr &response,
+	ApiErrorCode 	DoRequestResponseTransaction(
+		IN ProcId dest_proc_id, 
+		IN IwMessagePtr request, 
+		OUT IwMessagePtr &response,
 		IN Time timout,
-		IN wstring transaction_name);
+		IN string transaction_name);
 
-	CcuApiErrorCode	DoRequestResponseTransaction(
+	ApiErrorCode 	DoRequestResponseTransaction(
 		IN LpHandlePtr dest_handle, 
-		IN CcuMsgPtr request, 
-		IN EventsSet &responses,
-		OUT CcuMsgPtr &response,
+		IN IwMessagePtr request, 
+		OUT IwMessagePtr &response,
 		IN Time timout,
-		IN wstring transaction_name);
+		IN string transaction_name);
 
-	CcuApiErrorCode WaitForTxnResponse(
+	ApiErrorCode WaitForTxnResponse(
 		IN LpHandlePtr txn_handle,
-		IN EventsSet &responses,
-		OUT CcuMsgPtr &response,
+		OUT IwMessagePtr &response,
 		IN Time timout);
 
 	LpHandlePair _pair;
@@ -150,16 +144,13 @@ public:
 
 	LpHandlePtr _outbound;
 
-
-	friend class ScopedRTPConnectionGuard;
+	BucketPtr _bucket;
 
 protected:
 
 	long _transactionTimeout;
 
-	LpHandlePtr _transactionTerminator;
-
-	wstring _name;
+	string _name;
 	
 	int _processId;
 
@@ -167,86 +158,11 @@ protected:
 
 private:
 
-	void Init(int UID, wstring owner_name);
+	void Init(int UID, string owner_name);
 
 };
 
 #pragma endregion
-
-#pragma region ProcFuncRunner
-
-template <class T, class Y>
-class ProcFuncRunner: 
-	public LightweightProcess
-{
-private:
-
-	typename boost::function<T(Y*)> _function;
-
-	typename Y* _instance;
-
-protected:
-
-	void real_run()
-	{
-		_res = _function(_instance);
-	}
-
-public:
-
-	ProcFuncRunner(
-		LpHandlePair pair,
-		boost::function<T(Y *)> funct,
-		Y *instance, 
-		T res, 
-		wstring name = L"")
-		:LightweightProcess(pair,name),
-	_function(funct),
-	_instance(instance),
-	_res(res)
-	{
-
-	}
-
-	typename T &_res;
-};
-
-
-template <class Y>
-class ProcVoidFuncRunner: 
-	public LightweightProcess
-{
-private:
-
-	typename boost::function<void(Y*)> _function;
-
-	typename Y* _instance;
-
-protected:
-
-	void real_run()
-	{
-		_function(_instance);
-	}
-
-public:
-
-	ProcVoidFuncRunner(
-		LpHandlePair pair,
-		boost::function<void(Y *)> funct,
-		Y *instance, 
-		wstring name = L"")
-		:LightweightProcess(pair,name),
-		_function(funct),
-		_instance(instance)
-	{
-
-	}
-
-};
-
-#pragma endregion
-
 
 //
 // owners map, used for logging mostly
@@ -254,13 +170,13 @@ public:
 LightweightProcess*
 GetCurrLightWeightProc();
 
-wstring 
-GetCurrThreadOwner();
+string 
+IxGetCurrLpName();
 
 int
-GetCurrCcuProcId();
+IxGetCurrLpId();
 
-
+}
 
 
 

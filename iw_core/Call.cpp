@@ -19,72 +19,176 @@
 
 #include "StdAfx.h"
 #include "Call.h"
-#include "CcuLogger.h"
+#include "Profiler.h"
+#include "Logger.h"
 
-using namespace ivrworx;
 
-Call::Call(IN LpHandlePair stack_pair, 
-		   IN LightweightProcess &parent_process):
-_stackPair(stack_pair),
-_stackCallHandle(CCU_UNDEFINED),
-_parentProcess(parent_process),
-_hangupDetected(FALSE),
-_handlerPair(HANDLE_PAIR)
+namespace ivrworx
 {
-	_callState = IX_CALL_NONE;
-	Init();
+
+
+
+Call::Call(IN LpHandlePair stack_pair):
+_stackPair(stack_pair),
+_stackCallHandle(IW_UNDEFINED),
+_hangupDetected(FALSE),
+_handlerPair(HANDLE_PAIR),
+_dtmfChannel(new LpHandle())
+{
+	_callState = CALL_STATE_UKNOWN;
+	throw;
+
 }
 
 Call::Call(
-	 IN LpHandlePair stack_pair, 
-	 IN int stack_handle,
-	 IN CnxInfo offered_media,
-	 IN LightweightProcess &parent_process):
+	 IN LpHandlePair stack_pair,
+	 IN ScopedForking &forking,
+	 IN shared_ptr<MsgCallOfferedReq> offered_msg):
  _stackPair(stack_pair),
- _stackCallHandle(stack_handle),
- _remoteMedia(offered_media),
- _parentProcess(parent_process),
- _handlerPair(HANDLE_PAIR)
+ _stackCallHandle(offered_msg->stack_call_handle),
+ _remoteMedia(offered_msg->remote_media),
+ _handlerPair(offered_msg->call_handler_inbound),
+ _dtmfChannel(new LpHandle())
 {
-	_callState = IX_CALL_OFFERED;
-	Init();
+	FUNCTRACKER;
+
+	_callState = CALL_STATE_OFFERED;
+
+	Start(forking,_handlerPair,__FUNCTION__);
+
+	LogDebug("Creating call session - ix stack handle=[" << _stackCallHandle << "].");
+
 }
 
 void
-Call::Init()
+Call::EnableMediaFormat(const MediaFormat& media_format)
 {
+	FUNCTRACKER;
 
-	_forking.forkInThisThread(
-		new ProcVoidFuncRunner<Call>(
-		_handlerPair,
-		bind<void>(&Call::call_handler_run, _1),
-		this,
-		L"Call Handler"));
+	LogDebug("Media format " << media_format << "  enabled for call " << _stackCallHandle );
+
+	_supportedMediaFormatsList.insert(
+		MediaFormatMapPair(media_format.sdp_mapping(), media_format));
+}
+
+ApiErrorCode
+Call::NegotiateMediaFormats(IN const MediaFormatsList &offered_medias, 
+					  OUT MediaFormatsList &accepted_media)
+{
+	FUNCTRACKER;
+
+	IX_PROFILE_FUNCTION();
+
+	if (_supportedMediaFormatsList.empty() || offered_medias.empty())
+	{
+		LogWarn("Illegal parameters (empty?) for codecs negotiation.");
+		return API_FAILURE;
+	}
+
+	accepted_media.clear();
+
+	bool speech_chosen = false;
+	bool dtmf_chosen = false;
+
+	// firstly negotiate speech codec
+	for (MediaFormatsList::const_iterator iter1 = offered_medias.begin(); 
+		iter1 != offered_medias.end();
+		iter1++)
+	{
+
+
+		const MediaFormat &media_format1 = (*iter1);
+
+		MediaFormatsMap::iterator iter2 = 
+			_supportedMediaFormatsList.find(media_format1.sdp_mapping());
+		if (iter2 == _supportedMediaFormatsList.end())
+		{
+			continue;
+		}
+
+		const MediaFormat &media_format2 = (*iter2).second;
+
+		if (media_format1.get_media_type() == MediaFormat::MediaType_SPEECH && speech_chosen)
+			continue;
+
+		if (media_format1.get_media_type() == MediaFormat::MediaType_DTMF && dtmf_chosen)
+			continue;
+
+		if (media_format2 == media_format1)
+		{
+			accepted_media.push_back(media_format1);
+			switch (media_format1.get_media_type())
+			{
+			case MediaFormat::MediaType_DTMF:
+				{ 
+					dtmf_chosen = true; 
+					break;
+				}
+			case MediaFormat::MediaType_SPEECH:
+				{
+					speech_chosen = true;
+					_acceptedSpeechFormat = media_format2;
+					break;
+				}
+			}
+		}
+
+		if (dtmf_chosen && speech_chosen)
+		{
+			break;
+		}
+	}
+
+
+	if (accepted_media.empty() || speech_chosen == false)
+	{
+		LogWarn("Negotiation failure for call " << _stackCallHandle );
+		return API_FAILURE;
+	}
+
+	return API_SUCCESS;
 
 }
 
 Call::~Call(void)
 {
 	HagupCall();
-
-	_parentProcess.Shutdown(Seconds(5), _handlerPair);
-
-	_hangupDetected = TRUE;
 }
 
-CcuApiErrorCode
-Call::WaitForDtmf(IN wstring &dtmf_digit, IN Time timeout)
+void Call::UponActiveObjectEvent(IwMessagePtr ptr)
 {
-	CcuApiErrorCode res = CCU_API_SUCCESS;
-	CcuMsgPtr ptr = _dtmfChannel.Wait(timeout,res);
+	switch (ptr->message_id)
+	{
+	case MSG_CALL_HANG_UP_EVT:
+		{
+			_callState = CALL_STATE_TERMINATED;
+		}
+	default:
+		{
 
-	if (CCU_FAILURE(res))
+		}
+	}
+
+	ActiveObject::UponActiveObjectEvent(ptr);
+
+}
+
+ApiErrorCode
+Call::WaitForDtmf(OUT int &dtmf_digit, IN Time timeout)
+{
+	
+	FUNCTRACKER;
+
+	IwMessagePtr ptr = NULL_MSG;
+	ApiErrorCode res = GetCurrLightWeightProc()->WaitForTxnResponse(_dtmfChannel, ptr, timeout);
+
+	if (IW_FAILURE(res))
 	{
 		return res;
 	}
 
-	shared_ptr<CcuMsgCallDtmfEvt> dtmfEvt = 
-		dynamic_pointer_cast<CcuMsgCallDtmfEvt> (ptr);
+	shared_ptr<MsgCallDtmfEvt> dtmfEvt = 
+		dynamic_pointer_cast<MsgCallDtmfEvt> (ptr);
 
 	dtmf_digit = dtmfEvt->dtmf_digit;
 
@@ -93,78 +197,85 @@ Call::WaitForDtmf(IN wstring &dtmf_digit, IN Time timeout)
 
 }
 
-CcuApiErrorCode
+ApiErrorCode
 Call::RejectCall()
 {
 	FUNCTRACKER;
 
-	CcuMsgCallOfferedNack *msg = new CcuMsgCallOfferedNack();
+	LogDebug("Rejecting the call - ix stack handle=[" << _stackCallHandle << "].");
+
+	MsgCallOfferedNack *msg = new MsgCallOfferedNack();
 
 	msg->stack_call_handle = _stackCallHandle;
 
 	_stackPair.inbound->Send(msg);
 
-	return CCU_API_SUCCESS;
+	return API_SUCCESS;
 
 }
 
-CcuApiErrorCode
+ApiErrorCode
 Call::HagupCall()
 {
+	
 	FUNCTRACKER;
 
-	if (_stackCallHandle == CCU_UNDEFINED || 
-		_callState == IX_CALL_NONE		  || 
-		_callState == IX_CALL_TERMINATED)
+	LogDebug("Hanging up the call - ix stack handle=[" << _stackCallHandle << "].");
+
+	if (_stackCallHandle == IW_UNDEFINED || 
+		_callState == CALL_STATE_UKNOWN		  || 
+		_callState == CALL_STATE_TERMINATED)
 	{
-		return CCU_API_SUCCESS;
+		return API_SUCCESS;
 	}
 
-	CcuMsgHangupCallReq *msg = new CcuMsgHangupCallReq(_stackCallHandle);
+	MsgHangupCallReq *msg = new MsgHangupCallReq(_stackCallHandle);
 
 	_stackPair.inbound->Send(msg);
 
-	_stackCallHandle = CCU_UNDEFINED;
+	_stackCallHandle = IW_UNDEFINED;
 
 	_hangupDetected = TRUE;
 
-	return CCU_API_SUCCESS;
+	return API_SUCCESS;
 }
 
-CcuApiErrorCode
-Call::AcceptCall(IN CnxInfo local_media)
+ApiErrorCode
+Call::AcceptCall(IN const CnxInfo &local_media, 
+				 IN const MediaFormatsList &accepted_codec)
 {
-	FUNCTRACKER;
-
-	CcuMsgPtr response = CCU_NULL_MSG;
 	
-	CcuMsgCalOfferedlAck *ack = new CcuMsgCalOfferedlAck();
+	FUNCTRACKER;
+	IX_PROFILE_FUNCTION();
+
+	LogDebug("Accepting call - ix stack handle=[" << _stackCallHandle << "].");
+
+	IwMessagePtr response = NULL_MSG;
+	
+	MsgCalOfferedlAck *ack = new MsgCalOfferedlAck();
 	ack->stack_call_handle = _stackCallHandle;
 	ack->local_media = local_media;
+	ack->accepted_codecs = accepted_codec;
 
-
-	EventsSet map;
-	map.insert(CCU_MSG_CALL_CONNECTED);
-
-	CcuApiErrorCode res = _parentProcess.DoRequestResponseTransaction(
+	
+	ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
 		_stackPair.inbound,
-		CcuMsgPtr(ack),
-		map,
+		IwMessagePtr(ack),
 		response,
-		MilliSeconds(_parentProcess.TransactionTimeout()),
-		L"Accept Call TXN");
+		MilliSeconds(GetCurrLightWeightProc()->TransactionTimeout()),
+		"Accept Call TXN");
 
-	if (CCU_FAILURE(res))
+	if (IW_FAILURE(res))
 	{
 		return res;
 	}
 
 	switch (response->message_id)
 	{
-	case CCU_MSG_CALL_CONNECTED:
+	case MSG_CALL_CONNECTED:
 		{
-			shared_ptr<CcuMsgNewCallConnected> make_call_sucess = 
-				dynamic_pointer_cast<CcuMsgNewCallConnected>(response);
+			shared_ptr<MsgNewCallConnected> make_call_sucess = 
+				dynamic_pointer_cast<MsgNewCallConnected>(response);
 
 			_stackCallHandle = make_call_sucess->stack_call_handle;
 
@@ -176,98 +287,52 @@ Call::AcceptCall(IN CnxInfo local_media)
 		}
 	}
 
-	_callState = IX_CALL_CONNECTED;
+	_callState = CALL_STATE_CONNECTED;
 
 	return res;
 }
 
-
-void
-Call::call_handler_run()
-{
-
-	BOOL shutdown_flag = FALSE;
-	while (!shutdown_flag)
-	{
-		CcuApiErrorCode res = CCU_API_SUCCESS;
-		CcuMsgPtr message = _handlerPair.inbound->Wait(Seconds(10),res);
-
-		if (res == CCU_API_TIMEOUT)
-		{
-			if (_hangupDetected)
-			{
-				return;
-			}
-
-			continue;
-		}
-
-		switch (message->message_id)
-		{
-		case CCU_MSG_CALL_DTMF_EVT:
-			{
-				_dtmfChannel.Send(message);
-				break;
-			}
-		case CCU_MSG_PROC_SHUTDOWN_REQ:
-			{
-				_parentProcess.SendResponse(message,new CcuMsgShutdownAck());
-				shutdown_flag = true;
-				break;
-			}
-		default:
-			{
-				BOOL res = _parentProcess.HandleOOBMessage(message);
-				if (res == FALSE)
-				{
-					LogCrit("OOB message");
-					throw;
-				}
-			} // default
-		}
-	}
-	
-
+int 
+Call::StackCallHandle() const 
+{ 
+	return _stackCallHandle; 
 }
 
-CcuApiErrorCode
-Call::MakeCall(IN wstring destination_uri, 
-			   IN CnxInfo local_media)
+
+ApiErrorCode
+Call::MakeCall(IN const string &destination_uri, 
+			   IN const CnxInfo &local_media)
 {
 	FUNCTRACKER;
 
 	_localMedia = local_media;
 
-	CcuMsgPtr response = CCU_NULL_MSG;
+	IwMessagePtr response = NULL_MSG;
 
-	CcuMsgMakeCallReq *msg = new CcuMsgMakeCallReq();
+	MsgMakeCallReq *msg = new MsgMakeCallReq();
 	msg->local_media = local_media;
 	msg->destination_uri = destination_uri;
 	msg->call_handler_inbound = _handlerPair.inbound;
 
-	EventsSet map;
-	map.insert(CCU_MSG_MAKE_CALL_ACK);
-	map.insert(CCU_MSG_MAKE_CALL_NACK);
 
-	CcuApiErrorCode res = _parentProcess.DoRequestResponseTransaction(
+	ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
 		_stackPair.inbound,
-		CcuMsgPtr(msg),
-		map,
+		IwMessagePtr(msg),
 		response,
 		Seconds(60),
-		L"Make Call TXN");
+		"Make Call TXN");
 
-	if (res != CCU_API_SUCCESS)
+	if (res != API_SUCCESS)
 	{
 		return res;
 	}
 
 	switch (response->message_id)
 	{
-	case CCU_MSG_MAKE_CALL_ACK:
+	case MSG_MAKE_CALL_ACK:
 		{
-			shared_ptr<CcuMsgMakeCallAck> make_call_sucess = 
-				dynamic_pointer_cast<CcuMsgMakeCallAck>(response);
+			shared_ptr<MsgMakeCallAck> make_call_sucess = 
+				dynamic_pointer_cast<MsgMakeCallAck>(response);
 
 			_stackCallHandle = make_call_sucess->stack_call_handle;
 
@@ -275,9 +340,9 @@ Call::MakeCall(IN wstring destination_uri,
 
 			break;
 		}
-	case CCU_MSG_MAKE_CALL_NACK:
+	case MSG_MAKE_CALL_NACK:
 		{
-			res = CCU_API_SERVER_FAILURE;
+			res = API_SERVER_FAILURE;
 			break;
 		}
 	default:
@@ -313,3 +378,4 @@ Call::LocalMedia(CnxInfo &val)
 	_localMedia = val; 
 }
 
+}
