@@ -67,7 +67,7 @@ ImsSession::PlayFile(IN const string &file_name,
 	RegistrationGuard guard(ims_play_txn);
 
 	
-	CcuMsgStartPlayReq *msg = new CcuMsgStartPlayReq();
+	MsgStartPlayReq *msg = new MsgStartPlayReq();
 	msg->playback_handle	= _imsSessionHandle;
 	msg->file_name			= file_name;
 	msg->send_provisional	= provisional;
@@ -92,7 +92,7 @@ ImsSession::PlayFile(IN const string &file_name,
 			return res;
 		}
 
-		if (response->message_id != CCU_MSG_START_PLAY_REQ_ACK)
+		if (response->message_id != MSG_START_PLAY_REQ_ACK)
 		{
 			return API_FAILURE;
 		}
@@ -110,7 +110,7 @@ ImsSession::PlayFile(IN const string &file_name,
 		return res;
 	}
 
-	if (response->message_id != CCU_MSG_IMS_PLAY_STOPPED)
+	if (response->message_id != MSG_IMS_PLAY_STOPPED)
 	{
 		return API_FAILURE;
 	}
@@ -172,7 +172,7 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 
 	DECLARE_NAMED_HANDLE_PAIR(session_handler_pair);
 
-	CcuMsgAllocateImsSessionReq *msg = new CcuMsgAllocateImsSessionReq();
+	MsgAllocateImsSessionReq *msg = new MsgAllocateImsSessionReq();
 	msg->remote_media_data = remote_end;
 	msg->codec = codec;
 	msg->session_handler = session_handler_pair;
@@ -193,12 +193,12 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 
 	switch (response->message_id)
 	{
-	case CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK:
+	case MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK:
 		{
 
 
-			shared_ptr<CcuMsgAllocateImsSessionAck> ack = 
-				shared_polymorphic_cast<CcuMsgAllocateImsSessionAck>(response);
+			shared_ptr<MsgAllocateImsSessionAck> ack = 
+				shared_polymorphic_cast<MsgAllocateImsSessionAck>(response);
 			_imsSessionHandle	= ack->playback_handle;
 			_imsMediaData		= ack->ims_media_data;
 
@@ -209,7 +209,7 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 			break;
 
 		}
-	case CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK:
+	case MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK:
 		{
 			LogDebug("Error allocating Ims session.");
 			res = API_SERVER_FAILURE;
@@ -244,7 +244,7 @@ ImsSession::TearDown()
 		return;
 	}
 
-	CcuMsgImsTearDownReq *tear_req = new CcuMsgImsTearDownReq();
+	MsgImsTearDownReq *tear_req = new MsgImsTearDownReq();
 	tear_req->handle = _imsSessionHandle;
 
 	// no way back
