@@ -26,10 +26,10 @@
 namespace ivrworx 
 {
 
-#define CCU_DEFAULT_IMS_TOP_PORT	60000
-#define CCU_DEFAULT_IMS_BOTTOM_PORT 50000
+#define IW_DEFAULT_IMS_TOP_PORT	60000
+#define IW_DEFAULT_IMS_BOTTOM_PORT 50000
 
-#define	CCU_DEFAULT_IMS_TIMEOUT		60000 // 1 min
+#define	IW_DEFAULT_IMS_TIMEOUT		60000 // 1 min
 
 	HANDLE g_iocpHandle = NULL;
 
@@ -197,7 +197,7 @@ namespace ivrworx
 		_conf(conf),
 		_localMedia(conf.ImsCnxInfo()),
 		_rtp_q(NULL),
-		_portManager(CCU_DEFAULT_IMS_TOP_PORT,CCU_DEFAULT_IMS_BOTTOM_PORT),
+		_portManager(IW_DEFAULT_IMS_TOP_PORT,IW_DEFAULT_IMS_BOTTOM_PORT),
 		_rtpWorkerShutdownEvt(NULL)
 	{
 		FUNCTRACKER;
@@ -342,7 +342,7 @@ namespace ivrworx
 				&number_of_bytes,		// A pointer to a variable that receives the number of bytes transferred during an I/O operation that has completed.
 				&completion_key,		// A pointer to a variable that receives the completion key value associated with the file handle whose I/O operation has completed. A completion key is a per-file key that is specified in a call to CreateIoCompletionPort.
 				&lpOverlapped,			// A pointer to a variable that receives the address of the OVERLAPPED structure that was specified when the completed I/O operation was started. 
-				CCU_DEFAULT_IMS_TIMEOUT // The number of milliseconds that the caller is willing to wait for a completion packet to appear at the completion port. If a completion packet does not appear within the specified time, the function times out, returns FALSE, and sets *lpOverlapped to NULL.
+				IW_DEFAULT_IMS_TIMEOUT // The number of milliseconds that the caller is willing to wait for a completion packet to appear at the completion port. If a completion packet does not appear within the specified time, the function times out, returns FALSE, and sets *lpOverlapped to NULL.
 				);
 
 			IX_PROFILE_CHECK_INTERVAL(10000);
@@ -389,18 +389,18 @@ namespace ivrworx
 
 			switch (ptr->message_id)
 			{
-			case CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST:
+			case MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST:
 				{
 					AllocatePlaybackSession(ptr);
 					break;
 				}
-			case CCU_MSG_START_PLAYBACK_REQUEST:
+			case MSG_START_PLAYBACK_REQUEST:
 				{
 					StartPlayback(ptr);
 					break;
 				}
 
-			case CCU_MSG_IMS_TEARDOWN_REQ:
+			case MSG_IMS_TEARDOWN_REQ:
 				{
 					TearDown(ptr);
 					break;
@@ -408,7 +408,7 @@ namespace ivrworx
 			case MSG_PROC_SHUTDOWN_REQ:
 				{
 					shutdown_flag = TRUE;
-					SendResponse(ptr,new CcuMsgShutdownAck());
+					SendResponse(ptr,new MsgShutdownAck());
 					break;
 				}
 			default:
@@ -442,8 +442,8 @@ namespace ivrworx
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
 
-		shared_ptr<CcuMsgAllocateImsSessionReq> req  =
-			dynamic_pointer_cast<CcuMsgAllocateImsSessionReq> (msg);
+		shared_ptr<MsgAllocateImsSessionReq> req  =
+			dynamic_pointer_cast<MsgAllocateImsSessionReq> (msg);
 
 		//
 		// create new context
@@ -716,8 +716,8 @@ namespace ivrworx
 		_streamingObjectSet[handle] = ctx;
 		ctx->session_handler	= req->session_handler;
 
-		CcuMsgAllocateImsSessionAck *ack = 
-			new CcuMsgAllocateImsSessionAck();
+		MsgAllocateImsSessionAck *ack = 
+			new MsgAllocateImsSessionAck();
 
 		ack->playback_handle = handle;
 		ack->ims_media_data = CnxInfo(_localMedia.iptoa(),local_port);
@@ -726,7 +726,7 @@ namespace ivrworx
 		return;
 
 error:
-		SendResponse(req,new CcuMsgAllocateImsSessionNack());
+		SendResponse(req,new MsgAllocateImsSessionNack());
 		return;
 	}
 
@@ -737,8 +737,8 @@ error:
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
 
-		shared_ptr<CcuMsgStartPlayReq> req  =
-			dynamic_pointer_cast<CcuMsgStartPlayReq> (msg);
+		shared_ptr<MsgStartPlayReq> req  =
+			dynamic_pointer_cast<MsgStartPlayReq> (msg);
 
 		StreamingCtxsMap::iterator iter = 
 			_streamingObjectSet.find(req->playback_handle);
@@ -746,7 +746,7 @@ error:
 		if (iter == _streamingObjectSet.end())
 		{
 			LogWarn("Invalid ims handle " << req->playback_handle);
-			SendResponse(msg, new CcuMsgStartPlayReqNack());
+			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		}
 
@@ -763,7 +763,7 @@ error:
 		if (res < 0)
 		{
 			LogWarn("Cannot set loop parameter, ims handle " << req->playback_handle);
-			SendResponse(msg, new CcuMsgStartPlayReqNack());
+			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		}
 		
@@ -772,7 +772,7 @@ error:
 		if (res < 0)
 		{
 			LogWarn("Cannot start palying (ms_ticker_attach/sounread), ims handle=" << req->playback_handle);
-			SendResponse(msg, new CcuMsgStartPlayReqNack());
+			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		}
 
@@ -780,7 +780,7 @@ error:
 		if (res < 0)
 		{
 			LogWarn("Cannot start palying (ms_ticker_attach/rtprecv), ims handle=" << req->playback_handle);
-			SendResponse(msg, new CcuMsgStartPlayReqNack());
+			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		}
 
@@ -788,7 +788,7 @@ error:
 
 		if (req->send_provisional)
 		{
-			SendResponse(msg, new CcuMsgStartPlayReqAck());
+			SendResponse(msg, new MsgStartPlayReqAck());
 		}
 	}
 
@@ -823,7 +823,7 @@ error:
 
 		auto_ptr<ImsOverlapped> args = auto_ptr<ImsOverlapped>(ovlp);
 		
-		CcuMsgImsPlayStopped *stopped_msg = new CcuMsgImsPlayStopped();
+		MsgImsPlayStopped *stopped_msg = new MsgImsPlayStopped();
 		stopped_msg->playback_handle = ovlp->ims_handle_id; 
 
 		StreamingCtxsMap::iterator iter = _streamingObjectSet.find(ovlp->ims_handle_id);
@@ -856,8 +856,8 @@ error:
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
 
-		shared_ptr<CcuMsgImsTearDownReq> req  =
-			dynamic_pointer_cast<CcuMsgImsTearDownReq> (msg);
+		shared_ptr<MsgImsTearDownReq> req  =
+			dynamic_pointer_cast<MsgImsTearDownReq> (msg);
 
 		StreamingCtxsMap::iterator iter = 
 			_streamingObjectSet.find(req->handle);
@@ -923,8 +923,8 @@ error:
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
 
-		shared_ptr<CcuMsgStopPlaybackReq> req  =
-		 	dynamic_pointer_cast<CcuMsgStopPlaybackReq> (msg);
+		shared_ptr<MsgStopPlaybackReq> req  =
+		 	dynamic_pointer_cast<MsgStopPlaybackReq> (msg);
 
 		StreamingCtxsMap::iterator iter = 
 			_streamingObjectSet.find(req->handle);
@@ -946,12 +946,12 @@ error:
 			if (res < 0)
 			{
 				LogWarn("ms2 error - ms_ticker_detach, res=" << res );
-				SendResponse(req,new CcuMsgStopPlaybackNack());
+				SendResponse(req,new MsgStopPlaybackNack());
 			}
 			
 		}
 
-		SendResponse(req,new CcuMsgStopPlaybackAck());
+		SendResponse(req,new MsgStopPlaybackAck());
 	}
 
 	void 

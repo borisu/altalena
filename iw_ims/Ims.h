@@ -29,27 +29,27 @@ namespace ivrworx
 
 	enum ImsEvents
 	{
-		CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST = MSG_USER_DEFINED,
-		CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK,
-		CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK,
-		CCU_MSG_START_PLAYBACK_REQUEST,
-		CCU_MSG_START_PLAY_REQ_ACK,
-		CCU_MSG_IMS_START_PLAY_REQ_NACK,
-		CCU_MSG_STOP_PLAYBACK_REQUEST,
-		CCU_MSG_STOP_PLAYBACK_REQUEST_ACK,
-		CCU_MSG_STOP_PLAYBACK_REQUEST_NACK,
-		CCU_MSG_IMS_PLAY_STOPPED,
-		CCU_MSG_IMS_TEARDOWN_REQ
+		MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST = MSG_USER_DEFINED,
+		MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK,
+		MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK,
+		MSG_START_PLAYBACK_REQUEST,
+		MSG_START_PLAY_REQ_ACK,
+		MSG_IMS_START_PLAY_REQ_NACK,
+		MSG_STOP_PLAYBACK_REQUEST,
+		MSG_STOP_PLAYBACK_REQUEST_ACK,
+		MSG_STOP_PLAYBACK_REQUEST_NACK,
+		MSG_IMS_PLAY_STOPPED,
+		MSG_IMS_TEARDOWN_REQ
 	};
 
 
-	class CcuMsgAllocateImsSessionReq:
+	class MsgAllocateImsSessionReq:
 		public MsgRequest
 	{
 	public:
-		CcuMsgAllocateImsSessionReq():
-		  MsgRequest(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST, 
-			  NAME(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST)){};
+		MsgAllocateImsSessionReq():
+		  MsgRequest(MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST, 
+			  NAME(MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST)){};
 
 		  CnxInfo remote_media_data;
 
@@ -59,13 +59,13 @@ namespace ivrworx
 
 	};
 
-	class CcuMsgAllocateImsSessionAck:
+	class MsgAllocateImsSessionAck:
 		public IwMessage
 	{
 	public:
-		CcuMsgAllocateImsSessionAck():
-		  IwMessage(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK, 
-			  NAME(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK)),
+		MsgAllocateImsSessionAck():
+		  IwMessage(MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK, 
+			  NAME(MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK)),
 			  playback_handle(IW_UNDEFINED){};
 
 		  int playback_handle;
@@ -74,22 +74,22 @@ namespace ivrworx
 
 	};
 
-	class CcuMsgAllocateImsSessionNack:
+	class MsgAllocateImsSessionNack:
 		public IwMessage
 	{
 	public:
-		CcuMsgAllocateImsSessionNack():
-		  IwMessage(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK, 
-			  NAME(CCU_MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK)){};
+		MsgAllocateImsSessionNack():
+		  IwMessage(MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK, 
+			  NAME(MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK)){};
 
 	};
 
-	class CcuMsgStartPlayReq:
+	class MsgStartPlayReq:
 		public MsgRequest
 	{
 	public:
-		CcuMsgStartPlayReq():
-		  MsgRequest(CCU_MSG_START_PLAYBACK_REQUEST, NAME(CCU_MSG_START_PLAYBACK_REQUEST)),
+		MsgStartPlayReq():
+		  MsgRequest(MSG_START_PLAYBACK_REQUEST, NAME(MSG_START_PLAYBACK_REQUEST)),
 			  playback_handle(IW_UNDEFINED),loop(false),send_provisional(false) {};
 
 		  int playback_handle;
@@ -102,32 +102,32 @@ namespace ivrworx
 
 	};
 
-	class CcuMsgStartPlayReqAck:
+	class MsgStartPlayReqAck:
 		public IwMessage
 	{
 	public:
-		CcuMsgStartPlayReqAck():
-		  IwMessage(CCU_MSG_START_PLAY_REQ_ACK, NAME(CCU_MSG_START_PLAY_REQ_ACK)){};
+		MsgStartPlayReqAck():
+		  IwMessage(MSG_START_PLAY_REQ_ACK, NAME(MSG_START_PLAY_REQ_ACK)){};
 
 	};
 
-	class CcuMsgStartPlayReqNack:
+	class MsgStartPlayReqNack:
 		public IwMessage
 	{
 	public:
-		CcuMsgStartPlayReqNack():
-		  IwMessage(CCU_MSG_IMS_START_PLAY_REQ_NACK, NAME(CCU_MSG_IMS_START_PLAY_REQ_NACK)),
+		MsgStartPlayReqNack():
+		  IwMessage(MSG_IMS_START_PLAY_REQ_NACK, NAME(MSG_IMS_START_PLAY_REQ_NACK)),
 			  playback_handle(IW_UNDEFINED){};
 
 		  int playback_handle;
 	};
 
-	class CcuMsgImsPlayStopped:
+	class MsgImsPlayStopped:
 		public IwMessage
 	{
 	public:
-		CcuMsgImsPlayStopped():
-		  IwMessage(CCU_MSG_IMS_PLAY_STOPPED, NAME(CCU_MSG_IMS_PLAY_STOPPED)),
+		MsgImsPlayStopped():
+		  IwMessage(MSG_IMS_PLAY_STOPPED, NAME(MSG_IMS_PLAY_STOPPED)),
 			  playback_handle(IW_UNDEFINED),
 			  error(API_FAILURE){};
 
@@ -136,50 +136,50 @@ namespace ivrworx
 		  ApiErrorCode error;
 	};
 
-	class CcuMsgImsTearDownReq:
+	class MsgImsTearDownReq:
 		public MsgRequest
 	{
 	public:
-		CcuMsgImsTearDownReq():
-		  MsgRequest(CCU_MSG_IMS_TEARDOWN_REQ, 
-			  NAME(CCU_MSG_IMS_TEARDOWN_REQ)){};
+		MsgImsTearDownReq():
+		  MsgRequest(MSG_IMS_TEARDOWN_REQ, 
+			  NAME(MSG_IMS_TEARDOWN_REQ)){};
 
 		  ImsHandleId handle;
 
 	};
 
-	class CcuMsgStopPlaybackReq:
+	class MsgStopPlaybackReq:
 		public MsgRequest
 	{
 
 	public:
-		CcuMsgStopPlaybackReq():
-		  MsgRequest(CCU_MSG_STOP_PLAYBACK_REQUEST, 
-			  NAME(CCU_MSG_STOP_PLAYBACK_REQUEST)){};
+		MsgStopPlaybackReq():
+		  MsgRequest(MSG_STOP_PLAYBACK_REQUEST, 
+			  NAME(MSG_STOP_PLAYBACK_REQUEST)){};
 
 		  ImsHandleId handle;
 
 	};
 
 
-	class CcuMsgStopPlaybackAck:
+	class MsgStopPlaybackAck:
 		public MsgRequest
 	{
 	public:
-		CcuMsgStopPlaybackAck():
-		  MsgRequest(CCU_MSG_STOP_PLAYBACK_REQUEST_ACK, 
-			  NAME(CCU_MSG_STOP_PLAYBACK_REQUEST_ACK)){};
+		MsgStopPlaybackAck():
+		  MsgRequest(MSG_STOP_PLAYBACK_REQUEST_ACK, 
+			  NAME(MSG_STOP_PLAYBACK_REQUEST_ACK)){};
 
 	};
 
 
-	class CcuMsgStopPlaybackNack:
+	class MsgStopPlaybackNack:
 		public MsgRequest
 	{
 	public:
-		CcuMsgStopPlaybackNack():
-		  MsgRequest(CCU_MSG_STOP_PLAYBACK_REQUEST_NACK, 
-			  NAME(CCU_MSG_STOP_PLAYBACK_REQUEST_NACK)){};
+		MsgStopPlaybackNack():
+		  MsgRequest(MSG_STOP_PLAYBACK_REQUEST_NACK, 
+			  NAME(MSG_STOP_PLAYBACK_REQUEST_NACK)){};
 
 	};
 
