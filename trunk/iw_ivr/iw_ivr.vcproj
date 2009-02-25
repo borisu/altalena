@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="vcs"
+	Name="iw_ivr"
 	ProjectGUID="{F33140DB-D0F8-4F45-88C2-1BCA63C21B42}"
 	RootNamespace="vcs"
 	Keyword="Win32Proj"
@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\ccu2;..\rtprelay;..\ims;..\ais;..\lua5.1\include"
+				AdditionalIncludeDirectories="..\iw_core;..\iw_ims;..\lua5.1\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -219,6 +219,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\IvrFactory.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\LuaDebugger.cpp"
 				>
 			</File>
@@ -231,11 +235,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ProcScriptRunner.cpp"
+				RelativePath=".\ProcIvr.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\ProcVcs.cpp"
+				RelativePath=".\ProcScriptRunner.cpp"
 				>
 			</File>
 			<File
@@ -266,10 +270,6 @@
 					/>
 				</FileConfiguration>
 			</File>
-			<File
-				RelativePath=".\VcsFactory.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -278,6 +278,10 @@
 			>
 			<File
 				RelativePath=".\CallWithDirectRtp.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IvrFactory.h"
 				>
 			</File>
 			<File
@@ -301,19 +305,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ProcIvr.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ProcScriptRunner.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ProcVcs.h"
-				>
-			</File>
-			<File
 				RelativePath=".\stdafx.h"
-				>
-			</File>
-			<File
-				RelativePath=".\VcsFactory.h"
 				>
 			</File>
 		</Filter>

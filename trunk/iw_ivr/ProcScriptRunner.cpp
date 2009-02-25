@@ -26,7 +26,7 @@ namespace ivrworx
 		IN shared_ptr<MsgCallOfferedReq> msg, 
 		IN LpHandlePair stack_pair, 
 		IN LpHandlePair pair)
-		:LightweightProcess(pair,__FUNCTIONW__),
+		:LightweightProcess(pair,__FUNCTION__),
 		_conf(conf),
 		_initialMsg(msg),
 		_stackPair(stack_pair)
@@ -73,7 +73,7 @@ namespace ivrworx
 			IxScript script(vm,call_session);
 
 			bool res = false;
-			IX_PROFILE_CODE(res = script.CompileFile(WStringToString(_conf.ScriptFile()).c_str()));
+			IX_PROFILE_CODE(res = script.CompileFile(_conf.ScriptFile().c_str()));
 			if (res == false)
 			{
 				LogWarn("Error Compiling/Running script=[" << _conf.ScriptFile() << "]");
@@ -188,9 +188,9 @@ namespace ivrworx
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
 
-		IxApiErrorCode res = _callSession.AcceptCall();
+		ApiErrorCode res = _callSession.AcceptCall();
 
-		if (CCU_SUCCESS(res))
+		if (IW_SUCCESS(res))
 		{
 			return 0;
 		} else 
@@ -206,9 +206,9 @@ namespace ivrworx
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
 
-		IxApiErrorCode res = _callSession.HagupCall();
+		ApiErrorCode res = _callSession.HagupCall();
 
-		if (CCU_SUCCESS(res))
+		if (IW_SUCCESS(res))
 		{
 			return 0;
 		} else 
@@ -245,9 +245,9 @@ namespace ivrworx
 
 		LogDebug("Play file [" << file_to_play << "]  ix stack handle=[" << _callSession.StackCallHandle() << "].");
 
-		IxApiErrorCode res = _callSession.PlayFile(StringToWString(file_to_play));
+		ApiErrorCode res = _callSession.PlayFile(file_to_play);
 
-		if (CCU_SUCCESS(res))
+		if (IW_SUCCESS(res))
 		{
 			return 0;
 		} else 
@@ -268,9 +268,9 @@ namespace ivrworx
 		LogDebug("Wait for dtmf  for " << time_to_sleep << " ms. ix stack handle=[" << _callSession.StackCallHandle() << "].");
 
 		int dtmf = -1;
-		IxApiErrorCode res = _callSession.WaitForDtmf(dtmf, MilliSeconds(time_to_sleep));
+		ApiErrorCode res = _callSession.WaitForDtmf(dtmf, MilliSeconds(time_to_sleep));
 
-		if (CCU_SUCCESS(res) || res == CCU_API_TIMEOUT)
+		if (IW_SUCCESS(res) || res == API_TIMEOUT)
 		{
 			return 0;
 		} else 
