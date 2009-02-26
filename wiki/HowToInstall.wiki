@@ -4,7 +4,7 @@
 
 The project was compiled and tested on Windows XP SP2 and Vista machines. Though the OS and IDE is proprietary, the project itself uses only open source third party libraries.
 
-Please report any problem to [borisusun@gmail.com], if you are experiencing problems compiling the project on other windows version, or you are interested to port it to a different platform.
+Please report any problem to [mail:borisusun@gmail.com administrator], if you are experiencing problems compiling the project on other windows version, or you are interested to port it to a different platform.
 
 Be advised that currently it can be built in debug configuration only.
 
