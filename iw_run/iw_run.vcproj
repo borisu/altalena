@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="ccutest"
+	Name="iw_run"
 	ProjectGUID="{D5CF5924-ECA0-402B-9312-5B25256E099C}"
 	RootNamespace="CcuTest"
 	Keyword="Win32Proj"
@@ -27,7 +27,7 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
-				CommandLine="echo Copying mediastreamer2.dll to output directory ...&#x0D;&#x0A;copy $(ProjectDir)\..\..\mediastreamer2-antisip-4.1.1-rc10\mediastreamer2\build\win32native\Debug\mediastreamer2.dll $(OutDir)&#x0D;&#x0A;echo Copying 3rd parties dll to output directory ...&#x0D;&#x0A;copy $(ProjectDir)\..\..\mediastreamer2-antisip-4.1.1-rc10\win32-bin\lib\*.dll $(OutDir)&#x0D;&#x0A;echo Copying ortp.dll to output directory ...&#x0D;&#x0A;copy $(ProjectDir)\..\..\mediastreamer2-antisip-4.1.1-rc10\oRTP\build\win32native\Debug\oRTP.dll $(OutDir)&#x0D;&#x0A;"
+				CommandLine="echo on&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\mediastreamer2\build\win32native\Debug\mediastreamer2.dll $(OutDir)&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\win32-bin\lib\*.dll $(OutDir)&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\oRTP\build\win32native\Debug\oRTP.dll $(OutDir)&#x0D;&#x0A;"
 				Outputs="out.txt"
 			/>
 			<Tool
@@ -43,7 +43,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;..\ccu2;..\ais;..\rtpgen;..\rtprelay;..\vcs;..\ims;&quot;..\..\mediastreamer2-antisip-4.1.1-rc10\mediastreamer2\include&quot;;&quot;..\..\mediastreamer2-antisip-4.1.1-rc10\oRTP\include&quot;"
+				AdditionalIncludeDirectories="..\iw_core;..\iw_ims;..\iw_ivr"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -266,39 +266,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\CcuLpTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\CcuTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\JsonConfigurationTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\LpHandleTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcImsStub.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcPipeIPCDispatcherTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcRtpRelayStub.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcStackStub.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\RTPRelayTest.cpp"
+				RelativePath=".\main.cpp"
 				>
 			</File>
 			<File
@@ -329,10 +297,6 @@
 					/>
 				</FileConfiguration>
 			</File>
-			<File
-				RelativePath=".\VcsTest.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -340,47 +304,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\CcuLpTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\JsonConfigurationTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\LpHandleTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcImsStub.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcPipeIPCDispatcherTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcRtpRelayStub.h"
-				>
-			</File>
-			<File
-				RelativePath="..\ccu2\ProcSipStack.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcStackStub.h"
-				>
-			</File>
-			<File
-				RelativePath=".\RTPRelayTest.h"
-				>
-			</File>
-			<File
 				RelativePath=".\stdafx.h"
-				>
-			</File>
-			<File
-				RelativePath=".\VcsTest.h"
 				>
 			</File>
 		</Filter>
