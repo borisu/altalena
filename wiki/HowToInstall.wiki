@@ -2,11 +2,11 @@
 
 = Introduction =
 
-The project was compiled and tested on Windows XP SP2 machine. Though the OS and IDE is proprietary, the project itself uses only open source third party libraries.
+The project was compiled and tested on Windows XP SP2 and Vista machines. Though the OS and IDE is proprietary, the project itself uses only open source third party libraries.
 
-Please report any problem to [borisusun@gmail.com administrator] if you experiencing problems compiling the project on other windows version, or you are interested to port it to a different platform.
+Please report any problem to [borisusun@gmail.com], if you are experiencing problems compiling the project on other windows version, or you are interested to port it to a different platform.
 
-Currently it cam be built in debug configuration only.
+Be advised that currently it can be built in debug configuration only.
 
 = Dependencies =
 
@@ -32,6 +32,7 @@ are either included into subversion tree completely or by means of subversion ex
  # Unzip the mediastreamer2 library. Important! You should unzip it exactly in the same directory where it is located. ("Extract here" on most zip tools)
  # Open <root project>\solutions\altalena_all\altalena_all.sln.
  # iw_run should be a start up project
+
 
 
  
