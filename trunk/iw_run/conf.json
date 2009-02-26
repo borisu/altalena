@@ -1,15 +1,17 @@
 {
     "default_ip": "192.168.100.232",
-    "vcs_sip_ip": "192.168.100.232",
-    "vcs_sip_port": 5060,
+    
+    "ivr_sip_ip": "192.168.100.232",
+    "ivr_sip_port": 5060,
+    "from_id" : "ivrworx",
+    "from_display_name": "ivrworx",
+    
     "ims_ip": "192.168.100.232",
-    "ims_port": 13555,
-    "rtp_relay_ip": "192.168.100.232",
-    "rtp_relay_top_port" : 62000,
-    "rtp_relay_bottom_port" : 61000,
+    "ims_top_port" : 62000,
+    "ims_bottom_port" : 61000,
+    
     "script_file" : "scripts\\test.lua",
-    "from_id" : "MyIvr",
-    "from_display_name": "My Ivr",
+    
     "codecs": [
         {
             "name": "PCMU" ,
