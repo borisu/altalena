@@ -45,6 +45,13 @@ namespace ivrworx
 		queue_path		= other.queue_path;
 	}
 
+	IpcAdddress::~IpcAdddress()
+	{
+
+	}
+
+	
+
 	IwMessage::IwMessage (IN int message_id, IN const string &message_id_str):
 	transaction_id(-1),
 	is_response(FALSE),
@@ -54,6 +61,11 @@ namespace ivrworx
 		this->message_id = message_id;
 		this->message_id_str = message_id_str;
 	};
+
+	IwMessage::~IwMessage()
+	{
+
+	}
 
 
 	

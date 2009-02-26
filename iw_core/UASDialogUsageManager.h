@@ -66,8 +66,6 @@ namespace ivrworx
 
 		virtual void onConnected(InviteSessionHandle, const SipMessage& msg);
 
-		virtual string CreateSdp(CnxInfo &offered_sdp, const MediaFormat &codec);
-
 		virtual void CleanUpCall(IN SipDialogContextPtr ctx_ptr);
 
 	private:
