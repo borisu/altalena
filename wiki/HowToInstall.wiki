@@ -16,16 +16,16 @@ The library depends on
 
 Other project dependencies
 
-- [http://www.cs.kent.ac.uk/projects/ofa/c++csp/doc/installation.html C++CSP]
-- [www.lua.org lua]
-- [http://www.resiprocate.org resiprocate 1.4.1]
-- [http://www.codeproject.com/KB/recipes/JSON_Spirit.aspx json spirit]
-- [http://www.linphone.org/index.php/eng/code_review/mediastreamer2 mediastreamer2]
+# [http://www.cs.kent.ac.uk/projects/ofa/c++csp/doc/installation.html C++CSP]
+# [www.lua.org lua]
+# [http://www.resiprocate.org resiprocate 1.4.1]
+# [http://www.codeproject.com/KB/recipes/JSON_Spirit.aspx json spirit]
+# [http://www.linphone.org/index.php/eng/code_review/mediastreamer2 mediastreamer2]
 
 are either included into subversion tree completely or by means of subversion externals.
 
 = Setup =
 
- # Checkout altalena code with secondary 3rd party libraries in <project root>\altalena- see instructions here http://code.google.com/p/altalena/source/checkout. Write to administrator if you want to become a member of development team.
+# Checkout altalena code with secondary 3rd party libraries in <project root>\altalena- see instructions here http://code.google.com/p/altalena/source/checkout. Write to administrator if you want to become a member of development team.
 
 # Unzip the mediastreamer2 library. Important! You should unzip it exactly in the same directory where it is located.
