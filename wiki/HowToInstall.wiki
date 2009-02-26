@@ -19,7 +19,7 @@ The library depends on
 Other project dependencies
 
  # [http://www.cs.kent.ac.uk/projects/ofa/c++csp/doc/installation.html C++CSP]
- # [www.lua.org lua]
+ # [http://www.lua.org lua]
  # [http://www.resiprocate.org resiprocate 1.4.1]
  # [http://www.codeproject.com/KB/recipes/JSON_Spirit.aspx json spirit]
  # [http://www.linphone.org/index.php/eng/code_review/mediastreamer2 mediastreamer2]
@@ -34,6 +34,10 @@ are either included into subversion tree completely or by means of subversion ex
  # Open <root project>\solutions\altalena_all\altalena_all.sln.
  # iw_run should be a start up project
 
+= Start = 
 
+ Configuration file locates in <project root>\iw_run\conf.json. Test script is located in <project root>\altalena\iw_run\scripts\test.lua
+
+Enjoy
 
  
