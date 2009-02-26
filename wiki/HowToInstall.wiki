@@ -37,7 +37,7 @@ are either included into subversion tree completely or by means of subversion ex
 
 = Start = 
 
- Configuration file locates in <project root>\iw_run\conf.json. Test script is located in <project root>\altalena\iw_run\scripts\test.lua
+ Configuration file locates in <project root>\iw_run\conf.json. Test script is located in <project root>\altalena\iw_run\scripts\test.lua. Inspect the files and change them accordingly to your environment.
 
 Enjoy
 
