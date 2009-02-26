@@ -6,6 +6,8 @@ The project was compiled and tested on Windows XP SP2 machine. Though the OS and
 
 Please report any problem to [borisusun@gmail.com administrator] if you experiencing problems compiling the project on other windows version, or you are interested to port it to a different platform.
 
+Currently it cam be built in debug configuration only.
+
 = Dependencies =
 
 The library depends on 
@@ -28,4 +30,8 @@ are either included into subversion tree completely or by means of subversion ex
  # Checkout altalena code with secondary 3rd party libraries in <project root>\altalena- see instructions here http://code.google.com/p/altalena/source/checkout. Write to administrator if you want to become a member of development team.
  # Add <project root>\kentcsp\kentcsp\src to include library in IDE options tab
  # Unzip the mediastreamer2 library. Important! You should unzip it exactly in the same directory where it is located. ("Extract here" on most zip tools)
+ # Open <root project>\solutions\altalena_all\altalena_all.sln.
+ # iw_run should be a start up project
+
+
  
