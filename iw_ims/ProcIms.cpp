@@ -197,7 +197,7 @@ namespace ivrworx
 		_conf(conf),
 		_localMedia(conf.ImsCnxInfo()),
 		_rtp_q(NULL),
-		_portManager(IW_DEFAULT_IMS_TOP_PORT,IW_DEFAULT_IMS_BOTTOM_PORT),
+		_portManager(conf.ImsTopPort(),conf.ImsBottomPort()),
 		_rtpWorkerShutdownEvt(NULL)
 	{
 		FUNCTRACKER;
