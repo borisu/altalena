@@ -597,7 +597,7 @@ namespace ivrworx
 	}
 
 	int
-	IxGetCurrLpId()
+	GetCurrLpId()
 	{
 		LightweightProcess *proc = 
 			GetCurrLightWeightProc();
@@ -630,7 +630,7 @@ namespace ivrworx
 	}
 
 	string 
-	IxGetCurrLpName()
+	GetCurrLpName()
 	{
 
 		LightweightProcess *proc = 

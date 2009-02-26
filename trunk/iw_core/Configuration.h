@@ -39,7 +39,9 @@ namespace ivrworx
 
 		virtual CnxInfo ImsCnxInfo();
 
-		virtual CnxInfo RtpRelayIp();
+		virtual int ImsTopPort();
+
+		virtual int ImsBottomPort();
 
 		virtual string ScriptFile();
 
@@ -70,6 +72,10 @@ namespace ivrworx
 		string _from;
 
 		string _fromDisplay;
+
+		int _imsTopPort;
+
+		int _imsBottomPort;
 
 	};
 

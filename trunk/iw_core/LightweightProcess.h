@@ -171,10 +171,10 @@ LightweightProcess*
 GetCurrLightWeightProc();
 
 string 
-IxGetCurrLpName();
+GetCurrLpName();
 
 int
-IxGetCurrLpId();
+GetCurrLpId();
 
 }
 

@@ -147,9 +147,11 @@ namespace ivrworx
 		// ims
 		//
 		const string ims_ip_str = find_str(root_obj, "ims_ip" );
-		const int ims_ip_int = find_int(root_obj, "ims_port" );
+		
+		_imsCnxInfo = CnxInfo(ims_ip_str,0);
 
-		_imsCnxInfo = CnxInfo(ims_ip_str,ims_ip_int);
+		_imsTopPort = find_int(root_obj, "ims_top_port" );
+		_imsBottomPort = find_int(root_obj, "ims_bottom_port" );
 
 
 
