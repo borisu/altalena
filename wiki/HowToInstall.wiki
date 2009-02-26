@@ -14,20 +14,26 @@ In following examples I will refer to "c:\altalena" as project root, path "c:\al
 
 The following procedure assumes that you have "clean" machine with no prerequisites installed. It goes without saying, that you may hack project definitions if you'd like to change according it to your file system structure.
 
+= Dependencies =
+
+The library depends on 
+
+# [http://www.boost.org boost] [http://www.boostpro.com/boost_1_34_1_setup.exe boost 1.34.1 1.34.1] - Pre-built libraries are available to download. Download it and update your IDE include and library options.
+
+# Microsoft® DirectX® 9.0 SDK - mediatreamer2 needs this to compile. I used version that may be downloaded from [http://www.microsoft.com/Downloads/details.aspx?FamilyID=9226a611-62fe-4f61-aba1-914185249413&displaylang=en here].Download it and update your IDE include and library options.
+
+Other project dependencies
+
+- [http://www.cs.kent.ac.uk/projects/ofa/c++csp/doc/installation.html C++CSP]
+- [www.lua.org lua]
+- [http://www.resiprocate.org resiprocate 1.4.1]
+- [http://www.codeproject.com/KB/recipes/JSON_Spirit.aspx json spirit]
+- [http://www.linphone.org/index.php/eng/code_review/mediastreamer2 mediastreamer2]
+
+are either included into subversion tree completely or by means of subversion externals.
+
 = Setup =
 
-
- # Install Microsoft Visual Studio 2005
- # Install Subversion client - I use [http://tortoisesvn.tigris.org/ Tortoise Svn]
- # Check out in <project root>\resip directory, resiprocate-1.4.1 source from [http://svn.resiprocate.org/rep/resiprocate/tags/resiprocate-1.4.1 this subversion link]
- # Check out in <project root>\kentcsp Kent CSP C++CSP2 v2.0.4 library from [http://projects.cs.kent.ac.uk/projects/cppcsp/svn/cppcsp2/trunk/ this subversion link]
-# change cspcpp.h 
-#ifdef CPPCSP_WINDOWS
-#ifndef _WIN32_WINNT
- #define _WIN32_WINNT 0x0403
-#endif
- # Download boost library package [http://www.boostpro.com/boost_1_34_1_setup.exe boost 1.34.1] will do just fine. Unpackage it into <project root>\boost
- # Download [http://www.codeproject.com/KB/recipes/JSON_Spirit/json_spirit_v2_06.zip json spirit source library] V2.06 and install into <project root>\json
- # Download [http://downloads.xiph.org/releases/speex/speex-1.2beta3-win32.zip speex speex-1.2beta3-win32.zip] to  <program root>\speex 
  # Checkout altalena code with secondary 3rd party libraries in <project root>\altalena- see instructions here http://code.google.com/p/altalena/source/checkout. Write to administrator if you want to become a member of development team.
-# edit windows->tool->soptions to include 3rd party directories for include and library files
+
+# Unzip the mediastreamer2 library. Important! You should unzip it exactly in the same directory where it is located.
