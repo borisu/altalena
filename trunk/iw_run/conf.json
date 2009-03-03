@@ -1,12 +1,12 @@
 {
-    "default_ip": "192.168.100.232",
+    "default_ip": "10.0.0.2",
     
-    "ivr_sip_ip": "192.168.100.232",
+    "ivr_sip_ip": "10.0.0.2",
     "ivr_sip_port": 5060,
     "from_id" : "ivrworx",
     "from_display_name": "ivrworx",
     
-    "ims_ip": "192.168.100.232",
+    "ims_ip": "10.0.0.2",
     "ims_top_port" : 62000,
     "ims_bottom_port" : 61000,
     
