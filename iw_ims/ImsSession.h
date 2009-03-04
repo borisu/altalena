@@ -58,6 +58,10 @@ namespace ivrworx
 
 		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
 
+		virtual const string& GetDtmfString();
+
+		virtual void ClearDtmfs();
+
 	private:
 
 		ApiErrorCode	SyncStreamFile();
@@ -68,7 +72,11 @@ namespace ivrworx
 
 		ScopedForking &_forking;
 
-		LpHandlePtr _dtmfHandle;
+		LpHandlePtr _rfc2833DtmfHandle;
+
+		LpHandlePair _imsSessionHandlerPair;
+
+		string _dtmf;
 	};
 
 	typedef shared_ptr<ImsSession> ImsSessionPtr;

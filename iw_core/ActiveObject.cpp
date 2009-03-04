@@ -24,13 +24,21 @@
 namespace ivrworx
 {
 	ActiveObject::ActiveObject():
-	_shutdownFlag(FALSE)
+	_shutdownFlag(FALSE),
+	_started(false)
 	{
 		
 	}
 
 	ActiveObject::~ActiveObject(void)
 	{
+		if (!_started)
+		{
+			return;
+		}
+
+		_started = false;
+
 		_shutdownFlag = TRUE;
 		_handlePair.inbound->Send(new MsgShutdownReq());
 
@@ -46,6 +54,14 @@ namespace ivrworx
 	ActiveObject::Start(IN ScopedForking &forking, IN LpHandlePair pair, IN const string &name)
 	{
 		FUNCTRACKER;
+
+		if (_started )
+		{
+			LogCrit("Started object twice");
+			throw;
+		}
+
+		_started = true;
 
 		_handlePair = pair;
 

@@ -213,16 +213,6 @@ namespace ivrworx
 	};
 
 
-	class MsgCallDtmfEvt:
-		public MsgStackMixin,public IwMessage
-	{
-	public:
-		MsgCallDtmfEvt():IwMessage(MSG_CALL_DTMF_EVT, 
-			NAME(MSG_CALL_DTMF_EVT)){}
-
-		int dtmf_digit;
-
-	};
 
 
 #pragma endregion Sip_Stack_Events
@@ -267,10 +257,6 @@ namespace ivrworx
 			IN const CnxInfo &local_media);
 
 		ApiErrorCode HagupCall();
-
-		ApiErrorCode WaitForDtmf(
-			OUT int &dtmf_digit,
-			IN Time timeout);
 
 		CnxInfo RemoteMedia() const;
 		void RemoteMedia(CnxInfo &val);

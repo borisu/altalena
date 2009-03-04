@@ -30,10 +30,11 @@ namespace ivrworx
 
 ImsSession::ImsSession(IN ScopedForking &forking):
 _imsSessionHandle(IW_UNDEFINED),
+_imsSessionHandlerPair(HANDLE_PAIR),
 _forking(forking),
-_dtmfHandle(new LpHandle())
+_rfc2833DtmfHandle(new LpHandle())
 {
-
+	
 }
 
 ImsSession::~ImsSession(void)
@@ -55,6 +56,13 @@ ImsSession::PlayFile(IN const string &file_name,
 
 	if (_imsSessionHandle == IW_UNDEFINED)
 	{
+		return API_FAILURE;
+	}
+
+	// cannot sync and loop
+	if (sync == TRUE && loop == TRUE)
+	{
+		LogWarn("Cannot play sync and in loop.");
 		return API_FAILURE;
 	}
 
@@ -118,20 +126,35 @@ ImsSession::PlayFile(IN const string &file_name,
 	return API_SUCCESS;
 }
 
+const string& 
+ImsSession::GetDtmfString()
+{
+	return _dtmf;
+}
+
+
+void 
+ImsSession::ClearDtmfs()
+{
+	_dtmf.clear();
+}
+
 ApiErrorCode
 ImsSession::WaitForDtmf(OUT int &dtmf, IN Time timeout)
 {
 	
 	IwMessagePtr ptr = NULL_MSG;
 
-	ApiErrorCode res = GetCurrLightWeightProc()->WaitForTxnResponse(_dtmfHandle,ptr,timeout);
+	ApiErrorCode res = GetCurrLightWeightProc()->WaitForTxnResponse(_rfc2833DtmfHandle,ptr,timeout);
 	if (IW_FAILURE(res))
 	{
 		return res;
 	}
 
-	shared_ptr<MsgCallDtmfEvt> dtmf_event = shared_dynamic_cast<MsgCallDtmfEvt> (ptr);
+	shared_ptr<MsgImsRfc2833DtmfEvt> dtmf_event = shared_dynamic_cast<MsgImsRfc2833DtmfEvt> (ptr);
 	dtmf = dtmf_event->dtmf_digit;
+
+	_dtmf = _dtmf + (char)dtmf;
 
 	return API_SUCCESS;
 
@@ -144,9 +167,9 @@ ImsSession::UponActiveObjectEvent(IwMessagePtr ptr)
 
 	switch (ptr->message_id)
 	{
-	case MSG_CALL_DTMF_EVT:
+	case MSG_IMS_RFC2833DTMF_EVT:
 		{
-			_dtmfHandle->Send(ptr);
+			_rfc2833DtmfHandle->Send(ptr);
 		}
 	default:
 		{
