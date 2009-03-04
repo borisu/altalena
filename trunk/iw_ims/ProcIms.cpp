@@ -124,8 +124,8 @@ namespace ivrworx
 		if (profile) rtp_profile_destroy(profile);
 	}
 
-#define IX_EOF_EVENT  1
-#define IX_DTMF_EVENT 2
+#define IW_IMS_EOF_EVENT  1
+#define IW_IMS_DTMF_EVENT 2
 
 	static void 
 	on_dtmf_received(RtpSession *s, int dtmf, void * user_data)
@@ -142,7 +142,7 @@ namespace ivrworx
 		BOOL res = ::PostQueuedCompletionStatus(
 			g_iocpHandle,				//A handle to an I/O completion port to which the I/O completion packet is to be posted.
 			0,							//The value to be returned through the lpNumberOfBytesTransferred parameter of the GetQueuedCompletionStatus function.
-			IX_DTMF_EVENT,				//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
+			IW_IMS_DTMF_EVENT,				//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
 			olap						//The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
 			);
 
@@ -157,7 +157,7 @@ namespace ivrworx
 	on_file_filter_event(void *userdata , unsigned int id, void *arg)
 	{
 
-		ImsHandleId handle = (ImsHandleId) arg;
+		ImsHandleId handle = (ImsHandleId) userdata;
 
 		switch (id)
 		{
@@ -171,7 +171,7 @@ namespace ivrworx
 				BOOL res = ::PostQueuedCompletionStatus(
 					g_iocpHandle,			//A handle to an I/O completion port to which the I/O completion packet is to be posted.
 					0,						//The value to be returned through the lpNumberOfBytesTransferred parameter of the GetQueuedCompletionStatus function.
-					IX_EOF_EVENT,			//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
+					IW_IMS_EOF_EVENT,			//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
 					olap					//The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
 					);
 
@@ -363,12 +363,12 @@ namespace ivrworx
 			// oRTP event?
 			switch (completion_key)
 			{
-			case IX_EOF_EVENT:
+			case IW_IMS_EOF_EVENT:
 				{
 					UponPlaybackStopped((ImsOverlapped*)lpOverlapped);
 					continue;
 				}
-			case IX_DTMF_EVENT:
+			case IW_IMS_DTMF_EVENT:
 				{
 					UponDtmfEvent((ImsOverlapped*)lpOverlapped);
 					continue;
@@ -644,7 +644,10 @@ namespace ivrworx
 			goto error;
 		}
 
+		
 		ctx->stream->soundread->notify = &on_file_filter_event;
+
+		
 
 		/********************
 		*
@@ -766,6 +769,8 @@ error:
 			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		}
+
+		ctx->loop = req->loop;
 		
 		// final touch
 		res = ms_ticker_attach(ctx->stream->ticker,ctx->stream->soundread);
@@ -790,6 +795,9 @@ error:
 		{
 			SendResponse(msg, new MsgStartPlayReqAck());
 		}
+
+		ctx->last_user_request = req;
+
 	}
 
 
@@ -807,7 +815,7 @@ error:
 
 		StreamingCtxPtr ctx = iter->second;
 
-		MsgCallDtmfEvt *evt = new MsgCallDtmfEvt();
+		MsgImsRfc2833DtmfEvt *evt = new MsgImsRfc2833DtmfEvt();
 		evt->dtmf_digit = ovlp->dtmf;
 
 		this->SendMessage(ctx->session_handler.inbound, IwMessagePtr(evt));
@@ -823,9 +831,7 @@ error:
 
 		auto_ptr<ImsOverlapped> args = auto_ptr<ImsOverlapped>(ovlp);
 		
-		MsgImsPlayStopped *stopped_msg = new MsgImsPlayStopped();
-		stopped_msg->playback_handle = ovlp->ims_handle_id; 
-
+		
 		StreamingCtxsMap::iterator iter = _streamingObjectSet.find(ovlp->ims_handle_id);
 		if (iter == _streamingObjectSet.end())
 		{
@@ -834,6 +840,15 @@ error:
 		}
 
 		StreamingCtxPtr ctx = iter->second;
+
+		// ignore eof event if playback is looped
+		if (ctx->loop)
+		{
+			return;
+		}
+
+		MsgImsPlayStopped *stopped_msg = new MsgImsPlayStopped();
+		stopped_msg->playback_handle = ovlp->ims_handle_id; 
 
 		if (ctx->stream->ticker)
 		{
@@ -846,7 +861,8 @@ error:
 		}
 		
 	
-		this->SendMessage(ctx->session_handler.inbound, IwMessagePtr(stopped_msg));
+		this->SendResponse(ctx->last_user_request, stopped_msg);
+
 
 	}
 

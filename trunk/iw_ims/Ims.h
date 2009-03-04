@@ -39,7 +39,8 @@ namespace ivrworx
 		MSG_STOP_PLAYBACK_REQUEST_ACK,
 		MSG_STOP_PLAYBACK_REQUEST_NACK,
 		MSG_IMS_PLAY_STOPPED,
-		MSG_IMS_TEARDOWN_REQ
+		MSG_IMS_TEARDOWN_REQ,
+		MSG_IMS_RFC2833DTMF_EVT
 	};
 
 
@@ -180,6 +181,18 @@ namespace ivrworx
 		MsgStopPlaybackNack():
 		  MsgRequest(MSG_STOP_PLAYBACK_REQUEST_NACK, 
 			  NAME(MSG_STOP_PLAYBACK_REQUEST_NACK)){};
+
+	};
+
+
+	class MsgImsRfc2833DtmfEvt:
+		public IwMessage
+	{
+	public:
+		MsgImsRfc2833DtmfEvt():IwMessage(MSG_IMS_RFC2833DTMF_EVT, 
+			NAME(MSG_IMS_RFC2833DTMF_EVT)){}
+
+		int dtmf_digit;
 
 	};
 

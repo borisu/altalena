@@ -53,6 +53,8 @@ namespace ivrworx
 
 		volatile BOOL _shutdownFlag;
 
+		bool _started;
+
 		friend class ProcEventListener;
 	};
 
@@ -68,6 +70,9 @@ namespace ivrworx
 	private:
 
 		ActiveObject &_activeObject;
+
+		
+
 		
 	};
 

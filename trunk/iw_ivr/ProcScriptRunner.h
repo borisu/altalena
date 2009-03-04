@@ -59,14 +59,14 @@ namespace ivrworx
 
 	};
 
-	class IxScript : 
+	class IwScript : 
 		public CLuaScript
 	{
 	public:
 
-		IxScript(IN CLuaVirtualMachine &_vmPtr, IN CallWithDirectRtp &_callSession);
+		IwScript(IN CLuaVirtualMachine &_vmPtr, IN CallWithDirectRtp &_callSession);
 
-		~IxScript();
+		~IwScript();
 
 	private:
 

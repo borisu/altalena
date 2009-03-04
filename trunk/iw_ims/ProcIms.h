@@ -28,6 +28,7 @@ using namespace std;
 namespace ivrworx
 {
 
+	
 	struct StreamingCtx
 	{
 		StreamingCtx();
@@ -38,9 +39,16 @@ namespace ivrworx
 
 		LpHandlePair session_handler;
 
+		// used to send responses as it is 
+		// temporary process used to run transaction
+		//
+		IwMessagePtr last_user_request;
+
 		int  port;
 
 		RtpProfile *profile;
+
+		BOOL loop;
 
 	};
 

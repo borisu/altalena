@@ -173,29 +173,6 @@ void Call::UponActiveObjectEvent(IwMessagePtr ptr)
 
 }
 
-ApiErrorCode
-Call::WaitForDtmf(OUT int &dtmf_digit, IN Time timeout)
-{
-	
-	FUNCTRACKER;
-
-	IwMessagePtr ptr = NULL_MSG;
-	ApiErrorCode res = GetCurrLightWeightProc()->WaitForTxnResponse(_dtmfChannel, ptr, timeout);
-
-	if (IW_FAILURE(res))
-	{
-		return res;
-	}
-
-	shared_ptr<MsgCallDtmfEvt> dtmfEvt = 
-		dynamic_pointer_cast<MsgCallDtmfEvt> (ptr);
-
-	dtmf_digit = dtmfEvt->dtmf_digit;
-
-	return res;
-
-
-}
 
 ApiErrorCode
 Call::RejectCall()

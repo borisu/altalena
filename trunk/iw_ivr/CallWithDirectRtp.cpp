@@ -61,11 +61,11 @@ namespace ivrworx
 	}
 
 	ApiErrorCode 
-	CallWithDirectRtp::PlayFile(IN const string &file_name)
+	CallWithDirectRtp::PlayFile(IN const string &file_name, IN BOOL sync, IN BOOL loop)
 	{
 		FUNCTRACKER;
 
-		ApiErrorCode res = _imsSession.PlayFile(file_name, TRUE);
+		ApiErrorCode res = _imsSession.PlayFile(file_name, sync, loop,TRUE);
 
 		return res;
 

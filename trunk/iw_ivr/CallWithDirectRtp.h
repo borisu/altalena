@@ -35,7 +35,7 @@ namespace ivrworx
 
 		virtual ApiErrorCode AcceptCall();
 
-		virtual ApiErrorCode PlayFile(IN const string &file_name);
+		virtual ApiErrorCode PlayFile(IN const string &file_name, IN BOOL sync, IN BOOL loop);
 
 		virtual ApiErrorCode WaitForDtmf(OUT int &dtmf, IN Time timeout);
 
