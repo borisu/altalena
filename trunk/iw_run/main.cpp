@@ -18,6 +18,7 @@
 */
 
 #include "stdafx.h"
+#include "PhraseBuilder.h"
 
 using namespace JadedHoboConsole;
 namespace con = JadedHoboConsole;
@@ -39,6 +40,11 @@ namespace ivrworx
 
 			ConfigurationPtr conf = 
 				ConfigurationFactory::CreateJsonConfiguration("conf.json");
+
+			WordsList list;
+			PhraseBuilder pb(*conf);
+			pb.BuildNumber(2147483647,list);
+			return;
 
 			START_FORKING_REGION;
 

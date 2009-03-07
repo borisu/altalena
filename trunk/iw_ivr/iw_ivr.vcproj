@@ -235,6 +235,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PhraseBuilder.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ProcIvr.cpp"
 				>
 			</File>
@@ -302,6 +306,10 @@
 			</File>
 			<File
 				RelativePath=".\LuaVirtualMachine.h"
+				>
+			</File>
+			<File
+				RelativePath=".\PhraseBuilder.h"
 				>
 			</File>
 			<File

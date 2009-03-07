@@ -134,6 +134,15 @@ namespace ivrworx
 	}
 
 	string 
+	Configuration::SoundsPath()
+	{
+		mutex::scoped_lock lock(_mutex);
+
+		return _soundsPath;
+
+	}
+
+	string 
 	Configuration::FromDisplay()
 	{
 		mutex::scoped_lock lock(_mutex);
