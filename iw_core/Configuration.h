@@ -45,6 +45,8 @@ namespace ivrworx
 
 		virtual string ScriptFile();
 
+		virtual string SoundsPath();
+
 		virtual void AddCodec(const MediaFormat& codec);
 
 		virtual void AddCodec(const MediaFormat* codec);
@@ -72,6 +74,8 @@ namespace ivrworx
 		string _from;
 
 		string _fromDisplay;
+
+		string _soundsPath;
 
 		int _imsTopPort;
 

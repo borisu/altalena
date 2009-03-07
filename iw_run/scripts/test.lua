@@ -1,4 +1,6 @@
 
+require 'play_phrase';
+
 res = this.answer(this);
 if (res ~= 0) then return end
 

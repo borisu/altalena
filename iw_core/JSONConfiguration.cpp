@@ -175,6 +175,10 @@ namespace ivrworx
 		_from		 = find_str(root_obj, "from_id");
 		_fromDisplay = find_str(root_obj, "from_display_name");
 
+		// basic sound path
+		_soundsPath	= find_str(root_obj, "sounds_dir");
+		
+
 		return API_SUCCESS;
 
 	}

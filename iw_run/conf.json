@@ -12,6 +12,8 @@
     
     "script_file" : "scripts\\test.lua",
     
+    "sounds_dir" : "sounds",
+    
     "codecs": [
         {
             "name": "PCMU" ,
