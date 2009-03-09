@@ -308,16 +308,32 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\conf.json"
+		<Filter
+			Name="conf"
 			>
-		</File>
+			<File
+				RelativePath=".\conf.json"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="scripts"
+			>
+			<File
+				RelativePath=".\scripts\ivrworx.lua"
+				>
+			</File>
+			<File
+				RelativePath=".\scripts\play_phrase.lua"
+				>
+			</File>
+			<File
+				RelativePath=".\scripts\test.lua"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
-			>
-		</File>
-		<File
-			RelativePath=".\scripts\test.lua"
 			>
 		</File>
 	</Files>
