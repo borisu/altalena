@@ -1,14 +1,13 @@
+require "ivrworx";
+require "play_phrase";
 
-require 'play_phrase';
+res = ivrworx.answer();
+if (res ~= 0) then return end;
 
-res = this.answer(this);
+res = play_phrase.play_number(conf["dnis"]);
 if (res ~= 0) then return end
 
 
-res = this.play(this,"C:\\SOLUTIONS\\altalena\\iw_run\\sounds\\welcome.wav",false,true);
-if (res ~= 0) then return end
-
-res, dtmf = this.wait_for_dtmf(this,60000);
 
 
                           
