@@ -88,7 +88,7 @@
 #define LUA_LDIR	"!\\lua\\"
 #define LUA_CDIR	"!\\"
 #define LUA_PATH_DEFAULT  \
-		".\\?.lua;"  LUA_LDIR"?.lua;"  LUA_LDIR"?\\init.lua;" \
+		".\\?.lua;.\\scripts\\?.lua;"  LUA_LDIR"?.lua;"  LUA_LDIR"?\\init.lua;" \
 		             LUA_CDIR"?.lua;"  LUA_CDIR"?\\init.lua"
 #define LUA_CPATH_DEFAULT \
 	".\\?.dll;"  ".\\?51.dll;"  LUA_CDIR"?.dll;" LUA_CDIR"?51.dll;" LUA_CDIR"clibs\\?.dll;" LUA_CDIR"clibs\\?51.dll;" LUA_CDIR"loadall.dll;" LUA_CDIR"clibs\\loadall.dll"
