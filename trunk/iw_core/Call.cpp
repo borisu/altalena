@@ -56,8 +56,24 @@ Call::Call(
 
 	Start(forking,_handlerPair,__FUNCTION__);
 
+	_dnis = offered_msg->dnis;
+
+	_ani = offered_msg->ani;
+
 	LogDebug("Creating call session - ix stack handle=[" << _stackCallHandle << "].");
 
+}
+
+const string&
+Call::Dnis()
+{
+  return _ani;
+}
+
+const string&
+Call::Ani()
+{
+	return _ani;
 }
 
 void

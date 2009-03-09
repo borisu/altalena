@@ -126,6 +126,10 @@ namespace ivrworx
 
 		CnxInfo remote_media;
 
+		string ani;
+
+		string dnis;
+
 		virtual void copy_data_on_response(IN IwMessage *msg)
 		{
 			MsgStackMixin *req = dynamic_cast<MsgStackMixin*>(msg);
@@ -135,7 +139,8 @@ namespace ivrworx
 			remote_media		= remote_media.is_ip_valid() ? req->remote_media : remote_media;
 			offered_codecs      = req->offered_codecs;
 			accepted_codecs		= req->accepted_codecs;
-
+			ani					= req->ani;
+			dnis				= req->dnis;
 		};
 
 	};
@@ -150,6 +155,8 @@ namespace ivrworx
 		LpHandlePair call_handler_inbound;
 
 		MediaFormatsList offered_codecs;
+
+		
 
 	};
 
@@ -256,6 +263,10 @@ namespace ivrworx
 			IN const string &destination_uri, 
 			IN const CnxInfo &local_media);
 
+		const string& Dnis();
+
+		const string& Ani();
+
 		ApiErrorCode HagupCall();
 
 		CnxInfo RemoteMedia() const;
@@ -289,6 +300,10 @@ namespace ivrworx
 		MediaFormatsMap _supportedMediaFormatsList;
 
 		MediaFormat _acceptedSpeechFormat;
+
+		string _dnis;
+
+		string _ani;
 
 	};
 
