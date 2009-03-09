@@ -36,7 +36,7 @@ namespace ivrworx
 		IN SipStack &resip_stack, 
 		IN IwHandlesMap &handles_map,
 		IN LightweightProcess &stack):
-	DialogUsageManager(resip_stack),
+		DialogUsageManager(resip_stack),
 		_conf(conf),
 		_refIwHandlesMap(handles_map),
 		_sipStack(stack)
@@ -78,7 +78,7 @@ namespace ivrworx
 	}
 
 	void
-		UASDialogUsageManager::UponCallOfferedNack(IwMessagePtr req)
+	UASDialogUsageManager::UponCallOfferedNack(IwMessagePtr req)
 	{
 		FUNCTRACKER;
 
@@ -102,7 +102,7 @@ namespace ivrworx
 	}
 
 	void 
-		UASDialogUsageManager::UponCallOfferedAck(IwMessagePtr req)
+	UASDialogUsageManager::UponCallOfferedAck(IwMessagePtr req)
 	{
 
 		shared_ptr<MsgCalOfferedlAck> ack = 
@@ -166,7 +166,7 @@ namespace ivrworx
 
 
 	void 
-		UASDialogUsageManager::onNewSession(ServerInviteSessionHandle sis, InviteSession::OfferAnswerType oat, const SipMessage& msg)
+	UASDialogUsageManager::onNewSession(ServerInviteSessionHandle sis, InviteSession::OfferAnswerType oat, const SipMessage& msg)
 	{
 		FUNCTRACKER;
 
@@ -273,6 +273,12 @@ namespace ivrworx
 		offered->remote_media		= CnxInfo(addr,port);
 		offered->stack_call_handle	= ctx_ptr->stack_handle;
 		offered->call_handler_inbound = call_handler_pair;
+
+		const Uri &to_uri = msg.header(h_To).uri();
+		offered->dnis = to_uri.user().c_str();
+
+		const Uri &from_uri = msg.header(h_From).uri();
+		offered->ani = from_uri.user().c_str();
 
 
 		// send list of codecs to the main process
