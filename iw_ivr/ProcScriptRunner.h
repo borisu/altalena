@@ -22,6 +22,7 @@
 #include "LuaVirtualMachine.h"
 #include "LuaScript.h"
 #include "CallWithDirectRtp.h"
+#include "LuaTable.h"
 
 
 namespace ivrworx
@@ -64,7 +65,10 @@ namespace ivrworx
 	{
 	public:
 
-		IwScript(IN CLuaVirtualMachine &_vmPtr, IN CallWithDirectRtp &_callSession);
+		IwScript(
+			IN Configuration &conf, 
+			IN CLuaVirtualMachine &vm, 
+			IN CallWithDirectRtp &call);
 
 		~IwScript();
 
@@ -91,6 +95,12 @@ namespace ivrworx
 		int _methodBase;
 
 		CLuaVirtualMachine &_vmPtr;
+
+		LuaTable _confTable;
+
+		LuaTable _lineInTable;
+
+		Configuration &_conf;
 
 	};
 

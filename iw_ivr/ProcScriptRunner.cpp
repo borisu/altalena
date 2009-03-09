@@ -70,8 +70,15 @@ namespace ivrworx
 			CLuaVirtualMachine vm;
 			IX_PROFILE_CODE(vm.InitialiseVM());
 
+			if (vm.Ok() == false)
+			{
+				LogCrit("Couldn't initialize lua vm");
+				throw;
+			}
+
 			// compile the script if needed
-			IwScript script(vm,call_session);
+			IwScript script(_conf,vm,call_session);
+			
 
 			bool res = false;
 			IX_PROFILE_CODE(res = script.CompileFile(_conf.ScriptFile().c_str()));
@@ -122,19 +129,40 @@ namespace ivrworx
 
 
 
-	IwScript::IwScript(IN CLuaVirtualMachine &vm_ptr, 
+	IwScript::IwScript(
+		IN Configuration &conf,
+		IN CLuaVirtualMachine &vm, 
 		IN CallWithDirectRtp &call_session)
-		:CLuaScript(vm_ptr),
+		:CLuaScript(vm),
 		_callSession(call_session),
-		_vmPtr(vm_ptr)
+		_vmPtr(vm),
+		_confTable(vm),
+		_lineInTable(vm),
+		_conf(conf)
 	{
 
+		if (vm.Ok() == false)
+		{
+			LogCrit("Detected uninitialized vm");
+			throw;
+		}
+
+		
+		_confTable.Create("conf");
+		_confTable.AddParam("sounds_dir",_conf.SoundsPath());
+
+		_lineInTable.Create("linein");
+		_lineInTable.AddParam("ani",_callSession.Ani());
+		_lineInTable.AddParam("dnis",_callSession.Dnis());
+
+	
 		// !!! The order should be preserved for later switch statement !!!
 		_methodBase = RegisterFunction("answer");
 		RegisterFunction("hangup");
 		RegisterFunction("wait");
 		RegisterFunction("play");
 		RegisterFunction("wait_for_dtmf");
+
 
 	}
 

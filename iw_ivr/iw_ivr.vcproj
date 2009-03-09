@@ -231,11 +231,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\LuaVirtualMachine.cpp"
+				RelativePath=".\LuaTable.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\PhraseBuilder.cpp"
+				RelativePath=".\LuaVirtualMachine.cpp"
 				>
 			</File>
 			<File
@@ -301,15 +301,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LuaTable.h"
+				>
+			</File>
+			<File
 				RelativePath=".\LuaThis.h"
 				>
 			</File>
 			<File
 				RelativePath=".\LuaVirtualMachine.h"
-				>
-			</File>
-			<File
-				RelativePath=".\PhraseBuilder.h"
 				>
 			</File>
 			<File
