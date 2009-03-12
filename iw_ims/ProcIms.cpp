@@ -411,6 +411,11 @@ namespace ivrworx
 					SendResponse(ptr,new MsgShutdownAck());
 					break;
 				}
+			case MSG_IMS_SEND_RFC2833DTMF_REQ:
+				{
+					SendDtmf(ptr);
+					break;
+				}
 			default:
 				{
 					BOOL oob_res = HandleOOBMessage(ptr);
@@ -743,26 +748,69 @@ error:
 		shared_ptr<MsgStartPlayReq> req  =
 			dynamic_pointer_cast<MsgStartPlayReq> (msg);
 
+		LogDebug("Play file name:" << req->file_name << ", loop:" << req->loop << ", ims handle:" << req->playback_handle);
+
 		StreamingCtxsMap::iterator iter = 
 			_streamingObjectSet.find(req->playback_handle);
 
 		if (iter == _streamingObjectSet.end())
 		{
-			LogWarn("Invalid ims handle " << req->playback_handle);
+			LogWarn("Invalid ims handle:" << req->playback_handle);
 			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		}
 
 		StreamingCtxPtr ctx		= iter->second;
 
-		audio_stream_play(ctx->stream,req->file_name.c_str());
+		// close it anyway
+		int res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_CLOSE);
+		if (res < 0)
+		{
+			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_CLOSE ims handle:" << req->playback_handle);
+			SendResponse(msg, new MsgStartPlayReqNack());
+			return;
+		}
+
+		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_OPEN,(void*)req->file_name.c_str());
+		if (res < 0)
+		{
+			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_OPEN ims handle:" << req->playback_handle);
+			SendResponse(msg, new MsgStartPlayReqNack());
+			return;
+		}
+
+		res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_START);
+		if (res < 0)
+		{
+			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_START ims handle:" << req->playback_handle);
+			SendResponse(msg, new MsgStartPlayReqNack());
+			return;
+		}
+
+		int tmp = 0;
+		res = ms_filter_call_method(ctx->stream->soundread,MS_FILTER_GET_SAMPLE_RATE, &tmp);
+		if (res < 0)
+		{
+			LogWarn("mserror:ms_filter_call_method MS_FILTER_GET_SAMPLE_RATE ims handle:" << req->playback_handle);
+			SendResponse(msg, new MsgStartPlayReqNack());
+			return;
+		};
+
+		res = ms_filter_call_method(ctx->stream->soundwrite,MS_FILTER_SET_SAMPLE_RATE,&tmp);
+		if (res < 0)
+		{
+			LogWarn("mserror:ms_filter_call_method MS_FILTER_SET_SAMPLE_RATE ims handle:" << req->playback_handle);
+			SendResponse(msg, new MsgStartPlayReqNack());
+			return;
+		};
+
 		if (ctx->stream->ticker == NULL)
 		{
 			ctx->stream->ticker = _ticker;
 		};
 
 		int loop_param = req->loop ? 0 : -1;
-		int res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_LOOP, &loop_param);
+		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_LOOP, &loop_param);
 		if (res < 0)
 		{
 			LogWarn("Cannot set loop parameter, ims handle " << req->playback_handle);
@@ -789,14 +837,67 @@ error:
 			return;
 		}
 
-		
-
 		if (req->send_provisional)
 		{
 			SendResponse(msg, new MsgStartPlayReqAck());
 		}
 
 		ctx->last_user_request = req;
+	}
+
+	void
+	ProcIms::SendDtmf(IwMessagePtr msg)
+	{
+		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
+
+		shared_ptr<MsgImsSendRfc2833DtmfReq> req  =
+			dynamic_pointer_cast<MsgImsSendRfc2833DtmfReq> (msg);
+
+		StreamingCtxsMap::iterator iter = 
+			_streamingObjectSet.find(req->handle);
+
+		if (iter == _streamingObjectSet.end())
+		{
+			LogWarn("Invalid ims handle " << req->handle);
+			return;
+		}
+
+		StreamingCtxPtr ctx = iter->second;
+
+		LogDebug("Send dtmf:" << (char)req->dtmf_digit << ", ims handle:" << req->handle);
+
+		if (ctx->stream->rtpsend)
+		{
+			int res = ms_filter_call_method(ctx->stream->rtpsend,MS_RTP_SEND_SEND_DTMF,&req->dtmf_digit);
+			if (res == -1)
+			{
+				LogWarn("mserror:ms_filter_call_method  MS_RTP_SEND_SEND_DTMF dtmf:" << req->dtmf_digit << ", handle:" << req->handle);
+				return;
+			}
+		} 
+		else
+		{
+			LogWarn("mserror:ms_filter_call_method  MS_RTP_SEND_SEND_DTMF rtpsend is NULL.");
+			return;
+		}
+
+
+		if (ctx->stream->dtmfgen)
+		{
+			int res = ms_filter_call_method(ctx->stream->dtmfgen,MS_DTMF_GEN_PUT,&req->dtmf_digit);
+			if (res == -1)
+			{
+				LogWarn("mserror:ms_filter_call_method  MS_DTMF_GEN_PUT dtmf:" << req->dtmf_digit << ", handle:" << req->handle);
+				return;
+			}
+		}
+		else
+		{
+			LogWarn("mserror:ms_filter_call_method  MS_RTP_SEND_SEND_DTMF dtmfgen is NULL.");
+			return;
+		}
+			
 
 	}
 

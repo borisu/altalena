@@ -18,6 +18,7 @@
 #include <mediastreamer2\mediastream.h>
 #include <mediastreamer2\msrtp.h>
 #include <mediastreamer2\msfileplayer.h>
+#include <mediastreamer2\dtmfgen.h>
 
 #include "IwUtils.h"
 #include "IwBase.h"

@@ -67,7 +67,7 @@ Call::Call(
 const string&
 Call::Dnis()
 {
-  return _ani;
+  return _dnis;
 }
 
 const string&

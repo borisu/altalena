@@ -40,7 +40,8 @@ namespace ivrworx
 		MSG_STOP_PLAYBACK_REQUEST_NACK,
 		MSG_IMS_PLAY_STOPPED,
 		MSG_IMS_TEARDOWN_REQ,
-		MSG_IMS_RFC2833DTMF_EVT
+		MSG_IMS_RFC2833DTMF_EVT,
+		MSG_IMS_SEND_RFC2833DTMF_REQ
 	};
 
 
@@ -193,6 +194,19 @@ namespace ivrworx
 			NAME(MSG_IMS_RFC2833DTMF_EVT)){}
 
 		int dtmf_digit;
+
+	};
+
+	class MsgImsSendRfc2833DtmfReq:
+		public IwMessage
+	{
+	public:
+		MsgImsSendRfc2833DtmfReq():IwMessage(MSG_IMS_SEND_RFC2833DTMF_REQ, 
+			NAME(MSG_IMS_SEND_RFC2833DTMF_REQ)){}
+
+		int dtmf_digit;
+
+		ImsHandleId handle;
 
 	};
 

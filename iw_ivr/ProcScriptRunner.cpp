@@ -76,6 +76,8 @@ namespace ivrworx
 				throw;
 			}
 
+			CLuaDebugger debugger(vm);
+
 			// compile the script if needed
 			IwScript script(_conf,vm,call_session);
 			
@@ -162,6 +164,7 @@ namespace ivrworx
 		RegisterFunction("wait");
 		RegisterFunction("play");
 		RegisterFunction("wait_for_dtmf");
+		RegisterFunction("send_dtmf");
 
 
 	}
@@ -196,6 +199,10 @@ namespace ivrworx
 		case 4:
 			{
 				return LuaWaitForDtmf(vm);
+			}
+		case 5:
+			{
+				return LuaSendDtmf(vm);
 			}
 
 		}
@@ -328,8 +335,40 @@ namespace ivrworx
 			lua_pushnil(state);
 		}
 		
-
 		return 2;
+
+	}
+
+	int
+	IwScript::LuaSendDtmf(CLuaVirtualMachine& vm)
+	{
+		lua_State *state = (lua_State *) vm;
+
+		if (lua_isstring(state, -1) == 0 )
+		{
+			LogWarn("Wrong type of parameter for send dtmf");
+			return 0;
+		}
+
+
+		const char* dtmf = lua_tostring(state, -1);
+
+		int curr_index = 0;
+		while (dtmf[curr_index] != '\0')
+		{
+			ApiErrorCode res = _callSession.SendRfc2833Dtmf(dtmf[curr_index++]);
+			if (IW_FAILURE(res))
+			{
+				lua_pushnumber (state, res);
+				return 1;
+			}
+			csp::SleepFor(MilliSeconds(200));
+		}
+
+		
+		lua_pushnumber (state, API_SUCCESS);
+		return 1;
+
 
 	}
 

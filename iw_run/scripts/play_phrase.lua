@@ -141,13 +141,13 @@ local two_digits_sounds = {
 
 local function play_zero()
 
-	ivrworx.play(numbers_path.."\\0.wav",true,false);
+	return ivrworx.play(numbers_path.."\\0.wav",true,false);
 	
 end
 
 local function play_minus()
 
-	ivrworx.play(numbers_path.."\\minus.wav",true,false);
+	return ivrworx.play(numbers_path.."\\minus.wav",true,false);
 	
 end
 
@@ -162,7 +162,7 @@ local function play_hundreds(i)
 
 	if (i == 0) then return end;
 	
-	ivrworx.play(numbers_path.."\\"..hundreds_sounds[i],true,false);
+	return ivrworx.play(numbers_path.."\\"..hundreds_sounds[i],true,false);
 	
 end
 
@@ -171,7 +171,7 @@ local function play_two_digits(i)
 
 	if (i == 0) then return end;
 		
-	ivrworx.play(numbers_path.."\\"..two_digits_sounds[i],true,false);
+	return ivrworx.play(numbers_path.."\\"..two_digits_sounds[i],true,false);
 
 end
 
@@ -184,15 +184,21 @@ local function play_three_digits(i, radix)
 
 		if (hundreds ~= 0)
   		then
-			play_hundreds(hundreds);
-			play_and();
-
+			res = play_hundreds(hundreds);
+			if (res ~= 0) then return res; end
+			 
+			res = play_and();
+			if (res ~= 0) then return res; end
   		end
 
-		play_two_digits(last_two_digits);
+		res = play_two_digits(last_two_digits);
+		if (res ~= 0) then return res; end
 		
 		if (radix ~= nil and radix ~= "" ) then 
-			ivrworx.play(numbers_path.."\\"..radix,true,false);
+		
+			res = ivrworx.play(numbers_path.."\\"..radix,true,false);
+			if (res ~= 0) then return res; end
+			
 		end
 end
 
@@ -200,18 +206,22 @@ end
 function play_number(i) 
 
 	local num_to_play  = math.abs(i);
-
-	numbers_path = "basic_words\\numbers";
+	
+	if (conf["sounds_dir"] == nil) then 
+		numbers_path = "basic_words\\numbers";
+	else
+		numbers_path = conf["sounds_dir"].."\\basic_words\\numbers";
+	end
+	
 
 	if  (i == 0) 
 	then
-	  play_zero()
-	  return;
+	  return  play_zero()
 	end
 
 	if (i < 0)
 	then
-	  play_minus();
+	  return play_minus();
 	end
 
 
@@ -232,13 +242,15 @@ function play_number(i)
 	--
 	-- play milliards
 	--
-	play_three_digits(tonumber(string.sub(num_str,1,1)),"Billion.wav");
+	res = play_three_digits(tonumber(string.sub(num_str,1,1)),"Billion.wav");
+	if (res ~= 0) then return res; end;
 	
 	
 	--
 	-- play millions
 	--
-	play_three_digits(tonumber(string.sub(num_str,2,4)),"Million.wav");
+	res = play_three_digits(tonumber(string.sub(num_str,2,4)),"Million.wav");
+	if (res ~= 0) then return res; end;
 	
 			
 	--
@@ -248,15 +260,21 @@ function play_number(i)
 	
 	thousands_num = tonumber(string.sub(num_str,5,7));
 	if (thousands_num >=1 and thousands_num <= 10) then 
-		ivrworx.play(numbers_path.."\\"..thousands_sounds[thousands_num],true,false);
+	
+		res = ivrworx.play(numbers_path.."\\"..thousands_sounds[thousands_num],true,false);
+		if (res ~= 0) then return res; end;
+		
 	else
-	 	play_three_digits(thousands_num,"Thousand.wav");
+	
+	 	res = play_three_digits(thousands_num,"Thousand.wav");
+	 	if (res ~= 0) then return res; end;
+	 	
 	end
 	
 	--
 	-- play remainder		
 	-- 
-	play_three_digits(tonumber(string.sub(num_str,8,10)));
+	return play_three_digits(tonumber(string.sub(num_str,8,10)));
 		
 
 

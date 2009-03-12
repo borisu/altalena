@@ -82,6 +82,8 @@ namespace ivrworx
 
 		virtual void StopPlayback(IwMessagePtr msg);
 
+		virtual void SendDtmf(IwMessagePtr msg);
+
 		virtual void TearDown(IwMessagePtr msg);
 
 		virtual void TearDown(StreamingCtxPtr ctx);

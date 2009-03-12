@@ -49,6 +49,8 @@ namespace ivrworx
 		virtual ApiErrorCode WaitForDtmf(
 			OUT int &dtmf, 
 			IN Time timeout);
+
+		virtual ApiErrorCode SendDtmf(char dtmf);
 		
 		virtual void TearDown();
 
