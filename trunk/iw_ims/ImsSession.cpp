@@ -140,6 +140,28 @@ ImsSession::ClearDtmfs()
 }
 
 ApiErrorCode
+ImsSession::SendDtmf(char dtmf)
+{
+
+	FUNCTRACKER;
+
+	if (_imsSessionHandle == IW_UNDEFINED)
+	{
+		return API_FAILURE;
+	}
+
+
+	MsgImsSendRfc2833DtmfReq *msg = new MsgImsSendRfc2833DtmfReq ();
+	msg->handle		= _imsSessionHandle;
+	msg->dtmf_digit = dtmf;
+
+	ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(IMS_Q,IwMessagePtr(msg));
+
+	return res;
+
+}
+
+ApiErrorCode
 ImsSession::WaitForDtmf(OUT int &dtmf, IN Time timeout)
 {
 	

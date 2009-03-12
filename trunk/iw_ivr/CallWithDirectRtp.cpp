@@ -82,6 +82,18 @@ namespace ivrworx
 
 	}
 
+
+	ApiErrorCode 
+	CallWithDirectRtp::SendRfc2833Dtmf(OUT char dtmf)
+	{
+		FUNCTRACKER;
+
+		ApiErrorCode res = _imsSession.SendDtmf(dtmf);
+
+		return res;
+
+	}
+
 	CallWithDirectRtp::~CallWithDirectRtp(void)
 	{
 		FUNCTRACKER;

@@ -79,7 +79,7 @@ namespace ivrworx
 
 		// Push the function and parameters
 		lua_pushstring (state, key.c_str());
-		lua_pushstring (state, key.c_str());
+		lua_pushstring (state, value.c_str());
 		lua_settable (state, -3);
 	}
 

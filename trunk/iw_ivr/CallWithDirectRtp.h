@@ -39,6 +39,8 @@ namespace ivrworx
 
 		virtual ApiErrorCode WaitForDtmf(OUT int &dtmf, IN Time timeout);
 
+		virtual ApiErrorCode SendRfc2833Dtmf(IN char dtmf);
+
 	private:
 
 		ImsSession _imsSession;

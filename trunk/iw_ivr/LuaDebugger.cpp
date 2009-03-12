@@ -15,6 +15,8 @@
 #include "luadebugger.h"
 // ---------------------------------------------------------------------------
 
+using namespace ivrworx;
+
 // typedef void (*lua_Hook) (lua_State *L, lua_Debug *ar);
 static void LuaHookCall (lua_State *lua)
 {
@@ -107,17 +109,17 @@ void CLuaDebugger::ErrorRun (int iErrorCode)
    switch (iErrorCode)
    {
    case LUA_ERRRUN:
-      printf ("LUA_ERRRUN\n");
+      LogWarn ("LUA_ERRRUN");
       break;
    case LUA_ERRMEM:
-      printf ("LUA_ERRMEM\n");
+      LogWarn ("LUA_ERRMEM");
       break;
    case LUA_ERRERR:
-      printf ("LUA_ERRERR\n");
+      LogWarn ("LUA_ERRERR");
       break;
    }
 
    // Get the error string that appears on top of stack when a function
    // fails to run
-   printf ("Error: %s\n", lua_tostring ((lua_State *) m_vm, -1));
+   LogWarn("Error: << " << lua_tostring ((lua_State *) m_vm, -1));
 }
