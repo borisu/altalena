@@ -83,7 +83,8 @@ namespace ivrworx
 
 	StreamingCtx::StreamingCtx()
 		:stream(NULL),
-		profile(NULL)
+		profile(NULL),
+		state(IMS_INITIAL)
 	{
 
 	}
@@ -675,9 +676,9 @@ namespace ivrworx
 
 		/*********************************************************************
 		*
-		*	file_reader -> encoder ->  + -> rtp_sender 
+		*	file_reader -> encoder ->  +  -> rtp_sender 
 		*                 dtmf_gen <-> |
-		*                              + <- decoder <- rtp_receiver
+		*           file_recorder  <-  +  <- decoder <- rtp_receiver
 		*
 		***********************************************************************/
 		
@@ -730,12 +731,85 @@ namespace ivrworx
 		ack->playback_handle = handle;
 		ack->ims_media_data = CnxInfo(_localMedia.iptoa(),local_port);
 
+		ctx->state = IMS_ALLOCATED;
 		SendResponse(req,ack);
 		return;
 
 error:
 		SendResponse(req,new MsgAllocateImsSessionNack());
 		return;
+	}
+
+	ApiErrorCode 
+	ProcIms::StartTicking(StreamingCtxPtr ctx)
+	{
+		if (ctx->state == IMS_TICKING)
+		{
+			return API_SUCCESS;
+		};
+
+		if (ctx->stream->ticker == NULL)
+		{
+			ctx->stream->ticker = _ticker;
+		};
+
+		// final touch
+		int res = ms_ticker_attach(ctx->stream->ticker,ctx->stream->soundread);
+		if (res < 0)
+		{
+			return API_FAILURE;
+		}
+
+		res = ms_ticker_attach(ctx->stream->ticker,ctx->stream->rtprecv);
+		if (res < 0)
+		{
+			return API_FAILURE;
+		}
+
+		ctx->state = IMS_TICKING;
+
+		return API_SUCCESS;
+
+	}
+
+	ApiErrorCode 
+	ProcIms::StopTicking(StreamingCtxPtr ctx)
+	{
+		if (ctx->state != IMS_TICKING)
+		{
+			return API_SUCCESS;
+		};
+
+		if (ctx->stream->ticker == NULL)
+		{
+			return API_SUCCESS;
+		};
+
+		AudioStream *stream = ctx->stream;
+
+		if (stream->ticker)
+		{
+			int res = ms_ticker_detach(stream->ticker,stream->soundread);
+			if (res < 0)
+			{
+				LogWarn("mserror: ms_ticker_detach soundread, res=" << res );
+				return API_FAILURE;
+			}
+
+			 res = ms_ticker_detach(stream->ticker,stream->rtprecv);
+			if (res < 0)
+			{
+				LogWarn("mserror: ms_ticker_detach rtprecv, res=" << res );
+				return API_FAILURE;
+			}
+
+
+		}
+
+		ctx->state = IMS_STOPPED;
+
+		return API_SUCCESS;
+
 	}
 
 	void 
@@ -761,6 +835,8 @@ error:
 		}
 
 		StreamingCtxPtr ctx		= iter->second;
+
+		StopTicking(ctx);
 
 		// close it anyway
 		int res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_CLOSE);
@@ -804,12 +880,9 @@ error:
 			return;
 		};
 
-		if (ctx->stream->ticker == NULL)
-		{
-			ctx->stream->ticker = _ticker;
-		};
+		
 
-		int loop_param = req->loop ? 0 : -1;
+		int loop_param = req->loop ? 0 : -2;
 		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_LOOP, &loop_param);
 		if (res < 0)
 		{
@@ -820,19 +893,9 @@ error:
 
 		ctx->loop = req->loop;
 		
-		// final touch
-		res = ms_ticker_attach(ctx->stream->ticker,ctx->stream->soundread);
-		if (res < 0)
+		ApiErrorCode iw_res = StartTicking(ctx);
+		if (IW_FAILURE(iw_res))
 		{
-			LogWarn("Cannot start palying (ms_ticker_attach/sounread), ims handle=" << req->playback_handle);
-			SendResponse(msg, new MsgStartPlayReqNack());
-			return;
-		}
-
-		res = ms_ticker_attach(ctx->stream->ticker,ctx->stream->rtprecv);
-		if (res < 0)
-		{
-			LogWarn("Cannot start palying (ms_ticker_attach/rtprecv), ims handle=" << req->playback_handle);
 			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		}
@@ -865,6 +928,12 @@ error:
 
 		StreamingCtxPtr ctx = iter->second;
 
+		ApiErrorCode iw_res = StartTicking(ctx);
+		if (IW_FAILURE(iw_res))
+		{
+			return;
+		}
+
 		LogDebug("Send dtmf:" << (char)req->dtmf_digit << ", ims handle:" << req->handle);
 
 		if (ctx->stream->rtpsend)
@@ -894,7 +963,7 @@ error:
 		}
 		else
 		{
-			LogWarn("mserror:ms_filter_call_method  MS_RTP_SEND_SEND_DTMF dtmfgen is NULL.");
+			LogWarn("mserror:ms_filter_call_method  MS_DTMF_GEN_PUT dtmfgen is NULL.");
 			return;
 		}
 			
@@ -951,20 +1020,7 @@ error:
 		MsgImsPlayStopped *stopped_msg = new MsgImsPlayStopped();
 		stopped_msg->playback_handle = ovlp->ims_handle_id; 
 
-		if (ctx->stream->ticker)
-		{
-			int res = ms_ticker_detach(ctx->stream->ticker,ctx->stream->soundread);
-			if (res < 0)
-			{
-				LogWarn("error:ms_ticker_detach/soundread, res=" << res );
-			};
-
-		}
-		
-	
 		this->SendResponse(ctx->last_user_request, stopped_msg);
-
-
 	}
 
 	void
@@ -1055,17 +1111,12 @@ error:
 		LogDebug("Stop playback, ims session:" << req->handle);
 
 		StreamingCtxPtr ctx = iter->second;
-		AudioStream *stream = ctx->stream;
-
-		if (stream->ticker)
+		
+		ApiErrorCode iw_res = StopTicking(ctx);
+		if (IW_FAILURE(iw_res))
 		{
-			int res = ms_ticker_detach(stream->ticker,stream->soundread);
-			if (res < 0)
-			{
-				LogWarn("ms2 error - ms_ticker_detach, res=" << res );
-				SendResponse(req,new MsgStopPlaybackNack());
-			}
-			
+			SendResponse(req,new MsgStopPlaybackNack());
+			return;
 		}
 
 		SendResponse(req,new MsgStopPlaybackAck());
