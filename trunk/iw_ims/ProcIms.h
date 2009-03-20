@@ -27,6 +27,14 @@ using namespace std;
 
 namespace ivrworx
 {
+	enum ImsSessionState
+	{
+		IMS_INITIAL,
+		IMS_ALLOCATED,
+		IMS_TICKING,
+		IMS_STOPPED,
+		IMS_TORNDOWN
+	};
 
 	
 	struct StreamingCtx
@@ -34,6 +42,8 @@ namespace ivrworx
 		StreamingCtx();
 
 		~StreamingCtx();
+
+		ImsSessionState state;
 
 		AudioStream *stream;
 
@@ -85,6 +95,10 @@ namespace ivrworx
 		virtual void SendDtmf(IwMessagePtr msg);
 
 		virtual void TearDown(IwMessagePtr msg);
+
+		virtual ApiErrorCode StartTicking(StreamingCtxPtr ctx);
+
+		virtual ApiErrorCode StopTicking(StreamingCtxPtr ctx);
 
 		virtual void TearDown(StreamingCtxPtr ctx);
 

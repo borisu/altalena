@@ -304,6 +304,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\resource.h"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.h"
 				>
 			</File>
@@ -332,6 +336,14 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\conversation.ico"
+			>
+		</File>
+		<File
+			RelativePath=".\iw_run.rc"
+			>
+		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>

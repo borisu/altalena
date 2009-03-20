@@ -19,6 +19,7 @@
 #include <mediastreamer2\msrtp.h>
 #include <mediastreamer2\msfileplayer.h>
 #include <mediastreamer2\dtmfgen.h>
+#include <ortp\telephonyevents.h>
 
 #include "IwUtils.h"
 #include "IwBase.h"
@@ -30,36 +31,6 @@
 #include "Profiler.h"
 #include "PortManager.h"
 
-//
-// RTP library
-//
-// #include <mipconfig.h>
-// #include <mipcomponentchain.h>
-// #include <mipcomponent.h>
-// #include <miptime.h>
-// #include <mipaveragetimer.h>
-// #include <mipwavinput.h>
-// #include <mipsamplingrateconverter.h>
-// #include <mipsampleencoder.h>
-// #ifndef WIN32
-// #include <mipossinputoutput.h>
-// #else
-// #include <mipwinmmoutput.h>
-// #endif 
-// #include <mipulawencoder.h>
-// #include <miprtpulawencoder.h>
-// #include <miprtpcomponent.h>
-// #include <miprtpdecoder.h>
-// #include <miprtpulawdecoder.h>
-// #include <mipulawdecoder.h>
-// #include <mipaudiomixer.h>
-// #include <miprawaudiomessage.h> // Needed for MIPRAWAUDIOMESSAGE_TYPE_S16LE etc
-// #include <rtpsession.h>
-// #include <rtpsessionparams.h>
-// #include <rtpipv4address.h>
-// #include <rtpudpv4transmitter.h>
-// #include <rtperrors.h>
-// #include <rtpsourcedata.h>
 
 
 
