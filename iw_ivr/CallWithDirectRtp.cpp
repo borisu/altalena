@@ -35,7 +35,8 @@ namespace ivrworx
 		RemoteMedia(offered_msg->remote_media);
 	}
 
-	ApiErrorCode CallWithDirectRtp::AcceptCall()
+	ApiErrorCode 
+	CallWithDirectRtp::AcceptCall()
 	{
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();

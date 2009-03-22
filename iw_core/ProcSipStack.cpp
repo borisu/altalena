@@ -46,13 +46,13 @@ namespace ivrworx
 	}
 
 	void 
-		ResipInterruptor::SignalDataIn()
+	ResipInterruptor::SignalDataIn()
 	{
 		interrupt();
 	}
 
 	void 
-		ResipInterruptor::SignalDataOut()
+	ResipInterruptor::SignalDataOut()
 	{
 
 	}
@@ -87,7 +87,7 @@ namespace ivrworx
 
 
 	ApiErrorCode
-		ProcSipStack::Init()
+	ProcSipStack::Init()
 	{
 		FUNCTRACKER;
 
@@ -129,7 +129,18 @@ namespace ivrworx
 	}
 
 	void 
-		ProcSipStack::UponHangupCall(IwMessagePtr ptr)
+	ProcSipStack::UponBlindXferReq(IwMessagePtr req)
+	{
+		FUNCTRACKER;
+
+		IX_PROFILE_FUNCTION();
+
+		_dumUas->UponBlindXferReq(req);
+
+	}
+
+	void 
+	ProcSipStack::UponHangupCall(IwMessagePtr ptr)
 	{
 		FUNCTRACKER;
 
@@ -162,7 +173,7 @@ namespace ivrworx
 	}
 
 	void
-		ProcSipStack::ShutDown()
+	ProcSipStack::ShutDown()
 	{
 		FUNCTRACKER;
 
@@ -186,7 +197,7 @@ namespace ivrworx
 	}
 
 	void
-		ProcSipStack::ShutDown(IwMessagePtr req)
+	ProcSipStack::ShutDown(IwMessagePtr req)
 	{
 		FUNCTRACKER;
 
@@ -195,7 +206,7 @@ namespace ivrworx
 	}
 
 	void
-		ProcSipStack::UponMakeCall(IwMessagePtr ptr)
+	ProcSipStack::UponMakeCall(IwMessagePtr ptr)
 	{
 		FUNCTRACKER;
 
@@ -209,7 +220,7 @@ namespace ivrworx
 	}
 
 	void
-		ProcSipStack::UponStartRegistration(IwMessagePtr ptr)
+	ProcSipStack::UponStartRegistration(IwMessagePtr ptr)
 	{
 		// 	FUNCTRACKER;
 		// 
@@ -276,16 +287,16 @@ namespace ivrworx
 
 			switch (msg->message_id)
 			{
+			case MSG_CALL_BLIND_XFER_REQ:
+				{
+					UponBlindXferReq(msg);
+					break;
+				}
 			case MSG_MAKE_CALL_REQ:
 				{
 					UponMakeCall(msg);
 					break;
 				}
-				// 		case CCU_MSG_START_REGISTRATION_REQUEST:
-				// 			{
-				// 				UponStartRegistration(msg);
-				// 				break;
-				// 			}
 			case MSG_PROC_SHUTDOWN_REQ:
 				{
 

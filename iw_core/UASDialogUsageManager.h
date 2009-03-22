@@ -50,6 +50,8 @@ namespace ivrworx
 
 		virtual void UponCallOfferedNack(IwMessagePtr req);
 
+		virtual void UponBlindXferReq(IwMessagePtr req);
+
 		virtual void onNewSession(ServerInviteSessionHandle sis, InviteSession::OfferAnswerType oat, const SipMessage& msg);
 
 		virtual void onTerminated(InviteSessionHandle, InviteSessionHandler::TerminatedReason reason, const SipMessage* msg);
