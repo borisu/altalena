@@ -165,7 +165,7 @@ namespace ivrworx
 		RegisterFunction("play");
 		RegisterFunction("wait_for_dtmf");
 		RegisterFunction("send_dtmf");
-
+		RegisterFunction("blind_xfer");
 
 	}
 
@@ -203,6 +203,10 @@ namespace ivrworx
 		case 5:
 			{
 				return LuaSendDtmf(vm);
+			}
+		case 6:
+			{
+				return LuaBlindXfer(vm);
 			}
 
 		}
@@ -366,6 +370,29 @@ namespace ivrworx
 		}
 
 		
+		lua_pushnumber (state, API_SUCCESS);
+		return 1;
+
+
+	}
+
+	int
+	IwScript::LuaBlindXfer(CLuaVirtualMachine& vm)
+	{
+		lua_State *state = (lua_State *) vm;
+
+		if (lua_isstring(state, -1) == 0 )
+		{
+			LogWarn("Wrong type of parameter for blind xfer");
+			return 0;
+		}
+
+
+		const char* destination = lua_tostring(state, -1);
+
+		_callSession.BlindXfer(destination);
+
+
 		lua_pushnumber (state, API_SUCCESS);
 		return 1;
 

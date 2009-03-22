@@ -41,6 +41,11 @@ namespace ivrworx
 		MSG_MAKE_CALL_ACK,
 		MSG_MAKE_CALL_NACK,
 		MSG_HANGUP_CALL_REQ,
+
+		MSG_CALL_BLIND_XFER_REQ,
+		MSG_CALL_BLIND_XFER_ACK,
+		MSG_CALL_BLIND_XFER_NACK,
+
 	};
 
 
@@ -116,6 +121,9 @@ namespace ivrworx
 	{
 	public:
 
+		MsgStackMixin():
+		 stack_call_handle(IW_UNDEFINED){};
+
 		int stack_call_handle;
 
 		CnxInfo local_media;
@@ -145,24 +153,49 @@ namespace ivrworx
 
 	};
 
-	class MsgCallOfferedReq:
-		public MsgStackMixin, public MsgRequest
+
+	enum InviteType
+	{
+		INVITE_TYPE_INITIAL_OFFER,
+		INVITE_TYPE_KEEP_ALIVE,
+		INVITE_TYPE_HOLD,
+		INVITE_TYPE_RESUME
+	};
+
+	class  MsgCallOfferedMixin 
 	{
 	public:
-		MsgCallOfferedReq():MsgRequest(MSG_CALL_OFFERED, 
+
+		MsgCallOfferedMixin():invite_type(INVITE_TYPE_INITIAL_OFFER),is_indialog(FALSE){};
+
+		InviteType invite_type;
+
+		BOOL is_indialog;
+
+		virtual void copy_data_on_response(IN IwMessage *request)
+		{
+			MsgCallOfferedMixin *req = dynamic_cast<MsgCallOfferedMixin*>(request);
+			is_indialog = req->is_indialog;
+			invite_type = req->invite_type;
+		}
+	};
+
+	class MsgCallOfferedReq:
+		public MsgStackMixin, public MsgRequest, public MsgCallOfferedMixin
+	{
+	public:
+		MsgCallOfferedReq():
+		  MsgRequest(MSG_CALL_OFFERED, 
 			NAME(MSG_CALL_OFFERED)){}
 
 		LpHandlePair call_handler_inbound;
 
 		MediaFormatsList offered_codecs;
-
-		
-
 	};
 
 
 	class MsgCalOfferedlAck:
-		public MsgStackMixin,public IwMessage
+		public MsgStackMixin, public IwMessage, public MsgCallOfferedMixin
 	{
 	public:
 		MsgCalOfferedlAck():IwMessage(MSG_CALL_OFFERED_ACK, 
@@ -170,6 +203,7 @@ namespace ivrworx
 
 		virtual void copy_data_on_response(IN IwMessage *request)
 		{
+			MsgCallOfferedMixin::copy_data_on_response(request);
 			MsgStackMixin::copy_data_on_response(request);
 			IwMessage::copy_data_on_response(request);
 		}
@@ -177,7 +211,7 @@ namespace ivrworx
 
 
 	class MsgCallOfferedNack:
-		public MsgStackMixin, public IwMessage
+		public MsgStackMixin, public IwMessage, public MsgCallOfferedMixin
 	{
 	public:
 		MsgCallOfferedNack():
@@ -186,6 +220,7 @@ namespace ivrworx
 
 		  virtual void copy_data_on_response(IN IwMessage *request)
 		  {
+			  MsgCallOfferedMixin::copy_data_on_response(request);
 			  MsgStackMixin::copy_data_on_response(request);
 			  IwMessage::copy_data_on_response(request);
 		  }
@@ -196,7 +231,7 @@ namespace ivrworx
 
 
 	class MsgNewCallConnected:
-		public MsgStackMixin,public IwMessage
+		public MsgStackMixin, public IwMessage, public MsgCallOfferedMixin
 	{
 	public:
 		MsgNewCallConnected():IwMessage(MSG_CALL_CONNECTED, 
@@ -204,6 +239,7 @@ namespace ivrworx
 
 		virtual void copy_data_on_response(IN IwMessage *request)
 		{
+			MsgCallOfferedMixin::copy_data_on_response(request);
 			MsgStackMixin::copy_data_on_response(request);
 			IwMessage::copy_data_on_response(request);
 		}
@@ -220,6 +256,35 @@ namespace ivrworx
 	};
 
 
+	class MsgCallBlindXferReq:
+		public MsgStackMixin,public IwMessage
+	{
+	public:
+		MsgCallBlindXferReq():IwMessage(MSG_CALL_BLIND_XFER_REQ, 
+			NAME(MSG_CALL_BLIND_XFER_REQ)){}
+
+		string destination_uri;
+
+	};
+
+	class MsgCallBlindXferAck:
+		public MsgStackMixin,public IwMessage
+	{
+	public:
+		MsgCallBlindXferAck():IwMessage(MSG_CALL_BLIND_XFER_ACK, 
+			NAME(MSG_CALL_BLIND_XFER_ACK)){}
+
+	};
+
+	class MsgCallBlindXferNack:
+		public MsgStackMixin,public IwMessage
+	{
+	public:
+		MsgCallBlindXferNack():IwMessage(MSG_CALL_BLIND_XFER_NACK, 
+			NAME(MSG_CALL_BLIND_XFER_NACK)){}
+
+	};
+
 
 
 #pragma endregion Sip_Stack_Events
@@ -230,6 +295,7 @@ namespace ivrworx
 		CALL_STATE_UKNOWN,
 		CALL_STATE_OFFERED,
 		CALL_STATE_CONNECTED,
+		CALL_STATE_HELD,
 		CALL_STATE_TERMINATED
 	};
 
@@ -248,6 +314,10 @@ namespace ivrworx
 		virtual ~Call(void);
 
 		void EnableMediaFormat(IN const MediaFormat& codec);
+
+		void UponInDialogOffer(IwMessagePtr ptr);
+
+		void UponCallTerminated(IwMessagePtr ptr);
 
 		ApiErrorCode NegotiateMediaFormats(
 			IN const MediaFormatsList &offered_medias, 
@@ -268,6 +338,8 @@ namespace ivrworx
 		const string& Ani();
 
 		ApiErrorCode HagupCall();
+
+		ApiErrorCode BlindXfer(IN const string &destination_uri);
 
 		CnxInfo RemoteMedia() const;
 		void RemoteMedia(CnxInfo &val);

@@ -171,13 +171,21 @@ Call::~Call(void)
 	HagupCall();
 }
 
-void Call::UponActiveObjectEvent(IwMessagePtr ptr)
+void 
+Call::UponActiveObjectEvent(IwMessagePtr ptr)
 {
 	switch (ptr->message_id)
 	{
+	case MSG_CALL_OFFERED:
+		{
+			UponInDialogOffer(ptr);
+			break;
+		}
 	case MSG_CALL_HANG_UP_EVT:
 		{
-			_callState = CALL_STATE_TERMINATED;
+			
+			UponCallTerminated(ptr);
+			break;
 		}
 	default:
 		{
@@ -189,6 +197,39 @@ void Call::UponActiveObjectEvent(IwMessagePtr ptr)
 
 }
 
+void 
+Call::UponCallTerminated(IwMessagePtr ptr)
+{
+	_callState = CALL_STATE_TERMINATED;
+}
+
+void 
+Call::UponInDialogOffer(IwMessagePtr ptr)
+{
+
+	FUNCTRACKER;
+
+	shared_ptr<MsgCallOfferedReq> offered = 
+		dynamic_pointer_cast<MsgCallOfferedReq>(ptr);
+
+	_remoteMedia = offered->remote_media;
+
+	if (_callState != CALL_STATE_CONNECTED && 
+		_callState != CALL_STATE_HELD )
+	{
+		LogWarn("Cannot get in-dialog-offered if call is not in connected state (keep-alive not supported), handle " << offered->stack_call_handle);
+		SEND_RESPONSE(ptr, new MsgCallOfferedNack());
+		return;
+	}
+
+	if (offered->invite_type == ivrworx::INVITE_TYPE_HOLD)
+	{
+		_callState = CALL_STATE_HELD;
+		SEND_RESPONSE(ptr, new MsgCalOfferedlAck());
+		return;
+	}
+	
+}
 
 ApiErrorCode
 Call::RejectCall()
@@ -289,6 +330,34 @@ int
 Call::StackCallHandle() const 
 { 
 	return _stackCallHandle; 
+}
+
+ApiErrorCode
+Call::BlindXfer(IN const string &destination_uri)
+{
+	FUNCTRACKER;
+
+	if (_stackCallHandle == IW_UNDEFINED)
+	{
+		return API_FAILURE;
+	}
+
+
+	IwMessagePtr response = NULL_MSG;
+
+	MsgCallBlindXferReq *msg = new MsgCallBlindXferReq();
+	msg->destination_uri = destination_uri;
+	msg->stack_call_handle = _stackCallHandle;
+
+	ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
+		_stackPair.inbound,
+		IwMessagePtr(msg),
+		response,
+		Seconds(60),
+		"Blind Xfer Call TXN");
+
+	return res;
+
 }
 
 

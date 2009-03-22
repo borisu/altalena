@@ -69,6 +69,8 @@ namespace ivrworx
 
 		TransactionType transaction_type;
 
+		InviteSessionHandle invite_handle;
+
 		ServerInviteSessionHandle uas_invite_handle;
 
 		ClientInviteSessionHandle uac_invite_handle;
@@ -85,13 +87,13 @@ namespace ivrworx
 
 
 	typedef 
-		shared_ptr<SipDialogContext> SipDialogContextPtr;
+	shared_ptr<SipDialogContext> SipDialogContextPtr;
 
 	typedef 
-		map<IwStackHandle,SipDialogContextPtr> IwHandlesMap;
+	map<IwStackHandle,SipDialogContextPtr> IwHandlesMap;
 
 	typedef 
-		map<AppDialogHandle,SipDialogContextPtr> ResipDialogHandlesMap;
+	map<AppDialogHandle,SipDialogContextPtr> ResipDialogHandlesMap;
 
 
 	CnxInfo 

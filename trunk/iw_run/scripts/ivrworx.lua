@@ -23,5 +23,9 @@ end
 function wait_for_dtmf(timeout)
 	return this.wait_for_dtmf(this,timeout);
 end
+
+function blind_xfer(destination)
+	return this.blind_xfer(this,destination);
+end
 		
 		

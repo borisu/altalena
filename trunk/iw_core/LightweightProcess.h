@@ -31,6 +31,8 @@ namespace ivrworx
 
 #define I_AM_READY SendReadyMessage();
 
+#define	SEND_RESPONSE(P, R) GetCurrLightWeightProc()->SendResponse(P, R);
+
 typedef list<CSProcess*> ProcessList;
 
 

@@ -29,8 +29,6 @@
 namespace ivrworx
 {
 
-
-
 	UASDialogUsageManager::UASDialogUsageManager(
 		IN Configuration &conf,
 		IN SipStack &resip_stack, 
@@ -75,6 +73,34 @@ namespace ivrworx
 
 	UASDialogUsageManager::~UASDialogUsageManager(void)
 	{
+	}
+
+	void
+    UASDialogUsageManager::UponBlindXferReq(IwMessagePtr req)
+	{
+		FUNCTRACKER;
+
+		shared_ptr<MsgCallBlindXferReq> xfer_req = 
+			dynamic_pointer_cast<MsgCallBlindXferReq>(req);
+
+		IwHandlesMap::iterator iter = _refIwHandlesMap.find(xfer_req->stack_call_handle);
+		if (iter == _refIwHandlesMap.end())
+		{
+			LogWarn("iw handle " << xfer_req->stack_call_handle<< " not found. Has caller disconnected already?");
+			GetCurrLightWeightProc()->SendResponse(
+				req,
+				new MsgCallBlindXferNack());
+			return;
+		}
+
+		SipDialogContextPtr ctx_ptr = (*iter).second;
+		ServerInviteSessionHandle invite_handle = 
+			ctx_ptr->uas_invite_handle;
+
+		NameAddr name_addr(xfer_req->destination_uri.c_str());
+		invite_handle->refer(name_addr,false);
+
+
 	}
 
 	void
@@ -219,7 +245,7 @@ namespace ivrworx
 	}
 
 	void 
-		UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp)      
+	UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp)      
 	{
 		FUNCTRACKER;
 
@@ -230,14 +256,16 @@ namespace ivrworx
 			throw;
 		}
 		SipDialogContextPtr ctx_ptr = (*ctx_iter).second;
-
-
 		LogDebug("Call offered - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid=[" << is->getCallId().c_str() << "], resip handle=[" << is.getId() << "]");
+
+		ctx_ptr->invite_handle = is;
+
 
 		const SdpContents::Session &s = sdp.session();
 		const Data &addr_data = s.connection().getAddress();
 		const string addr = addr_data.c_str();
 
+		
 		if (s.media().empty())
 		{
 			LogWarn("Empty medias list - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid=[" << is->getCallId().c_str() << "], resip handle=[" << is.getId() << "]");
@@ -245,7 +273,7 @@ namespace ivrworx
 			return;
 		}
 
-		// currently we support single audio argument
+		// currently we only "audio" conversation
 		list<SdpContents::Session::Medium>::const_iterator iter = s.media().begin();
 		for (;iter != s.media().end();iter++)
 		{
@@ -254,6 +282,7 @@ namespace ivrworx
 			{
 				break;
 			}
+
 		}
 
 		if (iter == s.media().end())
@@ -273,6 +302,16 @@ namespace ivrworx
 		offered->remote_media		= CnxInfo(addr,port);
 		offered->stack_call_handle	= ctx_ptr->stack_handle;
 		offered->call_handler_inbound = call_handler_pair;
+
+		// keep alive or "real" 
+		offered->is_indialog = is->isAccepted();
+
+		if (addr == "0.0.0.0"		  || 
+			medium.exists("sendonly") || 
+			medium.exists("inactive"))
+		{
+			offered->invite_type = ivrworx::INVITE_TYPE_HOLD;
+		}
 
 		const Uri &to_uri = msg.header(h_To).uri();
 		offered->dnis = to_uri.user().c_str();
@@ -295,17 +334,26 @@ namespace ivrworx
 		}
 
 
-		_sipStack._outbound->Send(offered);
+		if (offered->is_indialog || 
+			offered->invite_type == ivrworx::INVITE_TYPE_HOLD ||
+			offered->invite_type == ivrworx::INVITE_TYPE_RESUME)
+		{
+			ctx_ptr->call_handler_inbound->Send(offered);
+		} 
+		else
+		{
+			_sipStack._outbound->Send(offered);
+		}
+		
 
 		ctx_ptr->call_handler_inbound = call_handler_pair.inbound;
-
 
 
 	}
 
 
 	void 
-		UASDialogUsageManager::onConnected(InviteSessionHandle is, const SipMessage& msg)
+	UASDialogUsageManager::onConnected(InviteSessionHandle is, const SipMessage& msg)
 	{
 		FUNCTRACKER;
 
@@ -318,6 +366,7 @@ namespace ivrworx
 		}
 
 		SipDialogContextPtr ctx_ptr = (*ctx_iter).second;
+		ctx_ptr->invite_handle = is;
 
 		MsgNewCallConnected *conn_msg = 
 			new MsgNewCallConnected();

@@ -2,12 +2,11 @@ require "ivrworx";
 require "play_phrase";
 
 
-res = ivrworx.answer();
-if (res ~= 0) then return end;
+ivrworx.answer();
 
-ivrworx.play("C:\\SOLUTIONS\\altalena\\iw_run\\sounds\\click.wav",false,false);
+ivrworx.wait(100000);
 
-ivrworx.wait(5000)
+-- ivrworx.blind_xfer("sip:90547720193@192.168.150.3");
 
 
 

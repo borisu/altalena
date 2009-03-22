@@ -92,6 +92,8 @@ namespace ivrworx
 
 		int LuaSendDtmf(CLuaVirtualMachine& vm);
 
+		int LuaBlindXfer(CLuaVirtualMachine& vm);
+
 		CallWithDirectRtp &_callSession;
 
 		int _methodBase;
