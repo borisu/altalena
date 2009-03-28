@@ -33,7 +33,7 @@ namespace ivrworx
 
 		virtual ~CallWithDirectRtp(void);
 
-		virtual ApiErrorCode AcceptCall();
+		virtual ApiErrorCode AcceptInitialOffer();
 
 		virtual ApiErrorCode PlayFile(IN const string &file_name, IN BOOL sync, IN BOOL loop);
 

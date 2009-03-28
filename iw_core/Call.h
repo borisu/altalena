@@ -154,21 +154,21 @@ namespace ivrworx
 	};
 
 
-	enum InviteType
+	enum OfferType
 	{
-		INVITE_TYPE_INITIAL_OFFER,
-		INVITE_TYPE_KEEP_ALIVE,
-		INVITE_TYPE_HOLD,
-		INVITE_TYPE_RESUME
+		OFFER_TYPE_INITIAL_OFFER,
+		OFFER_TYPE_KEEP_ALIVE,
+		OFFER_TYPE_HOLD,
+		OFFER_TYPE_RESUME
 	};
 
 	class  MsgCallOfferedMixin 
 	{
 	public:
 
-		MsgCallOfferedMixin():invite_type(INVITE_TYPE_INITIAL_OFFER),is_indialog(FALSE){};
+		MsgCallOfferedMixin():invite_type(OFFER_TYPE_INITIAL_OFFER),is_indialog(FALSE){};
 
-		InviteType invite_type;
+		OfferType invite_type;
 
 		BOOL is_indialog;
 
@@ -194,11 +194,11 @@ namespace ivrworx
 	};
 
 
-	class MsgCalOfferedlAck:
+	class MsgCalOfferedAck:
 		public MsgStackMixin, public IwMessage, public MsgCallOfferedMixin
 	{
 	public:
-		MsgCalOfferedlAck():IwMessage(MSG_CALL_OFFERED_ACK, 
+		MsgCalOfferedAck():IwMessage(MSG_CALL_OFFERED_ACK, 
 			NAME(MSG_CALL_OFFERED_ACK)){}
 
 		virtual void copy_data_on_response(IN IwMessage *request)
@@ -293,7 +293,8 @@ namespace ivrworx
 	enum CallState
 	{
 		CALL_STATE_UKNOWN,
-		CALL_STATE_OFFERED,
+		CALL_STATE_INITIAL_OFFERED,
+		CALL_STATE_IN_DIALOG_OFFERED,
 		CALL_STATE_CONNECTED,
 		CALL_STATE_HELD,
 		CALL_STATE_TERMINATED
@@ -315,17 +316,17 @@ namespace ivrworx
 
 		void EnableMediaFormat(IN const MediaFormat& codec);
 
-		void UponInDialogOffer(IwMessagePtr ptr);
-
 		void UponCallTerminated(IwMessagePtr ptr);
 
 		ApiErrorCode NegotiateMediaFormats(
 			IN const MediaFormatsList &offered_medias, 
-			OUT MediaFormatsList &accepted_media);
+			OUT MediaFormatsList &accepted_media,
+			OUT MediaFormat &accepted_speech_format);
 
-		ApiErrorCode AcceptCall(
+		ApiErrorCode AcceptInitialOffer(
 			IN const CnxInfo &local_media, 
-			IN const MediaFormatsList &accepted_codec);
+			IN const MediaFormatsList &accepted_codec,
+			IN const MediaFormat &speech_codec);
 
 		ApiErrorCode RejectCall();
 
@@ -353,11 +354,15 @@ namespace ivrworx
 
 	protected:
 
+		void ResetState(CallState state, const char *state_name);
+
 		LpHandlePair _handlerPair;
 
 		LpHandlePair _stackPair;
 
 		int _stackCallHandle;
+
+		CnxInfo _remoteOfferedMedia;
 
 		CnxInfo _remoteMedia;
 
@@ -372,6 +377,8 @@ namespace ivrworx
 		MediaFormatsMap _supportedMediaFormatsList;
 
 		MediaFormat _acceptedSpeechFormat;
+
+		MediaFormatsList _acceptedMediaFormats;
 
 		string _dnis;
 

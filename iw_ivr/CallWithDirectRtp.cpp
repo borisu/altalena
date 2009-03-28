@@ -36,27 +36,37 @@ namespace ivrworx
 	}
 
 	ApiErrorCode 
-	CallWithDirectRtp::AcceptCall()
+	CallWithDirectRtp::AcceptInitialOffer()
 	{
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
 
 		MediaFormatsList accepted_media_formats;
-		ApiErrorCode res = this->NegotiateMediaFormats(_origOffereReq->offered_codecs, accepted_media_formats);
+		MediaFormat speech_media_format = MediaFormat::PCMU;
+
+		ApiErrorCode res = this->NegotiateMediaFormats(
+			_origOffereReq->offered_codecs, 
+			accepted_media_formats, 
+			speech_media_format);
 		if (IW_FAILURE(res))
 		{
 			RejectCall();
 			return res;
 		};
 
-		res = _imsSession.AllocateIMSConnection(RemoteMedia(),_acceptedSpeechFormat);
+
+		res = _imsSession.AllocateIMSConnection(RemoteMedia(),speech_media_format);
 		if (IW_FAILURE(res))
 		{
 			RejectCall();
 			return res;
 		};
 
-		res = Call::AcceptCall(_imsSession.ImsMediaData(),accepted_media_formats);
+		res = Call::AcceptInitialOffer(
+			_imsSession.ImsMediaData(),
+			accepted_media_formats,
+			speech_media_format);
+
 		return res;
 
 	}

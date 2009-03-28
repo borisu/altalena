@@ -23,6 +23,8 @@
 #include "Logger.h"
 
 
+#define CALL_RESET_STATE(X) ResetState(X,#X)
+
 namespace ivrworx
 {
 
@@ -35,8 +37,8 @@ _hangupDetected(FALSE),
 _handlerPair(HANDLE_PAIR),
 _dtmfChannel(new LpHandle())
 {
-	_callState = CALL_STATE_UKNOWN;
-	throw;
+	CALL_RESET_STATE(CALL_STATE_UKNOWN);
+	throw "not supported";
 
 }
 
@@ -52,15 +54,11 @@ Call::Call(
 {
 	FUNCTRACKER;
 
-	_callState = CALL_STATE_OFFERED;
-
+	CALL_RESET_STATE(CALL_STATE_INITIAL_OFFERED);
 	Start(forking,_handlerPair,__FUNCTION__);
 
-	_dnis = offered_msg->dnis;
-
-	_ani = offered_msg->ani;
-
-	LogDebug("Creating call session - ix stack handle=[" << _stackCallHandle << "].");
+	_dnis	= offered_msg->dnis;
+	_ani	= offered_msg->ani;
 
 }
 
@@ -77,6 +75,13 @@ Call::Ani()
 }
 
 void
+Call::ResetState(CallState state, const char *state_str)
+{
+	LogDebug("Call iw handle " << _stackCallHandle << ", transition from state " << _callState << " to state " << state << "," << state_str);
+	_callState = state;
+}
+
+void
 Call::EnableMediaFormat(const MediaFormat& media_format)
 {
 	FUNCTRACKER;
@@ -89,7 +94,8 @@ Call::EnableMediaFormat(const MediaFormat& media_format)
 
 ApiErrorCode
 Call::NegotiateMediaFormats(IN const MediaFormatsList &offered_medias, 
-					  OUT MediaFormatsList &accepted_media)
+					  OUT MediaFormatsList &accepted_media,
+					  OUT MediaFormat &accepted_speech_format)
 {
 	FUNCTRACKER;
 
@@ -143,7 +149,7 @@ Call::NegotiateMediaFormats(IN const MediaFormatsList &offered_medias,
 			case MediaFormat::MediaType_SPEECH:
 				{
 					speech_chosen = true;
-					_acceptedSpeechFormat = media_format2;
+					accepted_speech_format = media_format2;
 					break;
 				}
 			}
@@ -168,19 +174,18 @@ Call::NegotiateMediaFormats(IN const MediaFormatsList &offered_medias,
 
 Call::~Call(void)
 {
+	FUNCTRACKER;
+
 	HagupCall();
 }
 
 void 
 Call::UponActiveObjectEvent(IwMessagePtr ptr)
 {
+	FUNCTRACKER;
+
 	switch (ptr->message_id)
 	{
-	case MSG_CALL_OFFERED:
-		{
-			UponInDialogOffer(ptr);
-			break;
-		}
 	case MSG_CALL_HANG_UP_EVT:
 		{
 			
@@ -189,7 +194,7 @@ Call::UponActiveObjectEvent(IwMessagePtr ptr)
 		}
 	default:
 		{
-
+			throw;
 		}
 	}
 
@@ -200,36 +205,9 @@ Call::UponActiveObjectEvent(IwMessagePtr ptr)
 void 
 Call::UponCallTerminated(IwMessagePtr ptr)
 {
-	_callState = CALL_STATE_TERMINATED;
+	CALL_RESET_STATE(CALL_STATE_TERMINATED);
 }
 
-void 
-Call::UponInDialogOffer(IwMessagePtr ptr)
-{
-
-	FUNCTRACKER;
-
-	shared_ptr<MsgCallOfferedReq> offered = 
-		dynamic_pointer_cast<MsgCallOfferedReq>(ptr);
-
-	_remoteMedia = offered->remote_media;
-
-	if (_callState != CALL_STATE_CONNECTED && 
-		_callState != CALL_STATE_HELD )
-	{
-		LogWarn("Cannot get in-dialog-offered if call is not in connected state (keep-alive not supported), handle " << offered->stack_call_handle);
-		SEND_RESPONSE(ptr, new MsgCallOfferedNack());
-		return;
-	}
-
-	if (offered->invite_type == ivrworx::INVITE_TYPE_HOLD)
-	{
-		_callState = CALL_STATE_HELD;
-		SEND_RESPONSE(ptr, new MsgCalOfferedlAck());
-		return;
-	}
-	
-}
 
 ApiErrorCode
 Call::RejectCall()
@@ -239,7 +217,6 @@ Call::RejectCall()
 	LogDebug("Rejecting the call - ix stack handle=[" << _stackCallHandle << "].");
 
 	MsgCallOfferedNack *msg = new MsgCallOfferedNack();
-
 	msg->stack_call_handle = _stackCallHandle;
 
 	_stackPair.inbound->Send(msg);
@@ -275,8 +252,9 @@ Call::HagupCall()
 }
 
 ApiErrorCode
-Call::AcceptCall(IN const CnxInfo &local_media, 
-				 IN const MediaFormatsList &accepted_codec)
+Call::AcceptInitialOffer( IN const CnxInfo &local_connection, 
+						 IN const MediaFormatsList &accepted_media_formats_list,
+						 IN const MediaFormat &speech_codec)
 {
 	
 	FUNCTRACKER;
@@ -284,14 +262,18 @@ Call::AcceptCall(IN const CnxInfo &local_media,
 
 	LogDebug("Accepting call - ix stack handle=[" << _stackCallHandle << "].");
 
+	
+	_acceptedSpeechFormat = speech_codec;
+	_acceptedMediaFormats = accepted_media_formats_list;
+
 	IwMessagePtr response = NULL_MSG;
 	
-	MsgCalOfferedlAck *ack = new MsgCalOfferedlAck();
-	ack->stack_call_handle = _stackCallHandle;
-	ack->local_media = local_media;
-	ack->accepted_codecs = accepted_codec;
-
+	MsgCalOfferedAck *ack	= new MsgCalOfferedAck();
+	ack->stack_call_handle	= _stackCallHandle;
+	ack->local_media		= local_connection;
+	ack->accepted_codecs	= accepted_media_formats_list;
 	
+
 	ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
 		_stackPair.inbound,
 		IwMessagePtr(ack),
@@ -356,6 +338,28 @@ Call::BlindXfer(IN const string &destination_uri)
 		Seconds(60),
 		"Blind Xfer Call TXN");
 
+	if (res != API_SUCCESS)
+	{
+		return res;
+	}
+
+	switch (response->message_id)
+	{
+	case MSG_CALL_BLIND_XFER_ACK:
+		{
+			CALL_RESET_STATE(CALL_STATE_TERMINATED);
+			break;
+		}
+	case MSG_CALL_BLIND_XFER_NACK:
+		{
+			res = API_SERVER_FAILURE;
+			break;
+		}
+	default:
+		{
+			throw;
+		}
+	}
 	return res;
 
 }

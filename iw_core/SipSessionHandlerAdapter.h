@@ -24,11 +24,14 @@ using namespace resip;
 
 class SipSessionHandlerAdapter:
 	public InviteSessionHandler, 
-	public ClientRegistrationHandler, 
+	public ClientSubscriptionHandler,
+	public ClientRegistrationHandler,
 	public OutOfDialogHandler
 {
 public:
+
 	SipSessionHandlerAdapter(void){};
+
 	virtual ~SipSessionHandlerAdapter(void){};
 
 	virtual void onSuccess(ClientRegistrationHandle h, const SipMessage& response){};
@@ -100,6 +103,24 @@ public:
 	virtual void onFailure(ClientOutOfDialogReqHandle, const SipMessage& errorResponse){};
 
 	virtual void onReceivedRequest(ServerOutOfDialogReqHandle ood, const SipMessage& request){};
+
+	// Subscription callbacks
+	// Client must call acceptUpdate or rejectUpdate for any onUpdateFoo
+	virtual void onUpdatePending(ClientSubscriptionHandle, const SipMessage& notify, bool outOfOrder){};
+
+	virtual void onUpdateActive(ClientSubscriptionHandle, const SipMessage& notify, bool outOfOrder){};
+
+	//unknown Subscription-State value
+	virtual void onUpdateExtension(ClientSubscriptionHandle, const SipMessage& notify, bool outOfOrder){};
+
+	virtual int onRequestRetry(ClientSubscriptionHandle, int retrySeconds, const SipMessage& notify){ return -1;};
+
+	//subscription can be ended through a notify or a failure response.
+	virtual void onTerminated(ClientSubscriptionHandle, const SipMessage& msg){};   
+
+	//not sure if this has any value.
+	virtual void onNewSubscription(ClientSubscriptionHandle, const SipMessage& notify){};
+
 
 };
 
