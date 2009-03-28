@@ -70,6 +70,11 @@ namespace ivrworx
 
 		virtual void CleanUpCall(IN SipDialogContextPtr ctx_ptr);
 
+		virtual void onUpdatePending(ClientSubscriptionHandle, const SipMessage& notify, bool outOfOrder);
+
+		virtual void onUpdateActive(ClientSubscriptionHandle, const SipMessage& notify, bool outOfOrder);
+
+
 	private:
 
 		Configuration &_conf;

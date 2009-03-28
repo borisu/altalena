@@ -57,12 +57,13 @@ namespace ivrworx
 		setClientAuthManager(_uasAuth);
 		_uasAuth.release();
 
-
 		getMasterProfile()->setDefaultFrom(*_uasAor);
 		getMasterProfile()->setDefaultRegistrationTime(70);
 
 		setClientRegistrationHandler(this);
 		setInviteSessionHandler(this);
+		addClientSubscriptionHandler("refer",this);
+		
 		addOutOfDialogHandler(OPTIONS, this);
 
 
@@ -100,6 +101,11 @@ namespace ivrworx
 		NameAddr name_addr(xfer_req->destination_uri.c_str());
 		invite_handle->refer(name_addr,false);
 
+		GetCurrLightWeightProc()->SendResponse(
+			req,
+			new MsgCallBlindXferAck());
+
+		invite_handle->end();
 
 	}
 
@@ -131,8 +137,8 @@ namespace ivrworx
 	UASDialogUsageManager::UponCallOfferedAck(IwMessagePtr req)
 	{
 
-		shared_ptr<MsgCalOfferedlAck> ack = 
-			dynamic_pointer_cast<MsgCalOfferedlAck>(req);
+		shared_ptr<MsgCalOfferedAck> ack = 
+			dynamic_pointer_cast<MsgCalOfferedAck>(req);
 
 		IwHandlesMap::iterator iter = _refIwHandlesMap.find(ack->stack_call_handle);
 		if (iter == _refIwHandlesMap.end())
@@ -176,15 +182,18 @@ namespace ivrworx
 			medium.addAttribute("rtpmap", rtpmap.c_str());
 		}
 
+		
+		if (ack->invite_type == OFFER_TYPE_HOLD)
+		{
+			medium.addAttribute("inactive");
+		}
+		
+
 		session.addMedium(medium);
 		sdp.session() = session;
 
 		Data encoded(Data::from(sdp));
-		// 
-		// 	HeaderFieldValue hfv(encoded.c_str(),encoded.size());
-		// 	Mime type("application", "sdp");
-		// 	SdpContents sdp(&hfv, type);
-
+		
 
 		IX_PROFILE_CODE(ptr->uas_invite_handle.get()->provideAnswer(sdp));
 		IX_PROFILE_CODE(ptr->uas_invite_handle.get()->accept());
@@ -213,7 +222,7 @@ namespace ivrworx
 	}
 
 	void 
-		UASDialogUsageManager::CleanUpCall(IN SipDialogContextPtr ctx_ptr)
+	UASDialogUsageManager::CleanUpCall(IN SipDialogContextPtr ctx_ptr)
 	{
 		_refIwHandlesMap.erase(ctx_ptr->stack_handle);
 		_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
@@ -221,7 +230,7 @@ namespace ivrworx
 
 
 	void 
-		UASDialogUsageManager::onTerminated(InviteSessionHandle handle , InviteSessionHandler::TerminatedReason reason, const SipMessage* msg)
+	UASDialogUsageManager::onTerminated(InviteSessionHandle handle , InviteSessionHandler::TerminatedReason reason, const SipMessage* msg)
 	{
 		FUNCTRACKER;
 
@@ -303,14 +312,15 @@ namespace ivrworx
 		offered->stack_call_handle	= ctx_ptr->stack_handle;
 		offered->call_handler_inbound = call_handler_pair;
 
-		// keep alive or "real" 
-		offered->is_indialog = is->isAccepted();
-
-		if (addr == "0.0.0.0"		  || 
+		// keep alive or hold and reinvite are not accepted currently
+		if (is->isAccepted()		  ||
+			addr == "0.0.0.0"		  || 
 			medium.exists("sendonly") || 
 			medium.exists("inactive"))
 		{
-			offered->invite_type = ivrworx::INVITE_TYPE_HOLD;
+			LogWarn("In-dialog offer is not suported currenttly, rejecting offer for iwh:" << ctx_ptr->stack_handle)
+			is->reject(488);
+			return;
 		}
 
 		const Uri &to_uri = msg.header(h_To).uri();
@@ -335,8 +345,8 @@ namespace ivrworx
 
 
 		if (offered->is_indialog || 
-			offered->invite_type == ivrworx::INVITE_TYPE_HOLD ||
-			offered->invite_type == ivrworx::INVITE_TYPE_RESUME)
+			offered->invite_type == ivrworx::OFFER_TYPE_HOLD ||
+			offered->invite_type == ivrworx::OFFER_TYPE_RESUME)
 		{
 			ctx_ptr->call_handler_inbound->Send(offered);
 		} 
@@ -401,23 +411,52 @@ namespace ivrworx
 
 
 	ApiErrorCode 
-		UASDialogUsageManager::HangupCall(SipDialogContextPtr ptr)
+	UASDialogUsageManager::HangupCall(SipDialogContextPtr ptr)
 	{
 		FUNCTRACKER;
-
 
 		_refIwHandlesMap.erase(ptr->stack_handle);
 		_resipHandlesMap.erase(ptr->uas_invite_handle->getAppDialog());
 		ptr->uas_invite_handle->end();
 
 		return API_SUCCESS;
+	}
+
+	void 
+	UASDialogUsageManager::onUpdatePending(ClientSubscriptionHandle sh, const SipMessage& notify, bool outOfOrder)
+	{
+		FUNCTRACKER;
+
+		ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(sh->getAppDialog());
+		if (ctx_iter == _resipHandlesMap.end())
+		{
+			LogCrit("Received UPDATE (pending) without application context, rsh:" << sh.getId());
+			sh->rejectUpdate();
+			sh->end();
+			return;
+		}
+
+		
+	}
+
+	void 
+	UASDialogUsageManager::onUpdateActive(ClientSubscriptionHandle sh, const SipMessage& notify, bool outOfOrder)
+	{
+		ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(sh->getAppDialog());
+		if (ctx_iter == _resipHandlesMap.end())
+		{
+			LogCrit("Received UPDATE (active) without application context, rsh:" << sh.getId());
+			sh->rejectUpdate();
+			sh->end();
+			return;
+		}
 
 	}
 
 
 
 	void 
-		UASDialogUsageManager::onReceivedRequest(ServerOutOfDialogReqHandle ood, const SipMessage& request)
+	UASDialogUsageManager::onReceivedRequest(ServerOutOfDialogReqHandle ood, const SipMessage& request)
 	{
 		FUNCTRACKER;
 

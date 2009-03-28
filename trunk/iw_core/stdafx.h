@@ -29,6 +29,8 @@
 #include "resip/dum/ClientAuthManager.hxx"
 #include "resip/dum/ClientInviteSession.hxx"
 #include "resip/dum/ClientRegistration.hxx"
+#include "resip/dum/ClientSubscription.hxx"
+#include "resip/dum/SubscriptionHandler.hxx"
 #include "resip/dum/DialogUsageManager.hxx"
 #include "resip/dum/DumShutdownHandler.hxx"
 #include "resip/dum/InviteSessionHandler.hxx"

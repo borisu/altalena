@@ -232,7 +232,7 @@ namespace ivrworx
 
 		lua_State *state = (lua_State *) vm;
 
-		ApiErrorCode res = _callSession.AcceptCall();
+		ApiErrorCode res = _callSession.AcceptInitialOffer();
 		lua_pushnumber (state, res);
 
 		return 1;
