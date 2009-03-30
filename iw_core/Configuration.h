@@ -57,6 +57,12 @@ namespace ivrworx
 
 		virtual string FromDisplay();
 
+		virtual string SyslogHost();
+
+		virtual int SyslogPort();
+
+		virtual string DebugLevel();
+
 	protected:
 
 		mutex _mutex;
@@ -80,6 +86,12 @@ namespace ivrworx
 		int _imsTopPort;
 
 		int _imsBottomPort;
+
+		string _sysloghost;
+
+		int _syslogport;
+
+		string _debugLevel;
 
 	};
 

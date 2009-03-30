@@ -95,15 +95,6 @@ namespace ivrworx
 
 #define NAME(x) #x
 
-#define BOOST_SERIALIZATION_REGION								\
-	friend class access;										\
-	template<class Archive>										\
-	void serialize(Archive & ar, const unsigned int version)    \
-
-
-#define SERIALIZE_BASE_CLASS(x) ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(x);
-#define SERIALIZE_FIELD(x) ar & BOOST_SERIALIZATION_NVP(x);
-
 #define START_FORKING_REGION { ScopedForking forking
 #define FORK(x) forking.fork( x )
 #define FORK_IN_THIS_THREAD(x) forking.forkInThisThread( x )
@@ -120,6 +111,8 @@ namespace ivrworx
 	void WStringToUpper(wstring strToConvert);
 
 	void WStringToLower(wstring strToConvert);
+
+#define  NON_FIBEROUS_THREAD ((PVOID)0x1E00)
 
 #define DISABLE_SRC_REF
 //#define NOLOGS

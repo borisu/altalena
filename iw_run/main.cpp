@@ -28,25 +28,22 @@ namespace ivrworx
 		public LightweightProcess
 	{
 	public:
-		ProcSystemStarter(LpHandlePair pair)
-			:LightweightProcess(pair,__FUNCTION__)
+		ProcSystemStarter(LpHandlePair pair,Configuration &conf)
+			:LightweightProcess(pair,__FUNCTION__),
+			_conf(conf)
 		{
 
 		}
 
 		void real_run()
 		{
-
-			ConfigurationPtr conf = 
-				ConfigurationFactory::CreateJsonConfiguration("conf.json");
-
 			START_FORKING_REGION;
 
 			//
 			// Start IMS 
 			//
 			DECLARE_NAMED_HANDLE_PAIR(ims_pair);
-			FORK(ImsFactory::CreateProcIms(ims_pair, *conf));
+			FORK(ImsFactory::CreateProcIms(ims_pair, _conf));
 			assert(IW_SUCCESS(WaitTillReady(Seconds(5), ims_pair)));
 			assert(IW_SUCCESS(Ping(IMS_Q)));
 
@@ -54,9 +51,9 @@ namespace ivrworx
 			// Start IVR
 			//
 			CnxInfo vcs_media = CnxInfo(
-				conf->DefaultCnxInfo().inaddr(),5060);
+				_conf.IvrCnxInfo().inaddr(),5060);
 			DECLARE_NAMED_HANDLE_PAIR(ivr_pair);
-			FORK(IvrFactory::CreateProcIvr(ivr_pair,*conf));
+			FORK(IvrFactory::CreateProcIvr(ivr_pair,_conf));
 			assert(IW_SUCCESS(WaitTillReady(Seconds(5), ivr_pair)));
 			assert(IW_SUCCESS(Ping(IVR_Q)));
 
@@ -65,6 +62,10 @@ namespace ivrworx
 
 
 		}
+
+	private:
+
+		Configuration &_conf;
 
 	};
 
@@ -76,8 +77,22 @@ using namespace ivrworx;
 int _tmain(int argc, _TCHAR* argv[])
 {
 
-	SetLogLevel(LOG_LEVEL_TRACE);
-	SetLogMask(IX_LOG_MASK_CONSOLE|IX_LOG_MASK_DEBUGVIEW);
+	if (argc < 2)
+	{
+		std::cerr << "Usage: ivrworx.exe [configuration file]" << std::endl;
+		return -1;
+	}
+
+	wstring conf_file(argv[1]);
+
+	ConfigurationPtr conf = 
+		ConfigurationFactory::CreateJsonConfiguration(WStringToString(conf_file));
+
+	InitLog(*conf);
+
+	SetLogLevel(LOG_LEVEL_DEBUG);
+	SetLogMask(IX_LOG_MASK_CONSOLE|IX_LOG_MASK_DEBUGVIEW|IX_LOG_MASK_SYSLOG);
+
 	LogInfo(">>>>>> IVRWORX START <<<<<<");
 
 	Start_CPPCSP();
@@ -85,7 +100,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	START_FORKING_REGION;
 
 	DECLARE_NAMED_HANDLE_PAIR(starter_pair);
-	FORK(new ProcSystemStarter(starter_pair));
+	FORK(new ProcSystemStarter(starter_pair,*conf));
 
 	END_FORKING_REGION;
 

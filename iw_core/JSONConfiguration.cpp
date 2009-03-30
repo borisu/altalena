@@ -72,8 +72,7 @@ namespace ivrworx
 			throw;
 		}
 
-		return 
-			new MediaFormat(
+		return new MediaFormat(
 				media_format_name,
 				find_int( obj, "sampling_rate" ),
 				find_int( obj, "sdp_mapping" ),
@@ -128,18 +127,22 @@ namespace ivrworx
 		Object root_obj(_value.get_obj());
 
 		//
-		// default ip
+		// debug level
 		//
-		const string default_ip_str = find_str(root_obj, "default_ip" );
+		_debugLevel = find_str(root_obj, "debug_level");
 
-		_defaultIp = CnxInfo(default_ip_str,5060);
+		//
+		// syslog
+		//
+		_sysloghost = find_str(root_obj, "syslogd_host");
+		_syslogport = find_int(root_obj, "syslogd_port");
 
 
 		//
 		// ivr 
 		//
 		const string ivr_ip_str = find_str(root_obj, "ivr_sip_ip" );
-		const int ivr_ip_int = find_int(root_obj, "ivr_sip_port" );
+		const int ivr_ip_int	= find_int(root_obj, "ivr_sip_port" );
 
 		_ivrCnxInfo = CnxInfo(ivr_ip_str,ivr_ip_int);
 
@@ -149,9 +152,8 @@ namespace ivrworx
 		const string ims_ip_str = find_str(root_obj, "ims_ip" );
 		
 		_imsCnxInfo = CnxInfo(ims_ip_str,0);
-
-		_imsTopPort = find_int(root_obj, "ims_top_port" );
-		_imsBottomPort = find_int(root_obj, "ims_bottom_port" );
+		_imsTopPort		= find_int(root_obj, "ims_top_port" );
+		_imsBottomPort	= find_int(root_obj, "ims_bottom_port" );
 
 
 
@@ -159,7 +161,6 @@ namespace ivrworx
 		_scriptFile = find_str(root_obj, "script_file");
 
 		// codecs
-
 		const Array &codecs_array = find_array(root_obj, "codecs");
 
 		Array::const_iterator iter = codecs_array.begin();

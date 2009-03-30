@@ -19,6 +19,7 @@
 
 #include "StdAfx.h"
 #include "Logger.h"
+#include "syslog.h"
 
 using namespace boost;
 using namespace std;
@@ -26,59 +27,317 @@ using namespace std;
 namespace ivrworx
 {
 
-	mutex g_loggerMutex;
+	#define IW_MAX_SYSTEM_ERROR_MSG_LENGTH  1024
+	#define IW_MAX_PREFIX_SIZE 1024
 
-	volatile LogLevel g_LogLevel = LOG_LEVEL_INFO;
+	static const char *g_LogLevelStrings[] = {"OFF", "CRT", "WRN", "INF", "DBG", "TRC"};
 
-	volatile DWORD g_logMask = IX_LOG_MASK_CONSOLE;
+	string 
+	FormatLastSysError(char *lpszFunction) 
+	{ 
 
-	wdostream wdbgout;
+		// Retrieve the system error message for the last-error code
+		DWORD last_error = ::GetLastError(); 
 
-	dostream dbgout;
+		char translated_err_buffer[IW_MAX_SYSTEM_ERROR_MSG_LENGTH];
+		translated_err_buffer[0]='\0';
+
+		DWORD res = ::FormatMessageA (
+			FORMAT_MESSAGE_FROM_SYSTEM |
+			FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,
+			last_error,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			translated_err_buffer, 
+			IW_MAX_SYSTEM_ERROR_MSG_LENGTH, 
+			NULL);
+
+		if (res == 0)
+		{
+			return string("Error while formating system error");
+		}
+
+		// Display the error message and exit the process
+		char formatted_buffer[IW_MAX_SYSTEM_ERROR_MSG_LENGTH];
+
+		::StringCchPrintfA(
+			formatted_buffer, 
+			IW_MAX_SYSTEM_ERROR_MSG_LENGTH,
+			"%s failed with error %d: %s", 
+			lpszFunction, 
+			last_error, 
+			translated_err_buffer); 
+
+		return string(formatted_buffer);
+	}
+
+	mutex		g_loggerMutex;
+	HANDLE		g_IocpLogger	= NULL;
+	HANDLE		g_loggerThread	= NULL;
+
+	LogLevel volatile g_LogLevel	= LOG_LEVEL_INFO;
+	DWORD		g_logMask			= IX_LOG_MASK_CONSOLE;
+
+	__declspec( thread ) debug_dostream *tls_logger = NULL;
+
+	struct LogBucket :
+		public OVERLAPPED
+	{
+		LogLevel log_level;
+
+		string log_str;
+
+		DWORD thread_id;
+
+		PVOID fiber_id;
+
+		DWORD timestamp;
+
+	};
+
+	DWORD WINAPI LoggerThread(LPVOID lpParam);
+	
+	BOOL InitLog(Configuration &conf)
+	{
+		mutex::scoped_lock scoped_lock(g_loggerMutex);
+
+		openlog(conf.SyslogHost().c_str(),conf.SyslogPort(),"ivrworx",0,LOG_USER );
+		
+		if (g_IocpLogger != NULL)
+		{
+			return TRUE;
+		}
+
+		g_IocpLogger = 	::CreateIoCompletionPort(
+				INVALID_HANDLE_VALUE,
+				NULL,
+				0,
+				1);
+
+		if (g_IocpLogger == NULL)
+		{
+			string err = FormatLastSysError("CreateIoCompletionPort");
+			std::cerr << "Cannot init logging - " << err;
+
+			return FALSE;
+		}
+
+		DWORD tid = 0;
+		g_loggerThread = ::CreateThread(
+			NULL,
+			0,
+			LoggerThread,
+			NULL,
+			NULL,
+			&tid
+			);
+
+		if (g_loggerThread == NULL)
+		{
+			string err = FormatLastSysError("CreateThread");
+			std::cerr << "Cannot init logging - " << err;
+
+			return FALSE;
+		}
+
+		return TRUE;
+	}
+
+	int
+	GetSyslogPri(IN LogLevel log_level)
+	{
+		switch(log_level)
+		{
+		case LOG_LEVEL_OFF:
+			{
+				return (LOG_MAKEPRI(LOG_USER,LOG_UPTO(LOG_EMERG)));
+				break;
+			}
+		case LOG_LEVEL_CRITICAL:
+			{
+				return (LOG_MAKEPRI(LOG_USER,LOG_UPTO(LOG_EMERG)));
+				break;
+			}
+		case LOG_LEVEL_WARN:
+			{
+				return (LOG_MAKEPRI(LOG_USER,LOG_UPTO(LOG_WARNING)));
+				break;
+			}
+		case LOG_LEVEL_INFO:
+			{
+				return (LOG_MAKEPRI(LOG_USER,LOG_UPTO(LOG_INFO)));
+				break;
+			}
+		case LOG_LEVEL_DEBUG:
+			{
+				return (LOG_MAKEPRI(LOG_USER,LOG_UPTO(LOG_DEBUG)));
+				break;
+			}
+		case LOG_LEVEL_TRACE:
+			{
+				return (LOG_MAKEPRI(LOG_USER,LOG_UPTO(LOG_DEBUG)));
+				break;
+			}
+		default:
+			{
+				throw;
+			}
+		}
+
+	}
 
 	void
 	SetLogLevel(IN LogLevel log_level)
 	{
+		mutex::scoped_lock scoped_lock(g_loggerMutex);
+
 		g_LogLevel = log_level;
+
+		setlogmask(GetSyslogPri(log_level));
+
+		
 	}
 
 	void 
 	SetLogMask(IN int log_mask)
 	{
+		mutex::scoped_lock scoped_lock(g_loggerMutex);
+
 		g_logMask = log_mask;
 	}
 
-	void 
-	LoggerTracker::DispatchLog(IN boolean exit)
+	
+	basic_debugbuf::~basic_debugbuf()
 	{
-		if (g_logMask & IX_LOG_MASK_CONSOLE) 
-		{ 
-			Print(cout,exit);
-		}
-		if (g_logMask & IX_LOG_MASK_DEBUGVIEW) 
-		{  
-			Print(dbgout,exit);
-		}
-
+		sync();
 	}
 
-	void 
-	LoggerTracker::Print(
-		IN ostream &stream, 
-		IN boolean exit)
+	int 
+	basic_debugbuf::sync()
 	{
-		mutex::scoped_lock scoped_lock(g_loggerMutex);
-		if (!exit)
-		{
-			stream << IX_PREFIX << "[TRC]:" << _funcname << " Enters -->" << endl;
-		} else 
-		{
-			stream << IX_PREFIX << "[TRC]:" << _funcname << " <-- Exits" << endl;
-		}
+		LogBucket *lb = new LogBucket();
 
+		lb->log_level = log_level;
+		lb->thread_id = ::GetCurrentThreadId();
+		lb->fiber_id  = ::GetCurrentFiber();
+		lb->timestamp = ::GetTickCount();
+		lb->log_str = str();
+
+		::PostQueuedCompletionStatus(
+			g_IocpLogger,
+			0,
+			0,
+			lb);
+
+		str(std::basic_string<char>());    // Clear the string buffer
+
+		return 0;
+	}
+
+	debug_dostream::debug_dostream() 
+		:char_stream(new basic_debugbuf()) 
+	{
+
+	};
+
+	debug_dostream::~debug_dostream() 
+	{
+		delete rdbuf(); 
 	}
 
 
+	DWORD WINAPI LoggerThread(LPVOID lpParam)
+	{
+		DWORD number_of_bytes = 0;
+		ULONG completion_key  = 0;
+		OVERLAPPED *olap= NULL;
+
+		while (true)
+		{
+			BOOL res  = ::GetQueuedCompletionStatus(
+				g_IocpLogger,
+				&number_of_bytes,
+				&completion_key,
+				&olap,
+				5000
+				);
+
+			if (res == FALSE)
+			{
+				if (::GetLastError() == WAIT_TIMEOUT)
+				{
+					continue;
+				}
+
+				string err = FormatLastSysError("CreateIoCompletionPort");
+				std::cerr << "Logger critical error, logging will stop, err:" << err ;
+				break;
+			}
+
+			LogBucket *lb = (LogBucket *)olap;
+
+			char formatted_log_str[IW_MAX_PREFIX_SIZE];
+			formatted_log_str[0] = '\0';
+
+			int fiber_id = lb->fiber_id == NON_FIBEROUS_THREAD ? -1 : (int)lb->fiber_id;
+
+			_snprintf_s(formatted_log_str,IW_MAX_PREFIX_SIZE,IW_MAX_PREFIX_SIZE,"[%s][%-5d,0x%-8x] %s",
+				g_LogLevelStrings[lb->log_level],
+				lb->thread_id,
+				fiber_id,
+				lb->log_str.c_str());
+
+			if (g_logMask & IX_LOG_MASK_CONSOLE)   
+			{ 
+				switch(g_LogLevel)
+				{
+				case LOG_LEVEL_CRITICAL:
+					{
+						cout << con::bg_red;
+						break;
+					}
+				case LOG_LEVEL_WARN:
+					{
+						cout << con::bg_green;
+						break;
+					}
+				case LOG_LEVEL_OFF:
+				case LOG_LEVEL_INFO:
+				case LOG_LEVEL_DEBUG:
+				case LOG_LEVEL_TRACE:
+					{
+						cout << con::bg_black;
+						break;
+					}
+					
+				default:
+					{
+						cout << con::bg_black;
+					}
+				}
+				
+				std::cout << formatted_log_str << con::bg_black;
+			}
+
+			if (g_logMask & IX_LOG_MASK_DEBUGVIEW) 
+			{ 
+				::OutputDebugStringA(formatted_log_str);
+			};
+
+			if (g_logMask & IX_LOG_MASK_SYSLOG)	
+			{ 
+				syslog(0,"%s",formatted_log_str); 
+			};
+
+			delete lb;
+
+		}
+
+		return 0;
+		
+	}
+
+	
 	LoggerTracker::LoggerTracker(IN char *log_function)
 	{
 		if (g_LogLevel < LOG_LEVEL_TRACE)
@@ -86,11 +345,12 @@ namespace ivrworx
 			_funcname[0] = '\0';
 			return;
 		}
+
 		strncpy_s(_funcname, 
 			log_function, 
 			MAX_LENGTH);
 
-		DispatchLog(false);
+		LogTrace(_funcname << " Enters -->");
 
 	}
 
@@ -101,7 +361,7 @@ namespace ivrworx
 			return;
 		}
 
-		DispatchLog(true);
+		LogTrace(_funcname << " <-- Exits");
 
 	}
 
@@ -109,48 +369,6 @@ namespace ivrworx
 	operator << (ostream& os, const Time &time)
 	{
 		return os << GetMilliSeconds(time) << " ms.";
-	}
-
-
-#define CCU_MAX_SYSTEM_ERROR_MSG_LENGTH  1024
-
-	string 
-	FormatLastSysError(char *lpszFunction) 
-	{ 
-
-		// Retrieve the system error message for the last-error code
-		DWORD last_error = ::GetLastError(); 
-
-		char translated_err_buffer[CCU_MAX_SYSTEM_ERROR_MSG_LENGTH];
-		translated_err_buffer[0]='\0';
-
-		DWORD res = ::FormatMessageA (
-			FORMAT_MESSAGE_FROM_SYSTEM |
-			FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL,
-			last_error,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			translated_err_buffer, 
-			CCU_MAX_SYSTEM_ERROR_MSG_LENGTH, 
-			NULL);
-
-		if (res == 0)
-		{
-			return string("Error while formating system error");
-		}
-
-		// Display the error message and exit the process
-		char formatted_buffer[CCU_MAX_SYSTEM_ERROR_MSG_LENGTH];
-
-		::StringCchPrintfA(
-			formatted_buffer, 
-			CCU_MAX_SYSTEM_ERROR_MSG_LENGTH,
-			"%s failed with error %d: %s", 
-			lpszFunction, 
-			last_error, 
-			translated_err_buffer); 
-
-		return string(formatted_buffer);
 	}
 
 }

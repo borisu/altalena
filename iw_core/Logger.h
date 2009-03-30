@@ -25,112 +25,21 @@ using namespace std;
 using namespace JadedHoboConsole;
 namespace con = JadedHoboConsole;
 
+#include "Configuration.h"
+
 namespace ivrworx
 {
+	
+	string FormatLastSysError(char *lpszFunction);
 
-	template <class CharT, class TraitsT = std::char_traits<CharT> >
-	class basic_debugbuf : 
-		public std::basic_stringbuf<CharT, TraitsT>
-	{
-	public:
+	BOOL InitLog(Configuration &conf);	
 
-		virtual ~basic_debugbuf()
-		{
-			sync();
-		}
-
-	protected:
-
-		int sync()
-		{
-			output_debug_string(str().c_str());
-			str(std::basic_string<CharT>());    // Clear the string buffer
-
-
-			return 0;
-		}
-
-		void output_debug_string(const CharT *text) {}
-	};
-
-	template<>
-	void basic_debugbuf<char>::output_debug_string(const char *text)
-	{
-		::OutputDebugStringA(text);
-	}
-
-	template<>
-	void basic_debugbuf<wchar_t>::output_debug_string(const wchar_t *text)
-	{
-		::OutputDebugStringW(text);
-	}
-
-	template<class CharT, class TraitsT = std::char_traits<CharT> >
-	class basic_dostream : 
-		public std::basic_ostream<CharT, TraitsT>
-	{
-	public:
-
-		basic_dostream() : std::basic_ostream<CharT, TraitsT>
-			(new basic_debugbuf<CharT, TraitsT>()) {}
-		~basic_dostream() 
-		{
-			delete rdbuf(); 
-		}
-	};
-
-	typedef basic_dostream<char>    dostream;
-	typedef basic_dostream<wchar_t> wdostream;
-
-	extern wdostream wdbgout;
-	extern dostream	 dbgout;
-
-#define IX_LOG_MASK_CONSOLE		0x1
-#define IX_LOG_MASK_DEBUGVIEW	0x10
-
-	// global logging mutex
-	extern mutex g_loggerMutex;
-
-	extern volatile DWORD g_logMask;
+	#define IX_LOG_MASK_CONSOLE		0x001
+	#define IX_LOG_MASK_DEBUGVIEW	0x010
+	#define IX_LOG_MASK_SYSLOG		0x100
 
 	void
-	SetLogMask(IN  int mask);
-
-
-	string 
-	FormatLastSysError(IN char *lpszFunction);
-
-	class LoggerTracker
-	{
-	public:
-		LoggerTracker(char *log_function);
-		~LoggerTracker();
-	private:
-		void DispatchLog(boolean exit);
-		void Print(ostream &stream, boolean exit);
-		static const int MAX_LENGTH = 100; 
-		char _funcname[MAX_LENGTH];
-	};
-
-
-#define __STR2WSTR(str)    L##str
-#define _STR2WSTR(str)     __STR2WSTR(str)
-
-#define __FILEW__          _STR2WSTR(__FILE__)
-#define __FUNCTIONW__      _STR2WSTR(__FUNCTION__)
-
-
-#define IX_THREAD_ID		"[" << dec << setw(5) << ::GetCurrentThreadId() << "," << ::GetCurrentFiber() << "]"
-
-#ifndef DISABLE_SRC_REF
-	#define IX_PREFIX				IX_THREAD_ID << __FUNCTION__ << "(" << dec << __LINE__ << "):"
-	#define IX_PREFIX_WITH_LINE		IX_THREAD_ID << __FUNCTION__ << "(" << dec << __LINE__ << "):"
-#else
-	#define IX_PREFIX				IX_THREAD_ID 
-	#define IX_PREFIX_WITH_LINE		IX_THREAD_ID 
-#endif
-
-#define LOG_HANDLE(x) hex << (x)
+	SetLogMask(IN int mask);
 
 	enum LogLevel
 	{
@@ -145,44 +54,82 @@ namespace ivrworx
 	extern volatile LogLevel g_LogLevel;
 
 	void
-	SetLogLevel(LogLevel log_level);
+	SetLogLevel(IN LogLevel log_level);
 
-#define IX_SCOPED_LOG(level ,x, color){ \
-	mutex::scoped_lock scoped_lock(g_loggerMutex);\
-	if (g_logMask & IX_LOG_MASK_CONSOLE)   { std::cout << color;(std::cout)  << IX_PREFIX << level << x << endl; std::cout << con::bg_black;}\
-	if (g_logMask & IX_LOG_MASK_DEBUGVIEW) { std::cout << color;(dbgout)	 << IX_PREFIX << level << x << endl; std::cout << con::bg_black;}\
-	}
+	typedef 
+	std::basic_stringbuf<char, std::char_traits<char>>	char_string_buf;
 
-#define IX_SCOPED_LOG_RAW(x){ \
-	mutex::scoped_lock scoped_lock(g_loggerMutex);\
-	if (g_logMask & IX_LOG_MASK_CONSOLE)   { (std::cout)  << x << endl; }\
-	if (g_logMask & IX_LOG_MASK_DEBUGVIEW) { (dbgout)	  << x << endl; }\
-	}
+	class basic_debugbuf: 
+		public char_string_buf
+	{
+	public:
+		~basic_debugbuf();
+	protected:
+		int sync();
+	public:
+		LogLevel log_level;
+	};
 
-#define IsDebug()   (g_LogLevel >= IX_LOG_LEVEL_DEBUG)
+	typedef
+	std::basic_ostream<char, std::char_traits<char>> char_stream;
 
-#ifdef PROFILE
-	#define LogProfile(x)SCOPED_LOG("[PRF]:",x, con::bg_black)
-#else
-	#define LogProfile(x)
-#endif
+	class debug_dostream: 
+		public char_stream
+	{
+	public:
+		debug_dostream();
+		~debug_dostream(); 
+
+		inline void set_log_level(LogLevel log_level)
+		{
+			((basic_debugbuf*)rdbuf())->log_level = log_level;
+		}
+
+	};
+
+	extern __declspec( thread ) debug_dostream *tls_logger;
+
+	class LoggerTracker
+	{
+	public:
+		LoggerTracker(char *log_function);
+		~LoggerTracker();
+	private:
+		static const int MAX_LENGTH = 100; 
+		char _funcname[MAX_LENGTH];
+	};
+
+	#define __STR2WSTR(str)    L##str
+	#define _STR2WSTR(str)     __STR2WSTR(str)
+
+	#define __FILEW__          _STR2WSTR(__FILE__)
+	#define __FUNCTIONW__      _STR2WSTR(__FUNCTION__)
+
+	#define IX_SCOPED_LOG(level,x) {			\
+		if (tls_logger == NULL)					\
+		{										\
+			tls_logger = new debug_dostream();  \
+		};										\
+		(*tls_logger).set_log_level(level);		\
+		(*tls_logger) << x << std::endl;		\
+	}	
+
+	#ifdef PROFILE
+		#define LogProfile(x)	IX_SCOPED_LOG(LOG_LEVEL_DEBUG,x)
+	#else
+		#define LogProfile(x)
+	#endif
+
+	#define COND_LOG(level,x) if (::InterlockedExchangeAdd((volatile LONG *)&g_LogLevel,0) >= level) IX_SCOPED_LOG(level,x)
 
 #ifndef NOLOGS
-	#define LogTrace(x) if (g_LogLevel >= LOG_LEVEL_TRACE)		IX_SCOPED_LOG("[TRC]:",x, con::bg_black)
-	#define LogDebug(x) if (g_LogLevel >= LOG_LEVEL_DEBUG)		IX_SCOPED_LOG("[DBG]:",x, con::bg_black)
-	#define LogInfo(x)  if (g_LogLevel >= LOG_LEVEL_INFO)		IX_SCOPED_LOG("[INF]:",x, con::bg_black)
-	#define LogWarn(x)  if (g_LogLevel >= LOG_LEVEL_WARN)		IX_SCOPED_LOG("[WRN]:",x, con::bg_red)
-	#define LogCrit(x)	if (g_LogLevel >= LOG_LEVEL_CRITICAL)	IX_SCOPED_LOG("[CRT]:",x, con::bg_red)
+	#define LogTrace(x)		COND_LOG(LOG_LEVEL_TRACE,x)
+	#define LogDebug(x)		COND_LOG(LOG_LEVEL_DEBUG,x)
+	#define LogInfo(x)		COND_LOG(LOG_LEVEL_INFO,x)
+	#define LogWarn(x)		COND_LOG(LOG_LEVEL_WARN,x)
+	#define LogCrit(x)		COND_LOG(LOG_LEVEL_CRITICAL,x)
+	#define LogSysError(x) 	COND_LOG(LOG_LEVEL_WARN, FormatLastSysError(x))
 
-	#define LogTraceRaw(x) if (g_LogLevel >= LOG_LEVEL_TRACE)		IX_SCOPED_LOG_RAW(x)
-	#define LogDebugRaw(x) if (g_LogLevel >= LOG_LEVEL_DEBUG)		IX_SCOPED_LOG_RAW(x)
-	#define LogInfoRaw(x)  if (g_LogLevel >= LOG_LEVEL_INFO)		IX_SCOPED_LOG_RAW(x)
-	#define LogWarnRaw(x)  if (g_LogLevel >= LOG_LEVEL_WARN)		IX_SCOPED_LOG_RAW(x)
-	#define LogCritRaw(x)  if (g_LogLevel >= LOG_LEVEL_CRITICAL)	IX_SCOPED_LOG_RAW(x)
-	#define LogSysError(x) { \
-		mutex::scoped_lock scoped_lock(g_loggerMutex);\
-		(std::cout) << con::bg_red << IX_PREFIX_WITH_LINE  << " " << x << " " << FormatLastSysError(__FUNCTION__) << con::fg_white << endl;\
-	}
 	#define FUNCTRACKER LoggerTracker _ltTag(__FUNCTION__) 
 #else
 	#define LogTrace(x) 
