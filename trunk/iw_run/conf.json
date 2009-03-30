@@ -1,8 +1,14 @@
 {
-    "default_ip": "192.168.100.232",
+    
+	"debug_level" : "DBG",
+	
+	
+	"syslogd_host" : "127.0.0.1",
+	"syslogd_port" : 515,
     
     "ivr_sip_ip": "192.168.100.232",
     "ivr_sip_port": 5060,
+    
     "from_id" : "ivrworx",
     "from_display_name": "ivrworx",
     

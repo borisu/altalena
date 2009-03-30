@@ -397,6 +397,18 @@
 				RelativePath=".\Profiler.h"
 				>
 			</File>
+			<Filter
+				Name="syslog"
+				>
+				<File
+					RelativePath=".\syslog-client.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\syslog.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="configuration"

@@ -151,5 +151,32 @@ namespace ivrworx
 
 	}
 
+	string 
+	Configuration::SyslogHost()
+	{
+		mutex::scoped_lock lock(_mutex);
+
+		return _sysloghost;
+
+	}
+
+	int
+	Configuration::SyslogPort()
+	{
+		mutex::scoped_lock lock(_mutex);
+
+		return _syslogport;
+
+	}
+
+	string
+	Configuration::DebugLevel()
+	{
+		mutex::scoped_lock lock(_mutex);
+
+		return _debugLevel;
+
+	}
+
 }
 

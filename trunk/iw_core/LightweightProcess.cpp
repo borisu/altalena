@@ -26,10 +26,6 @@
 namespace ivrworx
 {
 
-
-
-#define  NON_FIBEROUS_THREAD ((PVOID)0x1E00)
-
 	typedef 
 	map<PVOID, LightweightProcess*> ProcMap;
 

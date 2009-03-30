@@ -16,6 +16,8 @@
 
 // TODO: reference additional headers your program requires here
 #include "IwUtils.h"
+#include <ws2tcpip.h>
+#include <stdarg.h>
 
 
 // ReSip
