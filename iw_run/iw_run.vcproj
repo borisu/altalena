@@ -111,6 +111,8 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+				CommandLine="echo on&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\mediastreamer2\build\win32native\Release\mediastreamer2.dll $(OutDir)&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\win32-bin\lib\*.dll $(OutDir)&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\oRTP\build\win32native\Release\oRTP.dll $(OutDir)&#x0D;&#x0A;"
+				Outputs="output.txt"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -123,6 +125,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="-Zm120"
+				AdditionalIncludeDirectories="..\iw_core;..\iw_ims;..\iw_ivr"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
@@ -141,6 +145,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="ws2_32.lib Winmm.lib ws2_32.lib Iphlpapi.lib libboost_thread-vc80-mt-1_34_1.lib Mqrt.lib "
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="1"

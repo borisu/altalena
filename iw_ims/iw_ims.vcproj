@@ -105,6 +105,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\iw_core;&quot;..\mediastreamer2-antisip-4.3.3-rc2\mediastreamer2\include&quot;;&quot;..\mediastreamer2-antisip-4.3.3-rc2\oRTP\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"

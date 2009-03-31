@@ -22,6 +22,9 @@
 using namespace JadedHoboConsole;
 namespace con = JadedHoboConsole;
 
+#define IW_WRONG_NUMBER_OF_ARGUMENTS -1
+#define IW_ERROR_PARSING_CONF		 -2
+
 namespace ivrworx
 {
 	class ProcSystemStarter: 
@@ -79,14 +82,24 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	if (argc < 2)
 	{
-		std::cerr << "Usage: ivrworx.exe [configuration file]" << std::endl;
-		return -1;
+		cerr << "Usage: ivrworx.exe [configuration_file]" << std::endl;
+		cerr << "Starts lightweight IVR application." << std::endl;
+		return IW_WRONG_NUMBER_OF_ARGUMENTS;
 	}
 
 	wstring conf_file(argv[1]);
 
-	ConfigurationPtr conf = 
-		ConfigurationFactory::CreateJsonConfiguration(WStringToString(conf_file));
+	ConfigurationPtr conf((Configuration*)NULL);
+	try
+	{
+		conf = ConfigurationFactory::CreateJsonConfiguration(WStringToString(conf_file));
+	}
+	catch (exception e)
+	{
+		cerr << "Error reading configuration file `" << WStringToString(conf_file) << "'. " << e.what() << endl;
+		return IW_ERROR_PARSING_CONF;
+	}
+	
 
 	InitLog(*conf);
 

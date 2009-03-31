@@ -170,7 +170,7 @@ namespace ivrworx
 	{
 		if (ptr == NULL)
 		{
-			return ostream << "NUL";
+			return ostream << "NULL";
 		} 
 
 		return ostream << ptr->ipporttos();
@@ -189,20 +189,12 @@ namespace ivrworx
 
 	CnxInfo::CnxInfo(const string &s, int p_port)
 	{
-		addr.sin_family = AF_INET;
-		addr.sin_port = ::htons(p_port);
-		addr.sin_addr.s_addr = ::inet_addr(s.c_str());
-
-		init_strings();
+		init_from_hostname(s.c_str(),p_port);
 	}
 
-	CnxInfo::CnxInfo(char *ip, int p_port)
+	CnxInfo::CnxInfo(const char *ip, int p_port)
 	{
-		addr.sin_family = AF_INET;
-		addr.sin_port = ::htons(p_port);
-		addr.sin_addr.s_addr = ::inet_addr(ip);
-
-		init_strings();
+		init_from_hostname(ip,p_port);
 	}
 
 	CnxInfo::CnxInfo(in_addr p_in_addr, int p_port)
@@ -219,6 +211,28 @@ namespace ivrworx
 	{
 		addr.sin_addr.s_addr = INADDR_NONE;
 		addr.sin_port = IW_UNDEFINED;
+	}
+
+	void CnxInfo::init_from_hostname(const char *host_name,int p_port)
+	{
+		
+		struct hostent* phe = ::gethostbyname(host_name);
+
+		if( phe != NULL)
+		{
+			::memcpy(&addr.sin_addr.s_addr, phe->h_addr, phe->h_length);
+		} else
+		{
+			addr.sin_addr.S_un.S_addr = htonl( 0x7F000001 );
+		}
+
+		
+		addr.sin_family = AF_INET;
+		addr.sin_port = ::htons(p_port);
+		
+
+		init_strings();
+
 	}
 
 	bool CnxInfo::is_ip_valid() const
