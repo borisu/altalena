@@ -54,9 +54,46 @@ namespace ivrworx
 		return find_value( obj, name ).get_int();
 	}
 
+	string
+	get_env_variable_as_str(const char *var_name)
+	{
+        
+		char* var_value = NULL;
+		size_t requiredSize;
+
+		::getenv_s( &requiredSize, NULL, 0, var_name);
+
+		var_value = (char*)::malloc(requiredSize * sizeof(char));
+		if (!var_value)
+		{
+			std::cerr << "Failed to allocate memory!";
+			throw;
+		}
+
+		// Get the value of the LIB environment variable.
+		::getenv_s( &requiredSize, var_value, requiredSize, var_name);
+
+		string res(var_value);
+
+		::free(var_value);
+
+		return res;
+
+
+	}
+
 	static string 
 	find_str( const Object& obj, const string& name )
 	{
+		
+		string value_str = find_value( obj, name ).get_str();
+		
+		if (value_str.length() > 0 && 
+			 *value_str.begin() == '$')
+		{
+			return get_env_variable_as_str(value_str.c_str() + 1);
+		}
+
 		return find_value( obj, name ).get_str();
 	}
 
@@ -141,17 +178,17 @@ namespace ivrworx
 		//
 		// ivr 
 		//
-		const string ivr_ip_str = find_str(root_obj, "ivr_sip_ip" );
+		const string ivr_host_str = find_str(root_obj, "ivr_sip_ip" );
 		const int ivr_ip_int	= find_int(root_obj, "ivr_sip_port" );
 
-		_ivrCnxInfo = CnxInfo(ivr_ip_str,ivr_ip_int);
+		_ivrCnxInfo = CnxInfo(ivr_host_str,ivr_ip_int);
 
 		//
 		// ims
 		//
-		const string ims_ip_str = find_str(root_obj, "ims_ip" );
+		const string ims_host_str = find_str(root_obj, "ims_ip" );
 		
-		_imsCnxInfo = CnxInfo(ims_ip_str,0);
+		_imsCnxInfo = CnxInfo(ims_host_str,0);
 		_imsTopPort		= find_int(root_obj, "ims_top_port" );
 		_imsBottomPort	= find_int(root_obj, "ims_bottom_port" );
 

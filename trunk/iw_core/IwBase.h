@@ -153,7 +153,7 @@ namespace ivrworx
 
 		CnxInfo(const string &s, int p_port);
 
-		CnxInfo(char *ip, int p_port);
+		CnxInfo(const char *ip, int p_port);
 
 		CnxInfo(in_addr p_in_addr, int p_port);
 
@@ -188,6 +188,8 @@ namespace ivrworx
 		const char *iptoa() const;
 
 	private:
+
+		void init_from_hostname(const char *host_name,int port);
 
 		void init_strings();
 
