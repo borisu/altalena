@@ -19,7 +19,7 @@
 
 #include "StdAfx.h"
 #include "JSONConfiguration.h"
-#include "Logger.h"
+
 
 using namespace json_spirit;
 
@@ -62,13 +62,7 @@ namespace ivrworx
 		size_t requiredSize;
 
 		::getenv_s( &requiredSize, NULL, 0, var_name);
-
 		var_value = (char*)::malloc(requiredSize * sizeof(char));
-		if (!var_value)
-		{
-			std::cerr << "Failed to allocate memory!";
-			throw;
-		}
 
 		// Get the value of the LIB environment variable.
 		::getenv_s( &requiredSize, var_value, requiredSize, var_name);
@@ -86,7 +80,7 @@ namespace ivrworx
 	find_str( const Object& obj, const string& name )
 	{
 		
-		string value_str = find_value( obj, name ).get_str();
+		string value_str = find_value(obj, name ).get_str();
 		
 		if (value_str.length() > 0 && 
 			 *value_str.begin() == '$')
@@ -94,7 +88,7 @@ namespace ivrworx
 			return get_env_variable_as_str(value_str.c_str() + 1);
 		}
 
-		return find_value( obj, name ).get_str();
+		return value_str;
 	}
 
 	MediaFormat *
@@ -105,8 +99,8 @@ namespace ivrworx
 		MediaFormat::MediaType media_type = MediaFormat::GetMediaType(media_format_name);
 		if ( media_type == MediaFormat::MediaType_UNKNOWN)
 		{
-			LogCrit("Unknown media format " << media_format_name);
-			throw;
+			std::cerr << "Unknown media format " << media_format_name;
+			return NULL;
 		}
 
 		return new MediaFormat(
@@ -132,10 +126,9 @@ namespace ivrworx
 
 		if (read(is, _value) == false)
 		{
-			LogCrit("Error reading JSON configuration file [" << filename << "].");
-			throw;
+			cerr << "Error reading json configuration file '" << filename << "'. Check that file exists, accessible and json valid." << endl;
+			return API_FAILURE;
 		}
-
 
 		ApiErrorCode res = InitDb();
 		return res;
@@ -169,19 +162,16 @@ namespace ivrworx
 		_debugLevel = find_str(root_obj, "debug_level");
 		_debugOutputs = find_str(root_obj, "debug_outputs");
 
-		
-
 		//
 		// syslog
 		//
 		_sysloghost = find_str(root_obj, "syslogd_host");
 		_syslogport = find_int(root_obj, "syslogd_port");
 
-
 		//
 		// ivr 
 		//
-		const string ivr_host_str = find_str(root_obj, "ivr_sip_ip" );
+		const string ivr_host_str = find_str(root_obj, "ivr_sip_host" );
 		const int ivr_ip_int	= find_int(root_obj, "ivr_sip_port" );
 
 		_ivrCnxInfo = CnxInfo(ivr_host_str,ivr_ip_int);
@@ -189,13 +179,11 @@ namespace ivrworx
 		//
 		// ims
 		//
-		const string ims_host_str = find_str(root_obj, "ims_ip" );
+		const string ims_host_str = find_str(root_obj, "ims_host" );
 		
 		_imsCnxInfo = CnxInfo(ims_host_str,0);
 		_imsTopPort		= find_int(root_obj, "ims_top_port" );
 		_imsBottomPort	= find_int(root_obj, "ims_bottom_port" );
-
-
 
 		// configuration file
 		_scriptFile = find_str(root_obj, "script_file");
@@ -206,8 +194,12 @@ namespace ivrworx
 		Array::const_iterator iter = codecs_array.begin();
 		while(iter != codecs_array.end())
 		{
-			MediaFormat *codec;
-			codec = read_codec(iter->get_obj());
+			MediaFormat *codec = read_codec(iter->get_obj());
+			if (codec == NULL)
+			{
+				return API_FAILURE;
+			}
+
 			_codecsList.push_front(codec);
 			iter++;
 		}

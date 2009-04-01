@@ -34,7 +34,7 @@ namespace ivrworx
 
 		virtual ~ConfigurationFactory(void);
 
-		static ConfigurationPtr CreateJsonConfiguration(const string &filename);
+		static ConfigurationPtr CreateJsonConfiguration(const string &filename, ApiErrorCode &err_code);
 
 	};
 

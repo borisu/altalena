@@ -151,13 +151,13 @@ namespace ivrworx
 
 	public:
 
-		CnxInfo(const string &s, int p_port);
+		CnxInfo(IN const string &host, IN int p_port);
 
-		CnxInfo(const char *ip, int p_port);
+		CnxInfo(IN const char *host, IN int p_port);
 
-		CnxInfo(in_addr p_in_addr, int p_port);
+		CnxInfo(IN in_addr p_in_addr, IN int p_port);
 
-		CnxInfo(const CnxInfo &x);
+		CnxInfo(IN const CnxInfo &x);
 
 		CnxInfo();
 

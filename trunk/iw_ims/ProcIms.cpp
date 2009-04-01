@@ -257,10 +257,12 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
+		return;
+
 		WSADATA dat;
 		if (WSAStartup(MAKEWORD(2,2),&dat)!=0)
 		{
-			LogSysError("Error starting up WIN socket");
+			LogCrit("Error starting up WIN socket");
 			throw;
 		}
 
