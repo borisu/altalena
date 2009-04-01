@@ -143,6 +143,66 @@ namespace ivrworx
 		return TRUE;
 	}
 
+	void
+	SetLogLevelFromString(const string &level_str)
+	{
+		LogLevel debugLevel = LOG_LEVEL_INFO;
+		if (level_str == "DBG")
+		{
+			debugLevel = LOG_LEVEL_DEBUG;
+		};
+		if (level_str == "TRC")
+		{
+			debugLevel = LOG_LEVEL_TRACE;
+		};
+		if (level_str == "WRN")
+		{
+			debugLevel = LOG_LEVEL_WARN;
+		};
+		if (level_str == "CRT")
+		{
+			debugLevel = LOG_LEVEL_CRITICAL;
+		};
+		if (level_str == "INF")
+		{
+			debugLevel = LOG_LEVEL_INFO;
+		};
+		if (level_str == "OFF")
+		{
+			debugLevel = LOG_LEVEL_OFF;
+		};
+
+		SetLogLevel(debugLevel);
+
+
+	}
+
+	void
+	SetLogMaskFromString(const string &mask_str)
+	{
+		int mask = 0;
+
+		size_t found = mask_str.find("console");
+		if (found != string::npos)
+		{
+			mask |= IX_LOG_MASK_CONSOLE;
+		}
+
+		found = mask_str.find("debug");
+		if (found != string::npos)
+		{
+			mask |= IX_LOG_MASK_DEBUGVIEW;
+		}
+
+		found = mask_str.find("syslog");
+		if (found != string::npos)
+		{
+			mask |= IX_LOG_MASK_SYSLOG;
+		}
+
+
+	}
+
 	int
 	GetSyslogPri(IN LogLevel log_level)
 	{

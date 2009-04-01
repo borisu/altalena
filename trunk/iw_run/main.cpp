@@ -100,11 +100,9 @@ int _tmain(int argc, _TCHAR* argv[])
 		return IW_ERROR_PARSING_CONF;
 	}
 	
-
 	InitLog(*conf);
-
-	SetLogLevel(LOG_LEVEL_DEBUG);
-	SetLogMask(IX_LOG_MASK_CONSOLE|IX_LOG_MASK_DEBUGVIEW|IX_LOG_MASK_SYSLOG);
+	SetLogLevelFromString(conf->DebugLevel());
+	SetLogMaskFromString(conf->DebugOutputs());
 
 	LogInfo(">>>>>> IVRWORX START <<<<<<");
 

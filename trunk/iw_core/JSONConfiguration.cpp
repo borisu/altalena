@@ -167,6 +167,9 @@ namespace ivrworx
 		// debug level
 		//
 		_debugLevel = find_str(root_obj, "debug_level");
+		_debugOutputs = find_str(root_obj, "debug_outputs");
+
+		
 
 		//
 		// syslog
