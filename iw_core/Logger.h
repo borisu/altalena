@@ -54,6 +54,12 @@ namespace ivrworx
 	extern volatile LogLevel g_LogLevel;
 
 	void
+	SetLogLevelFromString(const string &level_str);
+
+	void
+	SetLogMaskFromString(const string &mask_str);
+
+	void
 	SetLogLevel(IN LogLevel log_level);
 
 	typedef 

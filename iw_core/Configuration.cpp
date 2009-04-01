@@ -178,5 +178,15 @@ namespace ivrworx
 
 	}
 
+	string
+	Configuration::DebugOutputs()
+	{
+		mutex::scoped_lock lock(_mutex);
+
+		return _debugOutputs;
+
+	}
+
+
 }
 

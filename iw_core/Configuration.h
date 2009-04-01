@@ -63,6 +63,8 @@ namespace ivrworx
 
 		virtual string DebugLevel();
 
+		virtual string DebugOutputs();
+
 	protected:
 
 		mutex _mutex;
@@ -92,6 +94,8 @@ namespace ivrworx
 		int _syslogport;
 
 		string _debugLevel;
+
+		string _debugOutputs;
 
 	};
 
