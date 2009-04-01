@@ -101,6 +101,10 @@ namespace ivrworx
 	{
 		mutex::scoped_lock scoped_lock(g_loggerMutex);
 
+		SetLogLevelFromString(conf.DebugLevel());
+		SetLogMaskFromString(conf.DebugOutputs());
+
+
 		openlog(conf.SyslogHost().c_str(),conf.SyslogPort(),"ivrworx",0,LOG_USER );
 		
 		if (g_IocpLogger != NULL)

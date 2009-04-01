@@ -33,18 +33,14 @@ namespace ivrworx
 	}
 
 	ConfigurationPtr
-	ConfigurationFactory::CreateJsonConfiguration(const string &filename)
+	ConfigurationFactory::CreateJsonConfiguration(const string &filename, ApiErrorCode &err_code)
 	{
-		ConfigurationPtr res ((Configuration*)NULL);
+		
 
 		shared_ptr<JSONConfiguration> ptr(new JSONConfiguration());
-
-		if (IW_SUCCESS(ptr->InitFromFile(filename)))
-		{
-			res = ptr;
-		}
-
-		return res;
+		err_code = ptr->InitFromFile(filename);
+		
+		return ptr;
 	}
 }
 

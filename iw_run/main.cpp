@@ -25,6 +25,7 @@ namespace con = JadedHoboConsole;
 #define IW_WRONG_NUMBER_OF_ARGUMENTS -1
 #define IW_ERROR_PARSING_CONF		 -2
 
+
 namespace ivrworx
 {
 	class ProcSystemStarter: 
@@ -46,23 +47,50 @@ namespace ivrworx
 			// Start IMS 
 			//
 			DECLARE_NAMED_HANDLE_PAIR(ims_pair);
+
+			LocalProcessRegistrar::Instance().AddShutdownListener(
+				ims_pair.inbound->GetObjectUid(), 
+				_inbound);
+
 			FORK(ImsFactory::CreateProcIms(ims_pair, _conf));
-			assert(IW_SUCCESS(WaitTillReady(Seconds(5), ims_pair)));
-			assert(IW_SUCCESS(Ping(IMS_Q)));
+			if (IW_FAILURE(WaitTillReady(Seconds(15), ims_pair)))
+			{
+				LogCrit("Cannot start Ims process.");
+				return;
+			};
+
 
 			//
 			// Start IVR
 			//
-			CnxInfo vcs_media = CnxInfo(
-				_conf.IvrCnxInfo().inaddr(),5060);
 			DECLARE_NAMED_HANDLE_PAIR(ivr_pair);
 			FORK(IvrFactory::CreateProcIvr(ivr_pair,_conf));
-			assert(IW_SUCCESS(WaitTillReady(Seconds(5), ivr_pair)));
-			assert(IW_SUCCESS(Ping(IVR_Q)));
+			if (IW_FAILURE(WaitTillReady(Seconds(15), ivr_pair)))
+			{
+				LogCrit("Cannot start Ivr process.");
+				Shutdown(Seconds(5),ims_pair);
+				return;
+			}
 
+			while(true)
+			{
+				ApiErrorCode code = API_SUCCESS;
+				IwMessagePtr msg = _inbound->Wait(Seconds(60),code);
 
+				switch (msg->message_id)
+				{
+				case MSG_PROC_SHUTDOWN_EVT:
+					{
+						// it can only be IMS stop IVR 
+						Shutdown(Seconds(5),ivr_pair);
+					}
+				}
+			}
+			
+
+			I_AM_READY;
+	
 			END_FORKING_REGION;
-
 
 		}
 
@@ -89,21 +117,17 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	wstring conf_file(argv[1]);
 
-	ConfigurationPtr conf((Configuration*)NULL);
-	try
+	
+	ApiErrorCode err_code = API_SUCCESS;
+	ConfigurationPtr conf = 
+		ConfigurationFactory::CreateJsonConfiguration(WStringToString(conf_file),err_code);
+	if (IW_FAILURE(err_code))
 	{
-		conf = ConfigurationFactory::CreateJsonConfiguration(WStringToString(conf_file));
-	}
-	catch (exception e)
-	{
-		cerr << "Error reading configuration file `" << WStringToString(conf_file) << "'. " << e.what() << endl;
 		return IW_ERROR_PARSING_CONF;
 	}
 	
+	
 	InitLog(*conf);
-	SetLogLevelFromString(conf->DebugLevel());
-	SetLogMaskFromString(conf->DebugOutputs());
-
 	LogInfo(">>>>>> IVRWORX START <<<<<<");
 
 	Start_CPPCSP();
@@ -111,13 +135,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	START_FORKING_REGION;
 
 	DECLARE_NAMED_HANDLE_PAIR(starter_pair);
-	FORK(new ProcSystemStarter(starter_pair,*conf));
-
+	FORK(new ProcSystemStarter(starter_pair, *conf));
 	END_FORKING_REGION;
 
-
  	End_CPPCSP();
-
 	return 0;
 	
 }

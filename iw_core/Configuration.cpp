@@ -35,7 +35,7 @@ namespace ivrworx
 
 	Configuration::~Configuration(void)
 	{
-		while (_codecsList.empty() != 0)
+		while (_codecsList.empty() != true)
 		{
 			const MediaFormat *ptr = *_codecsList.end();
 			_codecsList.pop_back();
