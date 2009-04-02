@@ -199,7 +199,9 @@ namespace ivrworx
 		_localMedia(conf.ImsCnxInfo()),
 		_rtp_q(NULL),
 		_portManager(conf.ImsTopPort(),conf.ImsBottomPort()),
-		_rtpWorkerShutdownEvt(NULL)
+		_rtpWorkerShutdownEvt(NULL),
+		_avProfile(NULL),
+		_ticker(NULL)
 	{
 		FUNCTRACKER;
 
@@ -217,19 +219,62 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		ms_ticker_destroy(_ticker);
+		CleanUpResources();
+		
+	}
+
+	void
+	ProcIms::CleanUpResources()
+	{
+		FUNCTRACKER;
+
+		// close RtpWorker if not already stopped
+		if ( _rtpWorkerShutdownEvt != NULL && 
+			::WaitForSingleObject(_rtpWorkerShutdownEvt,0) != WAIT_OBJECT_0)
+		{
+			::SetEvent(_rtpWorkerShutdownEvt);
+			::Sleep(100);
+		}
+
+		if (_rtpWorkerHandle != NULL) 
+		{
+			::CloseHandle(_rtpWorkerHandle);
+		}
+
+		if (_ticker != NULL) 
+		{
+			ms_ticker_destroy(_ticker);
+			_ticker = NULL;
+		}
+		
 		ms_exit();
-		rtp_profile_destroy(_avProfile);
-		ortp_ev_queue_destroy(_rtp_q);
+
+		if (_avProfile != NULL) 
+		{
+			rtp_profile_destroy(_avProfile);
+			_avProfile = NULL;
+		}
+
+		if (_rtp_q != NULL) 
+		{
+			ortp_ev_queue_destroy(_rtp_q);
+		}
+
 		ortp_exit();
-		::CloseHandle(_rtpWorkerShutdownEvt);
+
+		if (_rtpWorkerShutdownEvt != NULL) 
+		{
+			::CloseHandle(_rtpWorkerShutdownEvt);
+			_rtpWorkerShutdownEvt  = NULL;
+		}
+			
 	}
 
 
 	void
 	ProcIms::InitCodecs()
 	{
-		for (CodecsPtrList::const_iterator conf_iter = _conf.CodecList().begin(); conf_iter != _conf.CodecList().end(); conf_iter++)
+		for (MediaFormatsPtrList::const_iterator conf_iter = _conf.CodecList().begin(); conf_iter != _conf.CodecList().end(); conf_iter++)
 		{
 			
 			const MediaFormat *media_format = *(conf_iter);
@@ -256,8 +301,6 @@ namespace ivrworx
 	ProcIms::real_run()
 	{
 		FUNCTRACKER;
-
-		return;
 
 		WSADATA dat;
 		if (WSAStartup(MAKEWORD(2,2),&dat)!=0)
@@ -327,10 +370,10 @@ namespace ivrworx
 
 
 		START_FORKING_REGION;
-		DECLARE_NAMED_HANDLE_PAIR(ipc_pair);
 
-
+		LogInfo("Ims process started succesfully.");
 		I_AM_READY;
+
 
 		BOOL shutdown_flag = FALSE;
 		while (shutdown_flag == FALSE)
@@ -433,11 +476,8 @@ namespace ivrworx
 
 		TearDownAllSessions();
 
-		ms_ticker_destroy(_ticker);
-
 		::SetEvent(_rtpWorkerShutdownEvt);
 		::Sleep(100);
-
 
 		END_FORKING_REGION
 		WSACleanup();

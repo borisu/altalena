@@ -64,20 +64,16 @@ LocalProcessRegistrar::RegisterChannel(IN int handle_id, IN LpHandlePtr ptr)
 	{
 		return;
 	}
-	//
-	// Scope to refrain taking nested locks
-	// logs & collection
-	//
+	
+	mutex::scoped_lock lock(_mutex);
+	if ( _locProcessesMap.find(handle_id) != _locProcessesMap.end())
 	{
-		mutex::scoped_lock lock(_mutex);
-		if ( _locProcessesMap.find(handle_id) != _locProcessesMap.end())
-		{
-			throw;
-		}
-
-		_locProcessesMap[handle_id] = ptr;
+		throw;
 	}
-	LogDebug("Registered handle (" << ptr.get() << ")");
+
+	_locProcessesMap[handle_id] = ptr;
+	
+	LogDebug("Registered handle:" << ptr.get());
 }
 
 void
@@ -87,41 +83,34 @@ LocalProcessRegistrar::UnregisterChannel(int handle_id)
 	{
 		return;
 	}
-	//
-	// Scope to refrain taking nested locks
-	// logs & collection
-	//
+	
+	mutex::scoped_lock lock(_mutex);
+	if (_locProcessesMap.find(handle_id) == _locProcessesMap.end())
 	{
-		mutex::scoped_lock lock(_mutex);
-		if (_locProcessesMap.find(handle_id) == _locProcessesMap.end())
-		{
-			return;
-		}
-
-		_locProcessesMap.erase(handle_id);
-
-
-		ListenersMap::iterator iter = _listenersMap.find(handle_id);
-		if (iter != _listenersMap.end())
-		{
-			HandlesList list = (*iter).second;
-
-			for (HandlesList::iterator set_iter = list.begin(); 
-				set_iter != list.end(); 
-				set_iter++)
-			{
-				(*set_iter)->Send(new MsgShutdownEvt(handle_id));
-			}
-
-			list.clear();
-
-			_listenersMap.erase(iter);
-			
-		}
-
+		return;
 	}
 
-	LogDebug("Unregistered handle (" << handle_id << ")");
+	_locProcessesMap.erase(handle_id);
+
+
+	ListenersMap::iterator iter = _listenersMap.find(handle_id);
+	if (iter != _listenersMap.end())
+	{
+		HandlesList &list = (*iter).second;
+		for (HandlesList::iterator set_iter = list.begin(); 
+			set_iter != list.end(); 
+			set_iter++)
+		{
+			(*set_iter)->Send(new MsgShutdownEvt(handle_id));
+		}
+
+		list.clear();
+
+		_listenersMap.erase(iter);
+			
+	}
+
+	LogDebug("Unregistered handle:" << handle_id);
 }
 
 
@@ -132,26 +121,23 @@ LocalProcessRegistrar::GetHandle(int procId)
 
 }
 
-#pragma TODO("TODO: Add remove and see if there's no possible leak")
-
 void
 LocalProcessRegistrar::AddShutdownListener(IN int procId, IN LpHandlePtr channel)
 {
+	
+	mutex::scoped_lock lock(_mutex);
+
 	//
-	// Scope to refrain taking nested locks
-	// logs & collection
+	// Create new list if needed.
 	//
+	if (_listenersMap.find(procId) == _listenersMap.end())
 	{
-		mutex::scoped_lock lock(_mutex);
-
-		HandlesList list;
-		if (_listenersMap.find(procId) == _listenersMap.end())
-		{
-			_listenersMap[procId] = list;
-		}
-
-		list.push_back(channel);
+		HandlesList list; 
+		_listenersMap[procId] = list;
 	}
+
+	_listenersMap[procId].push_back(channel);
+
 }
 
 LpHandlePtr
@@ -183,5 +169,16 @@ LocalProcessRegistrar::GetHandle(int procId,const string &qpath)
 	}
 
 }
+
+void AddShutdownListener(
+						 IN LpHandlePair observable_pair, 
+						 IN LpHandlePtr listener_handle)
+{
+	LocalProcessRegistrar::Instance().AddShutdownListener(
+		observable_pair.inbound->GetObjectUid(), 
+		listener_handle);
+
+}
+
 
 }

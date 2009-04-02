@@ -30,6 +30,10 @@ namespace ivrworx
 	#define IW_MAX_SYSTEM_ERROR_MSG_LENGTH  1024
 	#define IW_MAX_PREFIX_SIZE 1024
 
+
+	#define IW_LOG_LOG_COMPLETION_KEY	0
+	#define IW_LOG_EXIT_COMPLETION_KEY	1
+
 	static const char *g_LogLevelStrings[] = {"OFF", "CRT", "WRN", "INF", "DBG", "TRC"};
 
 	string 
@@ -145,6 +149,38 @@ namespace ivrworx
 		}
 
 		return TRUE;
+	}
+
+	void ExitLog()
+	{
+
+		mutex::scoped_lock scoped_lock(g_loggerMutex);
+
+		if (g_IocpLogger == NULL)
+		{
+			return;
+		}
+
+		::PostQueuedCompletionStatus(
+			g_IocpLogger,
+			0,
+			IW_LOG_EXIT_COMPLETION_KEY,
+			NULL);
+
+		::Sleep(100);
+
+		if (g_loggerThread != NULL) 
+		{
+			::CloseHandle(g_loggerThread);
+			g_loggerThread = NULL;
+		}
+
+		if (g_IocpLogger != NULL) 
+		{
+			::CloseHandle(g_IocpLogger);
+			g_IocpLogger = NULL;
+		}
+
 	}
 
 	void
@@ -289,7 +325,7 @@ namespace ivrworx
 
 		::PostQueuedCompletionStatus(
 			g_IocpLogger,
-			0,
+			IW_LOG_LOG_COMPLETION_KEY,
 			0,
 			lb);
 
@@ -338,6 +374,11 @@ namespace ivrworx
 				break;
 			}
 
+			if (completion_key == IW_LOG_EXIT_COMPLETION_KEY)
+			{
+				break;
+			}
+
 			LogBucket *lb = (LogBucket *)olap;
 
 			char formatted_log_str[IW_MAX_PREFIX_SIZE];
@@ -353,7 +394,7 @@ namespace ivrworx
 
 			if (g_logMask & IX_LOG_MASK_CONSOLE)   
 			{ 
-				switch(g_LogLevel)
+				switch(lb->log_level)
 				{
 				case LOG_LEVEL_CRITICAL:
 					{
@@ -362,7 +403,7 @@ namespace ivrworx
 					}
 				case LOG_LEVEL_WARN:
 					{
-						cout << con::bg_green;
+						cout << con::bg_magenta;
 						break;
 					}
 				case LOG_LEVEL_OFF:

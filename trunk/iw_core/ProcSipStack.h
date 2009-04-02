@@ -51,16 +51,20 @@ namespace ivrworx
 
 
 	typedef
-		SharedPtr<DialogUsageManager> DialogUsageManagerPtr;
+	SharedPtr<DialogUsageManager> DialogUsageManagerPtr;
 
 	typedef
-		shared_ptr<UASDialogUsageManager> UASDialogUsageManagerPtr;
+	shared_ptr<UASDialogUsageManager> UASDialogUsageManagerPtr;
 
 	typedef
-		shared_ptr<UACDialogUsageManager> UACDialogUsageManagerPtr;
+	shared_ptr<UACDialogUsageManager> UACDialogUsageManagerPtr;
 
 	typedef
-		shared_ptr<SelectInterruptor> SelectInterruptorPtr;
+	shared_ptr<SelectInterruptor> SelectInterruptorPtr;
+
+	typedef
+	shared_ptr<SipStack> SipStackPtr;		
+
 
 	class ResipInterruptor
 		:public WaitInterruptor, 
@@ -123,7 +127,7 @@ namespace ivrworx
 
 		ResipInterruptorPtr _handleInterruptor;
 
-		SipStack _stack;
+		SipStackPtr _stack;
 
 		IwHandlesMap _iwHandlesMap;
 

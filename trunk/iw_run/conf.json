@@ -1,6 +1,9 @@
 {
     
-	"debug_level"  : "DBG",
+	
+	"resip_log" : "SIP,debug|DUM,debug",
+	
+	"debug_level"  : "INF",
 	"debug_outputs" : "console,syslog,debug",
 	
 	

@@ -65,8 +65,14 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		Log::initialize(Log::Cout, Log::Debug, NULL, _logger);
-		Log::initialize(Log::Cerr, Log::Debug, NULL, _logger);
+		
+		//_conf->ResipLog();
+
+		Log::initialize(Log::OnlyExternal, Log::Debug, NULL, _logger);
+		_stack = SipStackPtr(new SipStack());
+
+// 		Log::initialize(Log::Cerr, Log::Debug, NULL, _logger);
+// 		Log::initialize(Log::Crit, Log::Debug, NULL, _logger);
 
 		// #pragma TODO ("Make it configurable")
 		// 
@@ -99,7 +105,7 @@ namespace ivrworx
 			//
 			_dumUas = UASDialogUsageManagerPtr(new UASDialogUsageManager(
 				_conf,
-				_stack,
+				*_stack,
 				_iwHandlesMap,
 				*this));
 
@@ -107,7 +113,7 @@ namespace ivrworx
 			// UAC
 			//
 			_dumUac = UACDialogUsageManagerPtr(new UACDialogUsageManager(
-				_stack,
+				*_stack,
 				_conf.IvrCnxInfo(),
 				_iwHandlesMap,
 				*this));
@@ -193,7 +199,7 @@ namespace ivrworx
 			_dumUas->forceShutdown(NULL);
 		}
 
-		_stack.shutdown();
+		_stack->shutdown();
 	}
 
 	void
@@ -356,11 +362,11 @@ namespace ivrworx
 
 			FdSet fdset;
 			_handleInterruptor->buildFdSet(fdset);
-			_stack.buildFdSet(fdset);
+			_stack->buildFdSet(fdset);
 
 
 
-			int ret = fdset.selectMilliSeconds(_stack.getTimeTillNextProcessMS());
+			int ret = fdset.selectMilliSeconds(_stack->getTimeTillNextProcessMS());
 			if (ret < 0)
 			{
 				LogCrit("Error while selecting in sip stack res=[" << ret << "].");
@@ -368,7 +374,7 @@ namespace ivrworx
 			}
 
 			IX_PROFILE_CODE(_handleInterruptor->process(fdset));
-			IX_PROFILE_CODE(_stack.process(fdset));
+			IX_PROFILE_CODE(_stack->process(fdset));
 			IX_PROFILE_CODE(while(_dumUas->process()));
 			IX_PROFILE_CODE(while(_dumUac->process()));
 

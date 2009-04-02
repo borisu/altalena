@@ -34,6 +34,8 @@ namespace ivrworx
 
 	BOOL InitLog(Configuration &conf);	
 
+	void ExitLog();
+
 	#define IX_LOG_MASK_CONSOLE		0x001
 	#define IX_LOG_MASK_DEBUGVIEW	0x010
 	#define IX_LOG_MASK_SYSLOG		0x100

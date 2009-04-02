@@ -112,6 +112,8 @@ namespace ivrworx
 
 		void InitCodecs();
 
+		void CleanUpResources();
+
 		CnxInfo _localMedia;
 
 		PortManager _portManager;
