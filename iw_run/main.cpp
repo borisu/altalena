@@ -19,6 +19,10 @@
 
 #include "stdafx.h"
 
+
+
+using namespace boost::assign;
+
 using namespace JadedHoboConsole;
 namespace con = JadedHoboConsole;
 
@@ -48,9 +52,8 @@ namespace ivrworx
 			//
 			DECLARE_NAMED_HANDLE_PAIR(ims_pair);
 
-			LocalProcessRegistrar::Instance().AddShutdownListener(
-				ims_pair.inbound->GetObjectUid(), 
-				_inbound);
+			DECLARE_NAMED_HANDLE(ims_shutdown_handle);
+			AddShutdownListener(ims_pair,ims_shutdown_handle);
 
 			FORK(ImsFactory::CreateProcIms(ims_pair, _conf));
 			if (IW_FAILURE(WaitTillReady(Seconds(15), ims_pair)))
@@ -64,6 +67,10 @@ namespace ivrworx
 			// Start IVR
 			//
 			DECLARE_NAMED_HANDLE_PAIR(ivr_pair);
+
+			DECLARE_NAMED_HANDLE(ivr_shutdown_handle);
+			AddShutdownListener(ivr_pair, ivr_shutdown_handle);
+
 			FORK(IvrFactory::CreateProcIvr(ivr_pair,_conf));
 			if (IW_FAILURE(WaitTillReady(Seconds(15), ivr_pair)))
 			{
@@ -72,24 +79,56 @@ namespace ivrworx
 				return;
 			}
 
+			I_AM_READY;
+
 			while(true)
 			{
-				ApiErrorCode code = API_SUCCESS;
-				IwMessagePtr msg = _inbound->Wait(Seconds(60),code);
+				HandlesList selected_handles =
+					list_of(_inbound)(ivr_shutdown_handle)(ims_shutdown_handle);
 
-				switch (msg->message_id)
+				IwMessagePtr msg;
+				int index = 0;
+
+				ApiErrorCode code = 
+					SelectFromChannels(selected_handles,Seconds(60),index,msg);
+
+				if (code == API_TIMEOUT)
 				{
-				case MSG_PROC_SHUTDOWN_EVT:
+					ApiErrorCode ping_res = Ping(ivr_pair);
+					if (IW_FAILURE(ping_res))
 					{
-						// it can only be IMS stop IVR 
+						LogWarn("Ivr process did not respond in timely fashion to keep alive request, consider restarting the application.")
+					}
+					ping_res = Ping(ims_pair);
+					if (IW_FAILURE(ping_res))
+					{
+						LogWarn("Ims process did not respond in timely fashion to keep alive request, consider restarting the application.")
+					}
+					continue;
+				}
+
+				switch (index)
+				{
+				case 1:
+					{
+						LogWarn("Ivr process terminated unexpectedly. Shutting down.")
+						Shutdown(Seconds(5),ims_pair);
+						return;
+					}
+				case 2:
+					{
+						LogWarn("Ims process terminated. Shutting down.")
 						Shutdown(Seconds(5),ivr_pair);
+						return;
+					}
+				default:
+					{
+						LogCrit("Selected unknow index");
+						throw;
 					}
 				}
 			}
 			
-
-			I_AM_READY;
-	
 			END_FORKING_REGION;
 
 		}
@@ -139,6 +178,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	END_FORKING_REGION;
 
  	End_CPPCSP();
+
+	ExitLog();
 	return 0;
 	
 }

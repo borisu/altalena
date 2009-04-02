@@ -35,10 +35,10 @@ namespace ivrworx
 
 	Configuration::~Configuration(void)
 	{
-		while (_codecsList.empty() != true)
+		while (!_mediaFormatPtrsList.empty())
 		{
-			const MediaFormat *ptr = *_codecsList.end();
-			_codecsList.pop_back();
+			const MediaFormat *ptr = _mediaFormatPtrsList.front();
+			_mediaFormatPtrsList.pop_front();
 			delete const_cast<MediaFormat *> (ptr);
 		}
 	}
@@ -100,7 +100,7 @@ namespace ivrworx
 	{
 		mutex::scoped_lock lock(_mutex);
 
-		_codecsList.push_front(new MediaFormat(codec));
+		_mediaFormatPtrsList.push_front(new MediaFormat(codec));
 
 	}
 
@@ -110,17 +110,17 @@ namespace ivrworx
 	{
 		mutex::scoped_lock lock(_mutex);
 
-		_codecsList.push_front(codec);
+		_mediaFormatPtrsList.push_front(codec);
 
 	}
 
 
-	const CodecsPtrList& 
+	const MediaFormatsPtrList& 
 	Configuration::CodecList()
 	{
 		mutex::scoped_lock lock(_mutex);
 
-		return _codecsList;
+		return _mediaFormatPtrsList;
 
 	}
 
@@ -184,6 +184,15 @@ namespace ivrworx
 		mutex::scoped_lock lock(_mutex);
 
 		return _debugOutputs;
+
+	}
+
+	string
+	Configuration::ResipLog()
+	{
+		mutex::scoped_lock lock(_mutex);
+
+		return _resipLog;
 
 	}
 

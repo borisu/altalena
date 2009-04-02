@@ -61,8 +61,8 @@ namespace ivrworx
 			call_session.SetEventListener(MSG_CALL_HANG_UP_EVT,_inbound);
 
 
-			const CodecsPtrList &codecs_list = _conf.CodecList();
-			for (CodecsPtrList::const_iterator iter = codecs_list.begin(); iter != codecs_list.end(); iter++)
+			const MediaFormatsPtrList &codecs_list = _conf.CodecList();
+			for (MediaFormatsPtrList::const_iterator iter = codecs_list.begin(); iter != codecs_list.end(); iter++)
 			{
 				call_session.EnableMediaFormat(**iter);
 			}

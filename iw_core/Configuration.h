@@ -51,7 +51,7 @@ namespace ivrworx
 
 		virtual void AddCodec(const MediaFormat* codec);
 
-		virtual const CodecsPtrList& CodecList();
+		virtual const MediaFormatsPtrList& CodecList();
 
 		virtual string From();
 
@@ -65,6 +65,8 @@ namespace ivrworx
 
 		virtual string DebugOutputs();
 
+		virtual string ResipLog();
+
 	protected:
 
 		mutex _mutex;
@@ -77,7 +79,7 @@ namespace ivrworx
 
 		string _scriptFile;
 
-		CodecsPtrList _codecsList;
+		MediaFormatsPtrList _mediaFormatPtrsList;
 
 		string _from;
 
@@ -96,6 +98,8 @@ namespace ivrworx
 		string _debugLevel;
 
 		string _debugOutputs;
+
+		string _resipLog;
 
 	};
 

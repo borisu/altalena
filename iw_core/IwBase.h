@@ -125,7 +125,7 @@ namespace ivrworx
 
 	};
 	
-	typedef list<const MediaFormat*> CodecsPtrList;
+	typedef list<const MediaFormat*> MediaFormatsPtrList;
 
 	typedef list<const MediaFormat> MediaFormatsList;
 

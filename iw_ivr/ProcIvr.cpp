@@ -26,7 +26,7 @@
 namespace ivrworx
 {
 
-ProcIxMain::ProcIxMain(IN LpHandlePair pair, IN Configuration &conf)
+ProcIvr::ProcIvr(IN LpHandlePair pair, IN Configuration &conf)
 :LightweightProcess(pair,IVR_Q,	__FUNCTION__),
 _conf(conf),
 _sipStackData(conf.IvrCnxInfo())
@@ -35,12 +35,12 @@ _sipStackData(conf.IvrCnxInfo())
 
 
 
-ProcIxMain::~ProcIxMain(void)
+ProcIvr::~ProcIvr(void)
 {
 }
 
 void
-ProcIxMain::real_run()
+ProcIvr::real_run()
 {
 
 	FUNCTRACKER;
@@ -59,6 +59,7 @@ ProcIxMain::real_run()
 	};
 
 
+	LogInfo("Ivr process started successfully");
 	I_AM_READY;
 
 	HandlesList list;
@@ -90,7 +91,7 @@ ProcIxMain::real_run()
 
 		if (err_code == API_TIMEOUT)
 		{
-			LogInfo("IxMain keep alive.");
+			LogInfo("Ivr keep alive.");
 			continue;
 		}
 
@@ -121,7 +122,7 @@ ProcIxMain::real_run()
 }
 
 BOOL 
-ProcIxMain::ProcessInboundMessage(IN IwMessagePtr event, IN ScopedForking &forking)
+ProcIvr::ProcessInboundMessage(IN IwMessagePtr event, IN ScopedForking &forking)
 {
 	FUNCTRACKER;
 	switch (event->message_id)
@@ -146,7 +147,7 @@ ProcIxMain::ProcessInboundMessage(IN IwMessagePtr event, IN ScopedForking &forki
 }
 
 BOOL 
-ProcIxMain::ProcessStackMessage(IN IwMessagePtr ptr, IN ScopedForking &forking)
+ProcIvr::ProcessStackMessage(IN IwMessagePtr ptr, IN ScopedForking &forking)
 {
 	FUNCTRACKER;
 

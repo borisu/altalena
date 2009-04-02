@@ -117,5 +117,10 @@ namespace ivrworx
 			IN const string &qpath);
 	};
 
+	void AddShutdownListener(
+		IN LpHandlePair observable_pair, 
+		IN LpHandlePtr listener_handle);
+	
+
 }
 

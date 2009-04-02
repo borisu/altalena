@@ -33,9 +33,9 @@ namespace ivrworx
 
 
 	LightweightProcess*
-		IvrFactory::CreateProcIvr(LpHandlePair pair, Configuration  &conf)
+	IvrFactory::CreateProcIvr(LpHandlePair pair, Configuration  &conf)
 	{
-		return new ProcIxMain(pair, conf);
+		return new ProcIvr(pair, conf);
 	}
 
 }

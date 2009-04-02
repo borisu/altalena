@@ -25,17 +25,17 @@ using namespace std;
 namespace ivrworx
 {
 
-	class ProcIxMain :
+	class ProcIvr :
 		public LightweightProcess
 	{
 
 	public:
 
-		ProcIxMain(IN LpHandlePair pair, IN Configuration &conf);
+		ProcIvr(IN LpHandlePair pair, IN Configuration &conf);
 
 		virtual void real_run();
 
-		virtual ~ProcIxMain(void);
+		virtual ~ProcIvr(void);
 
 	protected:
 
