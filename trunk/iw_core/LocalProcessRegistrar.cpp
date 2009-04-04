@@ -73,7 +73,7 @@ LocalProcessRegistrar::RegisterChannel(IN int handle_id, IN LpHandlePtr ptr)
 
 	_locProcessesMap[handle_id] = ptr;
 	
-	LogDebug("Registered handle:" << ptr.get());
+	LogDebug("Mapped " << handle_id << " to (" << ptr.get() << ")");
 }
 
 void
@@ -110,7 +110,7 @@ LocalProcessRegistrar::UnregisterChannel(int handle_id)
 			
 	}
 
-	LogDebug("Unregistered handle:" << handle_id);
+	LogDebug("Unregistered handle " << handle_id);
 }
 
 
@@ -170,13 +170,20 @@ LocalProcessRegistrar::GetHandle(int procId,const string &qpath)
 
 }
 
-void AddShutdownListener(
-						 IN LpHandlePair observable_pair, 
-						 IN LpHandlePtr listener_handle)
+void 
+AddShutdownListener( IN LpHandlePair observable_pair, 
+					 IN LpHandlePtr listener_handle)
 {
 	LocalProcessRegistrar::Instance().AddShutdownListener(
 		observable_pair.inbound->GetObjectUid(), 
 		listener_handle);
+
+}
+
+LpHandlePtr 
+GetHandle(IN int handle_id)
+{
+	return LocalProcessRegistrar::Instance().GetHandle(handle_id);
 
 }
 

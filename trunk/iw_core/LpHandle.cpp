@@ -21,6 +21,7 @@
 #include "LpHandle.h"
 #include "Logger.h"
 #include "Profiler.h"
+#include "LocalProcessRegistrar.h"
 
 
 
@@ -224,11 +225,12 @@ namespace ivrworx
 		} 
 		catch(PoisonException p)
 		{
-			LogWarn(this << " poisoned.");
+			LogDebug(this << " poisoned.");
 			return API_FAILURE;
 		}
 
-		LogDebug("SND (" << this << ") msg=[" << message->message_id_str << "] from proc=[" << GetCurrLpName() << "], rsp dst=[" << message->source.handle_id  << "] txn=[" << message->transaction_id << "]");
+		LpHandlePtr rsp_handle = GetHandle(message->source.handle_id);
+		LogDebug("snd " << message->message_id_str << " to (" << this << "), via (" << rsp_handle <<").");
 		return API_SUCCESS;
 	}
 
@@ -276,7 +278,8 @@ namespace ivrworx
 			return NULL_MSG;
 		}
 
-		LogDebug("RCV (" << this << ") msg=[" << ptr->message_id_str << "] to=[" << GetCurrLpName() << "], rsp dst=[" << ptr->source.handle_id  << "] txn=[" << ptr->transaction_id << "]");
+		LpHandlePtr rsp_handle = GetHandle(ptr->source.handle_id);
+		LogDebug("rcv " << ptr->message_id_str << " to (" << this << "), via (" << rsp_handle <<").");
 		return ptr;
 
 	}
@@ -366,10 +369,10 @@ read:
 		};
 
 		return ostream 
-			<< (lpHandlePtr->Direction() == MSG_DIRECTION_INBOUND ? "IN ":"OUT ") 
-			<<  lpHandlePtr->HandleName() 
-			<< "," 
-			<< lpHandlePtr->GetObjectUid();
+			<< lpHandlePtr->GetObjectUid()
+			<< "," << (lpHandlePtr->Direction() == MSG_DIRECTION_INBOUND ? "in":"out") 
+			<< "," << lpHandlePtr->HandleName(); 
+	
 	}
 
 #define MAX_NUM_OF_CHANNELS_IN_SELECT 10

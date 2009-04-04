@@ -59,31 +59,88 @@ namespace ivrworx
 
 	ProcSipStack::ProcSipStack(IN LpHandlePair pair, 
 		IN Configuration &conf):
-		LightweightProcess(pair,__FUNCTION__),
+		LightweightProcess(pair,"SipStack"),
 		_shutDownFlag(false),
 		_conf(conf)
 	{
 		FUNCTRACKER;
 
-		
-		//_conf->ResipLog();
-
 		Log::initialize(Log::OnlyExternal, Log::Debug, NULL, _logger);
 		_stack = SipStackPtr(new SipStack());
 
-// 		Log::initialize(Log::Cerr, Log::Debug, NULL, _logger);
-// 		Log::initialize(Log::Crit, Log::Debug, NULL, _logger);
+		SetResipLogLevel();
+				
+	}
 
-		// #pragma TODO ("Make it configurable")
-		// 
-		// 	// in debug we only print TRANSPORT subsystems
-		// 	if (IsDebug())
-		// 	{
-		// 		Subsystem::TRANSPORT.setLevel(Log::Debug);
-		// 		Subsystem::TRANSACTION.setLevel(Log::Debug);
-		// 	}
+	void
+	ProcSipStack::SetResipLogLevel()
+	{
+		map<string,Log::Level> levelsMap;
+		levelsMap["OFF"] = Log::None;
+		levelsMap["CRT"] = Log::Crit;
+		levelsMap["WRN"] = Log::Warning;	
+		levelsMap["INF"] = Log::Info;
+		levelsMap["DBG"] = Log::Debug;
+
+		map<string,Subsystem *> subsystemMap;
+		subsystemMap["APP"] = &Subsystem::APP;
+		subsystemMap["CONTENTS"] = &Subsystem::CONTENTS;
+		subsystemMap["DNS"] = &Subsystem::DNS;	
+		subsystemMap["DUM"] = &Subsystem::DUM;
+		subsystemMap["NONE"] = &Subsystem::NONE; 
+		subsystemMap["PRESENCE"] = &Subsystem::PRESENCE; 
+		subsystemMap["SDP"] = &Subsystem::SDP;
+		subsystemMap["SIP"] = &Subsystem::SIP;
+		subsystemMap["TRANSPORT"] = &Subsystem::TRANSPORT;
+		subsystemMap["STATS"] = &Subsystem::STATS;
+		subsystemMap["REPRO"] = &Subsystem::REPRO;
+
+
+		// dirty parsing
+		const string &resip_conf = _conf.ResipLog();
+
+		int curr_pos_pair_start = 0;
+		int curr_pos_pair_end= string::npos;
+		do 
+		{
+			curr_pos_pair_end = resip_conf.find("|",curr_pos_pair_start);
+			const string &pair = resip_conf.substr(curr_pos_pair_start,curr_pos_pair_end);
+
+			curr_pos_pair_start = curr_pos_pair_end + 1;
+
+			if (pair.length() == 0)
+			{
+				LogWarn("Error while parsing resip debug configuration string - " << resip_conf);
+				break;
+			}
+
+			int comma_pos = pair.find(",");
+			if (comma_pos != string::npos)
+			{
+				const string &subsystem_str = pair.substr(0, comma_pos);
+				const string &debug_level = pair.substr(comma_pos+1);
+
+				if (subsystem_str.length() > 0	&&
+					debug_level.length() > 0	&&
+					subsystemMap.find(subsystem_str) != subsystemMap.end() &&
+					levelsMap.find(debug_level)      != levelsMap.end())
+				{
+					LogInfo("Resiprocate log level of " << subsystem_str << " set to " << debug_level << ".");
+					subsystemMap[subsystem_str]->setLevel(levelsMap[debug_level]);
+				} 
+				else
+				{
+					LogWarn("Error while parsing resip debug configuration string - " << resip_conf);
+					break;
+				}
+
+			}
+
+
+		} while (curr_pos_pair_end != string::npos);
 
 	}
+
 
 	ProcSipStack::~ProcSipStack(void)
 	{
@@ -128,7 +185,7 @@ namespace ivrworx
 		}
 		catch (BaseException& e)
 		{
-			LogWarn("Caught >>exception<< while starting msg=[" << e.getMessage().c_str() << "]");
+			LogWarn("Error while starting sip stack - " << e.getMessage().c_str());
 			return API_FAILURE;
 		}
 

@@ -120,7 +120,8 @@ namespace ivrworx
 	void AddShutdownListener(
 		IN LpHandlePair observable_pair, 
 		IN LpHandlePtr listener_handle);
-	
+
+	LpHandlePtr GetHandle(IN int handle_id);
 
 }
 

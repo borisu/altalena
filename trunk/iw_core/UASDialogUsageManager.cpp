@@ -70,6 +70,8 @@ namespace ivrworx
 		auto_ptr<AppDialogSetFactory> uas_dsf(new UASAppDialogSetFactory());
 		setAppDialogSetFactory(uas_dsf);
 		uas_dsf.release();
+
+		LogInfo("UAS started on " << ipAddr.ipporttos());
 	}
 
 	UASDialogUsageManager::~UASDialogUsageManager(void)

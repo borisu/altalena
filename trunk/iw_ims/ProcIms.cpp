@@ -194,7 +194,7 @@ namespace ivrworx
 
 
 	ProcIms::ProcIms(IN LpHandlePair pair, IN Configuration &conf)
-		:LightweightProcess(pair, IMS_Q, __FUNCTION__),
+		:LightweightProcess(pair, IMS_Q, "Ims"),
 		_conf(conf),
 		_localMedia(conf.ImsCnxInfo()),
 		_rtp_q(NULL),
@@ -394,16 +394,19 @@ namespace ivrworx
 			IX_PROFILE_CHECK_INTERVAL(10000);
 
 			// error during overlapped I/O?
-			int err = ::GetLastError() ;
-			if (res == FALSE && err != WAIT_TIMEOUT)
+			int last_err = ::GetLastError();
+			if (res == FALSE)
 			{
-				LogSysError("::GetQueuedCompletionStatus");
-				throw;
-			} // timeout ?
-			else if (err == WAIT_TIMEOUT)
-			{
-				LogDebug("Ims keep alive.");
-				continue;
+				if (last_err != WAIT_TIMEOUT)
+				{
+					LogSysError("::GetQueuedCompletionStatus");
+					throw;
+				}
+				else 
+				{
+					LogDebug("Ims keep alive.");
+					continue;
+				}
 			}
 
 			// oRTP event?

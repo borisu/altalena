@@ -99,6 +99,8 @@ namespace ivrworx
 
 		virtual ~ProcSipStack(void);
 
+		virtual void SetResipLogLevel();
+
 		virtual void real_run();
 
 		virtual ApiErrorCode Init();
