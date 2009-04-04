@@ -127,7 +127,7 @@ namespace ivrworx
 
 		FUNCTRACKER;
 
-		LogDebug("=== LP " << Name() << " pid=" << ProcessId() << ", alias=" << _processAlias << " START ===");
+		LogDebug("=== START " << _inbound << " START ===");
 
 		RegistrationGuard guard(_inbound,_processAlias);
 
@@ -180,7 +180,9 @@ namespace ivrworx
 
 		csp::CPPCSP_Yield();
 
-		LogDebug("=== LP " << Name() << " pid=" << ProcessId() << ", alias=" << _processAlias << " END ===");
+		_outbound->Send(new MsgShutdownEvt());
+
+		LogDebug("=== END " << _inbound << " END ===");
 
 	}
 

@@ -157,6 +157,11 @@ namespace ivrworx
 		Object root_obj(_value.get_obj());
 
 		//
+		// resiprocate logging
+		//
+		_resipLog = find_str(root_obj, "resip_log");
+
+		//
 		// debug level
 		//
 		_debugLevel = find_str(root_obj, "debug_level");
@@ -210,6 +215,8 @@ namespace ivrworx
 
 		// basic sound path
 		_soundsPath	= find_str(root_obj, "sounds_dir");
+
+		
 		
 
 		return API_SUCCESS;

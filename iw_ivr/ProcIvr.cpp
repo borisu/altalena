@@ -21,13 +21,14 @@
 #include "ProcIvr.h"
 #include "CallWithDirectRtp.h"
 #include "ProcScriptRunner.h"
+#include "LocalProcessRegistrar.h"
 
 
 namespace ivrworx
 {
 
 ProcIvr::ProcIvr(IN LpHandlePair pair, IN Configuration &conf)
-:LightweightProcess(pair,IVR_Q,	__FUNCTION__),
+:LightweightProcess(pair,IVR_Q,	"Ivr"),
 _conf(conf),
 _sipStackData(conf.IvrCnxInfo())
 {
@@ -52,9 +53,12 @@ ProcIvr::real_run()
 	//
 	DECLARE_NAMED_HANDLE_PAIR(stack_pair);
 	_stackPair = stack_pair;
+	DECLARE_NAMED_HANDLE(stack_shutdown_handle);
+	AddShutdownListener(stack_pair,stack_shutdown_handle);
 	FORK(SipStackFactory::CreateSipStack(stack_pair,_conf));
 	if (IW_FAILURE(WaitTillReady(Seconds(5),stack_pair)))
 	{
+		LogWarn("Couldn't start sip process. Exiting ivr process.");
 		return;
 	};
 

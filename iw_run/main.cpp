@@ -37,7 +37,7 @@ namespace ivrworx
 	{
 	public:
 		ProcSystemStarter(LpHandlePair pair,Configuration &conf)
-			:LightweightProcess(pair,__FUNCTION__),
+			:LightweightProcess(pair,"SystemStarter"),
 			_conf(conf)
 		{
 

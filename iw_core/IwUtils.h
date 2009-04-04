@@ -62,6 +62,7 @@
 #include <boost/tokenizer.hpp>
 #include <boost/bind.hpp>
 #include <boost/assign/list_of.hpp> 
+#include <boost/regex.hpp>
 
 // Kent CSP
 #include <cppcsp.h>
