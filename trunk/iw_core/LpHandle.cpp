@@ -378,7 +378,7 @@ read:
 #define MAX_NUM_OF_CHANNELS_IN_SELECT 10
 
 	ApiErrorCode 
-		SelectFromChannels(
+	SelectFromChannels(
 		IN  HandlesList &param_handles_list,
 		IN  Time timeout, 
 		OUT int &res_index, 
@@ -433,7 +433,7 @@ read:
 		// timeout
 		if (wait_res == count)
 		{
-			LogDebug("Select timeout.");
+			LogTrace("Select timeout.");
 			res_index = IW_UNDEFINED;
 			return API_TIMEOUT;
 		} 

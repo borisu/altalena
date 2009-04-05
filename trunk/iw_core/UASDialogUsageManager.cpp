@@ -29,6 +29,34 @@
 namespace ivrworx
 {
 
+	
+	template<class T> string LogHandleState(SipDialogContextPtr ptr, T is)
+	{
+
+		stringstream stream;
+		stream << "iwh:" << (ptr.get() == NULL ? -1 : ptr->stack_handle) << ", rsh:"  << is.getId() <<  ", callid:" << is->getCallId().c_str() << ", state:";
+
+		if (is->isAccepted())
+		{
+			stream << "accepted;";
+		}
+		if (is->isConnected())
+		{
+			stream << "connected;";
+		}
+		if (is->isEarly())
+		{
+			stream << "early;";
+		}
+		if (is->isTerminated())
+		{
+			stream << "terminated;";
+		}
+
+		return stream.str();
+
+	}
+	
 	UASDialogUsageManager::UASDialogUsageManager(
 		IN Configuration &conf,
 		IN SipStack &resip_stack, 
@@ -89,7 +117,7 @@ namespace ivrworx
 		IwHandlesMap::iterator iter = _refIwHandlesMap.find(xfer_req->stack_call_handle);
 		if (iter == _refIwHandlesMap.end())
 		{
-			LogWarn("iw handle " << xfer_req->stack_call_handle<< " not found. Has caller disconnected already?");
+			LogWarn("iwh:" << xfer_req->stack_call_handle << " not found. Has caller disconnected already?");
 			GetCurrLightWeightProc()->SendResponse(
 				req,
 				new MsgCallBlindXferNack());
@@ -97,8 +125,10 @@ namespace ivrworx
 		}
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
-		ServerInviteSessionHandle invite_handle = 
-			ctx_ptr->uas_invite_handle;
+		InviteSessionHandle invite_handle = ctx_ptr->invite_handle;
+
+		
+		LogDebug("Blind Xfer - " << LogHandleState(ctx_ptr, invite_handle));
 
 		NameAddr name_addr(xfer_req->destination_uri.c_str());
 		invite_handle->refer(name_addr,false);
@@ -122,12 +152,12 @@ namespace ivrworx
 		IwHandlesMap::iterator iter = _refIwHandlesMap.find(ack->stack_call_handle);
 		if (iter == _refIwHandlesMap.end())
 		{
-			LogWarn("ix handle=[" << ack->stack_call_handle<< "] not found. Has caller disconnected already?");
+			LogWarn("iwh:" << ack->stack_call_handle<< " not found. Has caller disconnected already?");
 			return;
 		}
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
-		LogDebug("Ix rejected the call eith ix handle=[" << ctx_ptr->stack_handle << "].");
+		LogDebug("Call Rejected By User  - " << LogHandleState(ctx_ptr, ctx_ptr->invite_handle));
 
 		CleanUpCall(ctx_ptr);
 
@@ -149,14 +179,16 @@ namespace ivrworx
 			return;
 		}
 
-		SipDialogContextPtr ptr = (*iter).second;
-		ptr->last_user_request = req;
+		SipDialogContextPtr ctx_ptr = (*iter).second;
+		ctx_ptr->last_user_request = req;
 
 		if (ack->accepted_codecs.empty())
 		{
 			LogWarn("No accepted codec found, call handle = " << ack->stack_call_handle);
-			HangupCall(ptr);
+			HangupCall(ctx_ptr);
 		}
+
+		LogDebug("Call Accepted By User  - " << LogHandleState(ctx_ptr, ctx_ptr->invite_handle));
 
 		SdpContents sdp;
 
@@ -197,8 +229,8 @@ namespace ivrworx
 		Data encoded(Data::from(sdp));
 		
 
-		IX_PROFILE_CODE(ptr->uas_invite_handle.get()->provideAnswer(sdp));
-		IX_PROFILE_CODE(ptr->uas_invite_handle.get()->accept());
+		IX_PROFILE_CODE(ctx_ptr->uas_invite_handle.get()->provideAnswer(sdp));
+		IX_PROFILE_CODE(ctx_ptr->uas_invite_handle.get()->accept());
 	}
 
 
@@ -219,7 +251,7 @@ namespace ivrworx
 		_resipHandlesMap[sis->getAppDialog()]= ctx_ptr;
 		_refIwHandlesMap[ctx_ptr->stack_handle]= ctx_ptr;
 
-		LogDebug("New session created - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid=[" << sis->getCallId().c_str() << "], resip handle=[" << sis.getId() << "]");
+		LogDebug("New UAS Session Created - " << LogHandleState(ctx_ptr,ctx_ptr->uas_invite_handle));
 
 	}
 
@@ -246,12 +278,14 @@ namespace ivrworx
 			ixhandle = ctx_ptr->stack_handle;
 			ctx_ptr->call_handler_inbound->Send(new MsgCallHangupEvt());
 
+			LogDebug("onTerminated::  " << LogHandleState(ctx_ptr,handle));
 			CleanUpCall(ctx_ptr);
 
+		} 
+		else
+		{
+			LogDebug("onTerminated::  :" << LogHandleState(SipDialogContextPtr((SipDialogContext*)NULL),handle));
 		}
-
-
-		LogDebug("Call terminated - stack ix handle=[" <<  ixhandle  << "], sip callid=[" << handle->getCallId().c_str() << "], resip handle=[" << handle.getId() << "]");
 
 	}
 
@@ -263,13 +297,14 @@ namespace ivrworx
 		ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(is->getAppDialog());
 		if (ctx_iter == _resipHandlesMap.end())
 		{
-			LogCrit("'Offered' without created context, handle=[" << is.getId() << "]");
+			LogCrit("onOffer:: without created context, handle=[" << is.getId() << "]");
 			throw;
 		}
-		SipDialogContextPtr ctx_ptr = (*ctx_iter).second;
-		LogDebug("Call offered - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid=[" << is->getCallId().c_str() << "], resip handle=[" << is.getId() << "]");
 
+		SipDialogContextPtr ctx_ptr = (*ctx_iter).second;
 		ctx_ptr->invite_handle = is;
+
+		LogDebug("onOffer::" << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 
 
 		const SdpContents::Session &s = sdp.session();
@@ -279,7 +314,7 @@ namespace ivrworx
 		
 		if (s.media().empty())
 		{
-			LogWarn("Empty medias list - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid=[" << is->getCallId().c_str() << "], resip handle=[" << is.getId() << "]");
+			LogWarn("onOffer:: Empty medias list " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 			HangupCall(ctx_ptr);
 			return;
 		}
@@ -298,7 +333,7 @@ namespace ivrworx
 
 		if (iter == s.media().end())
 		{
-			LogWarn("Not found audio connection - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid=[" << is->getCallId().c_str() << "], resip handle=[" << is.getId() << "]");
+			LogWarn("onOffer:: Not found audio connection " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 			HangupCall(ctx_ptr);
 			return;
 		}
@@ -320,7 +355,7 @@ namespace ivrworx
 			medium.exists("sendonly") || 
 			medium.exists("inactive"))
 		{
-			LogWarn("In-dialog offer is not suported currenttly, rejecting offer for iwh:" << ctx_ptr->stack_handle)
+			LogWarn("onOffer:: In-dialog offer is not supported, rejecting offer" << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 			is->reject(488);
 			return;
 		}
@@ -363,16 +398,15 @@ namespace ivrworx
 
 	}
 
-
-	void 
-	UASDialogUsageManager::onConnected(InviteSessionHandle is, const SipMessage& msg)
+	void
+	UASDialogUsageManager::onConnectedConfirmed(InviteSessionHandle is, const SipMessage &msg)
 	{
 		FUNCTRACKER;
 
 		ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(is->getAppDialog());
 		if (ctx_iter == _resipHandlesMap.end())
 		{
-			LogCrit("'Connected' without context, handle=[" << is.getId() << "]");
+			LogCrit("onConnectedConfirmed:: without context, rsh:" << is.getId());
 			is->end();
 			return;
 		}
@@ -387,12 +421,21 @@ namespace ivrworx
 			ctx_ptr->last_user_request, 
 			conn_msg);
 
-		LogDebug("Call connected - stack ix handle=[" <<  ctx_ptr->stack_handle  << "], sip callid =[" << is->getCallId().c_str() << "], resip handle=[" << is.getId() << "]");
+		LogDebug("onConnectedConfirmed::" << LogHandleState(ctx_ptr,is));
 
+	}
+	
+
+
+	void 
+	UASDialogUsageManager::onConnected(InviteSessionHandle is, const SipMessage& msg)
+	{
+		FUNCTRACKER;
+	
 	}
 
 	void 
-		UASDialogUsageManager::onOfferRequired(InviteSessionHandle is, const SipMessage& msg)
+	UASDialogUsageManager::onOfferRequired(InviteSessionHandle is, const SipMessage& msg)
 	{
 		FUNCTRACKER;
 
@@ -401,7 +444,7 @@ namespace ivrworx
 	}
 
 	void 
-		UASDialogUsageManager::onAnswer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp)      
+	UASDialogUsageManager::onAnswer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp)      
 	{
 		LogDebug(  ": InviteSession-onAnswer(SDP)");
 		// 	if(*pHangupAt == 0)
