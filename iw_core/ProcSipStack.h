@@ -32,11 +32,11 @@ using namespace resip;
 namespace ivrworx
 {
 
-	class IxResipLogger :
+	class IwResipLogger :
 		public ExternalLogger
 	{
 	public:
-		virtual ~IxResipLogger();
+		virtual ~IwResipLogger();
 
 		/** return true to also do default logging, false to supress default logging. */
 		virtual bool operator()(Log::Level level,
@@ -125,7 +125,7 @@ namespace ivrworx
 
 		virtual bool ProcessIwMessages();
 
-		IxResipLogger _logger;
+		IwResipLogger _logger;
 
 		ResipInterruptorPtr _handleInterruptor;
 

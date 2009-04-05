@@ -74,6 +74,9 @@ namespace ivrworx
 
 		virtual void onUpdateActive(ClientSubscriptionHandle, const SipMessage& notify, bool outOfOrder);
 
+		/// called when ACK (with out an answer) is received for initial invite (UAS)
+		virtual void onConnectedConfirmed(InviteSessionHandle, const SipMessage &msg);
+
 
 	private:
 

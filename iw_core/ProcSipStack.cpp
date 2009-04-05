@@ -332,7 +332,7 @@ namespace ivrworx
 		IX_PROFILE_FUNCTION();
 
 		bool shutdown = false;
-		while (InboundPending())
+		if (InboundPending())
 		{
 			ApiErrorCode res;
 			IwMessagePtr msg;
@@ -440,17 +440,14 @@ namespace ivrworx
 	}
 
 
-
-
-
-	IxResipLogger::~IxResipLogger()
+	IwResipLogger::~IwResipLogger()
 	{
 
 	}
 
 	/** return true to also do default logging, false to suppress default logging. */
 	bool 
-		IxResipLogger::operator()(Log::Level level,
+		IwResipLogger::operator()(Log::Level level,
 		const Subsystem& subsystem, 
 		const Data& appName,
 		const char* file,
@@ -458,9 +455,6 @@ namespace ivrworx
 		const Data& message,
 		const Data& messageWithHeaders)
 	{
-		return false;
-
-
 
 		switch (level)
 		{
@@ -494,7 +488,7 @@ namespace ivrworx
 			}
 		default:
 			{
-				throw;
+				LogDebug(subsystem.getSubsystem().c_str() << " " << message.c_str());
 			}
 		}
 
