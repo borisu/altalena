@@ -176,9 +176,7 @@ namespace ivrworx
 				*this));
 
 			_handleInterruptor = ResipInterruptorPtr(new ResipInterruptor());
-
-			_inbound->HandleInterruptor(
-				shared_dynamic_cast<WaitInterruptor>(_handleInterruptor));
+			_inbound->HandleInterruptor(_handleInterruptor);
 
 			return API_SUCCESS;
 
@@ -217,7 +215,7 @@ namespace ivrworx
 		IwHandlesMap::iterator iter = _iwHandlesMap.find(handle);
 		if (iter == _iwHandlesMap.end())
 		{
-			LogWarn("The call with ix handle =[" << hangup_msg->stack_call_handle << "] already hanged up.");
+			LogWarn("The call iwh:" << hangup_msg->stack_call_handle << " already hanged up.");
 			return;
 		}
 
@@ -273,12 +271,12 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		ApiErrorCode res = _dumUac->MakeCall(ptr);
-
-		if (res != API_SUCCESS)
-		{
-			SendResponse(ptr, new MsgMakeCallNack());
-		}
+// 		ApiErrorCode res = _dumUac->MakeCall(ptr);
+// 
+// 		if (res != API_SUCCESS)
+// 		{
+// 			SendResponse(ptr, new MsgMakeCallNack());
+// 		}
 
 	}
 
@@ -307,7 +305,7 @@ namespace ivrworx
 
 
 	void
-		ProcSipStack::UponCallOfferedAck(IwMessagePtr req)
+	ProcSipStack::UponCallOfferedAck(IwMessagePtr req)
 	{
 		FUNCTRACKER;
 
@@ -318,23 +316,20 @@ namespace ivrworx
 	}
 
 	void
-		ProcSipStack::UponCallOfferedNack(IwMessagePtr req)
+	ProcSipStack::UponCallOfferedNack(IwMessagePtr req)
 	{
 		FUNCTRACKER;
-
 		IX_PROFILE_FUNCTION();
 
 		_dumUas->UponCallOfferedNack(req);
 	}
 
 	bool 
-		ProcSipStack::ProcessIwMessages()
+	ProcSipStack::ProcessIwMessages()
 	{
 
 		FUNCTRACKER;
-
 		IX_PROFILE_FUNCTION();
-
 
 		bool shutdown = false;
 		while (InboundPending())
@@ -388,7 +383,7 @@ namespace ivrworx
 				{ 
 					if (HandleOOBMessage(msg) == FALSE)
 					{
-						LogCrit(" Received unknown message " << msg->message_id_str);
+						LogCrit("Received unknown message " << msg->message_id_str);
 						throw;
 					}
 
@@ -401,7 +396,7 @@ namespace ivrworx
 
 
 	void 
-		ProcSipStack::real_run()
+	ProcSipStack::real_run()
 	{
 		FUNCTRACKER;
 

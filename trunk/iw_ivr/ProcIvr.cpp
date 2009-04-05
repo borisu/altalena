@@ -23,6 +23,7 @@
 #include "ProcScriptRunner.h"
 #include "LocalProcessRegistrar.h"
 
+using namespace boost::assign;
 
 namespace ivrworx
 {
@@ -46,6 +47,8 @@ ProcIvr::real_run()
 
 	FUNCTRACKER;
 
+	IwMessagePtr event;
+
 	START_FORKING_REGION;
 	
 	//
@@ -53,12 +56,11 @@ ProcIvr::real_run()
 	//
 	DECLARE_NAMED_HANDLE_PAIR(stack_pair);
 	_stackPair = stack_pair;
-	DECLARE_NAMED_HANDLE(stack_shutdown_handle);
-	AddShutdownListener(stack_pair,stack_shutdown_handle);
+
 	FORK(SipStackFactory::CreateSipStack(stack_pair,_conf));
 	if (IW_FAILURE(WaitTillReady(Seconds(5),stack_pair)))
 	{
-		LogWarn("Couldn't start sip process. Exiting ivr process.");
+		LogWarn("Couldn't start sip stack process. Exiting ivr process.");
 		return;
 	};
 
@@ -66,21 +68,14 @@ ProcIvr::real_run()
 	LogInfo("Ivr process started successfully");
 	I_AM_READY;
 
-	HandlesList list;
-	int index = 0;
+	HandlesList list = list_of(stack_pair.outbound)(_inbound);
 	
-	list.push_back(stack_pair.outbound);
-	const int stack_index = index++;
 
-	list.push_back(_inbound);
-	const int inbound_index = index++;
-
-	
 	//
 	// Message Loop
 	// 
 	BOOL shutdown_flag = FALSE;
-	IwMessagePtr event;
+	
 	while(shutdown_flag == FALSE)
 	{
 		IX_PROFILE_CHECK_INTERVAL(25000);
@@ -99,20 +94,36 @@ ProcIvr::real_run()
 			continue;
 		}
 
-		if (index == stack_index)
+		switch (index)
 		{
-			shutdown_flag = ProcessStackMessage(event, forking);
-		} 
-		else if (index == inbound_index)
-		{
-			shutdown_flag = ProcessInboundMessage(event,forking);
+		case 0:
+			{
+				shutdown_flag = ProcessStackMessage(event, forking);
+				if (shutdown_flag == TRUE)
+				{
+					LogWarn("Sip stack process terminated unexpectedly. Waiting for all calls to finish and exiting Ivr process.");
+				}
+				break;
+			}
+		case 1:
+			{
+				shutdown_flag = ProcessInboundMessage(event, forking);
+				if (shutdown_flag == TRUE)
+				{
+					Shutdown(Time(Seconds(5)),stack_pair);
+				}
+				break;
+			}
+		default:
+			{
+				LogCrit("Unknown handle signaled");
+				throw;
+			}
 		}
 
 	}
 
-
-	Shutdown(Time(Seconds(5)),stack_pair);
-	
+	END_FORKING_REGION;
 
 	if (event != NULL_MSG && 
 		event->message_id == MSG_PROC_SHUTDOWN_REQ)
@@ -121,7 +132,6 @@ ProcIvr::real_run()
 		SendResponse(event,new MsgShutdownAck());
 	}
 
-	END_FORKING_REGION;
 
 }
 
@@ -176,14 +186,15 @@ ProcIvr::ProcessStackMessage(IN IwMessagePtr ptr, IN ScopedForking &forking)
 			break;
 
 		}
-	case MSG_PROC_SHUTDOWN_REQ:
+	case MSG_PROC_SHUTDOWN_EVT:
 		{
 			return TRUE;
 			break;
 		}
 	default:
 		{
-			
+			LogWarn("Unknown message from stack " << ptr->message_id_str);
+			return;
 		}
 	}
 
