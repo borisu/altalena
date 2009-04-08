@@ -117,7 +117,7 @@ namespace ivrworx
 		IwHandlesMap::iterator iter = _refIwHandlesMap.find(xfer_req->stack_call_handle);
 		if (iter == _refIwHandlesMap.end())
 		{
-			LogWarn("iwh:" << xfer_req->stack_call_handle << " not found. Has caller disconnected already?");
+			LogWarn("UponBlindXferReq:: iwh:" << xfer_req->stack_call_handle << " not found. Has caller disconnected already?");
 			GetCurrLightWeightProc()->SendResponse(
 				req,
 				new MsgCallBlindXferNack());
@@ -128,7 +128,7 @@ namespace ivrworx
 		InviteSessionHandle invite_handle = ctx_ptr->invite_handle;
 
 		
-		LogDebug("Blind Xfer - " << LogHandleState(ctx_ptr, invite_handle));
+		LogDebug("UponBlindXferReq:: dst:" << xfer_req->destination_uri << ", " << LogHandleState(ctx_ptr, invite_handle));
 
 		NameAddr name_addr(xfer_req->destination_uri.c_str());
 		invite_handle->refer(name_addr,false);
@@ -152,12 +152,12 @@ namespace ivrworx
 		IwHandlesMap::iterator iter = _refIwHandlesMap.find(ack->stack_call_handle);
 		if (iter == _refIwHandlesMap.end())
 		{
-			LogWarn("iwh:" << ack->stack_call_handle<< " not found. Has caller disconnected already?");
+			LogWarn("UponCallOfferedNack:: iwh:" << ack->stack_call_handle<< " not found. Has caller disconnected already?");
 			return;
 		}
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
-		LogDebug("Call Rejected By User  - " << LogHandleState(ctx_ptr, ctx_ptr->invite_handle));
+		LogDebug("UponCallOfferedNack:: " << LogHandleState(ctx_ptr, ctx_ptr->invite_handle));
 
 		CleanUpCall(ctx_ptr);
 
@@ -175,7 +175,7 @@ namespace ivrworx
 		IwHandlesMap::iterator iter = _refIwHandlesMap.find(ack->stack_call_handle);
 		if (iter == _refIwHandlesMap.end())
 		{
-			LogWarn("call handle " << ack->stack_call_handle<< " not found (caller disconnected?).");
+			LogWarn("UponCallOfferedAck:: iwh:" << ack->stack_call_handle<< " not found. Has caller disconnected already?");
 			return;
 		}
 
@@ -184,11 +184,11 @@ namespace ivrworx
 
 		if (ack->accepted_codecs.empty())
 		{
-			LogWarn("No accepted codec found, call handle = " << ack->stack_call_handle);
+			LogWarn("UponCallOfferedAck:: No accepted codec found " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 			HangupCall(ctx_ptr);
 		}
 
-		LogDebug("Call Accepted By User  - " << LogHandleState(ctx_ptr, ctx_ptr->invite_handle));
+		LogDebug("UponCallOfferedAck:: " << LogHandleState(ctx_ptr, ctx_ptr->invite_handle));
 
 		SdpContents sdp;
 
@@ -251,13 +251,15 @@ namespace ivrworx
 		_resipHandlesMap[sis->getAppDialog()]= ctx_ptr;
 		_refIwHandlesMap[ctx_ptr->stack_handle]= ctx_ptr;
 
-		LogDebug("New UAS Session Created - " << LogHandleState(ctx_ptr,ctx_ptr->uas_invite_handle));
+		LogDebug("onNewSession:: " << LogHandleState(ctx_ptr,ctx_ptr->uas_invite_handle));
 
 	}
 
 	void 
 	UASDialogUsageManager::CleanUpCall(IN SipDialogContextPtr ctx_ptr)
 	{
+		FUNCTRACKER;
+
 		_refIwHandlesMap.erase(ctx_ptr->stack_handle);
 		_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
 	}
@@ -278,13 +280,13 @@ namespace ivrworx
 			ixhandle = ctx_ptr->stack_handle;
 			ctx_ptr->call_handler_inbound->Send(new MsgCallHangupEvt());
 
-			LogDebug("onTerminated::  " << LogHandleState(ctx_ptr,handle));
+			LogDebug("onTerminated:: " << LogHandleState(ctx_ptr,handle));
 			CleanUpCall(ctx_ptr);
 
 		} 
 		else
 		{
-			LogDebug("onTerminated::  :" << LogHandleState(SipDialogContextPtr((SipDialogContext*)NULL),handle));
+			LogDebug("onTerminated:: " << LogHandleState(SipDialogContextPtr((SipDialogContext*)NULL),handle));
 		}
 
 	}
@@ -297,7 +299,7 @@ namespace ivrworx
 		ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(is->getAppDialog());
 		if (ctx_iter == _resipHandlesMap.end())
 		{
-			LogCrit("onOffer:: without created context, handle=[" << is.getId() << "]");
+			LogCrit("onOffer:: without created context, rsh:" << is.getId());
 			throw;
 		}
 
@@ -421,7 +423,7 @@ namespace ivrworx
 			ctx_ptr->last_user_request, 
 			conn_msg);
 
-		LogDebug("onConnectedConfirmed::" << LogHandleState(ctx_ptr,is));
+		LogDebug("onConnectedConfirmed:: " << LogHandleState(ctx_ptr,is));
 
 	}
 	
@@ -456,13 +458,15 @@ namespace ivrworx
 
 
 	ApiErrorCode 
-	UASDialogUsageManager::HangupCall(SipDialogContextPtr ptr)
+	UASDialogUsageManager::HangupCall(SipDialogContextPtr ctx_ptr)
 	{
 		FUNCTRACKER;
 
-		_refIwHandlesMap.erase(ptr->stack_handle);
-		_resipHandlesMap.erase(ptr->uas_invite_handle->getAppDialog());
-		ptr->uas_invite_handle->end();
+		LogDebug("HangupCall:: " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
+
+		_refIwHandlesMap.erase(ctx_ptr->stack_handle);
+		_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
+		ctx_ptr->uas_invite_handle->end();
 
 		return API_SUCCESS;
 	}
@@ -472,14 +476,14 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(sh->getAppDialog());
-		if (ctx_iter == _resipHandlesMap.end())
-		{
-			LogCrit("Received UPDATE (pending) without application context, rsh:" << sh.getId());
-			sh->rejectUpdate();
-			sh->end();
-			return;
-		}
+// 		ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(sh->getAppDialog());
+// 		if (ctx_iter == _resipHandlesMap.end())
+// 		{
+// 			LogCrit("Received UPDATE (pending) without application context, rsh:" << sh.getId());
+// 			sh->rejectUpdate();
+// 			sh->end();
+// 			return;
+// 		}
 
 		
 	}
@@ -487,14 +491,14 @@ namespace ivrworx
 	void 
 	UASDialogUsageManager::onUpdateActive(ClientSubscriptionHandle sh, const SipMessage& notify, bool outOfOrder)
 	{
-		ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(sh->getAppDialog());
-		if (ctx_iter == _resipHandlesMap.end())
-		{
-			LogCrit("Received UPDATE (active) without application context, rsh:" << sh.getId());
-			sh->rejectUpdate();
-			sh->end();
-			return;
-		}
+// 		ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(sh->getAppDialog());
+// 		if (ctx_iter == _resipHandlesMap.end())
+// 		{
+// 			LogCrit("Received UPDATE (active) without application context, rsh:" << sh.getId());
+// 			sh->rejectUpdate();
+// 			sh->end();
+// 			return;
+// 		}
 
 	}
 

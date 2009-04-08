@@ -26,11 +26,7 @@ using namespace boost;
 namespace ivrworx
 {
 
-	enum LocalProcessRegistrarEvts
-	{
-		MSG_PROC_SHUTDOWN_EVT = MSG_USER_DEFINED
-	};
-
+	
 	class MsgShutdownEvt: 
 		public MsgResponse
 	{

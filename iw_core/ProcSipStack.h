@@ -105,13 +105,9 @@ namespace ivrworx
 
 		virtual ApiErrorCode Init();
 
-		virtual void UponMakeCall(IwMessagePtr req);
-
 		virtual void UponBlindXferReq(IwMessagePtr req);
 
 		virtual void UponHangupCall(IwMessagePtr req);
-
-		virtual void UponStartRegistration(IwMessagePtr req);
 
 		virtual void ShutDown(IwMessagePtr req);
 

@@ -183,7 +183,7 @@ ProcIvr::ProcessStackMessage(IN IwMessagePtr ptr, IN ScopedForking &forking)
 					script_runner_handle) // handle created by stack for events
 				);
 
-			break;
+			return FALSE;
 
 		}
 	case MSG_PROC_SHUTDOWN_EVT:
@@ -194,7 +194,7 @@ ProcIvr::ProcessStackMessage(IN IwMessagePtr ptr, IN ScopedForking &forking)
 	default:
 		{
 			LogWarn("Unknown message from stack " << ptr->message_id_str);
-			return;
+			return FALSE;
 		}
 	}
 

@@ -169,11 +169,6 @@ namespace ivrworx
 			//
 			// UAC
 			//
-			_dumUac = UACDialogUsageManagerPtr(new UACDialogUsageManager(
-				*_stack,
-				_conf.IvrCnxInfo(),
-				_iwHandlesMap,
-				*this));
 
 			_handleInterruptor = ResipInterruptorPtr(new ResipInterruptor());
 			_inbound->HandleInterruptor(_handleInterruptor);
@@ -267,44 +262,6 @@ namespace ivrworx
 	}
 
 	void
-	ProcSipStack::UponMakeCall(IwMessagePtr ptr)
-	{
-		FUNCTRACKER;
-
-// 		ApiErrorCode res = _dumUac->MakeCall(ptr);
-// 
-// 		if (res != API_SUCCESS)
-// 		{
-// 			SendResponse(ptr, new MsgMakeCallNack());
-// 		}
-
-	}
-
-	void
-	ProcSipStack::UponStartRegistration(IwMessagePtr ptr)
-	{
-		// 	FUNCTRACKER;
-		// 
-		// 	MsgStartRegisterRequest *req  = 
-		// 		boost::shared_dynamic_cast<MsgStartRegisterRequest>(ptr).get();
-		// 
-		// 	
-		// 	NameAddr nameAddr(req->proxy_id.c_str());
-		// 	LogInfo ("sipstack> send sip:register proxy=[" << nameAddr <<"]");
-		// 
-		// 	SharedPtr<SipMessage> session = 
-		// 		_dumUac->makeRegistration(
-		// 			nameAddr, 
-		// 			_dumUac->getMasterProfile(), 
-		// 			new UACAppDialogSet(req->handle,*_dumUac)); 
-		// 
-		// 	_dumUac->send(session);
-
-	}
-
-
-
-	void
 	ProcSipStack::UponCallOfferedAck(IwMessagePtr req)
 	{
 		FUNCTRACKER;
@@ -350,14 +307,8 @@ namespace ivrworx
 					UponBlindXferReq(msg);
 					break;
 				}
-			case MSG_MAKE_CALL_REQ:
-				{
-					UponMakeCall(msg);
-					break;
-				}
 			case MSG_PROC_SHUTDOWN_REQ:
 				{
-
 					ShutDown(msg);
 					shutdown = true;
 					SendResponse(msg, new MsgShutdownAck());
@@ -386,7 +337,6 @@ namespace ivrworx
 						LogCrit("Received unknown message " << msg->message_id_str);
 						throw;
 					}
-
 				}
 			}
 		}
