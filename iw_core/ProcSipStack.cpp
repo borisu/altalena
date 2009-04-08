@@ -23,9 +23,9 @@
 #include "UASAppDialogSetFactory.h"
 #include "UASShutdownHandler.h"
 
-#include "UACUserProfile.h"
-#include "UACAppDialogSet.h"
-#include "UACDialogUsageManager.h"
+// #include "UACUserProfile.h"
+// #include "UACAppDialogSet.h"
+// #include "UACDialogUsageManager.h"
 #include "UASDialogUsageManager.h"
 #include "Profiler.h"
 
@@ -35,10 +35,9 @@
 using namespace resip;
 using namespace std;
 
+
 namespace ivrworx
 {
-
-
 
 	ResipInterruptor::ResipInterruptor()
 	{
@@ -72,21 +71,27 @@ namespace ivrworx
 				
 	}
 
+    typedef
+    map<string,Subsystem *> SubsystemsMap;
+
+	typedef
+	map<string,Log::Level> LogLevelMap;
+
 	void
 	ProcSipStack::SetResipLogLevel()
 	{
-		map<string,Log::Level> levelsMap;
+		LogLevelMap levelsMap;
 		levelsMap["OFF"] = Log::None;
 		levelsMap["CRT"] = Log::Crit;
 		levelsMap["WRN"] = Log::Warning;	
 		levelsMap["INF"] = Log::Info;
 		levelsMap["DBG"] = Log::Debug;
 
-		map<string,Subsystem *> subsystemMap;
-		subsystemMap["APP"] = &Subsystem::APP;
+		SubsystemsMap subsystemMap;
+		subsystemMap["APP"]	= &Subsystem::APP;
 		subsystemMap["CONTENTS"] = &Subsystem::CONTENTS;
-		subsystemMap["DNS"] = &Subsystem::DNS;	
-		subsystemMap["DUM"] = &Subsystem::DUM;
+		subsystemMap["DNS"]	= &Subsystem::DNS;	
+		subsystemMap["DUM"]	= &Subsystem::DUM;
 		subsystemMap["NONE"] = &Subsystem::NONE; 
 		subsystemMap["PRESENCE"] = &Subsystem::PRESENCE; 
 		subsystemMap["SDP"] = &Subsystem::SDP;
@@ -94,6 +99,14 @@ namespace ivrworx
 		subsystemMap["TRANSPORT"] = &Subsystem::TRANSPORT;
 		subsystemMap["STATS"] = &Subsystem::STATS;
 		subsystemMap["REPRO"] = &Subsystem::REPRO;
+
+		// firstly reset all log levels to none
+		for (SubsystemsMap::iterator iter = subsystemMap.begin(); 
+			iter != subsystemMap.end(); 
+			iter++)
+		{
+			iter->second->setLevel(Log::None);
+		}
 
 
 		// dirty parsing
@@ -158,7 +171,6 @@ namespace ivrworx
 		{
 			//
 			// UAS
-			// All messages are sent to stack outbound channel
 			//
 			_dumUas = UASDialogUsageManagerPtr(new UASDialogUsageManager(
 				_conf,
@@ -168,7 +180,7 @@ namespace ivrworx
 
 			//
 			// UAC
-			//
+			// ...
 
 			_handleInterruptor = ResipInterruptorPtr(new ResipInterruptor());
 			_inbound->HandleInterruptor(_handleInterruptor);
@@ -216,9 +228,10 @@ namespace ivrworx
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
 
-		if (ctx_ptr->transaction_type == TX_TYPE_UAC)
+		if (ctx_ptr->transaction_type == TXN_TYPE_UAC )
 		{
-			_dumUac->HangupCall(ctx_ptr);
+			//_dumUac->HangupCall(ctx_ptr);
+			return;
 		} 
 		else 
 		{
@@ -240,10 +253,11 @@ namespace ivrworx
 
 		_shutDownFlag = true;
 
-		if (_dumUas)
-		{
-			_dumUac->Shutdown();
-		}
+// 		if (_dumUac)
+// 		{
+// 			_dumUac->Shutdown();
+// 		}
+
 		if (_dumUas)
 		{
 			_dumUas->forceShutdown(NULL);
@@ -256,6 +270,7 @@ namespace ivrworx
 	ProcSipStack::ShutDown(IwMessagePtr req)
 	{
 		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
 
 		ShutDown();
 
@@ -265,7 +280,6 @@ namespace ivrworx
 	ProcSipStack::UponCallOfferedAck(IwMessagePtr req)
 	{
 		FUNCTRACKER;
-
 		IX_PROFILE_FUNCTION();
 
 		_dumUas->UponCallOfferedAck(req);
@@ -378,7 +392,7 @@ namespace ivrworx
 			IX_PROFILE_CODE(_handleInterruptor->process(fdset));
 			IX_PROFILE_CODE(_stack->process(fdset));
 			IX_PROFILE_CODE(while(_dumUas->process()));
-			IX_PROFILE_CODE(while(_dumUac->process()));
+//			IX_PROFILE_CODE(while(_dumUac->process()));
 
 			shutdown_flag = ProcessIwMessages();
 			if (shutdown_flag)
@@ -397,7 +411,7 @@ namespace ivrworx
 
 	/** return true to also do default logging, false to suppress default logging. */
 	bool 
-		IwResipLogger::operator()(Log::Level level,
+	IwResipLogger::operator()(Log::Level level,
 		const Subsystem& subsystem, 
 		const Data& appName,
 		const char* file,
@@ -405,6 +419,11 @@ namespace ivrworx
 		const Data& message,
 		const Data& messageWithHeaders)
 	{
+
+		if (subsystem.getLevel() == Log::None)
+		{
+			return false;
+		}
 
 		switch (level)
 		{
@@ -416,12 +435,6 @@ namespace ivrworx
 			}
 		case Log::Debug:
 			{
-				// nasty hack to print sip messages only once
-				// 			if (strncmp(message.c_str(),"Send to TU:", 11) == 0)
-				// 			{
-				// 				return false;
-				// 			}
-
 				LogDebug(subsystem.getSubsystem().c_str() << " " << message.c_str());
 				break;
 			}
@@ -429,7 +442,6 @@ namespace ivrworx
 			{
 				LogWarn(subsystem.getSubsystem().c_str() << " " << message.c_str());
 				break;
-
 			}
 		case Log::Crit:
 			{

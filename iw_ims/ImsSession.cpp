@@ -34,11 +34,13 @@ _imsSessionHandlerPair(HANDLE_PAIR),
 _forking(forking),
 _rfc2833DtmfHandle(new LpHandle())
 {
-	
+	FUNCTRACKER;
 }
 
 ImsSession::~ImsSession(void)
 {
+	FUNCTRACKER;
+
 	if (_imsSessionHandle != IW_UNDEFINED)
 	{
 		TearDown();
@@ -208,7 +210,7 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 {
 	FUNCTRACKER;
 
-	LogDebug("Allocating IMS session remote end = " <<  remote_end.ipporttos()  << ", codec = "  << codec);
+	LogDebug("AllocateIMSConnection:: remote:" <<  remote_end.ipporttos()  << ", codec:"  << codec << ", imsh:" << _imsSessionHandle);
 	
 	if (_imsSessionHandle != IW_UNDEFINED)
 	{

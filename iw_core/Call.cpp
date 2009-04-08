@@ -35,9 +35,10 @@ _stackPair(stack_pair),
 _stackCallHandle(IW_UNDEFINED),
 _hangupDetected(FALSE),
 _handlerPair(HANDLE_PAIR),
-_dtmfChannel(new LpHandle())
+_dtmfChannel(new LpHandle()),
+_callState(CALL_STATE_UNKNOWN)
 {
-	CALL_RESET_STATE(CALL_STATE_UKNOWN);
+	CALL_RESET_STATE(CALL_STATE_UNKNOWN);
 	throw "not supported";
 
 }
@@ -50,7 +51,8 @@ Call::Call(
  _stackCallHandle(offered_msg->stack_call_handle),
  _remoteMedia(offered_msg->remote_media),
  _handlerPair(offered_msg->call_handler_inbound),
- _dtmfChannel(new LpHandle())
+ _dtmfChannel(new LpHandle()),
+ _callState(CALL_STATE_UNKNOWN)
 {
 	FUNCTRACKER;
 
@@ -77,7 +79,7 @@ Call::Ani()
 void
 Call::ResetState(CallState state, const char *state_str)
 {
-	LogDebug("Call iw handle " << _stackCallHandle << ", transition from state " << _callState << " to state " << state << "," << state_str);
+	LogDebug("Call iwh:" << _stackCallHandle << ", transition from state:" << _callState << " to state:" << state << ", " << state_str);
 	_callState = state;
 }
 
@@ -86,7 +88,7 @@ Call::EnableMediaFormat(const MediaFormat& media_format)
 {
 	FUNCTRACKER;
 
-	LogDebug("Media format " << media_format << "  enabled for call " << _stackCallHandle );
+	LogDebug("Media format:" << media_format << ", enabled for iwh:" << _stackCallHandle );
 
 	_supportedMediaFormatsList.insert(
 		MediaFormatMapPair(media_format.sdp_mapping(), media_format));
@@ -214,7 +216,7 @@ Call::RejectCall()
 {
 	FUNCTRACKER;
 
-	LogDebug("Rejecting the call - ix stack handle=[" << _stackCallHandle << "].");
+	LogDebug("RejectCall:: iwh:" << _stackCallHandle );
 
 	MsgCallOfferedNack *msg = new MsgCallOfferedNack();
 	msg->stack_call_handle = _stackCallHandle;
@@ -231,10 +233,10 @@ Call::HagupCall()
 	
 	FUNCTRACKER;
 
-	LogDebug("Hanging up the call - ix stack handle=[" << _stackCallHandle << "].");
+	LogDebug("HagupCall:: iwh:" << _stackCallHandle);
 
 	if (_stackCallHandle == IW_UNDEFINED || 
-		_callState == CALL_STATE_UKNOWN		  || 
+		_callState == CALL_STATE_UNKNOWN || 
 		_callState == CALL_STATE_TERMINATED)
 	{
 		return API_SUCCESS;
@@ -260,7 +262,7 @@ Call::AcceptInitialOffer( IN const CnxInfo &local_connection,
 	FUNCTRACKER;
 	IX_PROFILE_FUNCTION();
 
-	LogDebug("Accepting call - ix stack handle=[" << _stackCallHandle << "].");
+	LogDebug("AcceptInitialOffer:: iwh:" << _stackCallHandle);
 
 	
 	_acceptedSpeechFormat = speech_codec;
@@ -319,6 +321,8 @@ Call::BlindXfer(IN const string &destination_uri)
 {
 	FUNCTRACKER;
 
+	LogDebug("BlindXfer:: iwh:" << _stackCallHandle << " dest:" << destination_uri);
+
 	if (_stackCallHandle == IW_UNDEFINED)
 	{
 		return API_FAILURE;
@@ -370,6 +374,8 @@ Call::MakeCall(IN const string &destination_uri,
 			   IN const CnxInfo &local_media)
 {
 	FUNCTRACKER;
+
+	return API_FAILURE;
 
 	_localMedia = local_media;
 

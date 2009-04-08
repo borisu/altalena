@@ -30,8 +30,49 @@ namespace ivrworx
 #define IW_DEFAULT_IMS_BOTTOM_PORT 50000
 
 #define	IW_DEFAULT_IMS_TIMEOUT		60000 // 1 min
+#define IW_MAX_RTP_MSG_LENGTH	1024
 
 	HANDLE g_iocpHandle = NULL;
+
+	static OrtpLogFunc iw_logger_func(OrtpLogLevel lev, const char *fmt, va_list args) 
+	{
+		char buf[IW_MAX_RTP_MSG_LENGTH];
+		buf[0] = '\0';
+
+		vsnprintf(buf,IW_MAX_RTP_MSG_LENGTH,fmt,args);
+
+		switch (lev)
+		{
+		case ORTP_MESSAGE:
+			{
+				LogInfo(buf);
+				break;
+			}
+		case ORTP_DEBUG:
+			{
+				LogDebug(buf);
+				break;
+			}
+		case ORTP_ERROR:
+		case ORTP_WARNING:
+			{
+				LogWarn(buf);
+				break;
+			}
+		case ORTP_FATAL:
+			{
+				LogCrit(buf);
+				break;
+			}
+		default:
+			{
+				LogDebug(buf);
+			}
+		}
+
+
+		
+	}
 
 	static int GetNewImsHandle()
 	{
@@ -312,9 +353,13 @@ namespace ivrworx
 		//
 		// initialize ortp
 		//
+		ortp_set_log_level_mask(ORTP_MESSAGE|ORTP_WARNING|ORTP_ERROR|ORTP_FATAL);
+		ortp_set_log_handler(iw_logger_func);
+
 		ortp_init();
 		ms_init();
-		ortp_set_log_level_mask(ORTP_MESSAGE|ORTP_WARNING|ORTP_ERROR|ORTP_FATAL);
+
+		
 
 		_ticker = ms_ticker_new();
 		if (_ticker == NULL)
