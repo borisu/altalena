@@ -129,7 +129,7 @@ namespace ivrworx
 
 		IwHandlesMap _iwHandlesMap;
 
-		UACDialogUsageManagerPtr _dumUac;
+		//UACDialogUsageManagerPtr _dumUac;
 
 		UASDialogUsageManagerPtr _dumUas;
 

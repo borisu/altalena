@@ -28,7 +28,7 @@ namespace ivrworx
 {
 
 	#define IW_MAX_SYSTEM_ERROR_MSG_LENGTH  1024
-	#define IW_MAX_PREFIX_SIZE 1024
+	#define IW_SINGLE_LOG_BUCKET_LENGTH 2048
 
 
 	#define IW_LOG_LOG_COMPLETION_KEY	0
@@ -240,6 +240,8 @@ namespace ivrworx
 			mask |= IX_LOG_MASK_SYSLOG;
 		}
 
+		SetLogMask(mask);
+
 
 	}
 
@@ -381,12 +383,24 @@ namespace ivrworx
 
 			LogBucket *lb = (LogBucket *)olap;
 
-			char formatted_log_str[IW_MAX_PREFIX_SIZE];
+			char formatted_log_str[IW_SINGLE_LOG_BUCKET_LENGTH];
 			formatted_log_str[0] = '\0';
 
 			int fiber_id = lb->fiber_id == NON_FIBEROUS_THREAD ? -1 : (int)lb->fiber_id;
 
-			_snprintf_s(formatted_log_str,IW_MAX_PREFIX_SIZE,IW_MAX_PREFIX_SIZE,"[%s][%-5d,0x%-8x] %s",
+			if (lb->log_str.length() > (IW_SINGLE_LOG_BUCKET_LENGTH - 1))
+			{
+				char membuf[IW_SINGLE_LOG_BUCKET_LENGTH];
+				membuf[0]='\0';
+
+				_snprintf_s(membuf,IW_SINGLE_LOG_BUCKET_LENGTH,IW_SINGLE_LOG_BUCKET_LENGTH,"Logger string too long, you may not log messages longer than %d bytes", 
+					IW_SINGLE_LOG_BUCKET_LENGTH),
+
+				lb->log_str = membuf;
+				
+			}
+
+			_snprintf_s(formatted_log_str,IW_SINGLE_LOG_BUCKET_LENGTH,IW_SINGLE_LOG_BUCKET_LENGTH,"[%s][%-5d,0x%-8x] %s",
 				g_LogLevelStrings[lb->log_level],
 				lb->thread_id,
 				fiber_id,

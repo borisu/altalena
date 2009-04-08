@@ -154,7 +154,7 @@ namespace ivrworx
 
 
 			ctx_ptr->stack_handle = GenerateSipHandle();
-			ctx_ptr->transaction_type = TX_TYPE_UAC;
+			ctx_ptr->transaction_type = TXN_TYPE_UAC;
 			ctx_ptr->call_handler_inbound = req->call_handler_inbound;
 			ctx_ptr->last_user_request = ptr;
 

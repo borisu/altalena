@@ -60,7 +60,7 @@ namespace ivrworx
 	enum TransactionType
 	{
 		TXN_TYPE_UAS,
-		TX_TYPE_UAC
+		TXN_TYPE_UAC
 	};
 
 	struct SipDialogContext :

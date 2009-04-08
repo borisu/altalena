@@ -26,7 +26,7 @@ namespace ivrworx
 		IN shared_ptr<MsgCallOfferedReq> msg, 
 		IN LpHandlePair stack_pair, 
 		IN LpHandlePair pair)
-		:LightweightProcess(pair,__FUNCTION__),
+		:LightweightProcess(pair,"IvrScript"),
 		_conf(conf),
 		_initialMsg(msg),
 		_stackPair(stack_pair)
