@@ -74,6 +74,7 @@ namespace ivrworx
 
 		if (_inbound == _outbound)
 		{
+			LogCrit("Cannot use the same handle for outbound and inbound channel.");
 			throw;
 		}
 
@@ -104,7 +105,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		LogDebug("First Chance OOB message=["<< msg->message_id_str <<"]");
+		LogDebug("First Chance OOB msg:"<< msg->message_id_str);
 
 		switch (msg->message_id)
 		{
@@ -158,9 +159,8 @@ namespace ivrworx
 			throw;
 		}
 
-		(*tl_procMap)[fiber] = this;
-
 		
+		tl_procMap->insert(pair<PVOID,LightweightProcess*>(fiber,this));
 		try
 		{
 			real_run();
@@ -170,13 +170,11 @@ namespace ivrworx
 			LogWarn("Exception in process=[" << Name() << "] what=[" << e.what() << "]");
 		}
 
-		
-
 		_inbound->Poison();
-
 		_bucket->flush();
          
-		tl_procMap->erase(fiber);
+
+		tl_procMap->erase(tl_procMap->find(fiber));
 
 		csp::CPPCSP_Yield();
 
@@ -622,11 +620,8 @@ namespace ivrworx
 			return NULL;
 		}
 
-		LightweightProcess *proc = 
-			(*tl_procMap)[::GetCurrentFiber()];
-
-		return proc;
-
+		ProcMap::iterator iter =  tl_procMap->find(::GetCurrentFiber());
+		return  (iter == tl_procMap->end()) ? NULL : iter->second;
 	}
 
 	string 
