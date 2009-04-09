@@ -43,6 +43,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
 				Optimization="0"
+				EnableFiberSafeOptimizations="false"
 				AdditionalIncludeDirectories="..\iw_core;..\iw_ims;..\iw_ivr"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				GeneratePreprocessedFile="0"
