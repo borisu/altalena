@@ -34,12 +34,12 @@ namespace ivrworx
 
 	HANDLE g_iocpHandle = NULL;
 
-	static OrtpLogFunc iw_logger_func(OrtpLogLevel lev, const char *fmt, va_list args) 
+	static void iw_logger_func(OrtpLogLevel lev, const char *fmt, va_list args) 
 	{
 		char buf[IW_MAX_RTP_MSG_LENGTH];
 		buf[0] = '\0';
 
-		vsnprintf(buf,IW_MAX_RTP_MSG_LENGTH,fmt,args);
+		_vsnprintf_s(buf,IW_MAX_RTP_MSG_LENGTH,fmt,args);
 
 		switch (lev)
 		{
@@ -69,9 +69,6 @@ namespace ivrworx
 				LogDebug(buf);
 			}
 		}
-
-
-		
 	}
 
 	static int GetNewImsHandle()
@@ -184,7 +181,7 @@ namespace ivrworx
 		BOOL res = ::PostQueuedCompletionStatus(
 			g_iocpHandle,				//A handle to an I/O completion port to which the I/O completion packet is to be posted.
 			0,							//The value to be returned through the lpNumberOfBytesTransferred parameter of the GetQueuedCompletionStatus function.
-			IW_IMS_DTMF_EVENT,				//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
+			IW_IMS_DTMF_EVENT,			//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
 			olap						//The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
 			);
 
@@ -213,7 +210,7 @@ namespace ivrworx
 				BOOL res = ::PostQueuedCompletionStatus(
 					g_iocpHandle,			//A handle to an I/O completion port to which the I/O completion packet is to be posted.
 					0,						//The value to be returned through the lpNumberOfBytesTransferred parameter of the GetQueuedCompletionStatus function.
-					IW_IMS_EOF_EVENT,			//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
+					IW_IMS_EOF_EVENT,		//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
 					olap					//The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
 					);
 
@@ -226,7 +223,7 @@ namespace ivrworx
 			}
 		default:
 			{
-
+				LogWarn("Unknown rtp event:" << id);
 			}
 		}
 	}
@@ -416,7 +413,7 @@ namespace ivrworx
 
 		START_FORKING_REGION;
 
-		LogInfo("Ims process started succesfully.");
+		LogInfo("Ims process started successfully.");
 		I_AM_READY;
 
 
@@ -515,7 +512,7 @@ namespace ivrworx
 					BOOL oob_res = HandleOOBMessage(ptr);
 					if (oob_res == FALSE)
 					{
-						LogCrit("Received unknown OOB message id=[" << ptr->message_id << "]");
+						LogCrit("Received unknown OOB msg:" << ptr->message_id);
 						throw;
 					}// if
 				}// default
@@ -578,7 +575,7 @@ namespace ivrworx
 			goto error;
 		}
 
-		LogDebug("Allocated local ims address " << _localMedia.iptoa() << ":" << local_port);
+		LogDebug("Allocated local ims address:" << _localMedia.ipporttos() );
 
 		/********************
 		*
@@ -833,6 +830,8 @@ error:
 	ApiErrorCode 
 	ProcIms::StartTicking(StreamingCtxPtr ctx)
 	{
+		FUNCTRACKER;
+
 		if (ctx->state == IMS_TICKING)
 		{
 			return API_SUCCESS;
@@ -865,6 +864,8 @@ error:
 	ApiErrorCode 
 	ProcIms::StopTicking(StreamingCtxPtr ctx)
 	{
+		FUNCTRACKER;
+
 		if (ctx->state != IMS_TICKING)
 		{
 			return API_SUCCESS;
@@ -882,14 +883,14 @@ error:
 			int res = ms_ticker_detach(stream->ticker,stream->soundread);
 			if (res < 0)
 			{
-				LogWarn("mserror: ms_ticker_detach soundread, res=" << res );
+				LogWarn("mserror: ms_ticker_detach soundread, res:" << res );
 				return API_FAILURE;
 			}
 
 			 res = ms_ticker_detach(stream->ticker,stream->rtprecv);
 			if (res < 0)
 			{
-				LogWarn("mserror: ms_ticker_detach rtprecv, res=" << res );
+				LogWarn("mserror: ms_ticker_detach rtprecv, res:" << res );
 				return API_FAILURE;
 			}
 
@@ -912,14 +913,14 @@ error:
 		shared_ptr<MsgStartPlayReq> req  =
 			dynamic_pointer_cast<MsgStartPlayReq> (msg);
 
-		LogDebug("Play file name:" << req->file_name << ", loop:" << req->loop << ", ims handle:" << req->playback_handle);
+		LogDebug("StartPlayback:: Play file name:" << req->file_name << ", loop:" << req->loop << ", imsh:" << req->playback_handle);
 
 		StreamingCtxsMap::iterator iter = 
 			_streamingObjectSet.find(req->playback_handle);
 
 		if (iter == _streamingObjectSet.end())
 		{
-			LogWarn("Invalid ims handle:" << req->playback_handle);
+			LogWarn("StartPlayback:: Invalid imsh:" << req->playback_handle);
 			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		}
@@ -932,7 +933,7 @@ error:
 		int res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_CLOSE);
 		if (res < 0)
 		{
-			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_CLOSE ims handle:" << req->playback_handle);
+			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_CLOSE imsh:" << req->playback_handle);
 			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		}
@@ -940,7 +941,7 @@ error:
 		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_OPEN,(void*)req->file_name.c_str());
 		if (res < 0)
 		{
-			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_OPEN ims handle:" << req->playback_handle);
+			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_OPEN imsh:" << req->playback_handle);
 			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		}
@@ -948,7 +949,7 @@ error:
 		res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_START);
 		if (res < 0)
 		{
-			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_START ims handle:" << req->playback_handle);
+			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_START imsh:" << req->playback_handle);
 			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		}
@@ -957,7 +958,7 @@ error:
 		res = ms_filter_call_method(ctx->stream->soundread,MS_FILTER_GET_SAMPLE_RATE, &tmp);
 		if (res < 0)
 		{
-			LogWarn("mserror:ms_filter_call_method MS_FILTER_GET_SAMPLE_RATE ims handle:" << req->playback_handle);
+			LogWarn("mserror:ms_filter_call_method MS_FILTER_GET_SAMPLE_RATE imsh:" << req->playback_handle);
 			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		};
@@ -965,7 +966,7 @@ error:
 		res = ms_filter_call_method(ctx->stream->soundwrite,MS_FILTER_SET_SAMPLE_RATE,&tmp);
 		if (res < 0)
 		{
-			LogWarn("mserror:ms_filter_call_method MS_FILTER_SET_SAMPLE_RATE ims handle:" << req->playback_handle);
+			LogWarn("mserror:ms_filter_call_method MS_FILTER_SET_SAMPLE_RATE imsh:" << req->playback_handle);
 			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		};
@@ -976,7 +977,7 @@ error:
 		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_LOOP, &loop_param);
 		if (res < 0)
 		{
-			LogWarn("Cannot set loop parameter, ims handle " << req->playback_handle);
+			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_LOOP, imsh:" << req->playback_handle);
 			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		}
@@ -1012,7 +1013,7 @@ error:
 
 		if (iter == _streamingObjectSet.end())
 		{
-			LogWarn("Invalid ims handle " << req->handle);
+			LogWarn("Invalid ims:" << req->handle);
 			return;
 		}
 
@@ -1024,7 +1025,7 @@ error:
 			return;
 		}
 
-		LogDebug("Send dtmf:" << (char)req->dtmf_digit << ", ims handle:" << req->handle);
+		LogDebug("Send dtmf:" << (char)req->dtmf_digit << ", ims:" << req->handle);
 
 		if (ctx->stream->rtpsend)
 		{
@@ -1069,7 +1070,7 @@ error:
 		StreamingCtxsMap::iterator iter = _streamingObjectSet.find(ovlp->ims_handle_id);
 		if (iter == _streamingObjectSet.end())
 		{
-			LogWarn("DTMF event on non existent handle " << ovlp->ims_handle_id);
+			LogWarn("UponDtmfEvent:: Invalid imsh:" << ovlp->ims_handle_id);
 			return;
 		}
 
@@ -1095,7 +1096,7 @@ error:
 		StreamingCtxsMap::iterator iter = _streamingObjectSet.find(ovlp->ims_handle_id);
 		if (iter == _streamingObjectSet.end())
 		{
-			LogWarn("Stopped playback on non existent handle " << ovlp->ims_handle_id);
+			LogWarn("UponPlaybackStopped:: Invalid imsh:" << ovlp->ims_handle_id);
 			return;
 		}
 
@@ -1127,11 +1128,11 @@ error:
 
 		if (iter == _streamingObjectSet.end())
 		{
-			LogWarn("Invalid ims handle " << req->handle);
+			LogWarn("TearDown:: Invalid imsh:" << req->handle);
 			return;
 		}
 
-		LogDebug("Tear down playback session, ims handle:" << req->handle);
+		LogDebug("TearDown:: imsh:" << req->handle);
 
 		StreamingCtxPtr ctx = iter->second;
 		
@@ -1194,11 +1195,11 @@ error:
 
 		if (iter == _streamingObjectSet.end())
 		{
-			LogWarn("Invalid ims handle " << req->handle);
+			LogWarn("StopPlayback:: Invalid imsh:" << req->handle);
 			return;
 		}
 
-		LogDebug("Stop playback, ims session:" << req->handle);
+		LogDebug("StopPlayback::, imsh:" << req->handle);
 
 		StreamingCtxPtr ctx = iter->second;
 		
