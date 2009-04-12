@@ -36,6 +36,7 @@ _stackCallHandle(IW_UNDEFINED),
 _hangupDetected(FALSE),
 _handlerPair(HANDLE_PAIR),
 _dtmfChannel(new LpHandle()),
+_hangupChannel(new LpHandle()),
 _callState(CALL_STATE_UNKNOWN)
 {
 	CALL_RESET_STATE(CALL_STATE_UNKNOWN);
@@ -52,6 +53,7 @@ Call::Call(
  _remoteMedia(offered_msg->remote_media),
  _handlerPair(offered_msg->call_handler_inbound),
  _dtmfChannel(new LpHandle()),
+ _hangupChannel(new LpHandle()),
  _callState(CALL_STATE_UNKNOWN)
 {
 	FUNCTRACKER;
@@ -207,6 +209,7 @@ Call::UponActiveObjectEvent(IwMessagePtr ptr)
 void 
 Call::UponCallTerminated(IwMessagePtr ptr)
 {
+	_hangupChannel->Send(new MsgCallHangupEvt());
 	CALL_RESET_STATE(CALL_STATE_TERMINATED);
 }
 
@@ -314,6 +317,22 @@ int
 Call::StackCallHandle() const 
 { 
 	return _stackCallHandle; 
+}
+
+void
+Call::WaitTillHangup()
+{
+	FUNCTRACKER;
+
+	LogDebug("WaitTillHangup:: iwh:" << _stackCallHandle);
+
+	ApiErrorCode res = API_TIMEOUT;
+	IwMessagePtr response;
+	while (res == API_TIMEOUT)
+	{
+		res = GetCurrLightWeightProc()->WaitForTxnResponse(_hangupChannel,response,Seconds(100));
+	}
+
 }
 
 ApiErrorCode

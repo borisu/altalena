@@ -166,6 +166,8 @@ namespace ivrworx
 		RegisterFunction("wait_for_dtmf");
 		RegisterFunction("send_dtmf");
 		RegisterFunction("blind_xfer");
+		RegisterFunction("wait_till_hangup");
+		RegisterFunction("iw_log");
 
 	}
 
@@ -208,6 +210,14 @@ namespace ivrworx
 			{
 				return LuaBlindXfer(vm);
 			}
+		case 7:
+			{
+				return LuaWaitTillHangup(vm);
+			}
+		case 8:
+			{
+				return LuaLog(vm);
+			}
 
 		}
 
@@ -228,7 +238,7 @@ namespace ivrworx
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
 
-		LogDebug("Answer call iw stack handle=[" << _callSession.StackCallHandle() << "].");
+		LogDebug("Answer call iwh:" << _callSession.StackCallHandle());
 
 		lua_State *state = (lua_State *) vm;
 
@@ -396,6 +406,91 @@ namespace ivrworx
 		lua_pushnumber (state, API_SUCCESS);
 		return 1;
 
+
+	}
+
+	int
+	IwScript::LuaLog(CLuaVirtualMachine& vm)
+	{
+		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
+
+		lua_State *state = (lua_State *) vm;
+
+		if (lua_isnumber(state, -2) != 1 )
+		{
+			LogWarn("Wrong type of parameter for log - loglevel");
+			return 0;
+		}
+
+		if (lua_isstring(state, -1) != 1 )
+		{
+			LogWarn("Wrong type of parameter for log - logstring");
+			return 0;
+		}
+
+		size_t string_length = 0;
+		LogLevel log_level = (LogLevel)((long)lua_tonumber(state,  -2));
+		const char *log_string = lua_tolstring(state, -1, &string_length);
+
+		switch(log_level)
+		{
+		case LOG_LEVEL_OFF:
+			{
+				break;
+			}
+		case LOG_LEVEL_CRITICAL:
+			{
+				LogCrit(log_string);
+				break;
+			}
+		case LOG_LEVEL_WARN:
+			{
+				LogWarn(log_string);
+				break;
+			}
+		case LOG_LEVEL_INFO:
+			{
+				LogInfo(log_string);
+				break;
+			}
+		case LOG_LEVEL_DEBUG:
+			{
+				LogDebug(log_string);
+				break;
+			}
+		case LOG_LEVEL_TRACE:
+			{
+				LogTrace(log_string);
+				break;
+			}
+		default:
+			{
+				LogDebug(log_string);
+			}
+		}
+		
+		
+		lua_pushnumber (state, API_SUCCESS);
+		return 1;
+
+	}
+
+	int
+	IwScript::LuaWaitTillHangup(CLuaVirtualMachine& vm)
+	{
+		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
+
+		LogDebug("Wait till hang up iwh:" << _callSession.StackCallHandle());
+
+		lua_State *state = (lua_State *) vm;
+
+
+		_callSession.WaitTillHangup();
+
+		lua_pushnumber (state, API_SUCCESS);
+		return 1;
 
 	}
 

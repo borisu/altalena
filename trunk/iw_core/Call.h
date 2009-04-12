@@ -342,6 +342,8 @@ namespace ivrworx
 
 		ApiErrorCode BlindXfer(IN const string &destination_uri);
 
+		void WaitTillHangup();
+
 		CnxInfo RemoteMedia() const;
 		void RemoteMedia(CnxInfo &val);
 
@@ -371,6 +373,8 @@ namespace ivrworx
 		BOOL _hangupDetected;
 
 		LpHandlePtr _dtmfChannel;
+
+		LpHandlePtr _hangupChannel;
 
 		CallState _callState;
 
