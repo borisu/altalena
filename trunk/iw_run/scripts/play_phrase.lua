@@ -160,7 +160,7 @@ end
 
 local function play_hundreds(i)
 
-	if (i == 0) then return end;
+	if (i == 0) then return 0; end;
 	
 	return ivrworx.play(numbers_path.."\\"..hundreds_sounds[i],true,false);
 	
@@ -169,7 +169,7 @@ end
 
 local function play_two_digits(i)
 
-	if (i == 0) then return end;
+	if (i == 0) then return 0; end;
 		
 	return ivrworx.play(numbers_path.."\\"..two_digits_sounds[i],true,false);
 
@@ -177,7 +177,7 @@ end
 
 local function play_three_digits(i, radix)
 
-	if ( i==0 ) then return end;
+	if ( i==0 ) then return 0; end;
 		
 		local last_two_digits =  i % 100;
 		local hundreds = i - last_two_digits;
@@ -284,12 +284,13 @@ end
 
 -- test begin
 
---
+
 --function play(ref,file)
 --	print (file)
 --end
 --
---this = { ["play"] = play }
+--ivrworx = { ["play"] = play }
+--conf = { ["sounds_dir"] = "." } 
 --
 --
 --print("one digit ----")
