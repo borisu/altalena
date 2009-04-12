@@ -1,7 +1,7 @@
 {
     
 	
-	"resip_log" : "DUM,INF",
+	"resip_log" : "DUM,DBG|TRANSPORT,DBG",
 	
 	"debug_level"  : "DBG",
 	"debug_outputs" : "console,syslog,debug",

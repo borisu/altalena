@@ -127,6 +127,16 @@ namespace ivrworx
 		SipDialogContextPtr ctx_ptr = (*iter).second;
 		InviteSessionHandle invite_handle = ctx_ptr->invite_handle;
 
+		if (invite_handle->isConnected() == false)
+		{
+			LogWarn("Cannot xfer in not connected state, " << LogHandleState(ctx_ptr, invite_handle))
+			GetCurrLightWeightProc()->SendResponse(
+				req,
+				new MsgCallBlindXferNack());
+
+			return;
+		}
+
 		
 		LogDebug("UponBlindXferReq:: dst:" << xfer_req->destination_uri << ", " << LogHandleState(ctx_ptr, invite_handle));
 
