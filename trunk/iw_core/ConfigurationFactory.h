@@ -26,6 +26,16 @@ namespace ivrworx
 	typedef 
 	shared_ptr<Configuration> ConfigurationPtr;
 
+	/**
+	*
+	*	Configuration Factory.
+	*
+	*	This class is used to hide @ref configuration data source dependencies from including files.
+	*	Every new configuration should supply factory class so using files will not have to include 
+	*	dependent headers.
+	*	
+	*
+	**/
 	class ConfigurationFactory
 	{
 	public:
@@ -34,6 +44,16 @@ namespace ivrworx
 
 		virtual ~ConfigurationFactory(void);
 
+		/**
+		*
+		*	Creates @ref configuration from Json file.
+		*
+		*	@param_in	Path to the file.
+		*	@param_out	The result of operation.
+		*
+		*	@return	Smart pointer to configuration object.
+		*
+		*/
 		static ConfigurationPtr CreateJsonConfiguration(const string &filename, ApiErrorCode &err_code);
 
 	};

@@ -23,24 +23,40 @@ using namespace std;
 using namespace boost;
 using namespace boost::serialization;
 
+/**
+@defgroup system architecture
+
+ivrworx(R) is built around the idea that we may achieve simple synchronous telephony API script 
+without sacrificing the efficiency. Asynchronous application are really the most efficient ones and
+usually telephony servers are built around event-driven architecture. The state of the call is
+remembered and retrieved at each event. It turns out that this style of programming is only good
+for implementing a reasonably simple state machines however even for most simple applications like
+IVR state machine turns out to be too complicated. The main problem when building synchronous API
+for telephony application is thread management. You may not open too many threads on one hand and
+you may not hang the thread waiting for response on another. Another problems with threads is that
+highly parallelized applications are prone to race conditions.
+
+ivrworx(R) solves the problem by utilizing fibers windows API in order to open. The fibers and its 
+scheduling framework is encapsulated by CSP framework. For every incoming call new fiber is open
+in IVR thread which load its own copy of lua virtual machine. Scripts are exposing simplistic
+synchronous API to handle calls.
+**/
+
 namespace ivrworx
 {
-#define IW_UNDEFINED -1
 
+	#define IW_UNDEFINED -1
 
 	enum ApiErrorCode
 	{
 		API_SUCCESS = 0,
 		API_FAILURE,
 		API_SERVER_FAILURE,
-		API_TIMEOUT,
-		API_OUT_OF_BAND,
-		API_UNKNOWN_PROC_DESTINATION,
-		API_OPERATION_IN_PROGRESS 
+		API_TIMEOUT
 	};
 
-#define IW_SUCCESS(x)	((x) == API_SUCCESS)
-#define IW_FAILURE(x)	((x) != API_SUCCESS)
+	#define IW_SUCCESS(x)	((x) == API_SUCCESS)
+	#define IW_FAILURE(x)	((x) != API_SUCCESS)
 
 
 	typedef int HandleId;
@@ -52,16 +68,14 @@ namespace ivrworx
 	enum WellKnownProcAlias
 	{
 		IVR_Q,						
-		IMS_Q,
-		SIP_STACK_Q,
-		LAST_WELL_KNOWN_Q_MARKER    
+		IMS_Q
 	};
 
+	/**
 
-#define IsWellKnownPid(x)  ((x) < LAST_WELL_KNOWN_Q_MARKER)
+	Denotes SDP format (speech codec, dtmf encoding..)
 
-	typedef long ConnectionId;
-
+	**/
 	struct MediaFormat
 	{
 		enum MediaType
@@ -135,6 +149,11 @@ namespace ivrworx
 
 	ostream& operator << (ostream &ostream, const MediaFormat &ptr);
 
+	/**
+
+	Encapsulates the ip and port information. If supplied host name tries to resolve it to ip addr structure.
+
+	**/
 	class CnxInfo
 	{
 	private:
@@ -146,8 +165,6 @@ namespace ivrworx
 		string saddrport;
 
 		string sport;
-
-		MediaFormat codec;
 
 	public:
 
