@@ -27,6 +27,12 @@ using namespace json_spirit;
 namespace ivrworx
 {
 
+	/**
+	*	@defgroup @jsonconfiguration
+	*
+	*	Reads the @ref configuration configuration from <a href="http://en.wikipedia.org/wiki/json">Json</a> file.
+	*	
+	*/
 	class JSONConfiguration :
 		public Configuration
 	{
@@ -36,13 +42,27 @@ namespace ivrworx
 
 		virtual ~JSONConfiguration(void);
 
-		ApiErrorCode InitFromFile(const string &filename);
+		/**
+		*	Reads Json @ref configuration from file indicated in parameter.
+		*
+		*	@param_in path Name to json configuration file.
+		*
+		*	@return Result of operation.
+		**/
+		ApiErrorCode InitFromFile(IN const string &filename);
 
-		ApiErrorCode InitFromString(const string &is);
-
-		ApiErrorCode InitDb();
+		/**
+		*	Reads Json @ref configuration from string buffer.
+		*
+		*	@param_in path Buffer containing the valid json input.
+		*
+		*	@return Result of operation.
+		**/
+		ApiErrorCode InitFromString(IN const string &is);
 
 	private:
+
+		ApiErrorCode InitDb();
 
 		Value _value;
 	};

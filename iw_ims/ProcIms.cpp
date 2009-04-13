@@ -312,7 +312,7 @@ namespace ivrworx
 	void
 	ProcIms::InitCodecs()
 	{
-		for (MediaFormatsPtrList::const_iterator conf_iter = _conf.CodecList().begin(); conf_iter != _conf.CodecList().end(); conf_iter++)
+		for (MediaFormatsPtrList::const_iterator conf_iter = _conf.MediaFormats().begin(); conf_iter != _conf.MediaFormats().end(); conf_iter++)
 		{
 			
 			const MediaFormat *media_format = *(conf_iter);

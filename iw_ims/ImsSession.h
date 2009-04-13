@@ -68,7 +68,7 @@ namespace ivrworx
 
 		ApiErrorCode	SyncStreamFile();
 
-		ConnectionId _imsSessionHandle;
+		ImsHandleId _imsSessionHandle;
 
 		CnxInfo _imsMediaData;
 

@@ -74,32 +74,32 @@ using namespace std;
 namespace ivrworx
 {
 
-#define _QUOTE(x) # x
-#define QUOTE(x) _QUOTE(x)
-#define __FILE__LINE__ __FILE__ "(" QUOTE(__LINE__) ") : "
+	#define _QUOTE(x) # x
+	#define QUOTE(x) _QUOTE(x)
+	#define __FILE__LINE__ __FILE__ "(" QUOTE(__LINE__) ") : "
 
-#define NOTE( x )  message( x )
-#define FILE_LINE  message( __FILE__LINE__ )
+	#define NOTE( x )  message( x )
+	#define FILE_LINE  message( __FILE__LINE__ )
 
-#define TODO( x )  message( __FILE__LINE__"\n"           \
-	" ------------------------------------------------\n" \
-	"|  TODO :   " #x "\n" \
-	" -------------------------------------------------\n" )
+	#define TODO( x )  message( __FILE__LINE__"\n"           \
+		" ------------------------------------------------\n" \
+		"|  TODO :   " #x "\n" \
+		" -------------------------------------------------\n" )
 
-#define FIXME( x )  message(  __FILE__LINE__"\n"           \
-	" ------------------------------------------------\n" \
-	"|  FIXME :  " #x "\n" \
-	" -------------------------------------------------\n" )
+	#define FIXME( x )  message(  __FILE__LINE__"\n"           \
+		" ------------------------------------------------\n" \
+		"|  FIXME :  " #x "\n" \
+		" -------------------------------------------------\n" )
 
-#define todo( x )  message( __FILE__LINE__" TODO :   " #x "\n" ) 
-#define fixme( x )  message( __FILE__LINE__" FIXME:   " #x "\n" ) 
+	#define todo( x )  message( __FILE__LINE__" TODO :   " #x "\n" ) 
+	#define fixme( x )  message( __FILE__LINE__" FIXME:   " #x "\n" ) 
 
-#define NAME(x) #x
+	#define NAME(x) #x
 
-#define START_FORKING_REGION { ScopedForking forking
-#define FORK(x) forking.fork( x )
-#define FORK_IN_THIS_THREAD(x) forking.forkInThisThread( x )
-#define END_FORKING_REGION }
+	#define START_FORKING_REGION { ScopedForking forking
+	#define FORK(x) forking.fork( x )
+	#define FORK_IN_THIS_THREAD(x) forking.forkInThisThread( x )
+	#define END_FORKING_REGION }
 
 	wstring StringToWString(const string& s);
 
@@ -113,9 +113,9 @@ namespace ivrworx
 
 	void WStringToLower(wstring strToConvert);
 
-#define  NON_FIBEROUS_THREAD ((PVOID)0x1E00)
+	#define  NON_FIBEROUS_THREAD ((PVOID)0x1E00)
 
-#define DISABLE_SRC_REF
+	#define DISABLE_SRC_REF
 //#define NOLOGS
 //#define PROFILE
 
