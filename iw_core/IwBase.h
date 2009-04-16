@@ -19,28 +19,62 @@
 
 #pragma once
 
-using namespace std;
-using namespace boost;
-using namespace boost::serialization;
 
 /**
-@defgroup system architecture
+@mainpage ivrworx
 
-ivrworx(R) is built around the idea that we may achieve simple synchronous telephony API script 
-without sacrificing the efficiency. Asynchronous application are really the most efficient ones and
-usually telephony servers are built around event-driven architecture. The state of the call is
+<B>Documenation is (as always) much work in progress. If you are missing some info, please write to <A HREF="borisusun@gmail.com">me</A> 
+and I will add it ASAP.</B>
+
+@section Introduction
+
+ivrworx &reg; is an <A HREF="http://en.wikipedia.org/wiki/Interactive_voice_response">IVR</A>
+application, where you can write your call flow scripts in <A HREF="http://www.lua.org/">Lua</A> programming language.
+@section Documentation
+
+- @ref scripts 
+This section gives brief explanation on how to wirite ivrworx lua scripts.
+
+- @ref configuration
+This section explains how to configure the system
+
+- @ref architecture
+If you are a developer or you would like to know more regarding the "under-the-hood" implementation proceed to @ref Architecture section
+
+@section Development Join The Development
+The ivrworx is a project under development. We need working hands. Contact borisusun@gmail.com in order to join development team.
+
+
+**/
+
+/**
+@defgroup architecture
+@page Architecture
+
+ivrworx &reg; is built around the idea that we may achieve simple synchronous telephony API script 
+without sacrificing the efficiency. Asynchronous application are really the most efficient ones, and
+usually telephony servers are built around this event-driven architecture. The state of the call is
 remembered and retrieved at each event. It turns out that this style of programming is only good
-for implementing a reasonably simple state machines however even for most simple applications like
-IVR state machine turns out to be too complicated. The main problem when building synchronous API
+for implementing a reasonably simple state machines. However, even for most simple applications like
+IVR state machine asynchnronous API turns out to be too complicated and cumbersome to use. 
+
+The main problem when building synchronous API
 for telephony application is thread management. You may not open too many threads on one hand and
 you may not hang the thread waiting for response on another. Another problems with threads is that
-highly parallelized applications are prone to race conditions.
+highly parallelized applications are prone to race conditions and correct locking of a resources is a .
 
 ivrworx(R) solves the problem by utilizing fibers windows API in order to open. The fibers and its 
 scheduling framework is encapsulated by CSP framework. For every incoming call new fiber is open
 in IVR thread which load its own copy of lua virtual machine. Scripts are exposing simplistic
 synchronous API to handle calls.
+
+TBD
+
 **/
+
+using namespace std;
+using namespace boost;
+using namespace boost::serialization;
 
 namespace ivrworx
 {
