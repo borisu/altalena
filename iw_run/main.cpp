@@ -147,14 +147,24 @@ using namespace ivrworx;
 int _tmain(int argc, _TCHAR* argv[])
 {
 
+	wstring conf_file;
+
 	if (argc < 2)
 	{
 		cerr << "Usage: ivrworx.exe [configuration_file]" << std::endl;
 		cerr << "Starts lightweight IVR application." << std::endl;
-		return IW_WRONG_NUMBER_OF_ARGUMENTS;
+		cerr << "Trying default conf.json file...";
+
+		conf_file = L"conf.json";
+
+	} 
+	else
+	{
+		conf_file = argv[1];
+
 	}
 
-	wstring conf_file(argv[1]);
+	
 
 	
 	ApiErrorCode err_code = API_SUCCESS;
