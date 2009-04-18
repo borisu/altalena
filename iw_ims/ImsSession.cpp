@@ -28,6 +28,8 @@ using namespace boost;
 namespace ivrworx
 {
 
+
+
 ImsSession::ImsSession(IN ScopedForking &forking):
 _imsSessionHandle(IW_UNDEFINED),
 _imsSessionHandlerPair(HANDLE_PAIR),
@@ -35,6 +37,23 @@ _forking(forking),
 _rfc2833DtmfHandle(new LpHandle())
 {
 	FUNCTRACKER;
+
+	_dtmfMap[0] = '0';
+	_dtmfMap[1] = '1';
+	_dtmfMap[2] = '2';
+	_dtmfMap[3] = '3';
+	_dtmfMap[4] = '4';
+	_dtmfMap[5] = '5';
+	_dtmfMap[6] = '6';
+	_dtmfMap[7] = '7';
+	_dtmfMap[8] = '8';
+	_dtmfMap[9] = '9';
+	_dtmfMap[10] = '*';
+	_dtmfMap[11] = '#';
+	_dtmfMap[12] = 'A';
+	_dtmfMap[13] = 'B';
+	_dtmfMap[14] = 'C';
+	_dtmfMap[15] = 'D';
 }
 
 ImsSession::~ImsSession(void)
@@ -176,7 +195,18 @@ ImsSession::WaitForDtmf(OUT int &dtmf, IN Time timeout)
 	}
 
 	shared_ptr<MsgImsRfc2833DtmfEvt> dtmf_event = shared_dynamic_cast<MsgImsRfc2833DtmfEvt> (ptr);
-	dtmf = dtmf_event->dtmf_digit;
+	
+
+	
+	
+	DtmfMap::iterator iter =  _dtmfMap.find(dtmf_event->dtmf_digit);
+	if (iter == _dtmfMap.end())
+	{
+		LogWarn("Unknown dtmf event:" << dtmf);
+		return API_FAILURE;
+	}
+
+	dtmf = iter->second;
 
 	_dtmf = _dtmf + (char)dtmf;
 

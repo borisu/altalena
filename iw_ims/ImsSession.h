@@ -27,6 +27,9 @@ namespace ivrworx
 
 	int ImsHandleId;
 
+	typedef map<int,char> 
+	DtmfMap;
+
 	class ImsSession :
 		public ActiveObject
 	{
@@ -79,6 +82,8 @@ namespace ivrworx
 		LpHandlePair _imsSessionHandlerPair;
 
 		string _dtmf;
+
+		DtmfMap _dtmfMap;
 	};
 
 	typedef shared_ptr<ImsSession> ImsSessionPtr;
