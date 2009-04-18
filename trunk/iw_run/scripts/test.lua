@@ -28,7 +28,7 @@ local res = 0
 
 while dtmf ~= "#" do
 
-	res,int_dtmf = ivrworx.wait_for_dtmf(2000);
+	res,int_dtmf = ivrworx.wait_for_dtmf(20000);
 	-- timeout
 	
  	if (res == 3) then
