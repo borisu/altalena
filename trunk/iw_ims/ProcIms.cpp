@@ -913,7 +913,37 @@ error:
 		shared_ptr<MsgStartPlayReq> req  =
 			dynamic_pointer_cast<MsgStartPlayReq> (msg);
 
-		LogDebug("StartPlayback:: Play file name:" << req->file_name << ", loop:" << req->loop << ", imsh:" << req->playback_handle);
+		string filename = req->file_name;
+
+		WIN32_FIND_DATAA FindFileData;
+		HANDLE hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);
+		if (hFind == INVALID_HANDLE_VALUE) 
+		{
+			// relative path?
+			filename = _conf.SoundsPath()+ "\\" + req->file_name;
+			hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);;
+			if (hFind == INVALID_HANDLE_VALUE) 
+			{
+				LogWarn("file:" << filename << " not found.");
+				SendResponse(msg, new MsgStartPlayReqNack());
+				return;
+			}
+		} 
+
+		char buffer[1024];
+		buffer[0] = '\0';
+		DWORD res_len = ::GetFullPathNameA(filename.c_str(),1024,buffer,NULL);
+		if (res_len <= 0)
+		{
+			LogSysError("::GetFullPathNameA");
+			SendResponse(msg, new MsgStartPlayReqNack());
+			return;
+		}
+
+		filename = buffer;
+
+
+		LogDebug("StartPlayback:: Play file name:" << filename << ", loop:" << req->loop << ", imsh:" << req->playback_handle);
 
 		StreamingCtxsMap::iterator iter = 
 			_streamingObjectSet.find(req->playback_handle);
@@ -938,7 +968,7 @@ error:
 			return;
 		}
 
-		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_OPEN,(void*)req->file_name.c_str());
+		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_OPEN,(void*)filename.c_str());
 		if (res < 0)
 		{
 			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_OPEN imsh:" << req->playback_handle);

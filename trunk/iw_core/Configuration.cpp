@@ -44,15 +44,6 @@ namespace ivrworx
 	}
 
 	CnxInfo
-	Configuration::DefaultCnxInfo()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _defaultIp;
-
-	}
-
-	CnxInfo
 	Configuration::IvrCnxInfo()
 	{
 		mutex::scoped_lock lock(_mutex);

@@ -281,16 +281,75 @@ function play_number(i)
 end
 
 
+--
+-- Checks only first symbol for alphanumericity
+--
+function isalphanumeric(s)
+
+	if (s == nil or string.len(s)== 0) then return false; end;
+
+	local asciicode = tonumber(string.byte(s))
+
+	if  ( (asciicode >= 48 and asciicode <= 57) or
+		  (asciicode >= 65 and asciicode <= 90) or
+		  (asciicode >= 97 and  asciicode <= 122))
+	then
+		return true
+	else
+		return false
+	end
+
+end
+
+
+function spell(str)
+
+	if (str == nil) then return -1; end;
+	
+	if (conf["sounds_dir"] == nil) then 
+		letters_path = "basic_words\\alphabet";
+	else
+		letters_path = conf["sounds_dir"].."\\basic_words\\alphabet";
+	end
+	
+	local num_len = string.len(str);
+	
+	for i = 1,num_len,1 do
+	
+	    local symbol = string.sub(str,i,i);
+	    
+	    if (tonumber(symbol) ~= nil) then
+	    	play_number(tonumber(symbol))
+	    else
+			if (isalphanumeric(symbol)) then
+				ivrworx.play(letters_path.."\\"..symbol..".wav",true,false);
+			end
+		end
+	    
+	end
+
+end
+
 
 -- test begin
 
 
---function play(ref,file)
+--function play(file,sync,loop)
 --	print (file)
 --end
---
+
 --ivrworx = { ["play"] = play }
---conf = { ["sounds_dir"] = "." } 
+--conf = { ["sounds_dir"] = "." }
+
+
+
+
+
+--print("--123");
+--spell(nil);
+ 
+
+ 
 --
 --
 --print("one digit ----")
