@@ -10,7 +10,6 @@
 *	This library is distributed in the hope that it will be useful,
 *	but WITHOUT ANY WARRANTY; without even the implied warranty of
 *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-*	Lesser General Public License for more details.
 *
 *	You should have received a copy of the GNU Lesser General Public
 *	License along with this library; if not, write to the Free Software
@@ -22,13 +21,21 @@
 
 using namespace std;
 
+/**
+
+@defgroup configuration Configuration
+
+<B>ivrworx</B> currently uses json configuration file. For notes regarding the 
+valid values see ivrworx::Configuration doc, and comments in json file that comes
+with installation package.
+
+**/
+
 namespace ivrworx
 {
 
 	/**
 	*	
-	*	@defgroup configuration 
-	*
 	*	Configuration of ivrworx.
 	*
 	*	This is abstract class representing configuration of ivrworx.
@@ -95,14 +102,14 @@ namespace ivrworx
 		/**
 		*	Adds supported media format.
 		*
-		*	@param_in Supported media format 
+		*	@param media_format Supported media format 
 		**/
 		virtual void AddMediaFormat(IN const MediaFormat& media_format);
 
 		/**
 		*	Adds supported media format.
 		*
-		*	@param_in Supported media format 
+		*	@param codec Supported media format 
 		**/
 		virtual void AddMediaFormat(IN const MediaFormat* codec);
 

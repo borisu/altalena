@@ -120,7 +120,7 @@ namespace ivrworx
 	}
 
 	ApiErrorCode
-	JSONConfiguration::InitFromFile(const string &filename)
+	JSONConfiguration::InitFromFile(IN const string &filename)
 	{
 		ifstream is(filename.c_str());
 
@@ -135,7 +135,7 @@ namespace ivrworx
 	}
 
 	ApiErrorCode
-	JSONConfiguration::InitFromString(const string &is)
+	JSONConfiguration::InitFromString(IN const string &is)
 	{
 
 		if (read(is, _value) == false)

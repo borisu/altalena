@@ -48,8 +48,8 @@ namespace ivrworx
 		*
 		*	Creates @ref configuration from Json file.
 		*
-		*	@param_in	Path to the file.
-		*	@param_out	The result of operation.
+		*	@param	filename Path to the file.
+		*	@param	err_code The result of operation.
 		*
 		*	@return	Smart pointer to configuration object.
 		*

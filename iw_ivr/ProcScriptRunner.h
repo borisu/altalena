@@ -25,7 +25,7 @@
 #include "LuaTable.h"
 
 /**
-@defgroup scripts
+@defgroup scripts Scripts
  
 @section Fibers Fibers Context Consideration
 

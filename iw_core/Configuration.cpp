@@ -87,7 +87,7 @@ namespace ivrworx
 
 
 	void
-	Configuration::AddMediaFormat(const MediaFormat& codec)
+	Configuration::AddMediaFormat(IN const MediaFormat& codec)
 	{
 		mutex::scoped_lock lock(_mutex);
 
@@ -97,7 +97,7 @@ namespace ivrworx
 
 
 	void
-	Configuration::AddMediaFormat(const MediaFormat* codec)
+	Configuration::AddMediaFormat(IN const MediaFormat* codec)
 	{
 		mutex::scoped_lock lock(_mutex);
 

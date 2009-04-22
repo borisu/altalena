@@ -49,9 +49,9 @@ namespace ivrworx
 	}
 
 	LightweightProcess::LightweightProcess(
-		LpHandlePair pair,
-		int process_alias,
-		const string &owner_name
+		IN LpHandlePair pair,
+		IN int process_alias,
+		IN const string &owner_name
 		):
 	_pair(pair),
 	_inbound(pair.inbound),
@@ -101,7 +101,7 @@ namespace ivrworx
 
 
 	BOOL 
-	LightweightProcess::HandleOOBMessage(IwMessagePtr msg)
+	LightweightProcess::HandleOOBMessage(IN IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 
@@ -234,7 +234,7 @@ namespace ivrworx
 
 
 	ApiErrorCode
-	LightweightProcess::SendMessage(IwMessagePtr message)
+	LightweightProcess::SendMessage(IN IwMessagePtr message)
 	{
 
 		IX_PROFILE_FUNCTION();
@@ -462,7 +462,7 @@ namespace ivrworx
 	}
 
 	ApiErrorCode
-	LightweightProcess::Ping(ProcId qid)
+	LightweightProcess::Ping(IN ProcId qid)
 	{
 		FUNCTRACKER;
 
@@ -499,7 +499,7 @@ namespace ivrworx
 
 
 	ApiErrorCode
-	LightweightProcess::WaitTillReady(Time time, LpHandlePair pair)
+	LightweightProcess::WaitTillReady(IN Time time, IN LpHandlePair pair)
 	{
 
 
