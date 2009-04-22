@@ -157,7 +157,7 @@ namespace ivrworx
 	}
 
 	void 
-	LpHandle::Direction(HandleDirection val) 
+	LpHandle::Direction(IN HandleDirection val) 
 	{ 
 		_direction = val; 
 	}
@@ -184,7 +184,7 @@ namespace ivrworx
 	}
 
 	void 
-	LpHandle::HandleInterruptor(InterruptorPtr interruptor)
+	LpHandle::HandleInterruptor(IN InterruptorPtr interruptor)
 	{
 		_interruptor = interruptor;
 	}
@@ -286,7 +286,7 @@ namespace ivrworx
 
 
 	IwMessagePtr
-	LpHandle::Wait(IN Time timeout, IN ApiErrorCode &res)
+	LpHandle::Wait(IN Time timeout, OUT ApiErrorCode &res)
 	{
 
 		FUNCTRACKER;
@@ -343,7 +343,7 @@ read:
 	}
 
 	void 
-	LpHandle::HandleName(const string &val) 
+	LpHandle::HandleName(IN const string &val) 
 	{ 
 		_name = val; 
 	}

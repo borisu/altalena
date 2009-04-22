@@ -86,7 +86,7 @@ Call::ResetState(CallState state, const char *state_str)
 }
 
 void
-Call::EnableMediaFormat(const MediaFormat& media_format)
+Call::EnableMediaFormat(IN const MediaFormat& media_format)
 {
 	FUNCTRACKER;
 

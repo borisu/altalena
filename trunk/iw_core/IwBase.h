@@ -48,7 +48,9 @@ The ivrworx is a project under development. We need working hands. Contact boris
 **/
 
 /**
-@defgroup architecture
+
+@defgroup architecture Architecture
+
 @page Architecture
 
 ivrworx &reg; is built around the idea that we may achieve simple synchronous telephony API script 
@@ -122,12 +124,12 @@ namespace ivrworx
 		MediaFormat();
 
 		MediaFormat(
-			IN string param_name, 
+			IN const string &param_name, 
 			IN int param_sampling_rate,
 			IN int param_sdp_mapping,
 			IN MediaType media_type = MediaType_UNKNOWN);
 
-		MediaFormat(const MediaFormat &codec);
+		MediaFormat(IN const MediaFormat &codec);
 
 		int sampling_rate() const;
 

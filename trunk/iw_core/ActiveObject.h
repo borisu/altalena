@@ -159,7 +159,9 @@ namespace ivrworx
 	{
 	public:
 
-		ProcEventListener(ActiveObject &object,LpHandlePair pair, string name);
+		ProcEventListener(IN ActiveObject &object,
+						  IN LpHandlePair pair, 
+						  IN const string &name);
 
 		void real_run();
 

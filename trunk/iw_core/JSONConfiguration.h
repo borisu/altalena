@@ -28,7 +28,7 @@ namespace ivrworx
 {
 
 	/**
-	*	@defgroup @jsonconfiguration
+	*	@defgroup jsonconfiguration Json Configuration
 	*
 	*	Reads the @ref configuration configuration from <a href="http://en.wikipedia.org/wiki/json">Json</a> file.
 	*	

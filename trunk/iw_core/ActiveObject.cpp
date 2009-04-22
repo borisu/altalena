@@ -72,13 +72,13 @@ namespace ivrworx
 	}
 
 	void 
-	ActiveObject::SetEventListener(int msg_id, LpHandlePtr listener_handle)
+	ActiveObject::SetEventListener(IN int msg_id, IN LpHandlePtr listener_handle)
 	{
 		_listenersMap[msg_id] = listener_handle;
 	}
 
 	void
-	ActiveObject::UponActiveObjectEvent(IwMessagePtr ptr)
+	ActiveObject::UponActiveObjectEvent(IN IwMessagePtr ptr)
 	{
 		EventListenersMap::iterator iter = _listenersMap.find(ptr->message_id);
 		if (iter != _listenersMap.end())
@@ -90,7 +90,7 @@ namespace ivrworx
 	ProcEventListener::ProcEventListener(
 		IN ActiveObject &object,
 		IN LpHandlePair pair, 
-		IN string name):
+		IN const string &name):
 		LightweightProcess(pair,name),
 		_activeObject(object)
 	{

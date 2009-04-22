@@ -95,7 +95,7 @@ namespace ivrworx
 
 
 	ApiErrorCode 
-	CallWithDirectRtp::SendRfc2833Dtmf(OUT char dtmf)
+	CallWithDirectRtp::SendRfc2833Dtmf(IN char dtmf)
 	{
 		FUNCTRACKER;
 

@@ -78,7 +78,7 @@ namespace ivrworx
 	{
 
 	public:
-		ProcIms(LpHandlePair pair, Configuration &conf);
+		ProcIms(IN LpHandlePair pair, IN Configuration &conf);
 
 		void real_run();
 

@@ -24,7 +24,7 @@
 
 namespace ivrworx
 {
-	LuaTable::LuaTable(CLuaVirtualMachine& vm): 
+	LuaTable::LuaTable(IN CLuaVirtualMachine& vm): 
 		_oldRef (0), 
 		_vm (vm),
 		_tableRef(0)

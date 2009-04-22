@@ -77,7 +77,7 @@ LocalProcessRegistrar::RegisterChannel(IN int handle_id, IN LpHandlePtr ptr)
 }
 
 void
-LocalProcessRegistrar::UnregisterChannel(int handle_id)
+LocalProcessRegistrar::UnregisterChannel(IN int handle_id)
 {
 	if (handle_id == IW_UNDEFINED)
 	{
@@ -115,7 +115,7 @@ LocalProcessRegistrar::UnregisterChannel(int handle_id)
 
 
 LpHandlePtr 
-LocalProcessRegistrar::GetHandle(int procId)
+LocalProcessRegistrar::GetHandle(IN int procId)
 {
 	return GetHandle(procId,"");
 
@@ -141,7 +141,7 @@ LocalProcessRegistrar::AddShutdownListener(IN int procId, IN LpHandlePtr channel
 }
 
 LpHandlePtr
-LocalProcessRegistrar::GetHandle(int procId,const string &qpath)
+LocalProcessRegistrar::GetHandle(IN int procId, IN const string &qpath)
 {
 	//
 	// Scope to refrain taking nested locks

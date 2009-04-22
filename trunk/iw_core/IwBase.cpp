@@ -36,7 +36,11 @@ namespace ivrworx
 		init_strings();
 	};
 
-	MediaFormat::MediaFormat(string param_name, int param_sampling_rate,int param_sdp_mapping, MediaType _media_type)
+	MediaFormat::MediaFormat(
+		IN const string &param_name, 
+		IN int param_sampling_rate,
+		IN int param_sdp_mapping, 
+		IN MediaType _media_type)
 		:name(param_name),
 		rate(param_sampling_rate),
 		mapping(param_sdp_mapping),
@@ -49,7 +53,7 @@ namespace ivrworx
 		init_strings();
 	};
 
-	MediaFormat::MediaFormat(const MediaFormat &other)
+	MediaFormat::MediaFormat(IN const MediaFormat &other)
 	{
 		name = other.name;
 		rate = other.rate;
@@ -187,17 +191,17 @@ namespace ivrworx
 	}
 
 
-	CnxInfo::CnxInfo(const string &s, int p_port)
+	CnxInfo::CnxInfo(IN const string &s, IN int p_port)
 	{
 		init_from_hostname(s.c_str(),p_port);
 	}
 
-	CnxInfo::CnxInfo(const char *ip, int p_port)
+	CnxInfo::CnxInfo(IN const char *ip, IN int p_port)
 	{
 		init_from_hostname(ip,p_port);
 	}
 
-	CnxInfo::CnxInfo(in_addr p_in_addr, int p_port)
+	CnxInfo::CnxInfo(IN in_addr p_in_addr, IN int p_port)
 	{
 		addr.sin_family = AF_INET;;
 		addr.sin_addr = p_in_addr;
@@ -245,7 +249,7 @@ namespace ivrworx
 		return (addr.sin_port != IW_UNDEFINED);
 	}
 
-	CnxInfo::CnxInfo(const CnxInfo &x)
+	CnxInfo::CnxInfo(IN const CnxInfo &x)
 	{
 		addr = x.addr;
 		saddr = x.saddr;

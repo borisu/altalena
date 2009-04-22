@@ -72,7 +72,7 @@ namespace ivrworx
 	{
 		protected:
 
-			IwMessage (IN int message_id, const string &message_id_str);
+			IwMessage (IN int message_id, IN const string &message_id_str);
 
 		public:
 
