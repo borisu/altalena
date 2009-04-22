@@ -39,7 +39,7 @@ This section gives brief explanation on how to wirite ivrworx lua scripts.
 This section explains how to configure the system
 
 - @ref architecture
-If you are a developer or you would like to know more regarding the "under-the-hood" implementation proceed to @ref Architecture section
+Take a look at this section if you are a developer or you would like to know more regarding the "under-the-hood" implementation of <b>ivrworx</b>.
 
 @section Development Join The Development
 The ivrworx is a project under development. We need working hands. Contact borisusun@gmail.com in order to join development team.
@@ -51,21 +51,21 @@ The ivrworx is a project under development. We need working hands. Contact boris
 
 @defgroup architecture Architecture
 
-@page Architecture
+@section Architecture
 
-ivrworx &reg; is built around the idea that we may achieve simple synchronous telephony API script 
+<b>ivrworx &reg;</b> is built around the idea that we may achieve simple synchronous telephony API script 
 without sacrificing the efficiency. Asynchronous application are really the most efficient ones, and
 usually telephony servers are built around this event-driven architecture. The state of the call is
 remembered and retrieved at each event. It turns out that this style of programming is only good
 for implementing a reasonably simple state machines. However, even for most simple applications like
-IVR state machine asynchnronous API turns out to be too complicated and cumbersome to use. 
+IVR state machine asynchronous API turns out to be too complicated and cumbersome to use. 
 
 The main problem when building synchronous API
 for telephony application is thread management. You may not open too many threads on one hand and
 you may not hang the thread waiting for response on another. Another problems with threads is that
 highly parallelized applications are prone to race conditions and correct locking of a resources is a .
 
-ivrworx(R) solves the problem by utilizing fibers windows API in order to open. The fibers and its 
+<b>ivrworx &reg;</b> solves the problem by utilizing fibers windows API in order to open. The fibers and its 
 scheduling framework is encapsulated by CSP framework. For every incoming call new fiber is open
 in IVR thread which load its own copy of lua virtual machine. Scripts are exposing simplistic
 synchronous API to handle calls.
