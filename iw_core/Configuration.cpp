@@ -187,6 +187,33 @@ namespace ivrworx
 
 	}
 
+	string
+	Configuration::SipRefreshMode()
+	{
+		mutex::scoped_lock lock(_mutex);
+
+		return _sipRefreshMode;
+
+	}
+
+	
+	int
+	Configuration::SipDefaultSessionTime()
+	{
+		mutex::scoped_lock lock(_mutex);
+
+		return _sipDefaultSessionTime;
+
+	}
+
+	bool
+	Configuration::EnableSessionTimer()
+	{
+		mutex::scoped_lock lock(_mutex);
+		return _enableSessionTimer;
+
+	}
+
 
 }
 

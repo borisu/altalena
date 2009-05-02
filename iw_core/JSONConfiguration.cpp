@@ -54,6 +54,12 @@ namespace ivrworx
 		return find_value( obj, name ).get_int();
 	}
 
+	static bool
+	find_bool( const Object& obj, const string& name)
+	{
+		return find_value( obj, name ).get_bool();
+	}
+
 	string
 	get_env_variable_as_str(const char *var_name)
 	{
@@ -216,8 +222,15 @@ namespace ivrworx
 		// basic sound path
 		_soundsPath	= find_str(root_obj, "sounds_dir");
 
-		
-		
+		// refresh mode
+		_sipRefreshMode = find_str(root_obj, "sip_refresh_mode");
+
+		// default refresh time
+		_sipDefaultSessionTime = find_int(root_obj, "sip_default_session_time");
+		_sipDefaultSessionTime = _sipDefaultSessionTime < 90 ? 90 : _sipDefaultSessionTime;
+
+		// enable session timer
+		_enableSessionTimer = find_bool(root_obj,"sip_session_timer_enabled");
 
 		return API_SUCCESS;
 

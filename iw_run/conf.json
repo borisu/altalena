@@ -13,6 +13,10 @@
     "ivr_sip_host": "$COMPUTERNAME",
     "ivr_sip_port": 5060,
     
+    "sip_session_timer_enabled" : true,
+    "sip_refresh_mode" : "prefer_uac",
+    "sip_default_session_time" : 180,
+    
     "from_id" : "ivrworx",
     "from_display_name": "ivrworx",
     
