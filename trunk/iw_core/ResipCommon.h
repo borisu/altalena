@@ -84,6 +84,8 @@ namespace ivrworx
 		IwMessagePtr last_user_request;
 
 		IwStackHandle stack_handle;
+
+		long sdp_version;
 	};
 
 

@@ -28,7 +28,6 @@
 
 namespace ivrworx
 {
-
 	
 	template<class T> string LogHandleState(SipDialogContextPtr ptr, T is)
 	{
@@ -75,8 +74,8 @@ namespace ivrworx
 		string uasUri = "sip:" + conf.From() + "@" + ipAddr.ipporttos();
 		_uasAor		= NameAddrPtr(new NameAddr(uasUri.c_str()));
 
-		addTransport(UDP,ipAddr.port_ho());
-		addTransport(TCP,ipAddr.port_ho());
+		addTransport(UDP,ipAddr.port_ho(),V4,ipAddr.iptoa());
+		addTransport(TCP,ipAddr.port_ho(),V4,ipAddr.iptoa());
 
 		_uasMasterProfile = SharedPtr<MasterProfile>(new MasterProfile());
 		setMasterProfile(_uasMasterProfile);
@@ -87,6 +86,35 @@ namespace ivrworx
 
 		getMasterProfile()->setDefaultFrom(*_uasAor);
 		getMasterProfile()->setDefaultRegistrationTime(70);
+
+
+		if (conf.EnableSessionTimer())
+		{
+			getMasterProfile()->addSupportedOptionTag(Token(Symbols::Timer));
+
+			_confSessionTimerModeMap["prefer_uac"]	  = Profile::PreferUACRefreshes;
+			_confSessionTimerModeMap["prefer_uas"]	  = Profile::PreferUASRefreshes;
+			_confSessionTimerModeMap["prefer_local"]  = Profile::PreferLocalRefreshes;
+			_confSessionTimerModeMap["prefer_remote"] = Profile::PreferRemoteRefreshes;
+
+			ConfSessionTimerModeMap::iterator  i = _confSessionTimerModeMap.find(conf.SipRefreshMode());
+			if (i == _confSessionTimerModeMap.end())
+			{
+				LogInfo("Setting refresh mode to 'none'");
+			}
+			else
+			{
+				LogInfo("Setting refresh mode to " << i->first);
+				getMasterProfile()->setDefaultSessionTimerMode(i->second);
+				getMasterProfile()->setDefaultSessionTime(conf.SipDefaultSessionTime());
+
+			}
+
+		}
+		
+
+		
+
 
 		setClientRegistrationHandler(this);
 		setInviteSessionHandler(this);
@@ -302,6 +330,13 @@ namespace ivrworx
 	}
 
 	void 
+	UASDialogUsageManager::onRemoteSdpChanged(InviteSessionHandle, const SipMessage& msg, const SdpContents&)
+	{
+		FUNCTRACKER;
+
+	}
+
+	void 
 	UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp)      
 	{
 		FUNCTRACKER;
@@ -318,7 +353,16 @@ namespace ivrworx
 
 		LogDebug("onOffer::" << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 
+		// keep alive session - I assume no sdp changed cause otherwise on-sdp-changed callback
+		// should be invoked.
+		if (is->isAccepted())
+		{
+			LogWarn("onOffer:: Session timer keep-alive " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
+ 			is->provideAnswer(is->getLocalSdp());
+			return;
+		}
 
+		
 		const SdpContents::Session &s = sdp.session();
 		const Data &addr_data = s.connection().getAddress();
 		const string addr = addr_data.c_str();
@@ -356,11 +400,7 @@ namespace ivrworx
 
 		DECLARE_NAMED_HANDLE_PAIR(call_handler_pair);
 
-		MsgCallOfferedReq *offered = new MsgCallOfferedReq();
-		offered->remote_media		= CnxInfo(addr,port);
-		offered->stack_call_handle	= ctx_ptr->stack_handle;
-		offered->call_handler_inbound = call_handler_pair;
-
+		
 		// keep alive or hold and reinvite are not accepted currently
 		if (is->isAccepted()		  ||
 			addr == "0.0.0.0"		  || 
@@ -372,11 +412,19 @@ namespace ivrworx
 			return;
 		}
 
+		MsgCallOfferedReq *offered = new MsgCallOfferedReq();
+		offered->remote_media		= CnxInfo(addr,port);
+		offered->stack_call_handle	= ctx_ptr->stack_handle;
+		offered->call_handler_inbound = call_handler_pair;
+
+
 		const Uri &to_uri = msg.header(h_To).uri();
 		offered->dnis = to_uri.user().c_str();
 
 		const Uri &from_uri = msg.header(h_From).uri();
 		offered->ani = from_uri.user().c_str();
+
+		
 
 
 		// send list of codecs to the main process

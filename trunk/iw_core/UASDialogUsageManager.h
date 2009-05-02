@@ -77,6 +77,11 @@ namespace ivrworx
 		/// called when ACK (with out an answer) is received for initial invite (UAS)
 		virtual void onConnectedConfirmed(InviteSessionHandle, const SipMessage &msg);
 
+		/// called when a modified SDP is received in a 2xx response to a
+		/// session-timer reINVITE. Under normal circumstances where the response
+		/// SDP is unchanged from current remote SDP no handler is called
+		virtual void onRemoteSdpChanged(InviteSessionHandle, const SipMessage& msg, const SdpContents&);
+
 
 	private:
 
@@ -93,6 +98,11 @@ namespace ivrworx
 		LightweightProcess &_sipStack;
 
 		long _sdpVersionCounter;
+
+		typedef map<string,Profile::SessionTimerMode> 
+		ConfSessionTimerModeMap;
+
+		ConfSessionTimerModeMap _confSessionTimerModeMap;
 
 	};
 

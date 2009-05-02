@@ -62,6 +62,36 @@ namespace ivrworx
 		virtual CnxInfo IvrCnxInfo();
 
 		/**
+		*
+		*	Adds 'timer' to the list of supported headers.
+		*
+		*	@return 'true' if timer is supported.
+		**/
+		virtual bool EnableSessionTimer();
+
+		/**
+		*	The connection refresh mode
+		*
+		*	Currently supported:-
+		*	- none			- Set to none if you don't want session timer be supported.
+		*	- prefer_uas	- Set to prefer_uas if you prefer that the UAS (for the session - callee) performs the refreshes.
+		*	- prefer_uac	- Set to prefer_uac if you prefer that the UAC (for the session - caller) performs the refreshes.
+		*	- prefer_local	- Set to prefer_local if you prefer that the local UA performs the refreshes. 
+		*	- prefer_remote	- Set to prefer_remote if you prefer that the remote UA performs the refreshes.
+		*
+		*   @return refresh mode
+		*/
+		virtual string SipRefreshMode();
+
+		/**
+		*	Session timer expiration in seconds. Must be greater than 90
+		*
+		*	@return The connection info of IMS thread.
+		**/
+		virtual int	 SipDefaultSessionTime();
+		
+
+		/**
 		*	The connection info of IMS thread. The port is ignored.
 		*
 		*	@return The connection info of IMS thread.
@@ -216,6 +246,12 @@ namespace ivrworx
 		string _debugOutputs;
 
 		string _resipLog;
+
+		string _sipRefreshMode;
+
+		int _sipDefaultSessionTime;
+
+		bool _enableSessionTimer;
 
 	};
 
