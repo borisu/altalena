@@ -1,6 +1,10 @@
 require "ivrworx";
 require "play_phrase";
 
+function on_hangup()
+ ivrworx.logdbg("remote hangup detected for script ani:"..linein["ani"]..", dnis:"..linein["dnis"]);
+end
+
 ivrworx.answer();
 
 ivrworx.logdbg("script started ani:"..linein["ani"]..", dnis:"..linein["dnis"]);

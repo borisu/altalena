@@ -167,6 +167,14 @@ namespace ivrworx
 
 		~IwScript();
 
+		/**
+		When remote hangup is detected, the script is terminated and on_hangup function is called.
+		Common mistake is to define the function at the end of script file. In this case the interpreter
+		may not find it. Please define the function at the beginning of script file.
+
+		**/
+		void RunOnHangupScript();
+
 	private:
 
 		virtual int ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber) ;
@@ -254,5 +262,10 @@ namespace ivrworx
 
 	};
 
+	class script_hangup_exception: 
+		public std::exception
+	{
+
+	};
 
 }
