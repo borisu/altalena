@@ -43,10 +43,11 @@ namespace ivrworx
 	void 
 	ProcScriptRunner::real_run()
 	{
-#pragma TODO ("Initializing vm and compiling script file is a terrible bottleneck")
+		
+		#pragma TODO ("Initializing vm and compiling script file is a terrible bottleneck")
+
 		try
 		{
-			
 			
 			_stackHandle = _initialMsg->stack_call_handle;
 
@@ -80,26 +81,34 @@ namespace ivrworx
 
 			// compile the script if needed
 			IwScript script(_conf,vm,call_session);
-			
 
-			bool res = false;
-			IX_PROFILE_CODE(res = script.CompileFile(_conf.ScriptFile().c_str()));
-			if (res == false)
+			try 
 			{
-				LogWarn("Error Compiling/Running script=[" << _conf.ScriptFile() << "]");
-				return;
-			}
+				bool res = false;
+				IX_PROFILE_CODE(res = script.CompileFile(_conf.ScriptFile().c_str()));
+				if (res == false)
+				{
+					LogWarn("Error compiling/running script:" << _conf.ScriptFile() << " ,iwh:" << _initialMsg->stack_call_handle);
+					return;
+				}
 
-			LogDebug("Script=[" << _conf.ScriptFile() << "], ix call handle=[" << _initialMsg->stack_call_handle <<"] completed successfully.");
+				LogDebug("script:" << _conf.ScriptFile() << ", iwh:" << _initialMsg->stack_call_handle <<" completed successfully.");
+			}
+			catch (script_hangup_exception)
+			{
+				script.RunOnHangupScript();
+			}
+			
 
 			END_FORKING_REGION
 		}
 		catch (std::exception e)
 		{
-			LogWarn("Exception while running script=[ " << _conf.ScriptFile() <<"] e=[" << e.what() << "].");
+			LogWarn("Exception while running script:" << _conf.ScriptFile() <<", e:" << e.what() << ", iwh:" << _initialMsg->stack_call_handle);
 		}
 
 	}
+
 
 	BOOL 
 	ProcScriptRunner::HandleOOBMessage(IN IwMessagePtr msg)
@@ -109,15 +118,14 @@ namespace ivrworx
 		{
 			return TRUE;
 		}
+
 		switch (msg->message_id)
 		{
 		case MSG_CALL_HANG_UP_EVT:
 			{
 
-				LogDebug("Call running script=[" << _conf.ScriptFile() << "], ix call handle=[" << _stackHandle <<"] received hangup event.");
-				return FALSE;
-
-				break;
+				LogDebug("Call running scripts:" << _conf.ScriptFile() << "], iwh:" << _stackHandle <<" received hangup event. The script will be terminated.");
+				throw script_hangup_exception();
 
 			}
 		default:
@@ -231,6 +239,30 @@ namespace ivrworx
 	{
 
 	}
+
+	void 
+	IwScript::RunOnHangupScript()
+	{
+		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
+
+		LogDebug("Running hangup script call iwh:" << _callSession.StackCallHandle());
+
+		lua_State *state = (lua_State *) _vmPtr;
+
+		lua_getfield(state, LUA_GLOBALSINDEX, "on_hangup");
+
+		// hangup function exists?
+		if (lua_isnil(state,-1) == 1)
+		{
+			LogDebug("Hangup script was not defined for call iwh:" << _callSession.StackCallHandle());
+			return;
+		}
+
+		lua_call(state,0,0);
+
+	}
+
 
 	int
 	IwScript::LuaAnswerCall(CLuaVirtualMachine& vm)
