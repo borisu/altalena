@@ -30,7 +30,7 @@ namespace con = JadedHoboConsole;
 namespace ivrworx
 {
 	
-	string FormatLastSysError(char *lpszFunction);
+	string FormatLastSysError(const char *lpszFunction);
 
 	BOOL InitLog(Configuration &conf);	
 

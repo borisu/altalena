@@ -232,6 +232,10 @@ namespace ivrworx
 		// enable session timer
 		_enableSessionTimer = find_bool(root_obj,"sip_session_timer_enabled");
 
+		// read super script
+		_superScript = find_str(root_obj, "super_script");
+		_superMode	 = find_str(root_obj, "super_mode");
+
 		return API_SUCCESS;
 
 	}

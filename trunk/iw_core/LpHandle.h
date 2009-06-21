@@ -37,7 +37,7 @@ namespace ivrworx
 	#define HANDLE_PAIR LpHandlePair(LpHandlePtr(new LpHandle()), LpHandlePtr(new LpHandle()))
 
 
-	// ix messages come with this completion keys
+	// iw messages come with this completion keys
 	#define IOCP_UNIQUE_COMPLETION_KEY 555 
 
 
@@ -60,7 +60,7 @@ namespace ivrworx
 	};
 
 	typedef 
-		shared_ptr<WaitInterruptor> InterruptorPtr;
+	shared_ptr<WaitInterruptor> InterruptorPtr;
 
 	// use this interruptor if you want to receive messages 
 	// by waiting on specific HANDLE by means of WaitForMultipleObjects 
@@ -77,7 +77,7 @@ namespace ivrworx
 
 		virtual void SignalDataOut();
 
-		virtual HANDLE Handle();
+		virtual HANDLE WinHnd();
 
 	private:
 

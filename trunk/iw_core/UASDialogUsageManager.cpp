@@ -353,9 +353,9 @@ namespace ivrworx
 
 		LogDebug("onOffer::" << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 
-		// keep alive session - I assume no sdp changed cause otherwise on-sdp-changed callback
-		// should be invoked.
-		if (is->isAccepted())
+		// keep alive session
+		if (is->isAccepted() && 
+			(sdp.session().origin().getVersion() == is->getLocalSdp().session().origin().getVersion()))
 		{
 			LogWarn("onOffer:: Session timer keep-alive " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
  			is->provideAnswer(is->getLocalSdp());

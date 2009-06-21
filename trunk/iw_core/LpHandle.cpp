@@ -73,7 +73,7 @@ namespace ivrworx
 	}
 
 	HANDLE 
-	SemaphoreInterruptor::Handle()
+	SemaphoreInterruptor::WinHnd()
 	{
 		return _handle;
 	}

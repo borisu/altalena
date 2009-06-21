@@ -44,15 +44,17 @@ class LightweightProcess:
 {
 public:
 
+	LightweightProcess(
+		IN LpHandlePair pair, 
+		IN const string &owner_name = "",
+		IN BOOL start_suspended = FALSE);
+
 	
 	LightweightProcess(
 		IN LpHandlePair pair, 
-		IN const string &owner_name = "");
-
-	LightweightProcess(
-		IN LpHandlePair pair, 
 		IN int inbound_channel_id, 
-		IN const string &owner_name = "");
+		IN const string &owner_name = "",
+		IN BOOL start_suspended = FALSE);
 
 
 	virtual ~LightweightProcess(void);
@@ -157,6 +159,8 @@ protected:
 	int _processId;
 
 	int _processAlias;
+
+	BOOL _startSuspended;
 
 private:
 

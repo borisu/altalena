@@ -45,6 +45,7 @@ namespace ivrworx
 		MSG_PROC_SHUTDOWN_ACK,
 		MSG_PROC_SHUTDOWN_EVT,
 		MSG_PROC_READY,
+		MSG_PROC_RESUME,
 		MSG_PROC_FAILURE,
 
 		MSG_USER_DEFINED = 5000
@@ -106,8 +107,7 @@ namespace ivrworx
 	typedef 
 	boost::shared_ptr<IwMessage> IwMessagePtr;
 
-#define NULL_MSG IwMessagePtr((IwMessage*)NULL)
-
+	#define NULL_MSG IwMessagePtr((IwMessage*)NULL)
 
 	class MsgRequest:
 		public IwMessage
@@ -198,8 +198,22 @@ namespace ivrworx
 	public:
 		MsgProcReady():
 		  IwMessage(MSG_PROC_READY, 
-			  NAME(MSG_PROC_READY)){}
+			  NAME(MSG_PROC_READY)),
+			  thread_id(NULL){};
+
+		HANDLE thread_id;
+
 	};
+
+	class MsgProcResume:
+		public IwMessage
+	{
+	public:
+		MsgProcResume():
+		  IwMessage(MSG_PROC_RESUME, 
+			  NAME(MSG_PROC_RESUME)){};
+	};
+
 
 
 #pragma endregion Process_Management_Events

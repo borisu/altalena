@@ -495,6 +495,14 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\ProcHandleWaiter.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\ProcHandleWaiter.h"
+			>
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt"
 			>
 		</File>

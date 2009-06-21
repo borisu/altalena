@@ -34,13 +34,15 @@ namespace ivrworx
 
 	LightweightProcess::LightweightProcess(
 		IN LpHandlePair pair,
-		IN const string &owner_name):
+		IN const string &owner_name,
+		IN BOOL start_suspended):
 	_pair(pair),
 	_inbound(pair.inbound),
 	_outbound(pair.outbound),
 	_bucket(new Bucket()),
 	_transactionTimeout(5000),
-	_processAlias(IW_UNDEFINED)
+	_processAlias(IW_UNDEFINED),
+	_startSuspended(start_suspended)
 	{
 		FUNCTRACKER;
 
@@ -51,14 +53,16 @@ namespace ivrworx
 	LightweightProcess::LightweightProcess(
 		IN LpHandlePair pair,
 		IN int process_alias,
-		IN const string &owner_name
+		IN const string &owner_name,
+		IN BOOL start_suspended
 		):
 	_pair(pair),
 	_inbound(pair.inbound),
 	_outbound(pair.outbound),
 	_bucket(new Bucket()),
 	_transactionTimeout(5000),
-	_processAlias(process_alias)
+	_processAlias(process_alias),
+	_startSuspended(start_suspended)
 	{
 		FUNCTRACKER;
 
@@ -161,6 +165,44 @@ namespace ivrworx
 
 		
 		tl_procMap->insert(pair<PVOID,LightweightProcess*>(fiber,this));
+
+		//
+		// Wait for resume message to start the process.
+		//
+		if (_startSuspended == TRUE)
+		{
+			ApiErrorCode res = API_SUCCESS;
+			do 
+			{
+				IwMessagePtr msg =  _inbound->Wait(Seconds(60),res);
+				if (res == API_TIMEOUT)
+				{
+					continue;
+				}
+
+				switch (msg->message_id)
+				{
+					case MSG_PROC_SHUTDOWN_EVT:
+						{
+							goto clean;
+						}
+					case MSG_PROC_RESUME:
+						{
+							break;
+						}
+					default:
+						{
+							BOOL res = HandleOOBMessage(msg);
+							if (res == FALSE)
+							{
+								LogDebug("Unhandled OOB msg");
+								goto clean;
+							}
+						}
+				}// switch
+			} while (true);
+		}; // if
+
 		try
 		{
 			real_run();
@@ -170,6 +212,7 @@ namespace ivrworx
 			LogWarn("Exception in process=[" << Name() << "] what=[" << e.what() << "]");
 		}
 
+clean:
 		_inbound->Poison();
 		_bucket->flush();
          
@@ -456,7 +499,10 @@ namespace ivrworx
 	ApiErrorCode
 	LightweightProcess::SendReadyMessage()
 	{
-		_outbound->Send(new MsgProcReady());
+		MsgProcReady* ready = new MsgProcReady();
+		ready->thread_id = ::GetCurrentThread();
+
+		_outbound->Send(ready);
 
 		return API_SUCCESS;
 	}

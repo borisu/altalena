@@ -37,7 +37,7 @@ namespace ivrworx
 	static const char *g_LogLevelStrings[] = {"OFF", "CRT", "WRN", "INF", "DBG", "TRC"};
 
 	string 
-	FormatLastSysError(char *lpszFunction) 
+	FormatLastSysError(const char *lpszFunction) 
 	{ 
 
 		// Retrieve the system error message for the last-error code

@@ -104,7 +104,8 @@ namespace ivrworx
 	enum WellKnownProcAlias
 	{
 		IVR_Q,						
-		IMS_Q
+		IMS_Q,
+		WAITER_Q
 	};
 
 	/**
