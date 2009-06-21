@@ -55,6 +55,27 @@ namespace ivrworx
 
 		/**
 		*
+		*	Name of the super script. Super script is the script that runs on system startup.
+		*
+		*	@return Name of the super script.
+		**/
+		virtual string SuperScript();
+
+		/**
+		*
+		*	Mode of super script.
+		*
+		*	- sync	- IVR is started after super script is over
+		*
+		*	 Any other value would indicate that script is running in parallel with scripts
+		*   accepting the incoming calls
+		*
+		*	@return Name of the super script.
+		**/
+		virtual string SuperMode();
+
+		/**
+		*
 		*	The connection info of SIP stack.
 		*
 		*	@return The connection info of SIP stack.
@@ -252,6 +273,10 @@ namespace ivrworx
 		int _sipDefaultSessionTime;
 
 		bool _enableSessionTimer;
+
+		string _superScript;
+
+		string _superMode;
 
 	};
 

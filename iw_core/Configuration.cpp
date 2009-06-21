@@ -43,6 +43,25 @@ namespace ivrworx
 		}
 	}
 
+	string
+	Configuration::SuperScript()
+	{
+		mutex::scoped_lock lock(_mutex);
+
+		return _superScript;
+
+	}
+
+	string
+	Configuration::SuperMode()
+	{
+		mutex::scoped_lock lock(_mutex);
+
+		return _superMode;
+
+	}
+
+
 	CnxInfo
 	Configuration::IvrCnxInfo()
 	{
