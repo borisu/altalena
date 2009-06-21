@@ -33,6 +33,8 @@ namespace ivrworx
 
 		void AddParam(IN const string &key,  IN const string &value);
 
+		void AddFunction(IN const string &key,  IN const lua_CFunction func);
+			  
 		virtual ~LuaTable (void);
 
 	protected:

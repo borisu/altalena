@@ -32,7 +32,8 @@ namespace ivrworx
 
 	}
 
-	void LuaTable::Create(IN const string &table_name)
+	void 
+	LuaTable::Create(IN const string &table_name)
 	{
 		if (table_name == "")
 		{
@@ -65,7 +66,8 @@ namespace ivrworx
 		}
 	}
 
-	void LuaTable::AddParam(IN const string &key, IN const string &value)
+	void 
+	LuaTable::AddParam(IN const string &key, IN const string &value)
 	{
 		if (_vm.Ok () == false || _tableRef == 0)
 		{
@@ -82,6 +84,27 @@ namespace ivrworx
 		lua_pushstring (state, value.c_str());
 		lua_settable (state, -3);
 	}
+
+	void 
+	LuaTable::AddFunction(IN const string &key, IN const lua_CFunction func)
+	{
+		if (_vm.Ok () == false || _tableRef == 0)
+		{
+			LogCrit("Cannot add parameter to unintialized table");
+			throw;
+		}
+
+		CLuaRestoreStack rs (_vm);
+
+		lua_State *state = (lua_State *) _vm;
+		lua_rawgeti (state, LUA_REGISTRYINDEX, _tableRef);
+
+		// Push the function and parameters
+		lua_pushstring (state, key.c_str());
+		lua_pushcfunction(state, func);
+		lua_settable (state, -3);
+	}
+
 
 	LuaTable::~LuaTable (void)
 	{
