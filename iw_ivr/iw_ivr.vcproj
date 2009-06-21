@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\iw_core;..\iw_ims;..\lua5.1\include"
+				AdditionalIncludeDirectories="..\iw_lanes;..\iw_core;..\iw_ims;..\lua5.1\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

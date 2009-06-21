@@ -68,8 +68,31 @@ ProcIvr::real_run()
 	LogInfo("Ivr process started successfully");
 	I_AM_READY;
 
-	HandlesList list = list_of(stack_pair.outbound)(_inbound);
+
+	//
+	// Run super script
+	//
+	DECLARE_NAMED_HANDLE_PAIR(super_script_handle);
+
+	ProcScriptRunner *super_script_proc = 
+		new ProcScriptRunner(
+		_conf,                // configuration
+		_stackPair,			  // handle to stack
+		super_script_handle   // handle created by stack for events
+		);
+
+	if (_conf.SuperMode() == "sync")
+	{
+		csp::Run(super_script_proc);
+	} 
+	else
+	{
+		FORK_IN_THIS_THREAD(super_script_proc);
+	}
 	
+
+
+	HandlesList list = list_of(stack_pair.outbound)(_inbound);
 
 	//
 	// Message Loop
@@ -110,6 +133,7 @@ ProcIvr::real_run()
 				shutdown_flag = ProcessInboundMessage(event, forking);
 				if (shutdown_flag == TRUE)
 				{
+					Shutdown(Time(Seconds(5)),super_script_handle);
 					Shutdown(Time(Seconds(5)),stack_pair);
 				}
 				break;

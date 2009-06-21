@@ -46,7 +46,9 @@ In other words, under the hood, the synchronous API utilizes asynchronous commun
 sending request and receiving response. 
 
 If you are a developer and you want to extend ivrworx API to do some time consuming operations, say calling 
-a web service you should follow the following guidelines.
+a web service you have two options.
+
+If you want to implement the API in O(1) threads then you should work a little hard and do the following:-
 
 - Implement different server thread which will receive web service requests invokation from client and 
 will actually invokes them.
@@ -56,7 +58,33 @@ ivrworx rescheduling API.
 
 - Expose proxy API to the script.
 
-You may look at ivrworx::Call or ivrworx::ImsSession classes for refrence implementation.
+You may look at ivrworx::Call or ivrworx::ImsSession classes for reference implementation.
+
+Another more simple option but which will roughly open new thread for the operation is using embedded <A href="http://luaforge.net/projects/lanes/">lanes 2.0.3</A> library.
+It is quite powerful library but as mentioned earlier its greatest disadvantage is opening new thread for the task may
+be unacceptable for large enterprise system (and ivrworx is basically designed with such systems in mind). Lanes library
+was slightly modified so when waiting for result of asynchronous call it does not hang main thread which reschedules
+to another task. So no worries here. Pay attention the ivrworx API is not thread safe and should not be available
+from lanes threads - don't use it there!, open new threads only for media unrelated tasks like querying db or running
+web service. Of cause you should also be aware of other lanes limitations which are outlined in its documentation. 
+
+This is the small example of two simple functions runnning in  parallel (attached as super script by default)
+@code
+require "ivrworx"
+require "ivrworx_lanes"
+
+local il = ivrworx_lanes
+
+f= ivrworx_lanes.gen( function(n) return 2*n end )
+
+a= f(1)
+b= f(2)
+
+ivrworx.loginf( "script>"..a[1])
+ivrworx.loginf( "script>"..b[1])
+@endcode
+
+Pay attention that 
 
 @section API ivrworx API
 
@@ -134,6 +162,11 @@ namespace ivrworx
 			IN LpHandlePair stack_pair, 
 			IN LpHandlePair pair);
 
+		ProcScriptRunner(
+			IN Configuration &conf,
+			IN LpHandlePair stack_pair, 
+			IN LpHandlePair pair);
+
 		~ProcScriptRunner();
 
 		virtual void real_run();
@@ -141,6 +174,10 @@ namespace ivrworx
 		virtual BOOL HandleOOBMessage(IN IwMessagePtr msg);
 
 	private:
+
+		virtual void RunStandAlone();
+
+		virtual void RunIncomingCallHandler();
 
 		shared_ptr<MsgCallOfferedReq> _initialMsg;
 
@@ -152,8 +189,9 @@ namespace ivrworx
 
 	};
 
+
 	/**
-	Core ivrworx &reg; lua interface
+	Core ivrworx &reg; lua interface for script that handles incoming call.
 	**/
 	class IwScript : 
 		public CLuaScript
@@ -162,10 +200,52 @@ namespace ivrworx
 
 		IwScript(
 			IN Configuration &conf, 
+			IN CLuaVirtualMachine &vm);
+
+		~IwScript();
+
+	protected:
+
+		virtual int ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber) ;
+
+		virtual void HandleReturns (CLuaVirtualMachine& vm, const char *strFunc);
+
+		/**
+		ivrworx.wait timeout) - Waits for [timeout] milliseconds.  
+
+		@return always 0
+		**/
+		int LuaWait(CLuaVirtualMachine& vm);
+
+		/**
+		ivrworx.log(log_level,log) - script logging.
+		
+		@returns always 0
+		**/
+		int LuaLog(CLuaVirtualMachine& vm);
+
+		int _methodBase;
+
+		CLuaVirtualMachine &_vmPtr;
+
+		LuaTable _confTable;
+
+		LuaTable _lanesTable;
+
+		Configuration &_conf;
+
+	};
+
+	class IwCallHandlerScript
+		: public IwScript
+	{
+	public:
+
+		IwCallHandlerScript(
+			IN Configuration &conf, 
 			IN CLuaVirtualMachine &vm, 
 			IN CallWithDirectRtp &call);
 
-		~IwScript();
 
 		/**
 		When remote hangup is detected, the script is terminated and on_hangup function is called.
@@ -175,92 +255,72 @@ namespace ivrworx
 		**/
 		void RunOnHangupScript();
 
+	protected:
+
+		virtual int ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber);
+
 	private:
 
-		virtual int ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber) ;
+		int _methodBase;
 
-		virtual void HandleReturns (CLuaVirtualMachine& vm, const char *strFunc);
+		LuaTable _lineInTable;
 
 		/**
 		ivrworx.accept - Accepts the call. Upon calling this function is script 200 response will be 
 		sent to remote party with media proposal. 
-		
+
 		@return 0 if call is suucessfully connected (ACK sent by remote party) or error code otherwise
 		**/
 		int LuaAnswerCall(CLuaVirtualMachine& vm);
 
-		
 		/**
 		ivrworx.hangup - Hangs up the call.  
-		
+
 		@return always 0
 		**/
 		int LuaHangupCall(CLuaVirtualMachine& vm);
 
 		/**
-		ivrworx.wait timeout) - Waits for [timeout] milliseconds.  
-		
-		@return always 0
-		**/
-		int LuaWait(CLuaVirtualMachine& vm);
-
-		/**
 		ivrworx.play(filename,sync,loop) - Streams filename (wav) to the caller.  If sync is true the call will ext
 		only upon end of streaming. If loop is true the file is being played indefinitely. You cannot set sync and loop
 		to true simultaneously.
-		
+
 		@return 0 upon success.
 		**/
 		int LuaPlay(CLuaVirtualMachine& vm);
 
 		/**
 		ivrworx.wait_for_dtmf returns pair consisting of result and dtmf accepted
-		
+
 		@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
 		**/
 		int LuaWaitForDtmf(CLuaVirtualMachine& vm);
 
 		/**
 		ivrworx.send_dtmf - sends RFC2833to caller.
-		
+
 		@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
 		**/
 		int LuaSendDtmf(CLuaVirtualMachine& vm);
 
 		/**
 		ivrworx.blind_xfer (sip_uri) - unattended transfer to [sip_uri].
-		
+
 		@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
 		**/
 		int LuaBlindXfer(CLuaVirtualMachine& vm);
 
 		/**
 		ivrworx.blind_xfer (sip_uri) - unattended transfer to [sip_uri].
-		
+
 		@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
 		**/
 		int LuaWaitTillHangup(CLuaVirtualMachine& vm);
 
-		/**
-		ivrworx.log(log_level,log) - script logging.
-		
-		@returns always 0
-		**/
-		int LuaLog(CLuaVirtualMachine& vm);
-
 		CallWithDirectRtp &_callSession;
 
-		int _methodBase;
-
-		CLuaVirtualMachine &_vmPtr;
-
-		LuaTable _confTable;
-
-		LuaTable _lineInTable;
-
-		Configuration &_conf;
-
 	};
+
 
 	class script_hangup_exception: 
 		public std::exception
