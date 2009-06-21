@@ -57,12 +57,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_085A4D2472C94352A87C759C894651D3"
-        "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_0872C9FA4C44489F83BF530BAB614E4D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -131,6 +125,12 @@
         {
         "MsmKey" = "8:_13B22A1AA63D40B5A9EECC1B9D1F4E68"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_1481D18CB63A4564BFC0B49D1EC4B264"
+        "OwnerKey" = "8:_C63130E95C99485B887CB0F84244766D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -286,6 +286,12 @@
         "Entry"
         {
         "MsmKey" = "8:_33AB142A8F9D4AD7967AA7001B7D63B3"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_345B34B354574D63AB904B1C43353B6A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -1293,6 +1299,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_C0DFB5C6A47C44B0BB080D79FE1BEE0C"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_C18E067CB49F40E5AE212AB6873FCE72"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -1349,6 +1361,12 @@
         {
         "MsmKey" = "8:_C6111145D3774CF991BDB5BC29A5D381"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C63130E95C99485B887CB0F84244766D"
+        "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1587,12 +1605,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_ED85FB212974446D9495ACD2019E86F8"
-        "OwnerKey" = "8:_085A4D2472C94352A87C759C894651D3"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_EF73ABD800B14A0DA018BF24DE3C465F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -1689,7 +1701,7 @@
         "DisplayName" = "8:Debug"
         "IsDebugOnly" = "11:TRUE"
         "IsReleaseOnly" = "11:FALSE"
-        "OutputFilename" = "8:Debug\\iwrworx-alpha-1.0.1-dbg.msi"
+        "OutputFilename" = "8:Debug\\ivrworx-alpha-1.0.2-dbg.msi"
         "PackageFilesAs" = "3:2"
         "PackageFileSize" = "3:-2147483648"
         "CabType" = "3:1"
@@ -2654,6 +2666,26 @@
             "TargetName" = "8:5th.wav"
             "Tag" = "8:"
             "Folder" = "8:_C68FCD999EEF4374AE532DFF56E62F62"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_345B34B354574D63AB904B1C43353B6A"
+            {
+            "SourcePath" = "8:..\\iw_run\\scripts\\super.lua"
+            "TargetName" = "8:super.lua"
+            "Tag" = "8:"
+            "Folder" = "8:_D4664D1729B44852B779918AAD224757"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -6008,6 +6040,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C0DFB5C6A47C44B0BB080D79FE1BEE0C"
+            {
+            "SourcePath" = "8:..\\iw_run\\scripts\\ivrworx_lanes.lua"
+            "TargetName" = "8:ivrworx_lanes.lua"
+            "Tag" = "8:"
+            "Folder" = "8:_D4664D1729B44852B779918AAD224757"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C18E067CB49F40E5AE212AB6873FCE72"
             {
             "SourcePath" = "8:..\\iw_run\\sounds\\basic_words\\dates_and_times\\Day.wav"
@@ -7949,11 +8001,11 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_085A4D2472C94352A87C759C894651D3"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_1481D18CB63A4564BFC0B49D1EC4B264"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:Microsoft_VC80_DebugCRT_x86.msm"
+            "SourcePath" = "8:policy_8_0_microsoft_vc80_debugcrt_x86.msm"
                 "Properties"
                 {
                 }
@@ -7963,11 +8015,11 @@
             "Feature" = "8:"
             "IsolateTo" = "8:"
             }
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_ED85FB212974446D9495ACD2019E86F8"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_C63130E95C99485B887CB0F84244766D"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:policy_8_0_microsoft_vc80_debugcrt_x86.msm"
+            "SourcePath" = "8:Microsoft_VC80_DebugCRT_x86.msm"
                 "Properties"
                 {
                 }
