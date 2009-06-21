@@ -1,17 +1,18 @@
 {
-    
 	
 	"resip_log" : "DUM,DBG|TRANSPORT,DBG",
 	
 	"debug_level"  : "DBG",
 	"debug_outputs" : "console,syslog,debug",
 	
-	
 	"syslogd_host" : "127.0.0.1",
 	"syslogd_port" : 515,
     
     "ivr_sip_host": "$COMPUTERNAME",
     "ivr_sip_port": 5060,
+    
+    "super_script": "scripts\\super.lua",
+    "super_mode":   "sync",
     
     "sip_session_timer_enabled" : true,
     "sip_refresh_mode" : "prefer_uac",

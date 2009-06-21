@@ -48,6 +48,22 @@ namespace ivrworx
 			START_FORKING_REGION;
 
 			//
+			// Start Waiter
+			//
+			DECLARE_NAMED_HANDLE_PAIR(waiter_pair);
+
+			DECLARE_NAMED_HANDLE(waiter_shutdown_handle);
+			AddShutdownListener(waiter_pair,waiter_shutdown_handle);
+
+			FORK(new ProcHandleWaiter(waiter_pair));
+			if (IW_FAILURE(WaitTillReady(Seconds(15), waiter_pair)))
+			{
+				LogCrit("Cannot start Waiter process.");
+				return;
+			};
+
+	
+			//
 			// Start IMS 
 			//
 			DECLARE_NAMED_HANDLE_PAIR(ims_pair);
@@ -84,7 +100,7 @@ namespace ivrworx
 			while(true)
 			{
 				HandlesList selected_handles =
-					list_of(_inbound)(ivr_shutdown_handle)(ims_shutdown_handle);
+					list_of(_inbound)(ivr_shutdown_handle)(ims_shutdown_handle)(waiter_shutdown_handle);
 
 				IwMessagePtr msg;
 				int index = 0;
@@ -104,6 +120,12 @@ namespace ivrworx
 					{
 						LogWarn("Ims process did not respond in timely fashion to keep alive request, consider restarting the application.")
 					}
+
+					ping_res = Ping(waiter_pair);
+					if (IW_FAILURE(ping_res))
+					{
+						LogWarn("Waiter process did not respond in timely fashion to keep alive request, consider restarting the application.")
+					}
 					continue;
 				}
 
@@ -112,12 +134,21 @@ namespace ivrworx
 				case 1:
 					{
 						LogWarn("Ivr process terminated unexpectedly. Shutting down.")
+						Shutdown(Seconds(5),waiter_pair);
 						Shutdown(Seconds(5),ims_pair);
 						return;
 					}
 				case 2:
 					{
 						LogWarn("Ims process terminated. Shutting down.")
+						Shutdown(Seconds(5),waiter_pair);
+						Shutdown(Seconds(5),ivr_pair);
+						return;
+					}
+				case 3:
+					{
+						LogWarn("Waiter process terminated. Shutting down.")
+						Shutdown(Seconds(5),ims_pair);
 						Shutdown(Seconds(5),ivr_pair);
 						return;
 					}
