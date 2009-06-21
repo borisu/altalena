@@ -6,5 +6,7 @@
 == What's new in this version ==
 
  * Added on_hangup script which is run when called is hanged up by caller.
+
  * Added super script feature. Super script is script that is run on startup.
- * Added embedde lanes infrastructure for opening new threads from lua script for performing time consuming tasks.
+
+ * Added embedded lanes infrastructure for opening new threads from lua script for performing time consuming tasks.
