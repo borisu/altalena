@@ -1,9 +1,9 @@
 #summary Release Notes
 
 
-== ivrworx 1.0.2-alpha-dbg ==
+= ivrworx 1.0.2-alpha-dbg =
 
-= What's new in this version = 
+== What's new in this version ==
 
 - Added on_hangup script which is run when called is hanged up by caller.
 - Added super script feature. Super script is script that is run on startup.
