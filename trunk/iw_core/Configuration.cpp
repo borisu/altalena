@@ -233,6 +233,14 @@ namespace ivrworx
 
 	}
 
+	bool
+	Configuration::SyncLog()
+	{
+		mutex::scoped_lock lock(_mutex);
+		return _syncLog;
+
+	}
+
 
 }
 

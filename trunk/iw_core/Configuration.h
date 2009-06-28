@@ -236,6 +236,21 @@ namespace ivrworx
 		**/
 		virtual string ResipLog();
 
+		/**
+		*   By default ivrworx logging infrastructure will spawn a special threading for outputting
+		*	logging messages. This is more robust and efficient, however it is not always convenient
+		*	while debugging multi threaded applications as order of messages is more prone to be changed,
+		*	and when crash happens some important logging messages may be still stuck in queue and not printed.
+		*
+		*	Setting sync_log to true will cause logging message to be printed in the same thread. this is
+		*   less efficient as it mandates using locking and making long operation inside working threads.
+		*   Not to mention that simply using edit mode in cmd console windows may stuck the whole application 
+		*
+		*	@return sync log value
+		*
+		*/
+		virtual bool SyncLog();
+
 	protected:
 
 		mutex _mutex;
@@ -277,6 +292,8 @@ namespace ivrworx
 		string _superScript;
 
 		string _superMode;
+
+		bool _syncLog;
 
 	};
 

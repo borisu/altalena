@@ -36,9 +36,9 @@ namespace ivrworx
 
 	void ExitLog();
 
-	#define IX_LOG_MASK_CONSOLE		0x001
-	#define IX_LOG_MASK_DEBUGVIEW	0x010
-	#define IX_LOG_MASK_SYSLOG		0x100
+	#define IW_LOG_MASK_CONSOLE		0x001
+	#define IW_LOG_MASK_DEBUGVIEW	0x010
+	#define IW_LOG_MASK_SYSLOG		0x100
 
 	void
 	SetLogMask(IN int mask);
@@ -53,7 +53,7 @@ namespace ivrworx
 		LOG_LEVEL_TRACE
 	};
 
-	extern volatile LogLevel g_LogLevel;
+	extern LogLevel g_LogLevel;
 
 	void
 	SetLogLevelFromString(const string &level_str);
@@ -128,7 +128,7 @@ namespace ivrworx
 		#define LogProfile(x)
 	#endif
 
-	#define COND_LOG(level,x) if (::InterlockedExchangeAdd((volatile LONG *)&g_LogLevel,0) >= level) IX_SCOPED_LOG(level,x)
+	#define COND_LOG(level,x) if (::InterlockedExchangeAdd(( LONG *)&g_LogLevel,0) >= level) IX_SCOPED_LOG(level,x)
 
 #ifndef NOLOGS
 	#define LogTrace(x)		COND_LOG(LOG_LEVEL_TRACE,x)

@@ -34,7 +34,7 @@ namespace ivrworx
 	#define IW_LOG_LOG_COMPLETION_KEY	0
 	#define IW_LOG_EXIT_COMPLETION_KEY	1
 
-	static const char *g_LogLevelStrings[] = {"OFF", "CRT", "WRN", "INF", "DBG", "TRC"};
+	
 
 	string 
 	FormatLastSysError(const char *lpszFunction) 
@@ -79,8 +79,9 @@ namespace ivrworx
 	HANDLE		g_IocpLogger	= NULL;
 	HANDLE		g_loggerThread	= NULL;
 
-	LogLevel volatile g_LogLevel	= LOG_LEVEL_INFO;
-	DWORD		g_logMask			= IX_LOG_MASK_CONSOLE;
+	extern LogLevel g_LogLevel		= LOG_LEVEL_INFO;
+	DWORD	 g_logMask		= IW_LOG_MASK_CONSOLE;
+	BOOL	 g_LogSyncMode  = FALSE;
 
 	__declspec( thread ) debug_dostream *tls_logger = NULL;
 
@@ -108,8 +109,14 @@ namespace ivrworx
 		SetLogLevelFromString(conf.DebugLevel());
 		SetLogMaskFromString(conf.DebugOutputs());
 
+		g_LogSyncMode = conf.SyncLog();
 
 		openlog(conf.SyslogHost().c_str(),conf.SyslogPort(),"ivrworx",0,LOG_USER );
+
+		if (conf.SyncLog())
+		{
+			return TRUE;
+		}
 		
 		if (g_IocpLogger != NULL)
 		{
@@ -225,19 +232,19 @@ namespace ivrworx
 		size_t found = mask_str.find("console");
 		if (found != string::npos)
 		{
-			mask |= IX_LOG_MASK_CONSOLE;
+			mask |= IW_LOG_MASK_CONSOLE;
 		}
 
 		found = mask_str.find("debug");
 		if (found != string::npos)
 		{
-			mask |= IX_LOG_MASK_DEBUGVIEW;
+			mask |= IW_LOG_MASK_DEBUGVIEW;
 		}
 
 		found = mask_str.find("syslog");
 		if (found != string::npos)
 		{
-			mask |= IX_LOG_MASK_SYSLOG;
+			mask |= IW_LOG_MASK_SYSLOG;
 		}
 
 		SetLogMask(mask);
@@ -314,6 +321,9 @@ namespace ivrworx
 		sync();
 	}
 
+	// forward decalration
+	void LogBucketAndDelete(LogBucket *lb);
+
 	int 
 	basic_debugbuf::sync()
 	{
@@ -325,11 +335,19 @@ namespace ivrworx
 		lb->timestamp = ::GetTickCount();
 		lb->log_str = str();
 
-		::PostQueuedCompletionStatus(
-			g_IocpLogger,
-			IW_LOG_LOG_COMPLETION_KEY,
-			0,
-			lb);
+		if (::InterlockedExchangeAdd(( LONG *)&g_LogSyncMode,0) == TRUE)
+		{
+			mutex::scoped_lock scoped_lock(g_loggerMutex);
+			LogBucketAndDelete(lb);
+		}
+		else
+		{
+			::PostQueuedCompletionStatus(
+				g_IocpLogger,
+				IW_LOG_LOG_COMPLETION_KEY,
+				0,
+				lb);
+		}
 
 		str(std::basic_string<char>());    // Clear the string buffer
 
@@ -347,8 +365,84 @@ namespace ivrworx
 		delete rdbuf(); 
 	}
 
+	void 
+	LogBucketAndDelete(LogBucket *lb)
+	{
+		char formatted_log_str[IW_SINGLE_LOG_BUCKET_LENGTH];
+		formatted_log_str[0] = '\0';
 
-	DWORD WINAPI LoggerThread(LPVOID lpParam)
+		int fiber_id = lb->fiber_id == NON_FIBEROUS_THREAD ? -1 : (int)lb->fiber_id;
+
+		if (lb->log_str.length() > (IW_SINGLE_LOG_BUCKET_LENGTH - 1))
+		{
+			char membuf[IW_SINGLE_LOG_BUCKET_LENGTH];
+			membuf[0]='\0';
+
+			_snprintf_s(membuf,IW_SINGLE_LOG_BUCKET_LENGTH,IW_SINGLE_LOG_BUCKET_LENGTH,"Logger string too long, you may not log messages longer than %d bytes", 
+				IW_SINGLE_LOG_BUCKET_LENGTH),
+
+				lb->log_str = membuf;
+
+		}
+
+		const char *g_LogLevelStrings[] = {"OFF", "CRT", "WRN", "INF", "DBG", "TRC"};
+
+		_snprintf_s(formatted_log_str,IW_SINGLE_LOG_BUCKET_LENGTH,IW_SINGLE_LOG_BUCKET_LENGTH,"[%s][%-5d,0x%-8x] %s",
+			g_LogLevelStrings[lb->log_level],
+			lb->thread_id,
+			fiber_id,
+			lb->log_str.c_str());
+
+		if (g_logMask & IW_LOG_MASK_CONSOLE)   
+		{ 
+			switch(lb->log_level)
+			{
+			case LOG_LEVEL_CRITICAL:
+				{
+					cout << con::bg_red;
+					break;
+				}
+			case LOG_LEVEL_WARN:
+				{
+					cout << con::bg_magenta;
+					break;
+				}
+			case LOG_LEVEL_OFF:
+			case LOG_LEVEL_INFO:
+			case LOG_LEVEL_DEBUG:
+			case LOG_LEVEL_TRACE:
+				{
+					cout << con::bg_black;
+					break;
+				}
+
+			default:
+				{
+					cout << con::bg_black;
+				}
+			}
+
+			std::cout << formatted_log_str << con::bg_black;
+		}
+
+		if (g_logMask & IW_LOG_MASK_DEBUGVIEW) 
+		{ 
+			::OutputDebugStringA(formatted_log_str);
+		};
+
+		if (g_logMask & IW_LOG_MASK_SYSLOG)	
+		{ 
+			syslog(0,"%s",formatted_log_str); 
+		};
+
+		delete lb;
+
+
+	}
+
+
+	DWORD WINAPI 
+	LoggerThread(LPVOID lpParam)
 	{
 		DWORD number_of_bytes = 0;
 		ULONG completion_key  = 0;
@@ -383,73 +477,9 @@ namespace ivrworx
 
 			LogBucket *lb = (LogBucket *)olap;
 
-			char formatted_log_str[IW_SINGLE_LOG_BUCKET_LENGTH];
-			formatted_log_str[0] = '\0';
+			LogBucketAndDelete(lb);
 
-			int fiber_id = lb->fiber_id == NON_FIBEROUS_THREAD ? -1 : (int)lb->fiber_id;
-
-			if (lb->log_str.length() > (IW_SINGLE_LOG_BUCKET_LENGTH - 1))
-			{
-				char membuf[IW_SINGLE_LOG_BUCKET_LENGTH];
-				membuf[0]='\0';
-
-				_snprintf_s(membuf,IW_SINGLE_LOG_BUCKET_LENGTH,IW_SINGLE_LOG_BUCKET_LENGTH,"Logger string too long, you may not log messages longer than %d bytes", 
-					IW_SINGLE_LOG_BUCKET_LENGTH),
-
-				lb->log_str = membuf;
-				
-			}
-
-			_snprintf_s(formatted_log_str,IW_SINGLE_LOG_BUCKET_LENGTH,IW_SINGLE_LOG_BUCKET_LENGTH,"[%s][%-5d,0x%-8x] %s",
-				g_LogLevelStrings[lb->log_level],
-				lb->thread_id,
-				fiber_id,
-				lb->log_str.c_str());
-
-			if (g_logMask & IX_LOG_MASK_CONSOLE)   
-			{ 
-				switch(lb->log_level)
-				{
-				case LOG_LEVEL_CRITICAL:
-					{
-						cout << con::bg_red;
-						break;
-					}
-				case LOG_LEVEL_WARN:
-					{
-						cout << con::bg_magenta;
-						break;
-					}
-				case LOG_LEVEL_OFF:
-				case LOG_LEVEL_INFO:
-				case LOG_LEVEL_DEBUG:
-				case LOG_LEVEL_TRACE:
-					{
-						cout << con::bg_black;
-						break;
-					}
-					
-				default:
-					{
-						cout << con::bg_black;
-					}
-				}
-				
-				std::cout << formatted_log_str << con::bg_black;
-			}
-
-			if (g_logMask & IX_LOG_MASK_DEBUGVIEW) 
-			{ 
-				::OutputDebugStringA(formatted_log_str);
-			};
-
-			if (g_logMask & IX_LOG_MASK_SYSLOG)	
-			{ 
-				syslog(0,"%s",formatted_log_str); 
-			};
-
-			delete lb;
-
+			
 		}
 
 		return 0;
@@ -459,7 +489,7 @@ namespace ivrworx
 	
 	LoggerTracker::LoggerTracker(IN char *log_function)
 	{
-		if (g_LogLevel < LOG_LEVEL_TRACE)
+		if (::InterlockedExchangeAdd((LONG*)&g_LogLevel,0) < LOG_LEVEL_TRACE)
 		{
 			_funcname[0] = '\0';
 			return;

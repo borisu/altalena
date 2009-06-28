@@ -233,6 +233,7 @@ namespace ivrworx
 		// !!! The order should be preserved for later switch statement !!!
 		_methodBase = RegisterFunction("iw_log");
 		RegisterFunction("wait");
+		RegisterFunction("run");
 
 	}
 
@@ -261,6 +262,10 @@ namespace ivrworx
 			{
 				return LuaWait(vm);
 			}
+		case 2:
+			{
+				return LuaRun(vm);
+			}
 		default:
 			{
 				LogWarn ("Unknown function called id:" << iFunctionNumber);
@@ -270,6 +275,49 @@ namespace ivrworx
 		}
 
 		return 0;
+	}
+
+	int
+	IwScript::LuaRun(CLuaVirtualMachine& vm)
+	{
+		lua_State *state = (lua_State *) vm;
+
+		if (lua_isfunction(state, -1) == 0 )
+		{
+			LogWarn("Wrong type of parameter for Run");
+			return 0;
+		}
+		
+		DECLARE_NAMED_HANDLE_PAIR(runner_pair);
+		csp::Run(new ProcBlockingOperationRunner(runner_pair,vm));
+
+		return 0;
+
+	}
+
+	ProcBlockingOperationRunner::ProcBlockingOperationRunner(LpHandlePair pair, CLuaVirtualMachine& vm)
+		:LightweightProcess(pair,"ProcBlockingOperationRunner"),
+		_vm(vm)
+	{
+		FUNCTRACKER;
+
+	}
+
+	void
+	ProcBlockingOperationRunner::real_run()
+	{
+		FUNCTRACKER;
+
+		lua_State *state = (lua_State *) _vm;
+		bool res = _vm.CallFunction(0);
+
+		if (res == false)
+		{
+			LogWarn("Error running long operation");
+			return;
+		}
+
+		lua_pushnumber (state, API_SUCCESS);
 	}
 
 	int
@@ -637,6 +685,8 @@ namespace ivrworx
 		return 1;
 
 	}
+
+	
 
 }
 

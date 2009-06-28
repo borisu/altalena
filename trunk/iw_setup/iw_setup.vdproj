@@ -129,12 +129,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_1481D18CB63A4564BFC0B49D1EC4B264"
-        "OwnerKey" = "8:_C63130E95C99485B887CB0F84244766D"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_15FDDAD9ED5543CAAAF2A6B9A1A34331"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -395,6 +389,12 @@
         {
         "MsmKey" = "8:_458F88312A264DBBAF9BA8BD0B02784F"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_4767653D9B5644018795CF169D5BC46D"
+        "OwnerKey" = "8:_8B343D153E684CA196280B7BCB05E6E1"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -927,6 +927,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_8B343D153E684CA196280B7BCB05E6E1"
+        "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_8B5107E8ECCF42749EA9F5B8C7130EA9"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -1299,12 +1305,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_C0DFB5C6A47C44B0BB080D79FE1BEE0C"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_C18E067CB49F40E5AE212AB6873FCE72"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -1361,12 +1361,6 @@
         {
         "MsmKey" = "8:_C6111145D3774CF991BDB5BC29A5D381"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_C63130E95C99485B887CB0F84244766D"
-        "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1701,7 +1695,7 @@
         "DisplayName" = "8:Debug"
         "IsDebugOnly" = "11:TRUE"
         "IsReleaseOnly" = "11:FALSE"
-        "OutputFilename" = "8:Debug\\ivrworx-alpha-1.0.2-dbg.msi"
+        "OutputFilename" = "8:Debug\\ivrworx-alpha-1.0.3-dbg.msi"
         "PackageFilesAs" = "3:2"
         "PackageFileSize" = "3:-2147483648"
         "CabType" = "3:1"
@@ -6040,26 +6034,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C0DFB5C6A47C44B0BB080D79FE1BEE0C"
-            {
-            "SourcePath" = "8:..\\iw_run\\scripts\\ivrworx_lanes.lua"
-            "TargetName" = "8:ivrworx_lanes.lua"
-            "Tag" = "8:"
-            "Folder" = "8:_D4664D1729B44852B779918AAD224757"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C18E067CB49F40E5AE212AB6873FCE72"
             {
             "SourcePath" = "8:..\\iw_run\\sounds\\basic_words\\dates_and_times\\Day.wav"
@@ -7486,7 +7460,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:ivrworx"
         "ProductCode" = "8:{E7EBAE7D-4983-4770-A3AD-1599836B4501}"
-        "PackageCode" = "8:{23BBE66F-FD13-495A-8848-DEAB5931FAD6}"
+        "PackageCode" = "8:{BDF13820-C2BF-4E80-8123-5D912D135743}"
         "UpgradeCode" = "8:{F16F682B-850C-47C3-A02B-110A9C926B76}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
@@ -8001,7 +7975,7 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_1481D18CB63A4564BFC0B49D1EC4B264"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_4767653D9B5644018795CF169D5BC46D"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
@@ -8015,7 +7989,7 @@
             "Feature" = "8:"
             "IsolateTo" = "8:"
             }
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_C63130E95C99485B887CB0F84244766D"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_8B343D153E684CA196280B7BCB05E6E1"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"

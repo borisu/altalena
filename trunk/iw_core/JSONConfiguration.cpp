@@ -236,6 +236,8 @@ namespace ivrworx
 		_superScript = find_str(root_obj, "super_script");
 		_superMode	 = find_str(root_obj, "super_mode");
 
+		_syncLog = find_bool(root_obj, "sync_log");
+
 		return API_SUCCESS;
 
 	}

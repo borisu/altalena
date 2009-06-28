@@ -1,12 +1,23 @@
 require "ivrworx";
 require "play_phrase";
+-- require "ivrworx_lanes"
+
+local il = ivrworx_lanes
 
 function on_hangup()
  ivrworx.logdbg("remote hangup detected for script ani:"..linein["ani"]..", dnis:"..linein["dnis"]);
 end
 
-ivrworx.answer();
 
+
+--
+-- This is only to test parallel execution in load (duplicates script logic)
+--
+a = 1
+ivrworx.run(function() a = 4 end )
+ivrworx.loginf( "script>"..a)
+
+ivrworx.answer();
 ivrworx.logdbg("script started ani:"..linein["ani"]..", dnis:"..linein["dnis"]);
 
 ivrworx.play("test\\welcome-to-ivrworx.wav",true,false);

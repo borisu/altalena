@@ -1,5 +1,9 @@
 module("ivrworx",package.seeall)
 
+function run(f)
+	return this.run(this,f);
+end
+
 function answer()
 	return this.answer(this);
 end

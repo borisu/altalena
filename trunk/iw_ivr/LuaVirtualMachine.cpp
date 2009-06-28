@@ -147,7 +147,7 @@ bool CLuaVirtualMachine::InitialiseVM (void)
 //       luaopen_debug (m_pState);
 //       luaopen_io (m_pState);
       luaL_openlibs (m_pState);
-	  luaopen_lanes (m_pState); 
+//	  luaopen_lanes (m_pState); 
 	  
 
       // setup global printing (trace)

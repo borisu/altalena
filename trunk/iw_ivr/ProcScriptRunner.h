@@ -60,31 +60,19 @@ ivrworx rescheduling API.
 
 You may look at ivrworx::Call or ivrworx::ImsSession classes for reference implementation.
 
-Another more simple option but which will roughly open new thread for the operation is using embedded <A href="http://luaforge.net/projects/lanes/">lanes 2.0.3</A> library.
-It is quite powerful library but as mentioned earlier its greatest disadvantage is opening new thread for the task may
-be unacceptable for large enterprise system (and ivrworx is basically designed with such systems in mind). Lanes library
-was slightly modified so when waiting for result of asynchronous call it does not hang main thread which reschedules
-to another task. So no worries here. Pay attention the ivrworx API is not thread safe and should not be available
-from lanes threads - don't use it there!, open new threads only for media unrelated tasks like querying db or running
-web service. Of cause you should also be aware of other lanes limitations which are outlined in its documentation. 
+Another more simple option but which will roughly open new thread for the operation ivrworx.run. This function
+will open a background thread for executing lua code while rescheduling the main thread.
 
-This is the small example of two simple functions runnning in  parallel (attached as super script by default)
+This is the small example:
+
 @code
 require "ivrworx"
-require "ivrworx_lanes"
 
-local il = ivrworx_lanes
+f= ivrworx.run( function() sql_conn = open_sql_connection() end )
 
-f= ivrworx_lanes.gen( function(n) return 2*n end )
-
-a= f(1)
-b= f(2)
-
-ivrworx.loginf( "script>"..a[1])
-ivrworx.loginf( "script>"..b[1])
 @endcode
 
-Pay attention that 
+Pay attention that ivrwox api cannot be used within such a block.
 
 @section API ivrworx API
 
@@ -224,6 +212,16 @@ namespace ivrworx
 		**/
 		int LuaLog(CLuaVirtualMachine& vm);
 
+		/**
+		ivrworx.run(f) - if script needs to perform long blocking operation
+		it should use this function. f will be executed in a separate thread,
+		while main thread will be rescheduled waiting for an answer. No ivrworx
+		media api can be used(!) inside these threads.
+
+		@returns always 0
+		**/
+		int LuaRun(CLuaVirtualMachine& vm);
+
 		int _methodBase;
 
 		CLuaVirtualMachine &_vmPtr;
@@ -325,6 +323,21 @@ namespace ivrworx
 	class script_hangup_exception: 
 		public std::exception
 	{
+
+	};
+
+	class ProcBlockingOperationRunner
+		:public LightweightProcess
+	{
+	public:
+		ProcBlockingOperationRunner(LpHandlePair pair, CLuaVirtualMachine& vm);
+
+	protected:
+		void real_run();
+
+	protected:
+
+		CLuaVirtualMachine& _vm;
 
 	};
 

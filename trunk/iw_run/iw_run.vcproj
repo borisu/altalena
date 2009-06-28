@@ -334,10 +334,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\scripts\ivrworx_lanes.lua"
-				>
-			</File>
-			<File
 				RelativePath=".\scripts\play_phrase.lua"
 				>
 			</File>
