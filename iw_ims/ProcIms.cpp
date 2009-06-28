@@ -446,7 +446,7 @@ namespace ivrworx
 				}
 				else 
 				{
-					LogDebug("Ims keep alive.");
+					LogInfo("Ims keep alive.");
 					continue;
 				}
 			}
@@ -915,6 +915,9 @@ error:
 
 		string filename = req->file_name;
 
+		//
+		// Check if file exists
+		//
 		WIN32_FIND_DATAA FindFileData;
 		HANDLE hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);
 		if (hFind == INVALID_HANDLE_VALUE) 
@@ -928,7 +931,27 @@ error:
 				SendResponse(msg, new MsgStartPlayReqNack());
 				return;
 			}
+			else
+			{
+				BOOL res = ::FindClose(hFind);
+				if (res == FALSE)
+				{
+					LogCrit("::CloseHandle");
+					throw;
+				}
+			}
 		} 
+		else
+		{
+			BOOL res = ::FindClose(hFind);
+			if (res == FALSE)
+			{
+				LogCrit("::CloseHandle");
+				throw;
+			}
+		}
+
+		
 
 		char buffer[1024];
 		buffer[0] = '\0';
@@ -941,8 +964,6 @@ error:
 		}
 
 		filename = buffer;
-
-
 		LogDebug("StartPlayback:: Play file name:" << filename << ", loop:" << req->loop << ", imsh:" << req->playback_handle);
 
 		StreamingCtxsMap::iterator iter = 

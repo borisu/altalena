@@ -40,13 +40,17 @@ THE SOFTWARE.
 
 module( "ivrworx_lanes", package.seeall )
 
+--
+-- No need to require lanes.
+-- Lanes are embedded by default
+--
 --require "lua51-lanes"
 --assert( type(lanes)=="table" )
 
-local mm= lanes
+--local mm= lanes
 
 --local linda_id=    assert( mm.linda_id )
-local linda_id=    assert(linda_id)
+--local linda_id=    assert(linda_id)
 
 --local thread_new=   assert(mm.thread_new)
 --local thread_status= assert(mm.thread_status)
@@ -514,32 +518,26 @@ if first_time then
     -- We let the timer lane be a "free running" thread; no handle to it
     -- remains.
     --
-    
-    --
-    -- borisu disabled as we have other facilities for timers
-    -- 
-    function disabled_timer ()
-		gen( "io", { priority=max_prio }, function()
+    gen( "io", { priority=max_prio }, function()
 
-			while true do
-				local next_wakeup= check_timers()
+        while true do
+            local next_wakeup= check_timers()
 
-				-- Sleep until next timer to wake up, or a set/clear command
-				--
-				local secs= next_wakeup and (next_wakeup - now_secs()) or nil
-				local linda= timer_gateway:receive( secs, TGW_KEY )
+            -- Sleep until next timer to wake up, or a set/clear command
+            --
+            local secs= next_wakeup and (next_wakeup - now_secs()) or nil
+            local linda= timer_gateway:receive( secs, TGW_KEY )
 
-				if linda then
-					local key= timer_gateway:receive( 0.0, TGW_KEY )
-					local wakeup_at= timer_gateway:receive( 0.0, TGW_KEY )
-					local period= timer_gateway:receive( 0.0, TGW_KEY )
-					assert( key and wakeup_at and period )
+            if linda then
+                local key= timer_gateway:receive( 0.0, TGW_KEY )
+                local wakeup_at= timer_gateway:receive( 0.0, TGW_KEY )
+                local period= timer_gateway:receive( 0.0, TGW_KEY )
+                assert( key and wakeup_at and period )
 
-					set_timer( linda, key, wakeup_at, period>0 and period or nil )
-				end
-			end
-		end )()
-    end
+                set_timer( linda, key, wakeup_at, period>0 and period or nil )
+            end
+        end
+    end )()
 end
 
 -----

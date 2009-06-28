@@ -22,12 +22,14 @@
 #include "CallWithDirectRtp.h"
 #include "ProcScriptRunner.h"
 #include "LocalProcessRegistrar.h"
-
+#include "ProcHandleWaiter.h"
 using namespace boost::assign;
 
 namespace ivrworx
 {
 
+
+	
 ProcIvr::ProcIvr(IN LpHandlePair pair, IN Configuration &conf)
 :LightweightProcess(pair,IVR_Q,	"Ivr"),
 _conf(conf),
@@ -46,11 +48,11 @@ ProcIvr::real_run()
 {
 
 	FUNCTRACKER;
-
+	
 	IwMessagePtr event;
 
 	START_FORKING_REGION;
-	
+
 	//
 	// Start SIP stack process
 	//
@@ -68,29 +70,30 @@ ProcIvr::real_run()
 	LogInfo("Ivr process started successfully");
 	I_AM_READY;
 
-
+    DECLARE_NAMED_HANDLE_PAIR(super_script_handle);
 	//
 	// Run super script
 	//
-	DECLARE_NAMED_HANDLE_PAIR(super_script_handle);
-
-	ProcScriptRunner *super_script_proc = 
-		new ProcScriptRunner(
-		_conf,                // configuration
-		_stackPair,			  // handle to stack
-		super_script_handle   // handle created by stack for events
-		);
-
-	if (_conf.SuperMode() == "sync")
 	{
-		csp::Run(super_script_proc);
-	} 
-	else
-	{
-		FORK_IN_THIS_THREAD(super_script_proc);
+		
+
+		ProcScriptRunner *super_script_proc = 
+			new ProcScriptRunner(
+			_conf,                // configuration
+			_stackPair,			  // handle to stack
+			super_script_handle   // handle created by stack for events
+			);
+
+		if (_conf.SuperMode() == "sync")
+		{
+			csp::Run(super_script_proc);
+		} 
+		else
+		{
+			FORK_IN_THIS_THREAD(super_script_proc);
+		}
+
 	}
-	
-
 
 	HandlesList list = list_of(stack_pair.outbound)(_inbound);
 

@@ -1,8 +1,10 @@
 {
 	
+	"sync_log"  : false,
+	
 	"resip_log" : "DUM,DBG|TRANSPORT,DBG",
 	
-	"debug_level"  : "DBG",
+	"debug_level"  : "INF",
 	"debug_outputs" : "console,syslog,debug",
 	
 	"syslogd_host" : "127.0.0.1",

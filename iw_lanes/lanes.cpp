@@ -96,6 +96,8 @@ THE SOFTWARE.
 // #include "lauxlib.h"
 // };
 
+using namespace ivrworx;
+
 #include "threading.h"
 #include "tools.h"
 #include "lanes.h"
@@ -268,6 +270,66 @@ void serialize_require( lua_State *L ) {
 
   STACK_END(L,0)
 }
+
+// ivrworx fix
+// =============
+// lanes originally were not built to run across multiple lus vm's
+// so there were different static members which were initialized once
+// upon first vm creation (first time calling lua_openlanes) and then
+// were used across other irrelevant vm. This was causing the program
+// to crash. So all static logic was replaced by "vm local" logic
+//
+// register deep_lock within lua vm.
+//
+
+// static 
+// void register_vm_local_deep_lock( lua_State *L )
+// {
+// 	STACK_GROW(L,1);  
+// 	STACK_CHECK(L)
+// 
+// 	lua_getglobal( L,"ivrworx_deep_lock");
+// 	if (lua_islightuserdata( L, -1 )) 
+// 	{
+// 		LogCrit("ivrworx_deep_lock registered twice");
+// 		throw;
+// 	} 
+// 	else 
+// 	{
+// 		MUTEX_T vm_local_deep_lock;
+// 
+// 		MUTEX_INIT( &vm_local_deep_lock );
+// 		lua_pop(L,1);
+// 		lua_pushlightuserdata( L,vm_local_deep_lock);
+// 		lua_setglobal( L, "ivrworx_deep_lock" );
+// 	}
+// 	
+// 	STACK_END(L,0)
+// }
+// 
+// static 
+// void register_vm_local_mtid_lock( lua_State *L )
+// {
+// 	STACK_GROW(L,1);  
+// 	STACK_CHECK(L)
+// 
+// 	lua_getglobal( L,"ivrworx_mtid_lock");
+// 	if (lua_islightuserdata( L, -1 )) 
+// 	{
+// 		LogCrit("ivrworx_mtid_lock registered twice");
+// 		throw;
+// 	} 
+// 	else 
+// 	{
+// 		MUTEX_T vm_local_deep_lock;
+// 		MUTEX_INIT( &vm_local_deep_lock );
+// 		lua_pop(L,1);
+// 		lua_pushlightuserdata( L,&vm_local_deep_lock);
+// 		lua_setglobal( L, "ivrworx_mtid_lock" );
+// 	}
+// 
+// 	STACK_END(L,0)
+// }
 
 
 /*---=== Keeper states ===---
@@ -1651,10 +1713,11 @@ void push_timer_gateway( lua_State *L ) {
 
     /* No need to lock; 'static' is just fine
     */
-    static DEEP_PRELUDE *p;  // = NULL
+    //static DEEP_PRELUDE *p;  // = NULL
+	DEEP_PRELUDE *p = NULL;  // = NULL
 
-  STACK_CHECK(L)
-    if (!p) {
+STACK_CHECK(L)
+//     if (!p) {
         // Create the Linda (only on first time)
         //
         // proxy_ud= deep_userdata( idfunc )
@@ -1672,11 +1735,11 @@ void push_timer_gateway( lua_State *L ) {
 
         // [-1]: proxy for accessing the Linda
 
-    } else {
-        /* Push a proxy based on the deep userdata we stored. 
-        */
-        luaG_push_proxy( L, LG_linda_id, p );
-    }
+//     } else {
+//         /* Push a proxy based on the deep userdata we stored. 
+//         */
+//         luaG_push_proxy( L, LG_linda_id, p );
+//     }
   STACK_END(L,1)
 }
 
@@ -1787,8 +1850,6 @@ int
         //
         MUTEX_RECURSIVE_INIT( &require_cs );
 
-        serialize_require( L );
-
         // Selfdestruct chain handling
         //
         MUTEX_INIT( &selfdestruct_cs );
@@ -1821,6 +1882,12 @@ int
         if (err) 
             luaL_error( L, "Unable to initialize: %s", err );
     }
+
+	// ivrworx
+	// ---
+	// Initialize require library per state.
+	//
+	serialize_require( L );
     
     // Linda identity function
     //

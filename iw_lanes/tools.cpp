@@ -45,10 +45,15 @@ extern "C"
 #include <ctype.h>
 #include <stdlib.h>
 
+using namespace ivrworx;
+
+
 static volatile lua_CFunction hijacked_tostring;     // = NULL
 
 MUTEX_T deep_lock;
 MUTEX_T mtid_lock;
+
+
 
 /*---=== luaG_dump ===---*/
 
