@@ -29,32 +29,6 @@
 namespace ivrworx
 {
 	
-	template<class T> string LogHandleState(SipDialogContextPtr ptr, T is)
-	{
-
-		stringstream stream;
-		stream << "iwh:" << (ptr.get() == NULL ? -1 : ptr->stack_handle) << ", rsh:"  << is.getId() <<  ", callid:" << is->getCallId().c_str() << ", state:";
-
-		if (is->isAccepted())
-		{
-			stream << "accepted;";
-		}
-		if (is->isConnected())
-		{
-			stream << "connected;";
-		}
-		if (is->isEarly())
-		{
-			stream << "early;";
-		}
-		if (is->isTerminated())
-		{
-			stream << "terminated;";
-		}
-
-		return stream.str();
-
-	}
 	
 	UASDialogUsageManager::UASDialogUsageManager(
 		IN Configuration &conf,
@@ -74,8 +48,7 @@ namespace ivrworx
 		string uasUri = "sip:" + conf.From() + "@" + ipAddr.ipporttos();
 		_uasAor		= NameAddrPtr(new NameAddr(uasUri.c_str()));
 
-		addTransport(UDP,ipAddr.port_ho(),V4,ipAddr.iptoa());
-		addTransport(TCP,ipAddr.port_ho(),V4,ipAddr.iptoa());
+		
 
 		_uasMasterProfile = SharedPtr<MasterProfile>(new MasterProfile());
 		setMasterProfile(_uasMasterProfile);
@@ -112,10 +85,6 @@ namespace ivrworx
 
 		}
 		
-
-		
-
-
 		setClientRegistrationHandler(this);
 		setInviteSessionHandler(this);
 		addClientSubscriptionHandler("refer",this);

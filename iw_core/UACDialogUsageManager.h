@@ -21,6 +21,7 @@
 #include "IwBase.h"
 #include "ResipCommon.h"
 #include "SipSessionHandlerAdapter.h"
+#include "Configuration.h"
 
 using namespace resip;
 using namespace boost;
@@ -33,18 +34,18 @@ class UACDialogUsageManager :
 {
 public:
 	UACDialogUsageManager(
+		IN Configuration &conf,
 		IN SipStack &sipStack,
-		IN CnxInfo data,
 		IN IwHandlesMap &ccu_handles_map,
 		IN LightweightProcess &ccu_stack);
 
 	virtual ~UACDialogUsageManager(void);
 
-	virtual ApiErrorCode MakeCall(IN IwMessagePtr request);
+	virtual void UponMakeCallReq(IN IwMessagePtr request);
 
-	virtual ApiErrorCode HangupCall(SipDialogContextPtr ptr);
+	virtual void UponMakeCallAckReq(IN IwMessagePtr request);
 
-	virtual string CreateSdp(IN CnxInfo &data);
+	virtual void HangupCall(IN SipDialogContextPtr ptr);
 
 	virtual void onNewSession(
 		IN ClientInviteSessionHandle s, 
@@ -54,8 +55,25 @@ public:
 	virtual void onConnected(
 		IN ClientInviteSessionHandle is, 
 		IN const SipMessage& msg);
-	
 
+	virtual void onConnectedConfirmed(
+		IN InviteSessionHandle handle, 
+		IN const SipMessage& msg);
+
+	virtual void onConnected(InviteSessionHandle, const SipMessage& msg)
+	{
+
+	};
+
+	/// called when an SDP answer is received - has nothing to do with user
+	/// answering the call 
+	virtual void onAnswer(InviteSessionHandle, const SipMessage& msg, const SdpContents&)
+	{
+
+	};
+
+
+	
 	virtual void onTerminated(
 		IN InviteSessionHandle, 
 		IN InviteSessionHandler::TerminatedReason reason, 
@@ -65,15 +83,13 @@ public:
 
 private:
 
+	Configuration &_conf;
+
 	NameAddrPtr  _nameAddr;
 
 	IwHandlesMap &_iwHandlesMap;
 
 	ResipDialogHandlesMap _resipHandlesMap;
-
-#pragma TODO ("Remove this field")
-
-	LightweightProcess &_procIwStack;
 
 };
 

@@ -25,7 +25,7 @@ namespace ivrworx
 
 	typedef 
 
-	int ImsHandleId;
+	int ImsHandle;
 
 	typedef map<int,char> 
 	DtmfMap;
@@ -40,6 +40,10 @@ namespace ivrworx
 		virtual ~ImsSession (void);
 
 		ApiErrorCode	AllocateIMSConnection(
+			IN CnxInfo remote_end, 
+			IN MediaFormat codec);
+
+		ApiErrorCode	ModifyConnection(
 			IN CnxInfo remote_end, 
 			IN MediaFormat codec);
 
@@ -71,7 +75,7 @@ namespace ivrworx
 
 		ApiErrorCode	SyncStreamFile();
 
-		ImsHandleId _imsSessionHandle;
+		ImsHandle _imsSessionHandle;
 
 		CnxInfo _imsMediaData;
 

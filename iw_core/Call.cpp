@@ -21,6 +21,7 @@
 #include "Call.h"
 #include "Profiler.h"
 #include "Logger.h"
+#include "ResipCommon.h"
 
 
 #define CALL_RESET_STATE(X) ResetState(X,#X)
@@ -30,8 +31,7 @@ namespace ivrworx
 
 
 
-Call::Call(IN LpHandlePair stack_pair):
-_stackPair(stack_pair),
+Call::Call(IN ScopedForking &forking):
 _stackCallHandle(IW_UNDEFINED),
 _hangupDetected(FALSE),
 _handlerPair(HANDLE_PAIR),
@@ -39,16 +39,18 @@ _dtmfChannel(new LpHandle()),
 _hangupChannel(new LpHandle()),
 _callState(CALL_STATE_UNKNOWN)
 {
+	FUNCTRACKER;
+
 	CALL_RESET_STATE(CALL_STATE_UNKNOWN);
-	throw "not supported";
+
+	StartActiveObjectLwProc(forking,_handlerPair,__FUNCTION__);
+
+	_stackCallHandle = GenerateSipHandle();
 
 }
 
-Call::Call(
-	 IN LpHandlePair stack_pair,
-	 IN ScopedForking &forking,
-	 IN shared_ptr<MsgCallOfferedReq> offered_msg):
- _stackPair(stack_pair),
+Call::Call(IN ScopedForking &forking,
+		   IN shared_ptr<MsgCallOfferedReq> offered_msg):
  _stackCallHandle(offered_msg->stack_call_handle),
  _remoteMedia(offered_msg->remote_media),
  _handlerPair(offered_msg->call_handler_inbound),
@@ -59,7 +61,7 @@ Call::Call(
 	FUNCTRACKER;
 
 	CALL_RESET_STATE(CALL_STATE_INITIAL_OFFERED);
-	Start(forking,_handlerPair,__FUNCTION__);
+	StartActiveObjectLwProc(forking,_handlerPair,__FUNCTION__);
 
 	_dnis	= offered_msg->dnis;
 	_ani	= offered_msg->ani;
@@ -92,7 +94,7 @@ Call::EnableMediaFormat(IN const MediaFormat& media_format)
 
 	LogDebug("Media format:" << media_format << ", enabled for iwh:" << _stackCallHandle );
 
-	_supportedMediaFormatsList.insert(
+	_supportedMediaFormatsMap.insert(
 		MediaFormatMapPair(media_format.sdp_mapping(), media_format));
 }
 
@@ -105,9 +107,23 @@ Call::NegotiateMediaFormats(IN const MediaFormatsList &offered_medias,
 
 	IX_PROFILE_FUNCTION();
 
-	if (_supportedMediaFormatsList.empty() || offered_medias.empty())
+	for (MediaFormatsList::const_iterator i = offered_medias.begin();
+		i != offered_medias.end();
+		++i)
 	{
-		LogWarn("Illegal parameters (empty?) for codecs negotiation.");
+		LogDebug("Call::NegotiateMediaFormats offered:" << (*i).sdp_name_tos() << ", iwh:" << _stackCallHandle);
+	}
+
+	for (MediaFormatsMap::const_iterator i = _supportedMediaFormatsMap.begin();
+		i != _supportedMediaFormatsMap.end();
+		++i)
+	{
+	   LogDebug("Call::NegotiateMediaFormats enabled:" << (*i).second.sdp_name_tos() << ", iwh:" << _stackCallHandle);
+	}
+
+	if (_supportedMediaFormatsMap.empty() || offered_medias.empty())
+	{
+		LogWarn("Call::NegotiateMediaFormats - Illegal parameters (empty?) for codecs negotiation.");
 		return API_FAILURE;
 	}
 
@@ -122,21 +138,22 @@ Call::NegotiateMediaFormats(IN const MediaFormatsList &offered_medias,
 		iter1++)
 	{
 
-
 		const MediaFormat &media_format1 = (*iter1);
 
 		MediaFormatsMap::iterator iter2 = 
-			_supportedMediaFormatsList.find(media_format1.sdp_mapping());
-		if (iter2 == _supportedMediaFormatsList.end())
+			_supportedMediaFormatsMap.find(media_format1.sdp_mapping());
+		if (iter2 == _supportedMediaFormatsMap.end())
 		{
 			continue;
 		}
 
 		const MediaFormat &media_format2 = (*iter2).second;
 
+		// have we already found speech codec?
 		if (media_format1.get_media_type() == MediaFormat::MediaType_SPEECH && speech_chosen)
 			continue;
 
+		// have we already found dtmf codec?
 		if (media_format1.get_media_type() == MediaFormat::MediaType_DTMF && dtmf_chosen)
 			continue;
 
@@ -168,9 +185,11 @@ Call::NegotiateMediaFormats(IN const MediaFormatsList &offered_medias,
 
 	if (accepted_media.empty() || speech_chosen == false)
 	{
-		LogWarn("Negotiation failure for call " << _stackCallHandle );
+		LogWarn("Call::NegotiateMediaFormats - negotiation failure iwh:" << _stackCallHandle );
 		return API_FAILURE;
 	}
+
+	LogDebug("Call::NegotiateMediaFormats speech:" << accepted_speech_format << ", rc2833 dtmf chosen:" << dtmf_chosen << ", iwh:" << _stackCallHandle);
 
 	return API_SUCCESS;
 
@@ -180,7 +199,7 @@ Call::~Call(void)
 {
 	FUNCTRACKER;
 
-	HagupCall();
+	HangupCall();
 }
 
 void 
@@ -224,14 +243,13 @@ Call::RejectCall()
 	MsgCallOfferedNack *msg = new MsgCallOfferedNack();
 	msg->stack_call_handle = _stackCallHandle;
 
-	_stackPair.inbound->Send(msg);
-
-	return API_SUCCESS;
+	ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(SIP_STACK_Q,msg);
+	return res;
 
 }
 
 ApiErrorCode
-Call::HagupCall()
+Call::HangupCall()
 {
 	
 	FUNCTRACKER;
@@ -247,13 +265,12 @@ Call::HagupCall()
 
 	MsgHangupCallReq *msg = new MsgHangupCallReq(_stackCallHandle);
 
-	_stackPair.inbound->Send(msg);
+	ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(SIP_STACK_Q,msg);
 
 	_stackCallHandle = IW_UNDEFINED;
-
 	_hangupDetected = TRUE;
 
-	return API_SUCCESS;
+	return res;
 }
 
 ApiErrorCode
@@ -280,7 +297,7 @@ Call::AcceptInitialOffer( IN const CnxInfo &local_connection,
 	
 
 	ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
-		_stackPair.inbound,
+		SIP_STACK_Q,
 		IwMessagePtr(ack),
 		response,
 		MilliSeconds(GetCurrLightWeightProc()->TransactionTimeout()),
@@ -355,7 +372,7 @@ Call::BlindXfer(IN const string &destination_uri)
 	msg->stack_call_handle = _stackCallHandle;
 
 	ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
-		_stackPair.inbound,
+		SIP_STACK_Q,
 		IwMessagePtr(msg),
 		response,
 		Seconds(60),
@@ -394,7 +411,14 @@ Call::MakeCall(IN const string &destination_uri,
 {
 	FUNCTRACKER;
 
-	return API_FAILURE;
+	LogDebug("Call::MakeCall dst:" << destination_uri <<", local cnx:" << local_media);
+
+	if (_callState != CALL_STATE_UNKNOWN)
+	{
+		return API_FAILURE;
+	}
+
+	CALL_RESET_STATE(CALL_STATE_OFFERING);
 
 	_localMedia = local_media;
 
@@ -404,36 +428,45 @@ Call::MakeCall(IN const string &destination_uri,
 	msg->local_media = local_media;
 	msg->destination_uri = destination_uri;
 	msg->call_handler_inbound = _handlerPair.inbound;
+	msg->stack_call_handle = _stackCallHandle;
 
 
+	// wait for ok or nack
 	ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
-		_stackPair.inbound,
+		SIP_STACK_Q,
 		IwMessagePtr(msg),
 		response,
 		Seconds(60),
 		"Make Call TXN");
 
-	if (res != API_SUCCESS)
+
+	if (res == API_TIMEOUT)
 	{
-		return res;
+		// just to be sure that timeout-ed call
+		// eventually gets hanged up
+		LogWarn("Call::MakeCall - Timeout.");
+		HangupCall();
+		return API_TIMEOUT;
 	}
+
+	if (IW_FAILURE(res))
+	{
+		LogWarn("Call::MakeCall - failure res:" << res);
+		CALL_RESET_STATE(CALL_STATE_UNKNOWN);
+		return API_SERVER_FAILURE;
+	}
+
 
 	switch (response->message_id)
 	{
-	case MSG_MAKE_CALL_ACK:
+	case MSG_MAKE_CALL_OK:
 		{
-			shared_ptr<MsgMakeCallAck> make_call_sucess = 
-				dynamic_pointer_cast<MsgMakeCallAck>(response);
-
-			_stackCallHandle = make_call_sucess->stack_call_handle;
-
-			_remoteMedia = make_call_sucess->remote_media;
-
 			break;
 		}
 	case MSG_MAKE_CALL_NACK:
 		{
-			res = API_SERVER_FAILURE;
+			CALL_RESET_STATE(CALL_STATE_UNKNOWN);
+			return API_SERVER_FAILURE;
 			break;
 		}
 	default:
@@ -441,6 +474,49 @@ Call::MakeCall(IN const string &destination_uri,
 			throw;
 		}
 	}
+
+	
+	shared_ptr<MsgMakeCallOk> make_call_ok = 
+		dynamic_pointer_cast<MsgMakeCallOk>(response);
+
+	_stackCallHandle = make_call_ok->stack_call_handle;
+	_remoteMedia = make_call_ok->remote_media;
+
+	MediaFormatsList accepted_media_formats;
+	MediaFormat speech_media_format = MediaFormat::PCMU;
+
+	res = this->NegotiateMediaFormats(
+		make_call_ok->offered_codecs, 
+		accepted_media_formats, 
+		speech_media_format);
+
+	if (IW_FAILURE(res))
+	{
+		RejectCall();
+		CALL_RESET_STATE(CALL_STATE_UNKNOWN);
+		return API_SERVER_FAILURE;
+	};
+
+	_acceptedMediaFormats = accepted_media_formats;
+	_acceptedSpeechFormat = speech_media_format;
+
+	CALL_RESET_STATE(CALL_STATE_CONNECTED);
+
+	MsgMakeCallAckReq* ack_req = new MsgMakeCallAckReq();
+	ack_req->stack_call_handle = _stackCallHandle;
+
+	res = GetCurrLightWeightProc()->SendMessage(SIP_STACK_Q,
+		ack_req);
+
+	if (IW_FAILURE(res))
+	{
+		HangupCall();
+		CALL_RESET_STATE(CALL_STATE_UNKNOWN);
+		return API_SERVER_FAILURE;
+	};
+		
+	CALL_RESET_STATE(CALL_STATE_CONNECTED);
+
 	return res;
 }
 

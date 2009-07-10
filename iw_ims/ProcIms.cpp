@@ -122,7 +122,8 @@ namespace ivrworx
 	StreamingCtx::StreamingCtx()
 		:stream(NULL),
 		profile(NULL),
-		state(IMS_INITIAL)
+		state(IMS_INITIAL),
+		ims_handle(IW_UNDEFINED)
 	{
 
 	}
@@ -161,6 +162,7 @@ namespace ivrworx
 			ms_free(stream);
 		}
 		if (profile) rtp_profile_destroy(profile);
+
 	}
 
 #define IW_IMS_EOF_EVENT  1
@@ -171,7 +173,7 @@ namespace ivrworx
 	{
 
 		MSFilter *filter = (MSFilter *) user_data;
-		ImsHandleId handle = (ImsHandleId) filter->notify_ud;
+		ImsHandle handle = (ImsHandle) filter->notify_ud;
 
 		ImsOverlapped *olap = new ImsOverlapped();
 		SecureZeroMemory(olap, sizeof(ImsOverlapped));
@@ -196,7 +198,7 @@ namespace ivrworx
 	on_file_filter_event(void *userdata , unsigned int id, void *arg)
 	{
 
-		ImsHandleId handle = (ImsHandleId) userdata;
+		ImsHandle handle = (ImsHandle) userdata;
 
 		switch (id)
 		{
@@ -223,7 +225,7 @@ namespace ivrworx
 			}
 		default:
 			{
-				LogWarn("Unknown rtp event:" << id);
+				LogWarn("Unknown file filter event:" << id);
 			}
 		}
 	}
@@ -485,6 +487,11 @@ namespace ivrworx
 					AllocatePlaybackSession(ptr);
 					break;
 				}
+			case MSG_IMS_MODIFY_REQ:
+				{
+					ModifySession(ptr);
+					break;
+				}
 			case MSG_START_PLAYBACK_REQUEST:
 				{
 					StartPlayback(ptr);
@@ -543,6 +550,7 @@ namespace ivrworx
 		//
 		StreamingCtxPtr ctx(new StreamingCtx());
 		long handle = GetNewImsHandle();
+		ctx->ims_handle = handle;
 
 		//
 		// create ortp stream and initialize it with available port
@@ -902,6 +910,85 @@ error:
 		return API_SUCCESS;
 
 	}
+
+	void 
+	ProcIms::ModifySession(IwMessagePtr msg)
+	{
+
+		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
+
+		shared_ptr<MsgImsModifyReq> req  =
+			dynamic_pointer_cast<MsgImsModifyReq> (msg);
+
+		StreamingCtxsMap::iterator iter = 
+			_streamingObjectSet.find(req->playback_handle);
+
+		if (iter == _streamingObjectSet.end())
+		{
+			LogWarn("ProcIms::ModifySession invalid imsh:" << req->playback_handle);
+			SendResponse(msg, new MsgImsModifyNack());
+			return;
+		}
+
+		StreamingCtxPtr ctx		= iter->second;
+
+		// to prevent race conditions?
+		ApiErrorCode err = StopTicking(ctx);
+		if (IW_FAILURE(err))
+		{
+			LogWarn("Error detaching from ticker imsh:" << ctx->ims_handle);
+			goto error;
+		}
+
+		// update remote end for session
+		int remport  = req->remote_media_data.port_ho();
+		char *remip  = (char *)req->remote_media_data.iptoa();
+		
+		RtpSession *rtps = ctx->stream->session;
+
+		int res = rtp_session_set_remote_addr(rtps,remip,remport);
+		if (res < 0) 
+		{
+			LogWarn("error:rtp_session_set_remote_addr");
+			goto error;
+		}
+
+		// update session payload type
+		res = rtp_session_set_payload_type(rtps,req->codec.sdp_mapping());
+		if (res < 0) 
+		{
+			LogWarn("error:rtp_session_set_payload_type " << req->codec.sdp_mapping_tos());
+			goto error;
+		}
+
+		res = ms_filter_call_method(ctx->stream->rtpsend,MS_RTP_SEND_SET_SESSION,rtps);
+		if (res < 0) 
+		{
+			LogWarn("error:ms_filter_call_method MS_RTP_SEND_SET_SESSION");
+			goto error;
+		}
+
+		
+		err = StartTicking(ctx);
+		if (IW_FAILURE(err))
+		{
+			LogWarn("Error attaching to ticker imsh:" << ctx->ims_handle);
+			goto error;
+		}
+
+		SendResponse(req, new MsgImsModifyAck());
+
+		return;
+
+
+error:
+
+		SendResponse(req, new MsgImsModifyNack());
+
+	}
+
+
 
 	void 
 	ProcIms::StartPlayback(IwMessagePtr msg)

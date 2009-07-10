@@ -64,8 +64,8 @@ namespace ivrworx
 	IwStackHandle 
 	GenerateSipHandle()
 	{
-		static int index = 10000;
-		return index ++;
+		static volatile int index = 10000;
+		return ::InterlockedIncrement((LONG*)&index);
 	};
 
 	SipDialogContext::SipDialogContext():
@@ -75,7 +75,7 @@ namespace ivrworx
 	}
 
 	CnxInfo 
-	CreateMediaData(const SdpContents& sdp)
+	ExtractCnxInfo(const SdpContents& sdp)
 	{
 		const SdpContents::Session &s = sdp.session();
 		const Data &addr_data = s.connection().getAddress();
@@ -86,6 +86,8 @@ namespace ivrworx
 
 		return CnxInfo(addr,port);
 	}
+
+	
 
 }
 

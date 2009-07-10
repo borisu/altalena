@@ -105,15 +105,19 @@ namespace ivrworx
 
 		virtual ApiErrorCode Init();
 
-		virtual void UponBlindXferReq(IwMessagePtr req);
+		virtual void UponBlindXferReq(IN IwMessagePtr req);
 
-		virtual void UponHangupCall(IwMessagePtr req);
+		virtual void UponMakeCallReq(IN IwMessagePtr req);
 
-		virtual void ShutDown(IwMessagePtr req);
+		virtual void UponMakeCallAckReq(IN IwMessagePtr req);
 
-		virtual void UponCallOfferedAck(IwMessagePtr req);
+		virtual void UponHangupCallReq(IN IwMessagePtr req);
 
-		virtual void UponCallOfferedNack(IwMessagePtr req);
+		virtual void ShutDown(IN IwMessagePtr req);
+
+		virtual void UponCallOfferedAck(IN IwMessagePtr req);
+
+		virtual void UponCallOfferedNack(IN IwMessagePtr req);
 
 		virtual void ShutDown();
 
@@ -129,7 +133,7 @@ namespace ivrworx
 
 		IwHandlesMap _iwHandlesMap;
 
-		//UACDialogUsageManagerPtr _dumUac;
+		UACDialogUsageManagerPtr _dumUac;
 
 		UASDialogUsageManagerPtr _dumUas;
 

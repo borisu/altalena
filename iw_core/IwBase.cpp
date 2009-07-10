@@ -144,7 +144,7 @@ namespace ivrworx
 
 	const MediaFormat MediaFormat::PCMA("PCMA",8000,8, MediaType_SPEECH);
 
-	const MediaFormat MediaFormat::DTMF("telephone-event", 8000, 8, MediaType_DTMF);
+	const MediaFormat MediaFormat::DTMF_RFC2833("telephone-event", 8000, 101, MediaType_DTMF);
 
 	MediaFormat::MediaType  MediaFormat::GetMediaType(string media_name)
 	{

@@ -36,6 +36,9 @@ function blind_xfer(destination)
 	return this.blind_xfer(this,destination);
 end
 
+function make_call(destination)
+	return this.make_call(this,destination);
+end
 
 LOG_LEVEL_OFF = 0;
 LOG_LEVEL_CRITICAL = 1;

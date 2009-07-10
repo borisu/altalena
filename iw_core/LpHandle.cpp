@@ -225,7 +225,7 @@ namespace ivrworx
 		} 
 		catch(PoisonException p)
 		{
-			LogDebug(this << " poisoned.");
+			LogWarn(this << " poisoned.");
 			return API_FAILURE;
 		}
 

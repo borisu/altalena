@@ -85,6 +85,10 @@ namespace ivrworx
 
 	__declspec( thread ) debug_dostream *tls_logger = NULL;
 
+	__declspec( thread ) BOOL script_log = FALSE;
+	
+
+
 	struct LogBucket :
 		public OVERLAPPED
 	{
@@ -98,11 +102,26 @@ namespace ivrworx
 
 		DWORD timestamp;
 
+		BOOL script_log;
+
 	};
 
 	DWORD WINAPI LoggerThread(LPVOID lpParam);
+
+	void 
+	IwStartScript()
+	{
+		script_log = TRUE;
+	}
+
+	void
+	IwStopScript()
+	{
+		script_log = FALSE;
+	}
 	
-	BOOL InitLog(Configuration &conf)
+	BOOL 
+	InitLog(Configuration &conf)
 	{
 		mutex::scoped_lock scoped_lock(g_loggerMutex);
 
@@ -178,6 +197,7 @@ namespace ivrworx
 
 		if (g_loggerThread != NULL) 
 		{
+			::TerminateThread(g_loggerThread, -1);
 			::CloseHandle(g_loggerThread);
 			g_loggerThread = NULL;
 		}
@@ -329,11 +349,12 @@ namespace ivrworx
 	{
 		LogBucket *lb = new LogBucket();
 
-		lb->log_level = log_level;
-		lb->thread_id = ::GetCurrentThreadId();
-		lb->fiber_id  = ::GetCurrentFiber();
-		lb->timestamp = ::GetTickCount();
-		lb->log_str = str();
+		lb->log_level  = log_level;
+		lb->thread_id  = ::GetCurrentThreadId();
+		lb->fiber_id   = ::GetCurrentFiber();
+		lb->timestamp  = ::GetTickCount();
+		lb->log_str	   = str();
+		lb->script_log = script_log;
 
 		if (::InterlockedExchangeAdd(( LONG *)&g_LogSyncMode,0) == TRUE)
 		{
@@ -395,6 +416,8 @@ namespace ivrworx
 
 		if (g_logMask & IW_LOG_MASK_CONSOLE)   
 		{ 
+			cout << ((lb->script_log == TRUE)? con::fg_yellow : con::fg_white);
+
 			switch(lb->log_level)
 			{
 			case LOG_LEVEL_CRITICAL:

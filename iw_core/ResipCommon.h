@@ -52,10 +52,10 @@ namespace ivrworx
 		operator <<(ostream& strm,  const Message& msg);
 
 	typedef 
-		int IwStackHandle;
+	int IwStackHandle;
 
 	IwStackHandle 
-		GenerateSipHandle();
+	GenerateSipHandle();
 
 	enum TransactionType
 	{
@@ -100,7 +100,39 @@ namespace ivrworx
 
 
 	CnxInfo 
-		CreateMediaData(const SdpContents& sdp);
+	ExtractCnxInfo(const SdpContents& sdp);
+
+	template<class T> 
+	string LogHandleState(SipDialogContextPtr ptr, T is)
+	{
+
+		stringstream stream;
+		stream << "iwh:" << (ptr.get() == NULL ? -1 : ptr->stack_handle) << ", rsh:"  << is.getId() <<  ", callid:" << is->getCallId().c_str() << ", state:";
+
+		if (is->isAccepted())
+		{
+			stream << "accepted;";
+		}
+		if (is->isConnected())
+		{
+			stream << "connected;";
+		}
+		if (is->isEarly())
+		{
+			stream << "early;";
+		}
+		if (is->isTerminated())
+		{
+			stream << "terminated;";
+		}
+
+		return stream.str();
+
+	}
+
+
+	CnxInfo 
+	ExtractCnxInfo(const SdpContents& sdp);
 
 }
 

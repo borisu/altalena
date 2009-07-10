@@ -117,12 +117,13 @@ end
 @section Tables
 
 ivrworx exposes the following tables that are populated with call related values upon call arrival.
-
+Table conf:-
 <table border="1">
 <tr><th>Value</th><th>Notes</th></tr>
 <tr><td>sounds_dir</td><td>contains directory where basic sound files are stored</td>	</tr>
 </table>
 
+Table linein:-
 <table border="1">
 <tr> <th>Value</th><th>Notes</th></tr>
 <tr> <td>ani</td>  <td>contains ani of incoming call</td>	</tr>
@@ -163,7 +164,7 @@ namespace ivrworx
 
 	private:
 
-		virtual void RunStandAlone();
+		virtual void RunSuperScript();
 
 		virtual void RunIncomingCallHandler();
 
@@ -178,167 +179,5 @@ namespace ivrworx
 	};
 
 
-	/**
-	Core ivrworx &reg; lua interface for script that handles incoming call.
-	**/
-	class IwScript : 
-		public CLuaScript
-	{
-	public:
-
-		IwScript(
-			IN Configuration &conf, 
-			IN CLuaVirtualMachine &vm);
-
-		~IwScript();
-
-	protected:
-
-		virtual int ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber) ;
-
-		virtual void HandleReturns (CLuaVirtualMachine& vm, const char *strFunc);
-
-		/**
-		ivrworx.wait timeout) - Waits for [timeout] milliseconds.  
-
-		@return always 0
-		**/
-		int LuaWait(CLuaVirtualMachine& vm);
-
-		/**
-		ivrworx.log(log_level,log) - script logging.
-		
-		@returns always 0
-		**/
-		int LuaLog(CLuaVirtualMachine& vm);
-
-		/**
-		ivrworx.run(f) - if script needs to perform long blocking operation
-		it should use this function. f will be executed in a separate thread,
-		while main thread will be rescheduled waiting for an answer. No ivrworx
-		media api can be used(!) inside these threads.
-
-		@returns always 0
-		**/
-		int LuaRun(CLuaVirtualMachine& vm);
-
-		int _methodBase;
-
-		CLuaVirtualMachine &_vmPtr;
-
-		LuaTable _confTable;
-
-		LuaTable _lanesTable;
-
-		Configuration &_conf;
-
-	};
-
-	class IwCallHandlerScript
-		: public IwScript
-	{
-	public:
-
-		IwCallHandlerScript(
-			IN Configuration &conf, 
-			IN CLuaVirtualMachine &vm, 
-			IN CallWithDirectRtp &call);
-
-
-		/**
-		When remote hangup is detected, the script is terminated and on_hangup function is called.
-		Common mistake is to define the function at the end of script file. In this case the interpreter
-		may not find it. Please define the function at the beginning of script file.
-
-		**/
-		void RunOnHangupScript();
-
-	protected:
-
-		virtual int ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber);
-
-	private:
-
-		int _methodBase;
-
-		LuaTable _lineInTable;
-
-		/**
-		ivrworx.accept - Accepts the call. Upon calling this function is script 200 response will be 
-		sent to remote party with media proposal. 
-
-		@return 0 if call is suucessfully connected (ACK sent by remote party) or error code otherwise
-		**/
-		int LuaAnswerCall(CLuaVirtualMachine& vm);
-
-		/**
-		ivrworx.hangup - Hangs up the call.  
-
-		@return always 0
-		**/
-		int LuaHangupCall(CLuaVirtualMachine& vm);
-
-		/**
-		ivrworx.play(filename,sync,loop) - Streams filename (wav) to the caller.  If sync is true the call will ext
-		only upon end of streaming. If loop is true the file is being played indefinitely. You cannot set sync and loop
-		to true simultaneously.
-
-		@return 0 upon success.
-		**/
-		int LuaPlay(CLuaVirtualMachine& vm);
-
-		/**
-		ivrworx.wait_for_dtmf returns pair consisting of result and dtmf accepted
-
-		@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
-		**/
-		int LuaWaitForDtmf(CLuaVirtualMachine& vm);
-
-		/**
-		ivrworx.send_dtmf - sends RFC2833to caller.
-
-		@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
-		**/
-		int LuaSendDtmf(CLuaVirtualMachine& vm);
-
-		/**
-		ivrworx.blind_xfer (sip_uri) - unattended transfer to [sip_uri].
-
-		@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
-		**/
-		int LuaBlindXfer(CLuaVirtualMachine& vm);
-
-		/**
-		ivrworx.blind_xfer (sip_uri) - unattended transfer to [sip_uri].
-
-		@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
-		**/
-		int LuaWaitTillHangup(CLuaVirtualMachine& vm);
-
-		CallWithDirectRtp &_callSession;
-
-	};
-
-
-	class script_hangup_exception: 
-		public std::exception
-	{
-
-	};
-
-	class ProcBlockingOperationRunner
-		:public LightweightProcess
-	{
-	public:
-		ProcBlockingOperationRunner(LpHandlePair pair, CLuaVirtualMachine& vm);
-
-	protected:
-		void real_run();
-
-	protected:
-
-		CLuaVirtualMachine& _vm;
-
-	};
-
+	
 }

@@ -102,7 +102,6 @@ ImsSession::PlayFile(IN const string &file_name,
 	msg->send_provisional	= provisional;
 	msg->loop				= loop;
 	msg->source.handle_id	= ims_play_txn->GetObjectUid();
-	msg->transaction_id		= GenerateNewTxnId();
 	
 	ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(IMS_Q,IwMessagePtr(msg));
 	if (IW_FAILURE(res))
@@ -279,7 +278,7 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 			_imsSessionHandle	= ack->playback_handle;
 			_imsMediaData		= ack->ims_media_data;
 
-			Start(_forking,session_handler_pair,"Ims Session handler");
+			StartActiveObjectLwProc(_forking,session_handler_pair,"Ims Session handler");
 
 			LogDebug("Ims session allocated successfully, ims handle=[" << _imsSessionHandle << "]");
 
@@ -301,6 +300,57 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 
 }
 
+ApiErrorCode
+ImsSession::ModifyConnection(IN CnxInfo remote_end, 
+								  IN MediaFormat codec)
+{
+	FUNCTRACKER;
+
+	LogDebug("ImsSession::ModifyConnection remote:" <<  remote_end.ipporttos()  << ", codec:"  << codec << ", imsh:" << _imsSessionHandle);
+
+	if (_imsSessionHandle == IW_UNDEFINED)
+	{
+		return API_FAILURE;
+	}
+
+	DECLARE_NAMED_HANDLE_PAIR(session_handler_pair);
+
+	MsgImsModifyReq *msg = new MsgImsModifyReq();
+	msg->remote_media_data = remote_end;
+	msg->codec = codec;
+	msg->playback_handle = _imsSessionHandle;
+
+	IwMessagePtr response = NULL_MSG;
+	ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
+		IMS_Q,
+		IwMessagePtr(msg),
+		response,
+		MilliSeconds(GetCurrLightWeightProc()->TransactionTimeout()),
+		"Modify IMS Connection TXN");
+
+	if (res != API_SUCCESS)
+	{
+		LogWarn("Error modifying Ims connection " << res);
+		return res;
+	}
+
+	switch (response->message_id)
+	{
+	case MSG_IMS_MODIFY_ACK:
+		{
+			return API_SUCCESS;
+		}
+	case MSG_IMS_MODIFY_NACK:
+		{
+			return API_FAILURE;
+		}
+	default:
+		{
+			throw;
+		}
+	}
+
+}
 
 
 CnxInfo ImsSession::ImsMediaData() const 
