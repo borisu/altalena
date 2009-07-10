@@ -24,10 +24,18 @@ using namespace boost;
 namespace ivrworx
 {
 	CallWithDirectRtp::CallWithDirectRtp(
-		IN LpHandlePair stack_pair,
+		IN ScopedForking &forking)
+		:Call(forking),
+		_imsSession(forking)
+	{
+
+		
+	}
+
+	CallWithDirectRtp::CallWithDirectRtp(
 		IN ScopedForking &forking,
 		IN shared_ptr<MsgCallOfferedReq> offered_msg)
-		:Call(stack_pair,forking,offered_msg),
+		:Call(forking,offered_msg),
 		_origOffereReq(offered_msg),
 		_imsSession(forking)
 	{
@@ -102,6 +110,36 @@ namespace ivrworx
 		ApiErrorCode res = _imsSession.SendDtmf(dtmf);
 
 		return res;
+
+	}
+
+	ApiErrorCode 
+	CallWithDirectRtp::MakeCall(IN const string &destination_uri)
+	{
+		
+		FUNCTRACKER;
+
+		// allocate dummy session to save bind time for future
+		ApiErrorCode res = _imsSession.AllocateIMSConnection(CnxInfo("127.0.0.1",555),MediaFormat::PCMU);
+		if (IW_FAILURE(res))
+		{
+		  return res;
+		};
+
+		res = Call::MakeCall(destination_uri,_imsSession.ImsMediaData());
+		if (IW_FAILURE(res))
+		{
+			return res;
+		};
+
+		res = _imsSession.ModifyConnection(_remoteMedia,_acceptedSpeechFormat);
+		if (IW_FAILURE(res))
+		{
+			Call::HangupCall();
+			return res;
+		};
+
+		return API_SUCCESS;
 
 	}
 

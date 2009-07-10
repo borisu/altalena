@@ -64,6 +64,12 @@ namespace ivrworx
 	void
 	SetLogLevel(IN LogLevel log_level);
 
+	void 
+	IwStartScript();
+	
+	void
+	IwStopScript();
+	
 	typedef 
 	std::basic_stringbuf<char, std::char_traits<char>>	char_string_buf;
 
@@ -131,6 +137,11 @@ namespace ivrworx
 	#define COND_LOG(level,x) if (::InterlockedExchangeAdd(( LONG *)&g_LogLevel,0) >= level) IX_SCOPED_LOG(level,x)
 
 #ifndef NOLOGS
+	// hack to display script logging 
+	// in different color
+	#define LogStartScriptLog()		IwStartScript()
+	#define LogStopScriptLog()	IwStopScript()
+
 	#define LogTrace(x)		COND_LOG(LOG_LEVEL_TRACE,x)
 	#define LogDebug(x)		COND_LOG(LOG_LEVEL_DEBUG,x)
 	#define LogInfo(x)		COND_LOG(LOG_LEVEL_INFO,x)
@@ -140,6 +151,8 @@ namespace ivrworx
 
 	#define FUNCTRACKER LoggerTracker _ltTag(__FUNCTION__) 
 #else
+	#define LogPushColors(fg,bg);
+	#define LogPopColore();		
 	#define LogTrace(x) 
 	#define LogDebug(x) 
 	#define LogInfo(x)  

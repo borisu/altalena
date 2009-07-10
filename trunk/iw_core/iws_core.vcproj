@@ -486,6 +486,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ProcHandleWaiter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ProcHandleWaiter.h"
+				>
+			</File>
+			<File
 				RelativePath=".\UIDOwner.cpp"
 				>
 			</File>
@@ -494,14 +502,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\ProcHandleWaiter.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\ProcHandleWaiter.h"
-			>
-		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>

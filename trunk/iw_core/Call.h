@@ -38,6 +38,7 @@ namespace ivrworx
 		MSG_CALL_DTMF_EVT,
 
 		MSG_MAKE_CALL_REQ,
+		MSG_MAKE_CALL_OK,
 		MSG_MAKE_CALL_ACK,
 		MSG_MAKE_CALL_NACK,
 		MSG_HANGUP_CALL_REQ,
@@ -48,12 +49,48 @@ namespace ivrworx
 
 	};
 
+	class  MsgVoipCallMixin 
+	{
+	public:
+
+		MsgVoipCallMixin():
+		  stack_call_handle(IW_UNDEFINED){};
+
+		  int stack_call_handle;
+
+		  CnxInfo local_media;
+
+		  MediaFormatsList offered_codecs;
+
+		  MediaFormatsList accepted_codecs;
+
+		  CnxInfo remote_media;
+
+		  string ani;
+
+		  string dnis;
+
+		  virtual void copy_data_on_response(IN IwMessage *msg)
+		  {
+			  MsgVoipCallMixin *req = dynamic_cast<MsgVoipCallMixin*>(msg);
+
+			  stack_call_handle	= stack_call_handle == IW_UNDEFINED ? req->stack_call_handle : stack_call_handle;
+			  local_media		= local_media.is_ip_valid()   ? local_media :req->local_media ;
+			  remote_media		= remote_media.is_ip_valid()  ? remote_media : req->remote_media  ;
+			  offered_codecs    = offered_codecs.size() == 0  ? req->offered_codecs  : offered_codecs;
+			  accepted_codecs	= accepted_codecs.size() == 0 ? req->accepted_codecs : accepted_codecs;
+			  ani				= ani.empty()  ?  req->ani  : ani;
+			  dnis				= dnis.empty() ?  req->dnis : dnis;
+		  };
+
+	};
+
 
 	//
 	// CALL RELATED
 	//
 	class MsgMakeCallReq : 
-		public MsgRequest
+		public MsgRequest, public MsgVoipCallMixin
 	{
 
 	public:
@@ -62,42 +99,53 @@ namespace ivrworx
 
 		  string destination_uri;
 
-		  string on_behalf_of;
-
-		  CnxInfo local_media;
-
 		  LpHandlePtr call_handler_inbound;
 
 	};
 
-
-	class MsgMakeCallAck: 
-		public IwMessage
+	class MsgMakeCallOk : 
+		public MsgResponse, public MsgVoipCallMixin
 	{
+
 	public:
+		MsgMakeCallOk():
+		  MsgResponse(MSG_MAKE_CALL_OK, NAME(MSG_MAKE_CALL_OK)){};
 
-		MsgMakeCallAck(): 
-		  IwMessage(MSG_MAKE_CALL_ACK, NAME(MSG_MAKE_CALL_ACK)),
-			  stack_call_handle(IW_UNDEFINED){};
+		  virtual void copy_data_on_response(IN IwMessage *request)
+		  {
+			  MsgVoipCallMixin::copy_data_on_response(request);
+			  MsgResponse::copy_data_on_response(request);
+		  }
 
-		  MsgMakeCallAck(int handle):
-		  IwMessage(MSG_MAKE_CALL_ACK, NAME(MSG_MAKE_CALL_ACK)),
-			  stack_call_handle(handle){};
-
-		  int stack_call_handle;
-
-		  CnxInfo remote_media;
 	};
 
 
+	class MsgMakeCallAckReq: 
+		public MsgResponse
+	{
+	public:
+
+		MsgMakeCallAckReq(): 
+		  MsgResponse(MSG_MAKE_CALL_ACK, NAME(MSG_MAKE_CALL_ACK)){};
+
+		int stack_call_handle;
+
+		 
+	 };
+
+
 	class MsgMakeCallNack: 
-		public IwMessage
+		public MsgResponse, public MsgVoipCallMixin
 	{
 	public:
 		MsgMakeCallNack():
-		  IwMessage(MSG_MAKE_CALL_NACK, NAME(MSG_MAKE_CALL_NACK)){};
+		  MsgResponse(MSG_MAKE_CALL_NACK, NAME(MSG_MAKE_CALL_NACK)){};
 
-		  unsigned long stack_call_handle;
+		  virtual void copy_data_on_response(IN IwMessage *request)
+		  {
+			  MsgVoipCallMixin::copy_data_on_response(request);
+			  MsgResponse::copy_data_on_response(request);
+		  }
 	};
 
 
@@ -117,41 +165,7 @@ namespace ivrworx
 	};
 
 
-	class  MsgStackMixin 
-	{
-	public:
-
-		MsgStackMixin():
-		 stack_call_handle(IW_UNDEFINED){};
-
-		int stack_call_handle;
-
-		CnxInfo local_media;
-
-		MediaFormatsList offered_codecs;
-
-		MediaFormatsList accepted_codecs;
-
-		CnxInfo remote_media;
-
-		string ani;
-
-		string dnis;
-
-		virtual void copy_data_on_response(IN IwMessage *msg)
-		{
-			MsgStackMixin *req = dynamic_cast<MsgStackMixin*>(msg);
-
-			stack_call_handle	= req->stack_call_handle;
-			local_media			= local_media.is_ip_valid()  ? req->local_media : local_media;
-			remote_media		= remote_media.is_ip_valid() ? req->remote_media : remote_media;
-			offered_codecs      = req->offered_codecs;
-			accepted_codecs		= req->accepted_codecs;
-			ani					= req->ani;
-			dnis				= req->dnis;
-		};
-
-	};
+	
 
 
 	enum OfferType
@@ -181,7 +195,7 @@ namespace ivrworx
 	};
 
 	class MsgCallOfferedReq:
-		public MsgStackMixin, public MsgRequest, public MsgCallOfferedMixin
+		public MsgVoipCallMixin, public MsgRequest, public MsgCallOfferedMixin
 	{
 	public:
 		MsgCallOfferedReq():
@@ -195,7 +209,7 @@ namespace ivrworx
 
 
 	class MsgCalOfferedAck:
-		public MsgStackMixin, public IwMessage, public MsgCallOfferedMixin
+		public MsgVoipCallMixin, public IwMessage, public MsgCallOfferedMixin
 	{
 	public:
 		MsgCalOfferedAck():IwMessage(MSG_CALL_OFFERED_ACK, 
@@ -204,14 +218,14 @@ namespace ivrworx
 		virtual void copy_data_on_response(IN IwMessage *request)
 		{
 			MsgCallOfferedMixin::copy_data_on_response(request);
-			MsgStackMixin::copy_data_on_response(request);
+			MsgVoipCallMixin::copy_data_on_response(request);
 			IwMessage::copy_data_on_response(request);
 		}
 	};
 
 
 	class MsgCallOfferedNack:
-		public MsgStackMixin, public IwMessage, public MsgCallOfferedMixin
+		public MsgVoipCallMixin, public IwMessage, public MsgCallOfferedMixin
 	{
 	public:
 		MsgCallOfferedNack():
@@ -221,7 +235,7 @@ namespace ivrworx
 		  virtual void copy_data_on_response(IN IwMessage *request)
 		  {
 			  MsgCallOfferedMixin::copy_data_on_response(request);
-			  MsgStackMixin::copy_data_on_response(request);
+			  MsgVoipCallMixin::copy_data_on_response(request);
 			  IwMessage::copy_data_on_response(request);
 		  }
 
@@ -231,7 +245,7 @@ namespace ivrworx
 
 
 	class MsgNewCallConnected:
-		public MsgStackMixin, public IwMessage, public MsgCallOfferedMixin
+		public MsgVoipCallMixin, public IwMessage, public MsgCallOfferedMixin
 	{
 	public:
 		MsgNewCallConnected():IwMessage(MSG_CALL_CONNECTED, 
@@ -240,14 +254,14 @@ namespace ivrworx
 		virtual void copy_data_on_response(IN IwMessage *request)
 		{
 			MsgCallOfferedMixin::copy_data_on_response(request);
-			MsgStackMixin::copy_data_on_response(request);
+			MsgVoipCallMixin::copy_data_on_response(request);
 			IwMessage::copy_data_on_response(request);
 		}
 
 	};
 
 	class MsgCallHangupEvt:
-		public MsgStackMixin,public IwMessage
+		public MsgVoipCallMixin,public IwMessage
 	{
 	public:
 		MsgCallHangupEvt():IwMessage(MSG_CALL_HANG_UP_EVT, 
@@ -257,7 +271,7 @@ namespace ivrworx
 
 
 	class MsgCallBlindXferReq:
-		public MsgStackMixin,public IwMessage
+		public MsgVoipCallMixin,public IwMessage
 	{
 	public:
 		MsgCallBlindXferReq():IwMessage(MSG_CALL_BLIND_XFER_REQ, 
@@ -268,7 +282,7 @@ namespace ivrworx
 	};
 
 	class MsgCallBlindXferAck:
-		public MsgStackMixin,public IwMessage
+		public MsgVoipCallMixin,public IwMessage
 	{
 	public:
 		MsgCallBlindXferAck():IwMessage(MSG_CALL_BLIND_XFER_ACK, 
@@ -277,7 +291,7 @@ namespace ivrworx
 	};
 
 	class MsgCallBlindXferNack:
-		public MsgStackMixin,public IwMessage
+		public MsgVoipCallMixin,public IwMessage
 	{
 	public:
 		MsgCallBlindXferNack():IwMessage(MSG_CALL_BLIND_XFER_NACK, 
@@ -293,6 +307,7 @@ namespace ivrworx
 	enum CallState
 	{
 		CALL_STATE_UNKNOWN,
+		CALL_STATE_OFFERING,
 		CALL_STATE_INITIAL_OFFERED,
 		CALL_STATE_IN_DIALOG_OFFERED,
 		CALL_STATE_CONNECTED,
@@ -306,43 +321,42 @@ namespace ivrworx
 	{
 	public:
 
-		Call(IN LpHandlePair _stackPair);
+		Call(IN ScopedForking &forking);
 
-		Call(IN LpHandlePair _stackPair,
-			IN ScopedForking &forking,
-			IN shared_ptr<MsgCallOfferedReq> offered_msg);
+		Call(IN ScopedForking &forking,
+			 IN shared_ptr<MsgCallOfferedReq> offered_msg);
 
 		virtual ~Call(void);
 
-		void EnableMediaFormat(IN const MediaFormat& codec);
+		virtual void EnableMediaFormat(IN const MediaFormat& codec);
 
-		void UponCallTerminated(IwMessagePtr ptr);
+		virtual void UponCallTerminated(IwMessagePtr ptr);
 
-		ApiErrorCode NegotiateMediaFormats(
+		virtual ApiErrorCode NegotiateMediaFormats(
 			IN const MediaFormatsList &offered_medias, 
 			OUT MediaFormatsList &accepted_media,
 			OUT MediaFormat &accepted_speech_format);
 
-		ApiErrorCode AcceptInitialOffer(
+		virtual ApiErrorCode AcceptInitialOffer(
 			IN const CnxInfo &local_media, 
 			IN const MediaFormatsList &accepted_codec,
 			IN const MediaFormat &speech_codec);
 
-		ApiErrorCode RejectCall();
+		virtual ApiErrorCode RejectCall();
 
-		ApiErrorCode MakeCall(
+		virtual ApiErrorCode MakeCall(
 			IN const string &destination_uri, 
 			IN const CnxInfo &local_media);
 
-		const string& Dnis();
+		virtual ApiErrorCode HangupCall();
 
-		const string& Ani();
+		virtual ApiErrorCode BlindXfer(IN const string &destination_uri);
 
-		ApiErrorCode HagupCall();
+		virtual void WaitTillHangup();
 
-		ApiErrorCode BlindXfer(IN const string &destination_uri);
+		virtual const string& Dnis();
+		virtual const string& Ani();
 
-		void WaitTillHangup();
 
 		CnxInfo RemoteMedia() const;
 		void RemoteMedia(CnxInfo &val);
@@ -360,8 +374,6 @@ namespace ivrworx
 
 		LpHandlePair _handlerPair;
 
-		LpHandlePair _stackPair;
-
 		int _stackCallHandle;
 
 		CnxInfo _remoteOfferedMedia;
@@ -378,7 +390,7 @@ namespace ivrworx
 
 		CallState _callState;
 
-		MediaFormatsMap _supportedMediaFormatsList;
+		MediaFormatsMap _supportedMediaFormatsMap;
 
 		MediaFormat _acceptedSpeechFormat;
 

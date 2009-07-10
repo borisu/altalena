@@ -104,7 +104,7 @@ namespace ivrworx
 		@param_in	name - the name of the spawned light process
 		
 		*/
-		virtual void Start(IN ScopedForking &forking, IN LpHandlePair pair, IN const string &name);
+		virtual void StartActiveObjectLwProc(IN ScopedForking &forking, IN LpHandlePair pair, IN const string &name);
 
 		
 		/**

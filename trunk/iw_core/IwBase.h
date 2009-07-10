@@ -105,6 +105,7 @@ namespace ivrworx
 	{
 		IVR_Q,						
 		IMS_Q,
+		SIP_STACK_Q,
 		WAITER_Q
 	};
 
@@ -150,7 +151,7 @@ namespace ivrworx
 
 		static const MediaFormat PCMU;
 
-		static const MediaFormat DTMF;
+		static const MediaFormat DTMF_RFC2833;
 
 		int operator == (const MediaFormat &other) const;
 

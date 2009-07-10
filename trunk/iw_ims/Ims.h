@@ -44,7 +44,11 @@ namespace ivrworx
 		MSG_IMS_SEND_RFC2833DTMF_REQ,
 		MSG_IMS_START_RECORD_REQ,
 		MSG_IMS_START_RECORD_ACK,
-		MSG_IMS_STOP_RECORD_REQ
+		MSG_IMS_STOP_RECORD_REQ,
+		MSG_IMS_MODIFY_REQ,
+		MSG_IMS_MODIFY_ACK,
+		MSG_IMS_MODIFY_NACK
+
 	};
 
 
@@ -63,6 +67,8 @@ namespace ivrworx
 		  LpHandlePair session_handler;
 
 	};
+
+	
 
 	class MsgAllocateImsSessionAck:
 		public IwMessage
@@ -86,6 +92,45 @@ namespace ivrworx
 		MsgAllocateImsSessionNack():
 		  IwMessage(MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK, 
 			  NAME(MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK)){};
+
+	};
+
+	class MsgImsModifyReq:
+		public MsgRequest
+	{
+	public:
+		MsgImsModifyReq():
+		  MsgRequest(MSG_IMS_MODIFY_REQ, 
+			  NAME(MSG_IMS_MODIFY_REQ)){};
+
+		  CnxInfo remote_media_data;
+
+		  MediaFormat codec;
+
+		  ImsHandle playback_handle;
+
+		
+	};
+
+
+	class MsgImsModifyAck:
+		public MsgRequest
+	{
+	public:
+		MsgImsModifyAck():
+		  MsgRequest(MSG_IMS_MODIFY_ACK, 
+			  NAME(MSG_IMS_MODIFY_ACK)){};
+	  
+	};
+
+
+	class MsgImsModifyNack:
+		public MsgRequest
+	{
+	public:
+		MsgImsModifyNack():
+		  MsgRequest(MSG_IMS_MODIFY_NACK, 
+			  NAME(MSG_IMS_MODIFY_NACK)){};
 
 	};
 
@@ -149,7 +194,7 @@ namespace ivrworx
 		  MsgRequest(MSG_IMS_TEARDOWN_REQ, 
 			  NAME(MSG_IMS_TEARDOWN_REQ)){};
 
-		  ImsHandleId handle;
+		  ImsHandle handle;
 
 	};
 
@@ -162,7 +207,7 @@ namespace ivrworx
 		  MsgRequest(MSG_STOP_PLAYBACK_REQUEST, 
 			  NAME(MSG_STOP_PLAYBACK_REQUEST)){};
 
-		  ImsHandleId handle;
+		  ImsHandle handle;
 
 	};
 
@@ -209,7 +254,7 @@ namespace ivrworx
 
 		int dtmf_digit;
 
-		ImsHandleId handle;
+		ImsHandle handle;
 
 	};
 

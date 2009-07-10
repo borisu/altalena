@@ -288,6 +288,11 @@ clean:
 			message->source.handle_id = _processId;
 		}
 
+		if (message->transaction_id == IW_UNDEFINED)
+		{
+			message->transaction_id = GenerateNewTxnId();
+		}
+
 
 		LpHandlePtr localHandlePtr;
 

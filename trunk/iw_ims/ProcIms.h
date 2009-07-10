@@ -60,6 +60,8 @@ namespace ivrworx
 
 		BOOL loop;
 
+		ImsHandle ims_handle;
+
 	};
 
 	typedef 
@@ -68,7 +70,7 @@ namespace ivrworx
 	struct ImsOverlapped:
 		public OVERLAPPED
 	{
-		ImsHandleId ims_handle_id;
+		ImsHandle ims_handle_id;
 
 		int dtmf;
 	};
@@ -87,6 +89,8 @@ namespace ivrworx
 	protected:
 
 		virtual void AllocatePlaybackSession(IwMessagePtr msg);
+
+		virtual void ModifySession(IwMessagePtr msg);
 
 		virtual void StartPlayback(IwMessagePtr msg);
 
@@ -122,7 +126,7 @@ namespace ivrworx
 
 		RtpProfile *_avProfile;
 
-		typedef	map<ImsHandleId, StreamingCtxPtr> StreamingCtxsMap;
+		typedef	map<ImsHandle, StreamingCtxPtr> StreamingCtxsMap;
 		StreamingCtxsMap _streamingObjectSet;
 
 		typedef map<string, PayloadType*> PayloadTypeMap;

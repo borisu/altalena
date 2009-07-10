@@ -27,7 +27,9 @@ namespace ivrworx
 	public:
 
 		CallWithDirectRtp(
-			IN LpHandlePair stack_pair,
+			IN ScopedForking &forking);
+
+		CallWithDirectRtp(
 			IN ScopedForking &forking,
 			IN shared_ptr<MsgCallOfferedReq> offered_msg);
 
@@ -40,6 +42,8 @@ namespace ivrworx
 		virtual ApiErrorCode WaitForDtmf(OUT int &dtmf, IN Time timeout);
 
 		virtual ApiErrorCode SendRfc2833Dtmf(IN char dtmf);
+
+		virtual ApiErrorCode MakeCall(IN const string &destination_uri);
 
 	private:
 

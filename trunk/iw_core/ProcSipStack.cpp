@@ -23,11 +23,9 @@
 #include "UASAppDialogSetFactory.h"
 #include "UASShutdownHandler.h"
 
-// #include "UACUserProfile.h"
-// #include "UACAppDialogSet.h"
-// #include "UACDialogUsageManager.h"
 #include "UASDialogUsageManager.h"
 #include "Profiler.h"
+
 
 
 
@@ -38,6 +36,13 @@ using namespace std;
 
 namespace ivrworx
 {
+	typedef
+	boost::char_separator<char> resip_conf_separator;
+
+	typedef 
+	boost::tokenizer<resip_conf_separator> resip_conf_tokenizer;
+
+	
 
 	ResipInterruptor::ResipInterruptor()
 	{
@@ -58,7 +63,7 @@ namespace ivrworx
 
 	ProcSipStack::ProcSipStack(IN LpHandlePair pair, 
 		IN Configuration &conf):
-		LightweightProcess(pair,"SipStack"),
+		LightweightProcess(pair,SIP_STACK_Q,"SipStack"),
 		_shutDownFlag(false),
 		_conf(conf)
 	{
@@ -108,30 +113,27 @@ namespace ivrworx
 			iter->second->setLevel(Log::None);
 		}
 
+		
 
 		// dirty parsing
+		#pragma warning (suppress: 4129)
+		regex e("(APP|CONTENTS|DNS|DUM|NONE|PRESENCE|SDP|SIP|TRANSPORT|STATS|REPRO)\,(OFF|CRT|WRN|INF|DBG)");
+		
+
+		resip_conf_separator sep("|");
 		const string &resip_conf = _conf.ResipLog();
 
-		int curr_pos_pair_start = 0;
-		int curr_pos_pair_end= string::npos;
-		do 
+		resip_conf_tokenizer tokens(resip_conf, sep);
+
+		for (resip_conf_tokenizer::const_iterator  tok_iter = tokens.begin();
+			tok_iter != tokens.end(); 
+			++tok_iter)
 		{
-			curr_pos_pair_end = resip_conf.find("|",curr_pos_pair_start);
-			const string &pair = resip_conf.substr(curr_pos_pair_start,curr_pos_pair_end);
-
-			curr_pos_pair_start = curr_pos_pair_end + 1;
-
-			if (pair.length() == 0)
+			boost::smatch what;
+			if (true == boost::regex_match(*tok_iter, what, e, boost::match_extra))
 			{
-				LogWarn("Error while parsing resip debug configuration string - " << resip_conf);
-				break;
-			}
-
-			int comma_pos = pair.find(",");
-			if (comma_pos != string::npos)
-			{
-				const string &subsystem_str = pair.substr(0, comma_pos);
-				const string &debug_level = pair.substr(comma_pos+1);
+				const string &subsystem_str = what[1];
+				const string &debug_level = what[2];
 
 				if (subsystem_str.length() > 0	&&
 					debug_level.length() > 0	&&
@@ -146,11 +148,10 @@ namespace ivrworx
 					LogWarn("Error while parsing resip debug configuration string - " << resip_conf);
 					break;
 				}
-
 			}
 
+		}
 
-		} while (curr_pos_pair_end != string::npos);
 
 	}
 
@@ -169,6 +170,33 @@ namespace ivrworx
 
 		try 
 		{
+			
+			
+			CnxInfo ipAddr = _conf.IvrCnxInfo();
+
+			_stack->addTransport(
+				UDP,
+				ipAddr.port_ho(),
+				V4,
+				StunDisabled,
+				ipAddr.iptoa(),
+				Data::Empty, // only used for TLS based stuff 
+				Data::Empty,
+				SecurityTypes::TLSv1 );
+
+
+
+			_stack->addTransport(
+				TCP,
+				ipAddr.port_ho(),
+				V4,
+				StunDisabled,
+				ipAddr.iptoa(),
+				Data::Empty, // only used for TLS based stuff 
+				Data::Empty,
+				SecurityTypes::TLSv1 );
+
+
 			//
 			// UAS
 			//
@@ -180,7 +208,12 @@ namespace ivrworx
 
 			//
 			// UAC
-			// ...
+			// 
+			_dumUac = UACDialogUsageManagerPtr(new UACDialogUsageManager(
+				_conf,
+				*_stack,
+				_iwHandlesMap,
+				*this));
 
 			_handleInterruptor = ResipInterruptorPtr(new ResipInterruptor());
 			_inbound->HandleInterruptor(_handleInterruptor);
@@ -208,7 +241,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcSipStack::UponHangupCall(IwMessagePtr ptr)
+	ProcSipStack::UponHangupCallReq(IwMessagePtr ptr)
 	{
 		FUNCTRACKER;
 
@@ -228,9 +261,9 @@ namespace ivrworx
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
 
-		if (ctx_ptr->transaction_type == TXN_TYPE_UAC )
+		if (ctx_ptr->transaction_type == TXN_TYPE_UAC ) 
 		{
-			//_dumUac->HangupCall(ctx_ptr);
+			_dumUac->HangupCall(ctx_ptr);
 			return;
 		} 
 		else 
@@ -253,10 +286,10 @@ namespace ivrworx
 
 		_shutDownFlag = true;
 
-// 		if (_dumUac)
-// 		{
-// 			_dumUac->Shutdown();
-// 		}
+ 		if (_dumUac)
+ 		{
+ 			_dumUac->Shutdown();
+ 		}
 
 		if (_dumUas)
 		{
@@ -293,6 +326,25 @@ namespace ivrworx
 		IX_PROFILE_FUNCTION();
 
 		_dumUas->UponCallOfferedNack(req);
+
+	}
+
+	void
+	ProcSipStack::UponMakeCallReq(IwMessagePtr req)
+	{
+		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
+
+		_dumUac->UponMakeCallReq(req);
+	}
+
+	void
+	ProcSipStack::UponMakeCallAckReq(IwMessagePtr req)
+	{
+		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
+
+		_dumUac->UponMakeCallAckReq(req);
 	}
 
 	bool 
@@ -330,7 +382,7 @@ namespace ivrworx
 				}
 			case MSG_HANGUP_CALL_REQ:
 				{
-					UponHangupCall(msg);
+					UponHangupCallReq(msg);
 					break;
 
 				}
@@ -342,6 +394,16 @@ namespace ivrworx
 			case MSG_CALL_OFFERED_NACK:
 				{
 					UponCallOfferedNack(msg);
+					break;
+				}
+			case MSG_MAKE_CALL_REQ:
+				{
+					UponMakeCallReq(msg);
+					break;
+				}
+			case MSG_MAKE_CALL_ACK:
+				{
+					UponMakeCallAckReq(msg);
 					break;
 				}
 			default:
@@ -392,7 +454,7 @@ namespace ivrworx
 			IX_PROFILE_CODE(_handleInterruptor->process(fdset));
 			IX_PROFILE_CODE(_stack->process(fdset));
 			IX_PROFILE_CODE(while(_dumUas->process()));
-//			IX_PROFILE_CODE(while(_dumUac->process()));
+			IX_PROFILE_CODE(while(_dumUac->process()));
 
 			shutdown_flag = ProcessIwMessages();
 			if (shutdown_flag)

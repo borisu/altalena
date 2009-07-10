@@ -32,7 +32,7 @@ namespace ivrworx
 	}
 
 	AppDialogSet* 
-		UASAppDialogSetFactory::createAppDialogSet(DialogUsageManager& dum, const SipMessage& msg) 
+	UASAppDialogSetFactory::createAppDialogSet(DialogUsageManager& dum, const SipMessage& msg) 
 	{  
 		return new UASAppDialogSet(
 			dum, 

@@ -51,7 +51,7 @@ namespace ivrworx
 	}
 
 	void
-	ActiveObject::Start(IN ScopedForking &forking, IN LpHandlePair pair, IN const string &name)
+	ActiveObject::StartActiveObjectLwProc(IN ScopedForking &forking, IN LpHandlePair pair, IN const string &name)
 	{
 		FUNCTRACKER;
 
