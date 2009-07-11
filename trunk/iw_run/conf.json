@@ -1,10 +1,10 @@
 {
 	
-	"sync_log"  : true,
+	"sync_log"  : false,
 	
-	"resip_log" : "SIP,DBG",
+	"resip_log" : "TRANSPORT,DBG",
 	
-	"debug_level"  : "DBG",
+	"debug_level"  : "INF",
 	"debug_outputs" : "console,syslog,debug",
 	
 	"syslogd_host" : "127.0.0.1",

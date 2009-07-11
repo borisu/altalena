@@ -139,43 +139,43 @@ local two_digits_sounds = {
 		----------------------------------------------------------------------- 99
 }
 
-local function play_zero()
+local function play_zero(handle)
 
-	return ivrworx.play(numbers_path.."\\0.wav",true,false);
+	return ivrworx.play(handle,numbers_path.."\\0.wav",true,false);
 	
 end
 
-local function play_minus()
+local function play_minus(handle)
 
-	return ivrworx.play(numbers_path.."\\minus.wav",true,false);
+	return ivrworx.play(handle,numbers_path.."\\minus.wav",true,false);
 	
 end
 
-local function play_and()
+local function play_and(handle)
 
 	-- not implemented currently
 
 end
 
 
-local function play_hundreds(i)
+local function play_hundreds(handle,i)
 
-	if (i == 0) then return 0; end;
+	if (i == 0 or i > 10) then return 0; end;
 	
-	return ivrworx.play(numbers_path.."\\"..hundreds_sounds[i],true,false);
+	return ivrworx.play(handle,numbers_path.."\\"..hundreds_sounds[i*100],true,false);
 	
 end
 
 
-local function play_two_digits(i)
+local function play_two_digits(handle,i)
 
 	if (i == 0) then return 0; end;
 		
-	return ivrworx.play(numbers_path.."\\"..two_digits_sounds[i],true,false);
+	return ivrworx.play(handle,numbers_path.."\\"..two_digits_sounds[i],true,false);
 
 end
 
-local function play_three_digits(i, radix)
+local function play_three_digits(handle, i, radix)
 
 	if ( i==0 ) then return 0; end;
 		
@@ -184,26 +184,26 @@ local function play_three_digits(i, radix)
 
 		if (hundreds ~= 0)
   		then
-			res = play_hundreds(hundreds);
+			res = play_hundreds(handle,hundreds);
 			if (res ~= 0) then return res; end
 			 
-			res = play_and();
+			res = play_and(handle);
 			if (res ~= 0) then return res; end
   		end
 
-		res = play_two_digits(last_two_digits);
+		res = play_two_digits(handle,last_two_digits);
 		if (res ~= 0) then return res; end
 		
 		if (radix ~= nil and radix ~= "" ) then 
 		
-			res = ivrworx.play(numbers_path.."\\"..radix,true,false);
+			res = ivrworx.play(handle,numbers_path.."\\"..radix,true,false);
 			if (res ~= 0) then return res; end
 			
 		end
 end
 
 
-function play_number(i) 
+function play_number(handle,i) 
 
 	local num_to_play  = math.abs(i);
 	
@@ -242,14 +242,14 @@ function play_number(i)
 	--
 	-- play milliards
 	--
-	res = play_three_digits(tonumber(string.sub(num_str,1,1)),"Billion.wav");
+	res = play_three_digits(handle,tonumber(string.sub(num_str,1,1)),"Billion.wav");
 	if (res ~= 0) then return res; end;
 	
 	
 	--
 	-- play millions
 	--
-	res = play_three_digits(tonumber(string.sub(num_str,2,4)),"Million.wav");
+	res = play_three_digits(handle,tonumber(string.sub(num_str,2,4)),"Million.wav");
 	if (res ~= 0) then return res; end;
 	
 			
@@ -261,12 +261,12 @@ function play_number(i)
 	thousands_num = tonumber(string.sub(num_str,5,7));
 	if (thousands_num >=1 and thousands_num <= 10) then 
 	
-		res = ivrworx.play(numbers_path.."\\"..thousands_sounds[thousands_num],true,false);
+		res = ivrworx.play(handle,numbers_path.."\\"..thousands_sounds[thousands_num],true,false);
 		if (res ~= 0) then return res; end;
 		
 	else
 	
-	 	res = play_three_digits(thousands_num,"Thousand.wav");
+	 	res = play_three_digits(handle,thousands_num,"Thousand.wav");
 	 	if (res ~= 0) then return res; end;
 	 	
 	end
@@ -274,7 +274,7 @@ function play_number(i)
 	--
 	-- play remainder		
 	-- 
-	return play_three_digits(tonumber(string.sub(num_str,8,10)));
+	return play_three_digits(handle,tonumber(string.sub(num_str,8,10)));
 		
 
 
@@ -302,7 +302,7 @@ function isalphanumeric(s)
 end
 
 
-function spell(str)
+function spell(handle, str)
 
 	if (str == nil) then return -1; end;
 	
@@ -319,10 +319,10 @@ function spell(str)
 	    local symbol = string.sub(str,i,i);
 	    
 	    if (tonumber(symbol) ~= nil) then
-	    	play_number(tonumber(symbol))
+	    	play_number(handle,tonumber(symbol))
 	    else
 			if (isalphanumeric(symbol)) then
-				ivrworx.play(letters_path.."\\"..symbol..".wav",true,false);
+				ivrworx.play(handle,letters_path.."\\"..symbol..".wav",true,false);
 			end
 		end
 	    
@@ -343,7 +343,7 @@ end
 
 
 
-
+--spell (1234)
 
 --print("--123");
 --spell(nil);

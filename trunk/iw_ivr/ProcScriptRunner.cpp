@@ -134,18 +134,18 @@ namespace ivrworx
 
 			
 			START_FORKING_REGION;
-			CallWithDirectRtp call_session(
+			CallWithDirectRtpPtr call_session( new CallWithDirectRtp(
 				forking,
-				_initialMsg);
+				_initialMsg));
 
 			// the script should be terminated if caller hanged up
-			call_session.SetEventListener(MSG_CALL_HANG_UP_EVT,_inbound);
+			call_session->SetEventListener(MSG_CALL_HANG_UP_EVT,_inbound);
 
 
 			const MediaFormatsPtrList &codecs_list = _conf.MediaFormats();
 			for (MediaFormatsPtrList::const_iterator iter = codecs_list.begin(); iter != codecs_list.end(); iter++)
 			{
-				call_session.EnableMediaFormat(**iter);
+				call_session->EnableMediaFormat(**iter);
 			}
 
 			

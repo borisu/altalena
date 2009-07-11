@@ -67,6 +67,24 @@ ImsSession::~ImsSession(void)
 }
 
 ApiErrorCode
+ImsSession::StopPlay()
+{
+	FUNCTRACKER;
+
+	if (_imsSessionHandle == IW_UNDEFINED)
+	{
+		return API_FAILURE;
+	}
+
+	MsgStopPlaybackReq *msg = new MsgStopPlaybackReq();
+	msg->handle	= _imsSessionHandle;
+	
+	ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(IMS_Q,IwMessagePtr(msg));
+	return res;
+
+}
+
+ApiErrorCode
 ImsSession::PlayFile(IN const string &file_name,
 					 IN BOOL sync,
 					 IN BOOL loop,

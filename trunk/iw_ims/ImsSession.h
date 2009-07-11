@@ -47,6 +47,8 @@ namespace ivrworx
 			IN CnxInfo remote_end, 
 			IN MediaFormat codec);
 
+		ApiErrorCode	StopPlay();
+
 		virtual ApiErrorCode PlayFile(
 			IN const string &file_name,
 			IN BOOL sync = FALSE,
