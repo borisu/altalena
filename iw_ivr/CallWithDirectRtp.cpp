@@ -84,6 +84,11 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
+		if (_callState != CALL_STATE_CONNECTED)
+		{
+			return API_WRONG_STATE;
+		}
+
 		ApiErrorCode res = _imsSession.PlayFile(file_name, sync, loop,TRUE);
 
 		return res;
@@ -91,9 +96,31 @@ namespace ivrworx
 	}
 
 	ApiErrorCode 
+	CallWithDirectRtp::StopPlay()
+	{
+		FUNCTRACKER;
+
+		if (_callState != CALL_STATE_CONNECTED)
+		{
+			return API_WRONG_STATE;
+		}
+
+		ApiErrorCode res = _imsSession.StopPlay();
+
+		return res;
+
+
+	}
+
+	ApiErrorCode 
 	CallWithDirectRtp::WaitForDtmf(OUT int &dtmf, IN Time timeout)
 	{
 		FUNCTRACKER;
+
+		if (_callState != CALL_STATE_CONNECTED)
+		{
+			return API_WRONG_STATE;
+		}
 
 		ApiErrorCode res = _imsSession.WaitForDtmf(dtmf, timeout);
 
@@ -107,8 +134,13 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		ApiErrorCode res = _imsSession.SendDtmf(dtmf);
+		if (_callState != CALL_STATE_CONNECTED)
+		{
+			return API_WRONG_STATE;
+		}
 
+
+		ApiErrorCode res = _imsSession.SendDtmf(dtmf);
 		return res;
 
 	}
@@ -118,6 +150,11 @@ namespace ivrworx
 	{
 		
 		FUNCTRACKER;
+
+		if (_callState != CALL_STATE_UNKNOWN)
+		{
+			return API_WRONG_STATE;
+		}
 
 		// allocate dummy session to save bind time for future
 		ApiErrorCode res = _imsSession.AllocateIMSConnection(CnxInfo("127.0.0.1",555),MediaFormat::PCMU);

@@ -8,32 +8,36 @@ function answer()
 	return this.answer(this);
 end
 
-function hangup()
-	return this.hangup(this);
+function hangup(handle)
+	return this.hangup(this, handle);
 end
 
 function wait(timeout)
 	return this.wait(this,timeout);
 end
 
-function wait_till_hangup()
-	return this.wait_till_hangup(this);
+function wait_till_hangup(handle)
+	return this.wait_till_hangup(this, handle);
 end	
 
-function play(file,sync,loop)
-	return this.play(this,file,sync,loop);
+function play(handle,file,sync,loop)
+	return this.play(this,handle, file,sync,loop);
 end
 
-function send_dtmf(dtmf)
-	return this.send_dtmf(this,dtmf);
+function stop_play(handle)
+	return this.stop_play(this,handle);
 end
 
-function wait_for_dtmf(timeout)
-	return this.wait_for_dtmf(this,timeout);
+function send_dtmf(handle,dtmf)
+	return this.send_dtmf(this,handle,dtmf);
 end
 
-function blind_xfer(destination)
-	return this.blind_xfer(this,destination);
+function wait_for_dtmf(handle,timeout)
+	return this.wait_for_dtmf(this,handle,timeout);
+end
+
+function blind_xfer(handle,destination)
+	return this.blind_xfer(this,handle,destination);
 end
 
 function make_call(destination)

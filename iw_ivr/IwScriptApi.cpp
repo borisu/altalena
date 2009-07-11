@@ -20,6 +20,9 @@
 #include "StdAfx.h"
 #include "IwScriptApi.h"
 
+#define IW_REGISTER_GLOBAL_VAR(V,N) lua_pushnumber((lua_State *)V,N); \
+	lua_setglobal ((lua_State *)V, #N);
+
 
 namespace ivrworx
 {
@@ -41,6 +44,25 @@ IwScript::IwScript(IN ScopedForking &forking,
 		throw;
 	}
 
+	// add return values enumerations
+
+	// 	enum ApiErrorCode
+	// 	{
+	// 		API_SUCCESS = 0,
+	// 		API_FAILURE,
+	// 		API_SERVER_FAILURE,
+	// 		API_TIMEOUT,
+	// 		API_WRONG_PARAMETER,
+	// 	};
+ 
+	IW_REGISTER_GLOBAL_VAR(vm,API_SUCCESS);
+	IW_REGISTER_GLOBAL_VAR(vm,API_FAILURE);
+	IW_REGISTER_GLOBAL_VAR(vm,API_SERVER_FAILURE);
+	IW_REGISTER_GLOBAL_VAR(vm,API_SUCCESS);
+	IW_REGISTER_GLOBAL_VAR(vm,API_TIMEOUT);
+	IW_REGISTER_GLOBAL_VAR(vm,API_WRONG_PARAMETER);
+
+
 	_confTable.Create("conf");
 	_confTable.AddParam("sounds_dir",_conf.SoundsPath());
 
@@ -50,6 +72,14 @@ IwScript::IwScript(IN ScopedForking &forking,
 	RegisterFunction("wait");
 	RegisterFunction("run");
 	RegisterFunction("make_call");
+	RegisterFunction("hangup");
+	RegisterFunction("play");
+	RegisterFunction("wait_for_dtmf");
+	RegisterFunction("send_dtmf");
+	RegisterFunction("blind_xfer");
+	RegisterFunction("wait_till_hangup");
+	RegisterFunction("stop_play");
+
 
 }
 
@@ -86,9 +116,37 @@ IwScript::ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber)
 		{
 			return LuaMakeCall(vm);
 		}
+	case 4:
+		{
+			return LuaHangupCall(vm);
+		}
+	case 5:
+		{
+			return LuaPlayFile(vm);
+		}
+	case 6:
+		{
+			return LuaWaitForDtmf(vm);
+		}
+	case 7:
+		{
+			return LuaSendDtmf(vm);
+		}
+	case 8:
+		{
+			return LuaBlindXfer(vm);
+		}
+	case 9:
+		{
+			return LuaWaitTillHangup(vm);
+		}
+	case 10:
+		{
+			return LuaStopPlay(vm);
+		}
 	default:
 		{
-			LogWarn ("Unknown function called id:" << iFunctionNumber);
+			LogWarn ("IwScript::ScriptCalling - unknown function called id:" << iFunctionNumber);
 			return -1;
 		}
 
@@ -98,13 +156,49 @@ IwScript::ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber)
 }
 
 int
+IwScript::LuaStopPlay(CLuaVirtualMachine& vm)
+{
+	FUNCTRACKER;
+	IX_PROFILE_FUNCTION();
+
+	lua_State *state = (lua_State *) vm;
+
+	if (lua_isnumber(state, -1) != 1 )
+	{
+		LogWarn("IwScript::LuaStopPlay - Wrong type of parameter for hangup_call");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
+	}
+
+	HandleId handle =  (HandleId)lua_tonumber(state,  -1);
+
+	CallMap::iterator iter  = _callMap.find(handle);
+	if (iter == _callMap.end())
+	{
+		LogWarn("IwScript::LuaHangupCall - not found iwh:" << handle);
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
+
+	} 
+
+	CallPtr call = (*iter).second;
+	
+	ApiErrorCode res = call->StopPlay();
+	lua_pushnumber (state, res);
+
+
+	return 1;
+
+}
+
+int
 IwScript::LuaRun(CLuaVirtualMachine& vm)
 {
 	lua_State *state = (lua_State *) vm;
 
 	if (lua_isfunction(state, -1) == 0 )
 	{
-		LogWarn("Wrong type of parameter for Run");
+		LogWarn("IwScript::LuaRun - closure param of incorrect type");
 		return 0;
 	}
 
@@ -112,33 +206,8 @@ IwScript::LuaRun(CLuaVirtualMachine& vm)
 	csp::Run(new ProcBlockingOperationRunner(runner_pair,vm));
 
 	return 0;
-
 }
 
-ProcBlockingOperationRunner::ProcBlockingOperationRunner(LpHandlePair pair, CLuaVirtualMachine& vm)
-:LightweightProcess(pair,"ProcBlockingOperationRunner"),
-_vm(vm)
-{
-	FUNCTRACKER;
-
-}
-
-void
-ProcBlockingOperationRunner::real_run()
-{
-	FUNCTRACKER;
-
-	lua_State *state = (lua_State *) _vm;
-	bool res = _vm.CallFunction(0);
-
-	if (res == false)
-	{
-		LogWarn("Error running long operation");
-		return;
-	}
-
-	lua_pushnumber (state, API_SUCCESS);
-}
 
 int
 IwScript::LuaWait(CLuaVirtualMachine& vm)
@@ -149,16 +218,19 @@ IwScript::LuaWait(CLuaVirtualMachine& vm)
 
 	if (lua_isnumber (state, -1) != 1 )
 	{
-		LogWarn("Wrong type of parameter for wait");
-		return 0;
+		LogWarn("IwScript::LuaWait - timeout param of incorrect type");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
 	}
 
 	long time_to_sleep  = (long) lua_tonumber (state, -1);
 
-	LogDebug("Wait for " << time_to_sleep);
+	LogDebug("IwScript::LuaWait - Wait for " << time_to_sleep);
 
 	csp::SleepFor(MilliSeconds(time_to_sleep));
-	return 0;
+	lua_pushnumber (state, API_SUCCESS);
+
+	return 1;
 
 }
 
@@ -173,15 +245,16 @@ IwScript::LuaMakeCall(CLuaVirtualMachine& vm)
 
 	if (lua_isstring(state, -1) != 1 )
 	{
-		lua_pushnumber (state, API_FAILURE);
-		LogWarn("Wrong type of parameter for make call");
-		return 1;
+		LogWarn("IwScript::LuaMakeCall - dst parameter of incorrect type.");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		lua_pushnil(state);
+		return 2;
 	}
 
 	size_t string_length = 0;
 	const char *sip_uri = lua_tolstring(state, -1, &string_length);
 
-	LogDebug("IwScript::LuaMakeCall dst:" << sip_uri);
+	LogDebug("IwScript::LuaMakeCall - dst:" << sip_uri);
 
 	CallPtr call_ptr(new CallWithDirectRtp(_forking));
 
@@ -199,7 +272,8 @@ IwScript::LuaMakeCall(CLuaVirtualMachine& vm)
 	{
 		_callMap[call_ptr->StackCallHandle()] = call_ptr;
 		lua_pushnumber (state, call_ptr->StackCallHandle());
-	} else
+	} 
+	else
 	{
 		lua_pushnil(state);
 	}
@@ -209,7 +283,7 @@ IwScript::LuaMakeCall(CLuaVirtualMachine& vm)
 
 
 int 
-IwScript::LuaHangupCallByHandle(CLuaVirtualMachine& vm)
+IwScript::LuaHangupCall(CLuaVirtualMachine& vm)
 {
 	FUNCTRACKER;
 	IX_PROFILE_FUNCTION();
@@ -218,8 +292,9 @@ IwScript::LuaHangupCallByHandle(CLuaVirtualMachine& vm)
 
 	if (lua_isnumber(state, -1) != 1 )
 	{
-		LogWarn("Wrong type of parameter for hangup_call");
-		return 0;
+		LogWarn("IwScript::LuaHangupCall - Wrong type of parameter for hangup_call");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
 	}
 
 	HandleId handle =  (HandleId)lua_tonumber(state,  -1);
@@ -227,7 +302,8 @@ IwScript::LuaHangupCallByHandle(CLuaVirtualMachine& vm)
 	CallMap::iterator iter  = _callMap.find(handle);
 	if (iter == _callMap.end())
 	{
-		lua_pushnumber (state, API_FAILURE);
+		LogWarn("IwScript::LuaHangupCall - not found iwh:" << handle);
+		lua_pushnumber (state, API_WRONG_PARAMETER);
 		
 	} 
 	else
@@ -237,9 +313,262 @@ IwScript::LuaHangupCallByHandle(CLuaVirtualMachine& vm)
 
 	}
 
+	_callMap.erase(iter);
+
 	return 1;
 
 }
+
+int 
+IwScript::LuaPlayFile(CLuaVirtualMachine& vm)
+{
+	FUNCTRACKER;
+
+	lua_State *state = (lua_State *) vm;
+
+	if (lua_isnumber(state, -4) != 1 )
+	{
+		LogWarn("IwScript::LuaPlayFile - Wrong type of parameter for play - handle");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
+	}
+
+	if (lua_isstring(state, -3) != 1 )
+	{
+		LogWarn("IwScript::LuaPlayFile - Wrong type of parameter for play - filename");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
+	}
+
+	if (lua_isboolean(state, -2) != 1 )
+	{
+		LogWarn("IwScript::LuaPlayFile - Wrong type of parameter for play - sync");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
+	}
+
+	if (lua_isboolean(state, -1) != 1 )
+	{
+		LogWarn("IwScript::LuaPlayFile - Wrong type of parameter for play - loop");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
+	}
+
+	
+	int handle	= (int)lua_tonumber(state, -4);
+
+	
+	CallMap::iterator iter  = _callMap.find(handle);
+	if (iter == _callMap.end())
+	{
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		LogWarn("IwScript::LuaPlayFile - cannot find call iwh:" << handle);
+		return 1;
+	}
+	
+	CallPtr call = (*iter).second;
+
+	size_t string_length	 = 0;
+	const char *file_to_play = lua_tolstring(state, -3, &string_length);
+	BOOL sync				 = lua_toboolean(state, -2);
+	BOOL loop				 = lua_toboolean(state, -1);
+
+	LogDebug("Play file:" << file_to_play << ", iwh:" << call->StackCallHandle() );
+
+	ApiErrorCode res = call->PlayFile(file_to_play,sync,loop);
+	lua_pushnumber (state, res);
+
+	return 1;
+
+}
+
+int
+IwScript::LuaWaitForDtmf(CLuaVirtualMachine& vm)
+{
+	lua_State *state = (lua_State *) vm;
+
+	if (lua_isnumber(state, -2) != 1 )
+	{
+		LogWarn("IwScript::LuaWaitForDtmf - handle param of incorrect type.");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
+	}
+
+	if (lua_isnumber(state, -1) != 1 )
+	{
+		LogWarn("IwScript::LuaWaitForDtmf - timeout param of incorrect type.");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
+	}
+
+
+	long handle = (long) lua_tonumber (state, -2);
+
+	CallMap::iterator iter  = _callMap.find(handle);
+	if (iter == _callMap.end())
+	{
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		LogWarn("IwScript::LuaWaitForDtmf - Cannot find call iwh:" << handle);
+		return 1;
+
+	}
+
+	CallPtr call = (*iter).second;
+
+	long time_to_sleep  = (long) lua_tonumber (state, -1);
+
+	LogDebug("IwScript::LuaWaitForDtmf - timeout:" << time_to_sleep << ", iwh:" << handle);
+
+	int dtmf = -1;
+	ApiErrorCode res = call->WaitForDtmf(dtmf, MilliSeconds(time_to_sleep));
+
+	lua_pushnumber (state, res);
+	if (IW_SUCCESS(res))
+	{
+		lua_pushnumber (state, dtmf);
+	} 
+	else
+	{
+		lua_pushnil(state);
+	}
+
+	return 2;
+
+}
+
+int
+IwScript::LuaSendDtmf(CLuaVirtualMachine& vm)
+{
+	lua_State *state = (lua_State *) vm;
+
+	if (lua_isnumber(state, -1) != 1 )
+	{
+		LogWarn("IwScript::LuaWaitForDtmf - handle param of incorrect type.");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
+	}
+
+	if (lua_isstring(state, -2) == 0 )
+	{
+		LogWarn("IwScript::LuaWaitForDtmf - dtmf param of incorrect type.");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
+	}
+
+	long handle = (long) lua_tonumber (state, -2);
+
+	CallMap::iterator iter  = _callMap.find(handle);
+	if (iter == _callMap.end())
+	{
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		LogWarn("IwScript::LuaWaitForDtmf - Cannot find call iwh:" << handle);
+		return 1;
+
+	} 
+
+	CallPtr call = (*iter).second;
+
+	const char* dtmf = lua_tostring(state, -1);
+
+	int curr_index = 0;
+	while (dtmf[curr_index] != '\0')
+	{
+		ApiErrorCode res = call->SendRfc2833Dtmf(dtmf[curr_index++]);
+		if (IW_FAILURE(res))
+		{
+			lua_pushnumber (state, res);
+			return 1;
+		}
+		csp::SleepFor(MilliSeconds(200));
+	}
+
+
+	lua_pushnumber (state, API_SUCCESS);
+	return 1;
+
+
+}
+
+int
+IwScript::LuaBlindXfer(CLuaVirtualMachine& vm)
+{
+	lua_State *state = (lua_State *) vm;
+
+	if (lua_isnumber(state, -2) != 1 )
+	{
+		LogWarn("IwCallHandlerScript::LuaBlindXfer - handle param of incorrect type.");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
+	}
+
+	if (lua_isstring(state, -1) != 1 )
+	{
+		LogWarn("IwCallHandlerScript::LuaBlindXfer - destination para, of incorrect type");
+		return 0;
+	}
+
+	long handle = (long) lua_tonumber (state, -2);
+
+	CallMap::iterator iter  = _callMap.find(handle);
+	if (iter == _callMap.end())
+	{
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		LogWarn("IwScript::LuaWaitForDtmf - Cannot find call iwh:" << handle);
+		return 1;
+
+	}
+
+	CallPtr call = (*iter).second;
+
+
+	const char* destination = lua_tostring(state, -1);
+	ApiErrorCode res = call->BlindXfer(destination);
+
+
+	lua_pushnumber (state, res);
+	return 1;
+
+
+}
+
+
+int
+IwScript::LuaWaitTillHangup(CLuaVirtualMachine& vm)
+{
+	FUNCTRACKER;
+	IX_PROFILE_FUNCTION();
+
+	lua_State *state = (lua_State *) vm;
+
+	if (lua_isnumber(state, -1) != 1 )
+	{
+		LogWarn("IwScript::LuaWaitTillHangup - handle param of incorrect type.");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
+	}
+
+	long handle = (long) lua_tonumber (state, -2);
+
+	LogDebug("IwScript::LuaWaitTillHangup - iwh:" << handle);
+
+	CallMap::iterator iter  = _callMap.find(handle);
+	if (iter == _callMap.end())
+	{
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		LogWarn("IwScript::LuaWaitTillHangup - Cannot find call iwh:" << handle);
+		return 1;
+
+	}
+
+	CallPtr call = (*iter).second;
+
+	call->WaitTillHangup();
+
+	lua_pushnumber (state, API_SUCCESS);
+	return 1;
+
+}
+
 
 int
 IwScript::LuaLog(CLuaVirtualMachine& vm)
@@ -316,7 +645,7 @@ IwCallHandlerScript::IwCallHandlerScript(
 	IN ScopedForking &forking,
 	IN Configuration &conf,
 	IN CLuaVirtualMachine &vm, 
-	IN CallWithDirectRtp &call_session)
+	IN CallWithDirectRtpPtr call_session)
 	:IwScript(forking,conf, vm),
 	_incomingCallSession(call_session),
 	_lineInTable(vm)
@@ -329,19 +658,22 @@ IwCallHandlerScript::IwCallHandlerScript(
 		throw;
 	}
 
+	// register INCOMING
+
+	lua_pushnumber((lua_State *)_vmPtr,call_session->StackCallHandle());
+	lua_setglobal ((lua_State *)_vmPtr,"INCOMING");
+
+	
+	_callMap[call_session->StackCallHandle()] = call_session;
+
+
 	_lineInTable.Create("linein");
-	_lineInTable.AddParam("ani",_incomingCallSession.Ani());
-	_lineInTable.AddParam("dnis",_incomingCallSession.Dnis());
+	_lineInTable.AddParam("ani",_incomingCallSession->Ani());
+	_lineInTable.AddParam("dnis",_incomingCallSession->Dnis());
 
 	// !!! The order should be preserved for later switch statement !!!
 	_methodBase = RegisterFunction("answer");
-	RegisterFunction("hangup");
-	RegisterFunction("play");
-	RegisterFunction("wait_for_dtmf");
-	RegisterFunction("send_dtmf");
-	RegisterFunction("blind_xfer");
-	RegisterFunction("wait_till_hangup");
-
+	
 }
 
 int 
@@ -352,30 +684,6 @@ IwCallHandlerScript::ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber)
 	case 0:
 		{
 			return LuaAnswerCall(vm);
-		}
-	case 1:
-		{
-			return LuaHangupCall(vm);
-		}
-	case 2:
-		{
-			return LuaPlay(vm);
-		}
-	case 3:
-		{
-			return LuaWaitForDtmf(vm);
-		}
-	case 4:
-		{
-			return LuaSendDtmf(vm);
-		}
-	case 5:
-		{
-			return LuaBlindXfer(vm);
-		}
-	case 6:
-		{
-			return LuaWaitTillHangup(vm);
 		}
 	default:
 		{
@@ -395,7 +703,7 @@ IwCallHandlerScript::RunOnHangupScript()
 	FUNCTRACKER;
 	IX_PROFILE_FUNCTION();
 
-	LogDebug("Running hangup script call iwh:" << _incomingCallSession.StackCallHandle());
+	LogDebug("Running hangup script call iwh:" << _incomingCallSession->StackCallHandle());
 
 	lua_State *state = (lua_State *) _vmPtr;
 
@@ -404,7 +712,7 @@ IwCallHandlerScript::RunOnHangupScript()
 	// hangup function exists?
 	if (lua_isnil(state,-1) == 1)
 	{
-		LogDebug("Hangup script was not defined for call iwh:" << _incomingCallSession.StackCallHandle());
+		LogDebug("Hangup script was not defined for call iwh:" << _incomingCallSession->StackCallHandle());
 		return;
 	}
 
@@ -419,174 +727,39 @@ IwCallHandlerScript::LuaAnswerCall(CLuaVirtualMachine& vm)
 	FUNCTRACKER;
 	IX_PROFILE_FUNCTION();
 
-	LogDebug("Answer call iwh:" << _incomingCallSession.StackCallHandle());
+	LogDebug("Answer call iwh:" << _incomingCallSession->StackCallHandle());
 
 	lua_State *state = (lua_State *) vm;
 
-	ApiErrorCode res = _incomingCallSession.AcceptInitialOffer();
+	ApiErrorCode res = _incomingCallSession->AcceptInitialOffer();
 	lua_pushnumber (state, res);
 
 	return 1;
 }
 
-int
-IwCallHandlerScript::LuaHangupCall(CLuaVirtualMachine& vm)
-{
-	FUNCTRACKER;
-	IX_PROFILE_FUNCTION();
-
-	LogDebug("Hangup call iw stack handle=[" << _incomingCallSession.StackCallHandle() << "].");
-
-	lua_State *state = (lua_State *) vm;
-
-	ApiErrorCode res = _incomingCallSession.HangupCall();
-	lua_pushnumber (state, res);
-
-	return 1;
-
-}
-
-
-int
-IwCallHandlerScript::LuaPlay(CLuaVirtualMachine& vm)
+ProcBlockingOperationRunner::ProcBlockingOperationRunner(LpHandlePair pair, CLuaVirtualMachine& vm)
+:LightweightProcess(pair,"ProcBlockingOperationRunner"),
+_vm(vm)
 {
 	FUNCTRACKER;
 
-
-	lua_State *state = (lua_State *) vm;
-
-	if (lua_isstring(state, -3) != 1 )
-	{
-		LogWarn("Wrong type of parameter for play - filename");
-		return 0;
-	}
-
-	if (lua_isboolean(state, -2) != 1 )
-	{
-		LogWarn("Wrong type of parameter for play - sync");
-		return 0;
-	}
-
-
-	if (lua_isboolean(state, -1) != 1 )
-	{
-		LogWarn("Wrong type of parameter for play - loop");
-		return 0;
-	}
-
-
-	size_t string_length = 0;
-	const char *file_to_play = lua_tolstring(state, -3, &string_length);
-	BOOL sync				 = lua_toboolean(state, -2);
-	BOOL loop				 = lua_toboolean(state, -1);
-
-	LogDebug("Play file [" << file_to_play << "]  iw stack handle=[" << _incomingCallSession.StackCallHandle() << "].");
-
-	ApiErrorCode res = _incomingCallSession.PlayFile(file_to_play,sync,loop);
-	lua_pushnumber (state, res);
-
-	return 1;
-
 }
 
-int
-IwCallHandlerScript::LuaWaitForDtmf(CLuaVirtualMachine& vm)
-{
-	lua_State *state = (lua_State *) vm;
-	long time_to_sleep  = (long) lua_tonumber (state, -1);
-
-	LogDebug("Wait for dtmf  for " << time_to_sleep << " ms. iw stack handle=[" << _incomingCallSession.StackCallHandle() << "].");
-
-	int dtmf = -1;
-	ApiErrorCode res = _incomingCallSession.WaitForDtmf(dtmf, MilliSeconds(time_to_sleep));
-
-	lua_pushnumber (state, res);
-	if (IW_SUCCESS(res))
-	{
-		lua_pushnumber (state, dtmf);
-	} else
-	{
-		lua_pushnil(state);
-	}
-
-	return 2;
-
-}
-
-int
-IwCallHandlerScript::LuaSendDtmf(CLuaVirtualMachine& vm)
-{
-	lua_State *state = (lua_State *) vm;
-
-	if (lua_isstring(state, -1) == 0 )
-	{
-		LogWarn("Wrong type of parameter for send dtmf");
-		return 0;
-	}
-
-
-	const char* dtmf = lua_tostring(state, -1);
-
-	int curr_index = 0;
-	while (dtmf[curr_index] != '\0')
-	{
-		ApiErrorCode res = _incomingCallSession.SendRfc2833Dtmf(dtmf[curr_index++]);
-		if (IW_FAILURE(res))
-		{
-			lua_pushnumber (state, res);
-			return 1;
-		}
-		csp::SleepFor(MilliSeconds(200));
-	}
-
-
-	lua_pushnumber (state, API_SUCCESS);
-	return 1;
-
-
-}
-
-int
-IwCallHandlerScript::LuaBlindXfer(CLuaVirtualMachine& vm)
-{
-	lua_State *state = (lua_State *) vm;
-
-	if (lua_isstring(state, -1) == 0 )
-	{
-		LogWarn("Wrong type of parameter for blind xfer");
-		return 0;
-	}
-
-
-	const char* destination = lua_tostring(state, -1);
-
-	_incomingCallSession.BlindXfer(destination);
-
-
-	lua_pushnumber (state, API_SUCCESS);
-	return 1;
-
-
-}
-
-
-int
-IwCallHandlerScript::LuaWaitTillHangup(CLuaVirtualMachine& vm)
+void
+ProcBlockingOperationRunner::real_run()
 {
 	FUNCTRACKER;
-	IX_PROFILE_FUNCTION();
 
-	LogDebug("Wait till hang up iwh:" << _incomingCallSession.StackCallHandle());
+	lua_State *state = (lua_State *) _vm;
+	bool res = _vm.CallFunction(0);
 
-	lua_State *state = (lua_State *) vm;
-
-
-	_incomingCallSession.WaitTillHangup();
+	if (res == false)
+	{
+		LogWarn("Error running long operation");
+		return;
+	}
 
 	lua_pushnumber (state, API_SUCCESS);
-	return 1;
-
 }
 
-}
-
+} // namespace

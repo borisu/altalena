@@ -497,6 +497,11 @@ namespace ivrworx
 					StartPlayback(ptr);
 					break;
 				}
+			case MSG_STOP_PLAYBACK_REQUEST:
+				{
+					StopPlayback(ptr);
+					break;
+				}
 
 			case MSG_IMS_TEARDOWN_REQ:
 				{
@@ -1340,15 +1345,15 @@ error:
 		LogDebug("StopPlayback::, imsh:" << req->handle);
 
 		StreamingCtxPtr ctx = iter->second;
-		
-		ApiErrorCode iw_res = StopTicking(ctx);
-		if (IW_FAILURE(iw_res))
+
+		int res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_STOP);
+		if (res == -1)
 		{
-			SendResponse(req,new MsgStopPlaybackNack());
+			LogWarn("mserror:ms_filter_call_method_noarg  MS_FILE_PLAYER_STOP, handle:" << req->handle);
 			return;
 		}
-
-		SendResponse(req,new MsgStopPlaybackAck());
+		
+		
 	}
 
 	void 

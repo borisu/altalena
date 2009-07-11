@@ -39,6 +39,8 @@ namespace ivrworx
 
 		virtual ApiErrorCode PlayFile(IN const string &file_name, IN BOOL sync, IN BOOL loop);
 
+		virtual ApiErrorCode StopPlay();
+
 		virtual ApiErrorCode WaitForDtmf(OUT int &dtmf, IN Time timeout);
 
 		virtual ApiErrorCode SendRfc2833Dtmf(IN char dtmf);
@@ -52,6 +54,9 @@ namespace ivrworx
 		shared_ptr<MsgCallOfferedReq> _origOffereReq;
 
 	};
+
+	typedef 
+    shared_ptr<CallWithDirectRtp> CallWithDirectRtpPtr;
 
 
 }

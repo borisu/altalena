@@ -239,6 +239,16 @@ namespace ivrworx
 
 		SipDialogContextPtr ctx_ptr = ((UACAppDialogSet*)(is->getAppDialogSet().get()))->_ptr;
 
+
+		// handle is in offering mode
+		if (ctx_ptr->uac_invite_handle->isConnected() == false)
+		{
+			GetCurrLightWeightProc()->SendResponse(
+				ctx_ptr->last_user_request,
+				new MsgMakeCallNack());
+			return;
+		}
+
 		MsgCallHangupEvt *hang_up_evt = 
 			new MsgCallHangupEvt();
 

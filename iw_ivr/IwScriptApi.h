@@ -86,11 +86,59 @@ protected:
 	int LuaMakeCall(CLuaVirtualMachine& vm);
 
 	/**
-	ivrworx.hangup_call(handle) - Hangs up the call by its handle (returned in make_call).  
+	ivrworx.hangup(handle) - Hangs up the call by its handle (returned in make_call).  
 
 	@return result of the operation
 	**/
-	int LuaHangupCallByHandle(CLuaVirtualMachine& vm);
+	int LuaHangupCall(CLuaVirtualMachine& vm);
+
+	
+	/**
+	ivrworx.play(handle,filename,sync,loop) - Streams filename (wav) to the call specified by handle.  If sync is true the call will ext
+	only upon end of streaming. If loop is true the file is being played indefinitely. You cannot set sync and loop
+	to true simultaneously.
+
+	@return result of the operation
+	**/
+	int LuaPlayFile(CLuaVirtualMachine& vm);
+
+	/**
+	ivrworx.wait_for_dtmf(handle) returns pair consisting of result and dtmf accepted on the call specified by handle.
+
+	@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
+	**/
+	int LuaWaitForDtmf(CLuaVirtualMachine& vm);
+
+	/**
+	ivrworx.send_dtmf(handle) - sends RFC2833to to the call specified by handle.
+
+	@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
+	**/
+	int LuaSendDtmf(CLuaVirtualMachine& vm);
+
+	/**
+	ivrworx.blind_xfer (handle,sip_uri) - unattended transfer to [sip_uri] of the call specified by handle..
+
+	@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
+	**/
+	int LuaBlindXfer(CLuaVirtualMachine& vm);
+
+	/**
+	ivrworx.wait_till_hangup (handle,sip_uri) - waits for the call specified by handle to hang up.
+
+	@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
+	**/
+	int LuaWaitTillHangup(CLuaVirtualMachine& vm);
+
+	/**
+	ivrworx.stop_play (handle) - stops any asynchronous playback on the call specified by handle.
+
+	@returns result of the operation.
+	**/
+	int LuaStopPlay(CLuaVirtualMachine& vm);
+
+
+
 
 protected:
 
@@ -125,7 +173,7 @@ public:
 		IN ScopedForking &forking,
 		IN Configuration &conf, 
 		IN CLuaVirtualMachine &vm, 
-		IN CallWithDirectRtp &call);
+		IN CallPtr call);
 
 
 	/**
@@ -146,7 +194,6 @@ private:
 
 	LuaTable _lineInTable;
 
-	
 
 	/**
 	ivrworx.accept - Accepts the call. Upon calling this function is script 200 response will be 
@@ -156,51 +203,8 @@ private:
 	**/
 	int LuaAnswerCall(CLuaVirtualMachine& vm);
 
-	/**
-	ivrworx.hangup - Hangs up the incoming call.  
-
-	@return always 0
-	**/
-	int LuaHangupCall(CLuaVirtualMachine& vm);
-
-	/**
-	ivrworx.play(filename,sync,loop) - Streams filename (wav) to the caller.  If sync is true the call will ext
-	only upon end of streaming. If loop is true the file is being played indefinitely. You cannot set sync and loop
-	to true simultaneously.
-
-	@return 0 upon success.
-	**/
-	int LuaPlay(CLuaVirtualMachine& vm);
-
-	/**
-	ivrworx.wait_for_dtmf returns pair consisting of result and dtmf accepted
-
-	@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
-	**/
-	int LuaWaitForDtmf(CLuaVirtualMachine& vm);
-
-	/**
-	ivrworx.send_dtmf - sends RFC2833to caller.
-
-	@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
-	**/
-	int LuaSendDtmf(CLuaVirtualMachine& vm);
-
-	/**
-	ivrworx.blind_xfer (sip_uri) - unattended transfer to [sip_uri].
-
-	@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
-	**/
-	int LuaBlindXfer(CLuaVirtualMachine& vm);
-
-	/**
-	ivrworx.blind_xfer (sip_uri) - unattended transfer to [sip_uri].
-
-	@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
-	**/
-	int LuaWaitTillHangup(CLuaVirtualMachine& vm);
-
-	CallWithDirectRtp &_incomingCallSession;
+	
+	CallWithDirectRtpPtr _incomingCallSession;
 
 };
 

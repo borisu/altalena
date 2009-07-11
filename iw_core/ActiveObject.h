@@ -84,7 +84,8 @@ namespace ivrworx
 
 	**/
 
-	class ActiveObject	
+	class ActiveObject: 
+		public boost::noncopyable
 	{
 	public:
 
