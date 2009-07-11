@@ -1,5 +1,21 @@
 #summary Release Notes
 
+= ivrworx 1.0.4-alpha-dbg =
+----
+=== What's new in this version ===
+
+ * Added make call api.
+
+ * Changed script api to be handle specific - it is not compatible with previous versions
+
+ * Several bug fixes
+
+ 
+=== Known Issues ===
+
+ * Leaking handles on call disconnect
+
+
 = ivrworx 1.0.3-alpha-dbg =
 ----
 === What's new in this version ===
