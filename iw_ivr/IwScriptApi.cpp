@@ -655,7 +655,6 @@ IwCallHandlerScript::IwCallHandlerScript(
 	if (vm.Ok() == false)
 	{
 		LogCrit("Detected uninitialized vm");
-		throw;
 	}
 
 	// register INCOMING
@@ -670,6 +669,7 @@ IwCallHandlerScript::IwCallHandlerScript(
 	_lineInTable.Create("linein");
 	_lineInTable.AddParam("ani",_incomingCallSession->Ani());
 	_lineInTable.AddParam("dnis",_incomingCallSession->Dnis());
+
 
 	// !!! The order should be preserved for later switch statement !!!
 	_methodBase = RegisterFunction("answer");

@@ -28,125 +28,28 @@
 
 namespace ivrworx
 {
-	
-	
 	UASDialogUsageManager::UASDialogUsageManager(
 		IN Configuration &conf,
-		IN SipStack &resip_stack, 
 		IN IwHandlesMap &handles_map,
-		IN LightweightProcess &stack):
-		DialogUsageManager(resip_stack),
+		IN ResipDialogHandlesMap &resipHandlesMap,
+		IN LightweightProcess &stack,
+		IN DialogUsageManager &dum):
 		_conf(conf),
+		_resipHandlesMap(resipHandlesMap),
 		_refIwHandlesMap(handles_map),
-		_sipStack(stack)
+		_sipStack(stack),
+		_dum(dum)
 	{
 
 		_sdpVersionCounter = ::GetTickCount();
 
-		CnxInfo ipAddr = conf.IvrCnxInfo();
-
-		string uasUri = "sip:" + conf.From() + "@" + ipAddr.ipporttos();
-		_uasAor		= NameAddrPtr(new NameAddr(uasUri.c_str()));
-
 		
-
-		_uasMasterProfile = SharedPtr<MasterProfile>(new MasterProfile());
-		setMasterProfile(_uasMasterProfile);
-
-		auto_ptr<ClientAuthManager> _uasAuth (new ClientAuthManager());
-		setClientAuthManager(_uasAuth);
-		_uasAuth.release();
-
-		getMasterProfile()->setDefaultFrom(*_uasAor);
-		getMasterProfile()->setDefaultRegistrationTime(70);
-
-
-		if (conf.EnableSessionTimer())
-		{
-			getMasterProfile()->addSupportedOptionTag(Token(Symbols::Timer));
-
-			_confSessionTimerModeMap["prefer_uac"]	  = Profile::PreferUACRefreshes;
-			_confSessionTimerModeMap["prefer_uas"]	  = Profile::PreferUASRefreshes;
-			_confSessionTimerModeMap["prefer_local"]  = Profile::PreferLocalRefreshes;
-			_confSessionTimerModeMap["prefer_remote"] = Profile::PreferRemoteRefreshes;
-
-			ConfSessionTimerModeMap::iterator  i = _confSessionTimerModeMap.find(conf.SipRefreshMode());
-			if (i == _confSessionTimerModeMap.end())
-			{
-				LogInfo("Setting refresh mode to 'none'");
-			}
-			else
-			{
-				LogInfo("Setting refresh mode to " << i->first);
-				getMasterProfile()->setDefaultSessionTimerMode(i->second);
-				getMasterProfile()->setDefaultSessionTime(conf.SipDefaultSessionTime());
-
-			}
-
-		}
-		
-		setClientRegistrationHandler(this);
-		setInviteSessionHandler(this);
-		addClientSubscriptionHandler("refer",this);
-		
-		addOutOfDialogHandler(OPTIONS, this);
-
-
-		auto_ptr<AppDialogSetFactory> uas_dsf(new UASAppDialogSetFactory());
-		setAppDialogSetFactory(uas_dsf);
-		uas_dsf.release();
-
-		LogInfo("UAS started on " << ipAddr.ipporttos());
 	}
 
 	UASDialogUsageManager::~UASDialogUsageManager(void)
 	{
 	}
 
-	void
-    UASDialogUsageManager::UponBlindXferReq(IwMessagePtr req)
-	{
-		FUNCTRACKER;
-
-		shared_ptr<MsgCallBlindXferReq> xfer_req = 
-			dynamic_pointer_cast<MsgCallBlindXferReq>(req);
-
-		IwHandlesMap::iterator iter = _refIwHandlesMap.find(xfer_req->stack_call_handle);
-		if (iter == _refIwHandlesMap.end())
-		{
-			LogWarn("UponBlindXferReq:: iwh:" << xfer_req->stack_call_handle << " not found. Has caller disconnected already?");
-			GetCurrLightWeightProc()->SendResponse(
-				req,
-				new MsgCallBlindXferNack());
-			return;
-		}
-
-		SipDialogContextPtr ctx_ptr = (*iter).second;
-		InviteSessionHandle invite_handle = ctx_ptr->invite_handle;
-
-		if (invite_handle->isConnected() == false)
-		{
-			LogWarn("Cannot xfer in not connected state, " << LogHandleState(ctx_ptr, invite_handle))
-			GetCurrLightWeightProc()->SendResponse(
-				req,
-				new MsgCallBlindXferNack());
-
-			return;
-		}
-
-		
-		LogDebug("UponBlindXferReq:: dst:" << xfer_req->destination_uri << ", " << LogHandleState(ctx_ptr, invite_handle));
-
-		NameAddr name_addr(xfer_req->destination_uri.c_str());
-		invite_handle->refer(name_addr,false);
-
-		GetCurrLightWeightProc()->SendResponse(
-			req,
-			new MsgCallBlindXferAck());
-
-		invite_handle->end();
-
-	}
 
 	void
 	UASDialogUsageManager::UponCallOfferedNack(IwMessagePtr req)
@@ -269,40 +172,6 @@ namespace ivrworx
 
 		_refIwHandlesMap.erase(ctx_ptr->stack_handle);
 		_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
-	}
-
-
-	void 
-	UASDialogUsageManager::onTerminated(InviteSessionHandle handle , InviteSessionHandler::TerminatedReason reason, const SipMessage* msg)
-	{
-		FUNCTRACKER;
-
-
-		IwStackHandle ixhandle = IW_UNDEFINED;
-		ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(handle->getAppDialog());
-		if (iter != _resipHandlesMap.end())
-		{
-			// early termination
-			SipDialogContextPtr ctx_ptr = (*iter).second;
-			ixhandle = ctx_ptr->stack_handle;
-			ctx_ptr->call_handler_inbound->Send(new MsgCallHangupEvt());
-
-			LogDebug("onTerminated:: " << LogHandleState(ctx_ptr,handle));
-			CleanUpCall(ctx_ptr);
-
-		} 
-		else
-		{
-			LogDebug("onTerminated:: " << LogHandleState(SipDialogContextPtr((SipDialogContext*)NULL),handle));
-		}
-
-	}
-
-	void 
-	UASDialogUsageManager::onRemoteSdpChanged(InviteSessionHandle, const SipMessage& msg, const SdpContents&)
-	{
-		FUNCTRACKER;
-
 	}
 
 	void 
@@ -455,36 +324,7 @@ namespace ivrworx
 	}
 	
 
-
 	void 
-	UASDialogUsageManager::onConnected(InviteSessionHandle is, const SipMessage& msg)
-	{
-		FUNCTRACKER;
-	
-	}
-
-	void 
-	UASDialogUsageManager::onOfferRequired(InviteSessionHandle is, const SipMessage& msg)
-	{
-		FUNCTRACKER;
-
-		// 	LogDebug( ": InviteSession-onOfferRequired - " << msg.brief());
-		// 	is->provideOffer(*_sdp);
-	}
-
-	void 
-	UASDialogUsageManager::onAnswer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp)      
-	{
-		LogDebug(  ": InviteSession-onAnswer(SDP)");
-		// 	if(*pHangupAt == 0)
-		// 	{
-		// 		is->provideOffer(sdp);
-		// 		*pHangupAt = time(NULL) + 5;
-		// 	}
-	}
-
-
-	ApiErrorCode 
 	UASDialogUsageManager::HangupCall(SipDialogContextPtr ctx_ptr)
 	{
 		FUNCTRACKER;
@@ -495,40 +335,7 @@ namespace ivrworx
 		_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
 		ctx_ptr->uas_invite_handle->end();
 
-		return API_SUCCESS;
 	}
-
-	void 
-	UASDialogUsageManager::onUpdatePending(ClientSubscriptionHandle sh, const SipMessage& notify, bool outOfOrder)
-	{
-		FUNCTRACKER;
-
-// 		ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(sh->getAppDialog());
-// 		if (ctx_iter == _resipHandlesMap.end())
-// 		{
-// 			LogCrit("Received UPDATE (pending) without application context, rsh:" << sh.getId());
-// 			sh->rejectUpdate();
-// 			sh->end();
-// 			return;
-// 		}
-
-		
-	}
-
-	void 
-	UASDialogUsageManager::onUpdateActive(ClientSubscriptionHandle sh, const SipMessage& notify, bool outOfOrder)
-	{
-// 		ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(sh->getAppDialog());
-// 		if (ctx_iter == _resipHandlesMap.end())
-// 		{
-// 			LogCrit("Received UPDATE (active) without application context, rsh:" << sh.getId());
-// 			sh->rejectUpdate();
-// 			sh->end();
-// 			return;
-// 		}
-
-	}
-
 
 
 	void 

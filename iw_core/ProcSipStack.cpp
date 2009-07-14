@@ -21,7 +21,6 @@
 #include "ProcSipStack.h"
 
 #include "UASAppDialogSetFactory.h"
-#include "UASShutdownHandler.h"
 
 #include "UASDialogUsageManager.h"
 #include "Profiler.h"
@@ -196,24 +195,78 @@ namespace ivrworx
 				Data::Empty,
 				SecurityTypes::TLSv1 );
 
+			_dumMngr  = DialogUsageManagerPtr(new DialogUsageManager(*_stack));
+
+			string uasUri = "sip:" + _conf.From() + "@" + ipAddr.ipporttos();
+			NameAddr uasAor	(uasUri.c_str());
+
+
+			_dumMngr->setMasterProfile(SharedPtr<MasterProfile>(new MasterProfile()));
+
+			auto_ptr<ClientAuthManager> uasAuth (new ClientAuthManager());
+			_dumMngr->setClientAuthManager(uasAuth);
+			uasAuth.release();
+
+			_dumMngr->getMasterProfile()->setDefaultFrom(uasAor);
+			_dumMngr->getMasterProfile()->setDefaultRegistrationTime(70);
+
+
+			if (_conf.EnableSessionTimer())
+			{
+				_dumMngr->getMasterProfile()->addSupportedOptionTag(Token(Symbols::Timer));
+
+				_confSessionTimerModeMap["prefer_uac"]	  = Profile::PreferUACRefreshes;
+				_confSessionTimerModeMap["prefer_uas"]	  = Profile::PreferUASRefreshes;
+				_confSessionTimerModeMap["prefer_local"]  = Profile::PreferLocalRefreshes;
+				_confSessionTimerModeMap["prefer_remote"] = Profile::PreferRemoteRefreshes;
+
+				ConfSessionTimerModeMap::iterator  i = _confSessionTimerModeMap.find(_conf.SipRefreshMode());
+				if (i == _confSessionTimerModeMap.end())
+				{
+					LogInfo("Setting refresh mode to 'none'");
+				}
+				else
+				{
+					LogInfo("Setting refresh mode to " << i->first);
+					_dumMngr->getMasterProfile()->setDefaultSessionTimerMode(i->second);
+					_dumMngr->getMasterProfile()->setDefaultSessionTime(_conf.SipDefaultSessionTime());
+
+				}
+
+			}
+
+			_dumMngr->setClientRegistrationHandler(this);
+			_dumMngr->setInviteSessionHandler(this);
+			_dumMngr->addClientSubscriptionHandler("refer",this);
+			_dumMngr->addOutOfDialogHandler(OPTIONS, this);
+
+
+			auto_ptr<AppDialogSetFactory> uas_dsf(new UASAppDialogSetFactory());
+			_dumMngr->setAppDialogSetFactory(uas_dsf);
+			uas_dsf.release();
+
+			LogInfo("UAS started on " << ipAddr.ipporttos());
+
 
 			//
 			// UAS
 			//
 			_dumUas = UASDialogUsageManagerPtr(new UASDialogUsageManager(
 				_conf,
-				*_stack,
 				_iwHandlesMap,
-				*this));
+				_resipHandlesMap,
+				*this,
+				*_dumMngr));
 
 			//
 			// UAC
 			// 
 			_dumUac = UACDialogUsageManagerPtr(new UACDialogUsageManager(
 				_conf,
-				*_stack,
 				_iwHandlesMap,
-				*this));
+				_resipHandlesMap,
+				*this,
+				*_dumMngr));
 
 			_handleInterruptor = ResipInterruptorPtr(new ResipInterruptor());
 			_inbound->HandleInterruptor(_handleInterruptor);
@@ -236,7 +289,7 @@ namespace ivrworx
 
 		IX_PROFILE_FUNCTION();
 
-		_dumUas->UponBlindXferReq(req);
+		_dumUac->UponBlindXferReq(req);
 
 	}
 
@@ -247,31 +300,9 @@ namespace ivrworx
 
 		IX_PROFILE_FUNCTION();
 
-		shared_ptr<MsgHangupCallReq> hangup_msg = 
-			dynamic_pointer_cast<MsgHangupCallReq>(ptr);
-
-		IwStackHandle handle = hangup_msg->stack_call_handle;
-
-		IwHandlesMap::iterator iter = _iwHandlesMap.find(handle);
-		if (iter == _iwHandlesMap.end())
-		{
-			LogWarn("The call iwh:" << hangup_msg->stack_call_handle << " already hanged up.");
-			return;
-		}
-
-		SipDialogContextPtr ctx_ptr = (*iter).second;
-
-		if (ctx_ptr->transaction_type == TXN_TYPE_UAC ) 
-		{
-			_dumUac->HangupCall(ctx_ptr);
-			return;
-		} 
-		else 
-		{
-			_dumUas->HangupCall(ctx_ptr);
-		}
-
-		return;
+		_dumUac->UponHangupReq(ptr);
+		
+		
 	}
 
 	void
@@ -286,15 +317,7 @@ namespace ivrworx
 
 		_shutDownFlag = true;
 
- 		if (_dumUac)
- 		{
- 			_dumUac->Shutdown();
- 		}
-
-		if (_dumUas)
-		{
-			_dumUas->forceShutdown(NULL);
-		}
+ 		_dumMngr->forceShutdown(NULL);
 
 		_stack->shutdown();
 	}
@@ -453,8 +476,7 @@ namespace ivrworx
 
 			IX_PROFILE_CODE(_handleInterruptor->process(fdset));
 			IX_PROFILE_CODE(_stack->process(fdset));
-			IX_PROFILE_CODE(while(_dumUas->process()));
-			IX_PROFILE_CODE(while(_dumUac->process()));
+			IX_PROFILE_CODE(while(_dumMngr->process()));
 
 			shutdown_flag = ProcessIwMessages();
 			if (shutdown_flag)
@@ -465,6 +487,114 @@ namespace ivrworx
 		}
 	}
 
+	void 
+	ProcSipStack::onNewSession(
+		IN ClientInviteSessionHandle s, 
+		IN InviteSession::OfferAnswerType oat, 
+		IN const SipMessage& msg)
+	{
+		FUNCTRACKER;
+		_dumUac->onNewSession(s,oat,msg);
+	}
+
+	void 
+	ProcSipStack::onConnected(
+		IN ClientInviteSessionHandle is, 
+		IN const SipMessage& msg)
+	{
+		FUNCTRACKER;
+		_dumUac->onConnected(is,msg);
+	}
+
+
+	void 
+	ProcSipStack::onNewSession(
+		IN ServerInviteSessionHandle sis, 
+		IN InviteSession::OfferAnswerType oat, 
+		IN const SipMessage& msg)
+	{
+		FUNCTRACKER;
+		_dumUas->onNewSession(sis,oat,msg);
+	}
+
+	void 
+	ProcSipStack::onFailure(IN ClientInviteSessionHandle is, IN const SipMessage& msg)
+	{
+		FUNCTRACKER;
+
+		_dumUac->onFailure(is,msg);
+
+	}
+
+	void 
+	ProcSipStack::onOffer(
+		IN InviteSessionHandle is, 
+		IN const SipMessage& msg, 
+		IN const SdpContents& sdp)
+	{
+		FUNCTRACKER;
+		
+		// On offer is actually called when first SDP is received
+		// it may be in first invite, or in response to empty invite
+		// in this case it is not correct to send it to uas.
+		// this case is not handled.
+		_dumUas->onOffer(is,msg,sdp);
+	}
+
+	/// called when ACK (with out an answer) is received for initial invite (UAS)
+	void 
+	ProcSipStack::onConnectedConfirmed( 
+		IN InviteSessionHandle is, 
+		IN const SipMessage &msg)
+	{
+
+		FUNCTRACKER;
+		_dumUas->onConnectedConfirmed(is,msg);
+	}
+
+	void 
+	ProcSipStack::onReceivedRequest(
+		IN ServerOutOfDialogReqHandle ood, 
+		IN const SipMessage& request)
+	{
+		FUNCTRACKER;
+		_dumUas->onReceivedRequest(ood,request);
+	}
+
+	void 
+	ProcSipStack::onTerminated(
+		IN InviteSessionHandle is, 
+		IN InviteSessionHandler::TerminatedReason reason, 
+		IN const SipMessage* msg)
+	{
+		
+		FUNCTRACKER;
+		// this logic is not UAS/UAC specific
+		
+		IwStackHandle ixhandle = IW_UNDEFINED;
+		ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
+		if (iter != _resipHandlesMap.end())
+		{
+			// early termination
+			SipDialogContextPtr ctx_ptr = (*iter).second;
+			ixhandle = ctx_ptr->stack_handle;
+			ctx_ptr->call_handler_inbound->Send(new MsgCallHangupEvt());
+
+			LogDebug("onTerminated:: " << LogHandleState(ctx_ptr,is));
+			_iwHandlesMap.erase(ctx_ptr->stack_handle);
+
+			if (ctx_ptr->uas_invite_handle.isValid())
+			{
+				_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
+			}
+			if (ctx_ptr->uac_invite_handle.isValid())
+			{
+				_resipHandlesMap.erase(ctx_ptr->uac_invite_handle->getAppDialog());
+			}
+			
+
+		} 
+	}
 
 	IwResipLogger::~IwResipLogger()
 	{

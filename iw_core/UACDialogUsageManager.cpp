@@ -22,7 +22,6 @@
 #include "LightweightProcess.h"
 #include "ResipCommon.h"
 #include "UacDialogUsageManager.h"
-#include "UACUserProfile.h"
 #include "UACAppDialogSet.h"
 #include "Logger.h"
 
@@ -34,50 +33,65 @@ namespace ivrworx
 
 	UACDialogUsageManager::UACDialogUsageManager(
 		IN Configuration &conf,
-		IN SipStack &sipStack,
 		IN IwHandlesMap &ccu_handles_map,
-		IN LightweightProcess &ccu_stack):
-		DialogUsageManager(sipStack),
-			_conf(conf),
-			_iwHandlesMap(ccu_handles_map)
-		{
-
-			FUNCTRACKER;
-
-			CnxInfo ipAddr = conf.IvrCnxInfo();
-		
-			string uasUri = "sip:" + conf.From() + "@" + conf.IvrCnxInfo().iptoa();
-			_nameAddr = NameAddrPtr(new NameAddr(uasUri.c_str()));
-
-
-			SharedPtr<MasterProfile> uacMasterProfile = 
-				SharedPtr<MasterProfile>(new MasterProfile());
-			auto_ptr<ClientAuthManager> uacAuth(new ClientAuthManager);
-
-			setMasterProfile(uacMasterProfile);
-			getMasterProfile()->setDefaultFrom(*_nameAddr);
-		
-			setClientAuthManager(uacAuth);
-
-			setInviteSessionHandler(this);
-			setClientRegistrationHandler(this);
-			addOutOfDialogHandler(OPTIONS,this);
-
-
+		IN ResipDialogHandlesMap &resip_handles_map,
+		IN LightweightProcess &ccu_stack,
+		IN DialogUsageManager &dum):
+		_conf(conf),
+		_dum(dum),
+		_iwHandlesMap(ccu_handles_map),
+		_resipHandlesMap(resip_handles_map)
+	{
+		FUNCTRACKER;
 
 	}
 
 	void 
-	UACDialogUsageManager::HangupCall(SipDialogContextPtr ptr)
+	UACDialogUsageManager::UponHangupReq(IN IwMessagePtr ptr)
 	{
 		FUNCTRACKER;
 
-		_iwHandlesMap.erase(ptr->stack_handle);
-		_resipHandlesMap.erase(ptr->uac_invite_handle->getAppDialog());
-		ptr->uac_invite_handle->end();
+		shared_ptr<MsgHangupCallReq> hangup_msg = 
+			dynamic_pointer_cast<MsgHangupCallReq>(ptr);
 
-	
+		IwStackHandle handle = hangup_msg->stack_call_handle;
 
+		IwHandlesMap::iterator iter = _iwHandlesMap.find(handle);
+		if (iter == _iwHandlesMap.end())
+		{
+			LogWarn("The call iwh:" << hangup_msg->stack_call_handle << " already hanged up.");
+			return;
+		}
+
+		SipDialogContextPtr ctx_ptr = (*iter).second;
+
+		_iwHandlesMap.erase(ctx_ptr->stack_handle);
+		if (ctx_ptr->uac_invite_handle.isValid())
+		{
+			_resipHandlesMap.erase(ctx_ptr->uac_invite_handle->getAppDialog());
+			ctx_ptr->uac_invite_handle->end();
+		}
+
+		if (ctx_ptr->uas_invite_handle.isValid())
+		{
+			_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
+			ctx_ptr->uas_invite_handle->end();
+		}
+		
+
+	}
+
+	void 
+	UACDialogUsageManager::CleanUpCall(IN SipDialogContextPtr ctx_ptr)
+	{
+		FUNCTRACKER;
+
+		_iwHandlesMap.erase(ctx_ptr->stack_handle);
+		if (ctx_ptr->uac_invite_handle.isValid() && !ctx_ptr->uac_invite_handle->isEarly())
+		{
+			_resipHandlesMap.erase(ctx_ptr->uac_invite_handle->getAppDialog());
+		}
+		
 	}
 
 	void 
@@ -106,7 +120,7 @@ namespace ivrworx
 		if ( ctx_ptr->uac_invite_handle->isConnected() == false)
 		{
 			LogCrit("No support for sdp in ACK");
-			HangupCall(ctx_ptr);
+			throw;
 		}
 
 
@@ -129,7 +143,7 @@ namespace ivrworx
 			//
 			NameAddr name_addr(req->destination_uri.c_str());
 			SharedPtr<UserProfile> user_profile;
-			user_profile = SharedPtr<UserProfile>(getMasterProfile());
+			user_profile = SharedPtr<UserProfile>(_dum.getMasterProfile());
 			
 
 
@@ -167,6 +181,13 @@ namespace ivrworx
 
 				string rtpmap = media_format.sdp_mapping_tos() + " " + media_format.sdp_name_tos() + "/" + media_format.sampling_rate_tos();
 				medium.addAttribute("rtpmap", rtpmap.c_str());
+
+				if (MediaFormat::GetMediaType(media_format.sdp_name_tos()) == MediaFormat::MediaType_DTMF)
+				{
+					string fmap = media_format.sdp_mapping_tos() + " 0-16";
+					medium.addAttribute("fmtp", fmap.c_str());
+				}
+
 			}
 
 
@@ -182,21 +203,22 @@ namespace ivrworx
 			SipDialogContextPtr ctx_ptr = 
 				SipDialogContextPtr(new SipDialogContext());
 
-			UACAppDialogSet * uac_dialog_set = new UACAppDialogSet(*this,ctx_ptr);
+			UACAppDialogSet * uac_dialog_set = new UACAppDialogSet(_dum,ctx_ptr);
 			SharedPtr<SipMessage> invite_session = 
-				makeInviteSession(
+				_dum.makeInviteSession(
 				name_addr, 
 				user_profile,
 				&sdp, 
 				uac_dialog_set); 
 
 
-			send(invite_session);
+			_dum.send(invite_session);
 
 			ctx_ptr->stack_handle = GenerateSipHandle();
 			ctx_ptr->transaction_type = TXN_TYPE_UAC;
 			ctx_ptr->call_handler_inbound = req->call_handler_inbound;
 			ctx_ptr->last_user_request = ptr;
+			 
 
 			LogDebug("sent INVITE iwh:" << ctx_ptr->stack_handle)
 
@@ -230,46 +252,84 @@ namespace ivrworx
 
 	}
 
-	void 
-	UACDialogUsageManager::onTerminated(IN InviteSessionHandle is , IN InviteSessionHandler::TerminatedReason reason, IN const SipMessage* msg) 
+	void
+	UACDialogUsageManager::UponBlindXferReq(IwMessagePtr req)
 	{
 		FUNCTRACKER;
 
-		LogInfo("UACDialogUsageManager::onTerminated rsh:" << is.getId()<< ", reason:" << reason);
+		shared_ptr<MsgCallBlindXferReq> xfer_req = 
+			dynamic_pointer_cast<MsgCallBlindXferReq>(req);
+
+		IwHandlesMap::iterator iter = _iwHandlesMap.find(xfer_req->stack_call_handle);
+		if (iter == _iwHandlesMap.end())
+		{
+			LogWarn("UponBlindXferReq:: iwh:" << xfer_req->stack_call_handle << " not found. Has caller disconnected already?");
+			GetCurrLightWeightProc()->SendResponse(
+				req,
+				new MsgCallBlindXferNack());
+			return;
+		}
+
+		SipDialogContextPtr ctx_ptr = (*iter).second;
+		InviteSessionHandle invite_handle = ctx_ptr->invite_handle;
+
+		if (invite_handle->isConnected() == false)
+		{
+			LogWarn("Cannot xfer in not connected state, " << LogHandleState(ctx_ptr, invite_handle))
+				GetCurrLightWeightProc()->SendResponse(
+				req,
+				new MsgCallBlindXferNack());
+
+			return;
+		}
+
+
+		LogDebug("UponBlindXferReq:: dst:" << xfer_req->destination_uri << ", " << LogHandleState(ctx_ptr, invite_handle));
+
+		NameAddr name_addr(xfer_req->destination_uri.c_str());
+		invite_handle->refer(name_addr,false);
+
+		GetCurrLightWeightProc()->SendResponse(
+			req,
+			new MsgCallBlindXferAck());
+
+		invite_handle->end();
+
+	}
+
+	/// Received a failure response from UAS
+	void 
+	UACDialogUsageManager::onFailure(
+		IN ClientInviteSessionHandle is, 
+		IN const SipMessage& msg)
+	{
+		FUNCTRACKER;
+
+		LogInfo("UACDialogUsageManager::onFailure rsh:" << is.getId());
 
 		SipDialogContextPtr ctx_ptr = ((UACAppDialogSet*)(is->getAppDialogSet().get()))->_ptr;
 
-
 		// handle is in offering mode
-		if (ctx_ptr->uac_invite_handle->isConnected() == false)
+		if (is->isConnected() == false)
 		{
 			GetCurrLightWeightProc()->SendResponse(
 				ctx_ptr->last_user_request,
 				new MsgMakeCallNack());
-			return;
+			
+			CleanUpCall(ctx_ptr);
+
+			is->getAppDialogSet()->end();
+		}
+		else
+		{
+
 		}
 
-		MsgCallHangupEvt *hang_up_evt = 
-			new MsgCallHangupEvt();
-
-		hang_up_evt->stack_call_handle = ctx_ptr->stack_handle;
-
-		ctx_ptr->call_handler_inbound->Send(hang_up_evt);
-
-		//
-		// remove from maps
-		//
-		_resipHandlesMap.erase(is->getAppDialog());
-		_iwHandlesMap.erase(ctx_ptr->stack_handle);
+		
 
 	}
 
-	void 
-	UACDialogUsageManager::onConnectedConfirmed(InviteSessionHandle handle, const SipMessage& msg)
-	{
-
-	}
-
+	
 	void 
 	UACDialogUsageManager::onConnected(IN ClientInviteSessionHandle is, IN const SipMessage& msg)
 	{
@@ -305,7 +365,7 @@ namespace ivrworx
 		if (s.media().empty())
 		{
 			LogWarn("::onConnected Empty proposed medias list " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
-			HangupCall(ctx_ptr);
+			CleanUpCall(ctx_ptr);
 			return;
 		}
 
@@ -323,7 +383,7 @@ namespace ivrworx
 		if (medium_iter == s.media().end())
 		{
 			LogWarn("::onConnected Not found audio connection " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
-			HangupCall(ctx_ptr);
+			CleanUpCall(ctx_ptr);
 			return;
 		}
 
@@ -351,12 +411,6 @@ namespace ivrworx
 			ack);
 
 			
-	}
-
-	void 
-	UACDialogUsageManager::Shutdown()
-	{
-		forceShutdown(NULL);
 	}
 
 	UACDialogUsageManager::~UACDialogUsageManager(void)

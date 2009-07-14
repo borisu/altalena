@@ -83,13 +83,13 @@ namespace ivrworx
 	};
 
 	typedef
-		shared_ptr<ResipInterruptor> ResipInterruptorPtr;
+	shared_ptr<ResipInterruptor> ResipInterruptorPtr;
 
 
 
 
 	class ProcSipStack : 
-		public LightweightProcess
+		public LightweightProcess, public SipSessionHandlerAdapter
 	{
 	public:
 
@@ -119,27 +119,80 @@ namespace ivrworx
 
 		virtual void UponCallOfferedNack(IN IwMessagePtr req);
 
+		virtual void onNewSession(
+			IN ClientInviteSessionHandle s, 
+			IN InviteSession::OfferAnswerType oat, 
+			IN const SipMessage& msg);
+
+		virtual void onConnected(
+			IN ClientInviteSessionHandle is, 
+			IN const SipMessage& msg);
+
+		/// Received a failure response from UAS
+		virtual void onFailure(
+			IN ClientInviteSessionHandle, 
+			IN const SipMessage& msg);
+
+		virtual void onNewSession(
+			IN ServerInviteSessionHandle sis, 
+			IN InviteSession::OfferAnswerType oat, 
+			IN const SipMessage& msg);
+
+		virtual void onConnectedConfirmed(
+			IN InviteSessionHandle, 
+			IN const SipMessage &msg);
+
+		virtual void onOffer(
+			IN InviteSessionHandle is, 
+			IN const SipMessage& msg, 
+			IN const SdpContents& sdp);
+
+		virtual void onReceivedRequest(
+			IN ServerOutOfDialogReqHandle ood, 
+			IN const SipMessage& request);
+
+		virtual void onTerminated(
+			IN InviteSessionHandle, 
+			IN InviteSessionHandler::TerminatedReason reason, 
+			IN const SipMessage* msg);
+
 		virtual void ShutDown();
 
 	protected:
 
 		virtual bool ProcessIwMessages();
 
+		bool _shutDownFlag;
+
 		IwResipLogger _logger;
 
 		ResipInterruptorPtr _handleInterruptor;
+
+		Configuration &_conf;
+
+		typedef map<string,Profile::SessionTimerMode> 
+			ConfSessionTimerModeMap;
+
+		ConfSessionTimerModeMap _confSessionTimerModeMap;
+
 
 		SipStackPtr _stack;
 
 		IwHandlesMap _iwHandlesMap;
 
+		ResipDialogHandlesMap _resipHandlesMap;
+
+		typedef
+		shared_ptr<DialogUsageManager> DialogUsageManagerPtr;
+		DialogUsageManagerPtr _dumMngr;
+
 		UACDialogUsageManagerPtr _dumUac;
 
 		UASDialogUsageManagerPtr _dumUas;
 
-		bool _shutDownFlag;
+		
 
-		Configuration &_conf;
+		
 
 	};
 

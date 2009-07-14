@@ -62,7 +62,6 @@ namespace ivrworx
 			return res;
 		};
 
-
 		res = _imsSession.AllocateIMSConnection(RemoteMedia(),speech_media_format);
 		if (IW_FAILURE(res))
 		{
@@ -150,26 +149,20 @@ namespace ivrworx
 	{
 		
 		FUNCTRACKER;
-
 		if (_callState != CALL_STATE_UNKNOWN)
 		{
 			return API_WRONG_STATE;
 		}
 
-		// allocate dummy session to save bind time for future
-		ApiErrorCode res = _imsSession.AllocateIMSConnection(CnxInfo("127.0.0.1",555),MediaFormat::PCMU);
-		if (IW_FAILURE(res))
-		{
-		  return res;
-		};
-
-		res = Call::MakeCall(destination_uri,_imsSession.ImsMediaData());
+		
+		ApiErrorCode res = Call::MakeCall(destination_uri,_imsSession.ImsMediaData());
 		if (IW_FAILURE(res))
 		{
 			return res;
 		};
 
-		res = _imsSession.ModifyConnection(_remoteMedia,_acceptedSpeechFormat);
+		// allocate dummy session to save bind time for future
+		res = _imsSession.AllocateIMSConnection(_remoteMedia ,_acceptedSpeechFormat);
 		if (IW_FAILURE(res))
 		{
 			Call::HangupCall();

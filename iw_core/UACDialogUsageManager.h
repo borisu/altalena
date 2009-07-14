@@ -30,22 +30,25 @@ namespace ivrworx
 {
 
 class UACDialogUsageManager :
-	public DialogUsageManager,public SipSessionHandlerAdapter
+	public SipSessionHandlerAdapter
 {
 public:
 	UACDialogUsageManager(
 		IN Configuration &conf,
-		IN SipStack &sipStack,
 		IN IwHandlesMap &ccu_handles_map,
-		IN LightweightProcess &ccu_stack);
+		IN ResipDialogHandlesMap &resip_handles_map,
+		IN LightweightProcess &ccu_stack,
+		IN DialogUsageManager &dum);
 
 	virtual ~UACDialogUsageManager(void);
 
 	virtual void UponMakeCallReq(IN IwMessagePtr request);
 
+	virtual void UponBlindXferReq(IN IwMessagePtr req);
+
 	virtual void UponMakeCallAckReq(IN IwMessagePtr request);
 
-	virtual void HangupCall(IN SipDialogContextPtr ptr);
+	virtual void UponHangupReq(IN IwMessagePtr ptr);
 
 	virtual void onNewSession(
 		IN ClientInviteSessionHandle s, 
@@ -56,40 +59,23 @@ public:
 		IN ClientInviteSessionHandle is, 
 		IN const SipMessage& msg);
 
-	virtual void onConnectedConfirmed(
-		IN InviteSessionHandle handle, 
+	/// Received a failure response from UAS
+	virtual void onFailure(
+		IN ClientInviteSessionHandle, 
 		IN const SipMessage& msg);
 
-	virtual void onConnected(InviteSessionHandle, const SipMessage& msg)
-	{
-
-	};
-
-	/// called when an SDP answer is received - has nothing to do with user
-	/// answering the call 
-	virtual void onAnswer(InviteSessionHandle, const SipMessage& msg, const SdpContents&)
-	{
-
-	};
-
-
+	virtual void CleanUpCall(
+		IN SipDialogContextPtr ctx_ptr);
 	
-	virtual void onTerminated(
-		IN InviteSessionHandle, 
-		IN InviteSessionHandler::TerminatedReason reason, 
-		IN const SipMessage* msg);
-	
-	virtual void Shutdown();
-
 private:
 
 	Configuration &_conf;
 
-	NameAddrPtr  _nameAddr;
+	DialogUsageManager &_dum;
 
 	IwHandlesMap &_iwHandlesMap;
 
-	ResipDialogHandlesMap _resipHandlesMap;
+	ResipDialogHandlesMap &_resipHandlesMap;
 
 };
 
