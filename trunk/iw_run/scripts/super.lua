@@ -9,7 +9,7 @@ ivrworx.loginf("Super script started");
 --
 -- Make call
 --
-res,handle = ivrworx.make_call("sip:1234@10.0.0.1:5060");
+res,handle = ivrworx.make_call("sip:24001@10.0.0.1:5060");
 if (res ~= API_SUCCESS) then
 	ivrworx.loginf("Error making call res:" .. res)
 	return
@@ -54,7 +54,7 @@ while dtmf ~= "#" do
  	--
 	-- If timeout play request again
 	--
-     	ivrworx.play(handle,"test\\press-your-id-number-followed-by-pound-key.wav",true,false);
+     	res = ivrworx.play(handle,"test\\press-your-id-number-followed-by-pound-key.wav",true,false);
      	playing = true;
      	if (res ~= API_SUCCESS) then
 			ivrworx.loginf("Error playing `pres...` file - res:" .. res)

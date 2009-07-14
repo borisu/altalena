@@ -44,10 +44,6 @@ namespace ivrworx
 		switch (lev)
 		{
 		case ORTP_MESSAGE:
-			{
-				LogInfo(buf);
-				break;
-			}
 		case ORTP_DEBUG:
 			{
 				LogDebug(buf);
@@ -230,6 +226,38 @@ namespace ivrworx
 		}
 	}
 
+	/*this function must be called from the MSTicker thread:
+	it replaces one filter by another one.
+	This is a dirty hack that works anyway.
+	It would be interesting to have something that does the job
+	simplier within the MSTicker api
+	*/
+	void audio_stream_change_decoder(AudioStream *stream, int payload){
+		RtpSession *session=stream->session;
+		RtpProfile *prof=rtp_session_get_profile(session);
+		PayloadType *pt=rtp_profile_get_payload(prof,payload);
+		if (pt!=NULL){
+			MSFilter *dec=ms_filter_create_decoder(pt->mime_type);
+			if (dec!=NULL){
+				ms_filter_unlink(stream->rtprecv, 0, stream->decoder, 0);
+				ms_filter_unlink(stream->decoder,0,stream->dtmfgen,0);
+				ms_filter_postprocess(stream->decoder);
+				ms_filter_destroy(stream->decoder);
+				stream->decoder=dec;
+				if (pt->recv_fmtp!=NULL)
+					ms_filter_call_method(stream->decoder,MS_FILTER_ADD_FMTP,(void*)pt->recv_fmtp);
+				ms_filter_link (stream->rtprecv, 0, stream->decoder, 0);
+				ms_filter_link (stream->decoder,0 , stream->dtmfgen, 0);
+				ms_filter_preprocess(stream->decoder,stream->ticker);
+
+			}else{
+				ms_warning("No decoder found for %s",pt->mime_type);
+			}
+		}else{
+			ms_warning("No payload defined with number %i",payload);
+		}
+	}
+
 
 
 
@@ -322,7 +350,13 @@ namespace ivrworx
 			PayloadTypeMap::iterator ms_map_iter = _payloadTypeMap.find(media_format->sdp_name_tos());
 			if (ms_map_iter == _payloadTypeMap.end())
 			{
-				LogWarn("Ims encountered configured media format that is not supported " << *media_format);
+				LogWarn("ProcIms::InitCodecs media format not supported :" << *media_format);
+				continue;
+			}
+
+			if (_payloadIndexMap.find(media_format->sdp_name_tos()) != _payloadIndexMap.end())
+			{
+				LogWarn("ProcIms::InitCodecs media format appeared twice (not registering):" << *media_format);
 				continue;
 			}
 
@@ -332,7 +366,9 @@ namespace ivrworx
 				(*ms_map_iter).second
 				);
 
-			LogDebug("Ims added media format " << *media_format);
+			_payloadIndexMap[media_format->sdp_name_tos()] = media_format->sdp_mapping();
+
+			LogDebug("Ims added media format :" << *media_format);
 		}
 
 	}
@@ -920,6 +956,10 @@ error:
 	ProcIms::ModifySession(IwMessagePtr msg)
 	{
 
+		// NOT SUPPORTED MUST REWRITE CORRECTLY
+		throw ;
+
+
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
 
@@ -938,6 +978,17 @@ error:
 
 		StreamingCtxPtr ctx		= iter->second;
 
+
+		// to ensure that we using the same mapping take from the table
+		PayloadIndexMap::iterator payload_iter =  _payloadIndexMap.find(req->codec.sdp_name_tos());
+		if (payload_iter == _payloadIndexMap.end())
+		{
+			LogWarn("ProcIms::ModifySession unsupported media:" << req->codec);
+			SendResponse(msg, new MsgImsModifyNack());
+			return;
+		}
+
+		
 		// to prevent race conditions?
 		ApiErrorCode err = StopTicking(ctx);
 		if (IW_FAILURE(err))
@@ -959,13 +1010,14 @@ error:
 			goto error;
 		}
 
-		// update session payload type
-		res = rtp_session_set_payload_type(rtps,req->codec.sdp_mapping());
-		if (res < 0) 
-		{
-			LogWarn("error:rtp_session_set_payload_type " << req->codec.sdp_mapping_tos());
-			goto error;
-		}
+		// recreate encoder/decoder
+		audio_stream_change_decoder(ctx->stream, (*payload_iter).second);
+
+		LogDebug("ProcIms::ModifySession imsh:" << req->playback_handle << 
+			", remip:" << remip  << 
+			", port:"  << remport <<
+			", codec(map):" << req->codec.sdp_mapping() << 
+			", codec(name):" << req->codec.sdp_name_tos() );
 
 		res = ms_filter_call_method(ctx->stream->rtpsend,MS_RTP_SEND_SET_SESSION,rtps);
 		if (res < 0) 

@@ -1,10 +1,10 @@
 {
 	
-	"sync_log"  : false,
+	"sync_log"  : true,
 	
-	"resip_log" : "TRANSPORT,DBG",
+	"resip_log" : "TRANSPORT,DBG|SIP,DBG|DUM,DBG",
 	
-	"debug_level"  : "INF",
+	"debug_level"  : "TRC",
 	"debug_outputs" : "console,syslog,debug",
 	
 	"syslogd_host" : "127.0.0.1",
@@ -17,7 +17,7 @@
     "super_mode":   "sync",
     
     "sip_session_timer_enabled" : true,
-    "sip_refresh_mode" : "prefer_uac",
+    "sip_refresh_mode" : "prefer_none",
     "sip_default_session_time" : 180,
     
     "from_id" : "ivrworx",

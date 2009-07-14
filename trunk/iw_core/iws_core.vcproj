@@ -246,6 +246,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ProcSipStack.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ResipCommon.cpp"
 				>
 			</File>
@@ -292,22 +296,6 @@
 					RelativePath=".\UACDialogUsageManager.h"
 					>
 				</File>
-				<File
-					RelativePath=".\UACShutdownHandler.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\UACShutdownHandler.h"
-					>
-				</File>
-				<File
-					RelativePath=".\UACUserProfile.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\UACUserProfile.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="uas"
@@ -342,14 +330,6 @@
 				</File>
 				<File
 					RelativePath=".\UASDialogUsageManager.h"
-					>
-				</File>
-				<File
-					RelativePath=".\UASShutdownHandler.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\UASShutdownHandler.h"
 					>
 				</File>
 			</Filter>

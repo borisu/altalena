@@ -32,7 +32,9 @@ namespace ivrworx
 	{
 	public:
 
-		UACAppDialogSet(DialogUsageManager& dum, SipDialogContextPtr ptr);
+		UACAppDialogSet(
+			IN DialogUsageManager& dum, 
+			IN SipDialogContextPtr ptr = SipDialogContextPtr((SipDialogContext*)NULL));
 
 		virtual ~UACAppDialogSet(void);
 

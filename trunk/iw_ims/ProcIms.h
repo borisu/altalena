@@ -88,6 +88,8 @@ namespace ivrworx
 
 	protected:
 
+		
+
 		virtual void AllocatePlaybackSession(IwMessagePtr msg);
 
 		virtual void ModifySession(IwMessagePtr msg);
@@ -114,6 +116,7 @@ namespace ivrworx
 
 	private:
 
+
 		void InitCodecs();
 
 		void CleanUpResources();
@@ -126,11 +129,17 @@ namespace ivrworx
 
 		RtpProfile *_avProfile;
 
-		typedef	map<ImsHandle, StreamingCtxPtr> StreamingCtxsMap;
+		typedef	
+		map<ImsHandle, StreamingCtxPtr> StreamingCtxsMap;
 		StreamingCtxsMap _streamingObjectSet;
 
-		typedef map<string, PayloadType*> PayloadTypeMap;
+		typedef
+		map<string, PayloadType*> PayloadTypeMap;
 		PayloadTypeMap _payloadTypeMap;
+
+		typedef 
+		map<string, int> PayloadIndexMap;
+		PayloadIndexMap _payloadIndexMap;
 
 		Configuration &_conf;
 
