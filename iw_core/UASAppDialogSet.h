@@ -1,4 +1,5 @@
 #pragma once
+#include "Message.h"
 
 using namespace resip;
 using namespace std;
@@ -16,6 +17,8 @@ namespace ivrworx
 		virtual AppDialog* createAppDialog(const SipMessage& msg);
 
 		virtual SharedPtr<UserProfile> selectUASUserProfile(const SipMessage& msg);
+
+		IwMessagePtr _makeCallAck;
 
 	};
 

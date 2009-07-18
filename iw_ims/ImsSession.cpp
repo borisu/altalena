@@ -252,6 +252,16 @@ ImsSession::UponActiveObjectEvent(IwMessagePtr ptr)
 }
 
 ApiErrorCode
+ImsSession::AllocateIMSConnection()
+{
+	FUNCTRACKER;
+
+	return AllocateIMSConnection(CnxInfo(),MediaFormat()); 
+		
+
+}
+
+ApiErrorCode
 ImsSession::AllocateIMSConnection(IN CnxInfo remote_end, 
 								  IN MediaFormat codec)
 {

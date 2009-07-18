@@ -154,15 +154,21 @@ namespace ivrworx
 			return API_WRONG_STATE;
 		}
 
+		// allocate dummy session to save bind time for future
+		ApiErrorCode res = _imsSession.AllocateIMSConnection();
+		if (IW_FAILURE(res))
+		{
+			return res;
+		};
 		
-		ApiErrorCode res = Call::MakeCall(destination_uri,_imsSession.ImsMediaData());
+		res = Call::MakeCall(destination_uri,_imsSession.ImsMediaData());
 		if (IW_FAILURE(res))
 		{
 			return res;
 		};
 
 		// allocate dummy session to save bind time for future
-		res = _imsSession.AllocateIMSConnection(_remoteMedia ,_acceptedSpeechFormat);
+		res = _imsSession.ModifyConnection(_remoteMedia ,_acceptedSpeechFormat);
 		if (IW_FAILURE(res))
 		{
 			Call::HangupCall();

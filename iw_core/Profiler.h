@@ -29,16 +29,32 @@
 	#define IX_PROFILE_PRINT() ivrworx::PrintProfile()
 	#define IX_PROFILE_CHECK_INTERVAL(x) ivrworx::CheckInterval(x)
 	#define IX_PROFILE_ADD_DATA(x,y) ivrworx::AddProfilingData(x,y)
-	#define IX_PROFILE_CODE( code )												\
-		{																		\
-			{ ivrworx::FuncProfiler _dummyIxProfiler(#code);										\
+	#define IX_PROFILE_NAMED_CODE(name, code)										\
+		{																	\
+			{ ivrworx::FuncProfiler _dummyIxProfiler(__FUNCTION__":"name);					\
 			code; }															\
 		}
+
+	#define IX_PROFILE_CODE( code )											\
+		{																	\
+			{ ivrworx::FuncProfiler _dummyIxProfiler(__FUNCTION__":"#code);				\
+			code; }															\
+		}
+#define IX_PROFILE_CODE_START( code )									\
+	{																	\
+		 ivrworx::FuncProfiler _dummyIxProfiler(code);					\
+
+#define IX_PROFILE_CODE_END }
+
+#define IX_PROFILE_FLUSH() ivrworx::PrintProfile()
 #else 
 
 	#define IX_PROFILE_FUNCTION() 
 	#define IX_PROFILE_PRINT()
 	#define IX_PROFILE_CODE( code )	code
+	#define IX_PROFILE_CODE_START( code ) code
+	#define IX_PROFILE_CODE_END 
+	#define IX_PROFILE_FLUSH() 
 	#define IX_PROFILE_ADD_DATA(x,y) 
 	#define IX_PROFILE_CHECK_INTERVAL(x);
 
@@ -56,6 +72,8 @@ namespace ivrworx
 	void AddProfilingData(string name, LARGE_INTEGER start, LARGE_INTEGER end);
 
 	void AddProfilingData(string name, LARGE_INTEGER start);
+
+	void Flush();
 
 	class FuncProfiler
 	{

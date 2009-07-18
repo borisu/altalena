@@ -262,6 +262,90 @@
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
+		<Configuration
+			Name="Debug Profile|Win32"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+				CommandLine="echo on&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\mediastreamer2\build\win32native\Debug\mediastreamer2.dll &quot;$(OutDir)&quot;&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\win32-bin\lib\*.dll &quot;$(OutDir)&quot;&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\oRTP\build\win32native\Debug\oRTP.dll &quot;$(OutDir)&quot;&#x0D;&#x0A;&#x0D;&#x0A;&#x0D;&#x0A;&#x0D;&#x0A;"
+				Outputs="out.txt"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="-Zm120"
+				Optimization="0"
+				EnableFiberSafeOptimizations="false"
+				AdditionalIncludeDirectories="..\iw_core;..\iw_ims;..\iw_ivr"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;NOLOGS;PROFILE"
+				GeneratePreprocessedFile="0"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="2"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="4"
+				ShowIncludes="true"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="ws2_32.lib Winmm.lib ws2_32.lib Iphlpapi.lib libboost_thread-vc80-mt-gd-1_34_1.lib Mqrt.lib "
+				LinkIncremental="2"
+				AdditionalLibraryDirectories=""
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -296,6 +380,14 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug Lib|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug Profile|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"

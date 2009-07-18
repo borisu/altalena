@@ -151,8 +151,8 @@ namespace ivrworx
 
 	#define FUNCTRACKER LoggerTracker _ltTag(__FUNCTION__) 
 #else
-	#define LogPushColors(fg,bg);
-	#define LogPopColore();		
+	#define LogStartScriptLog()		
+	#define LogStopScriptLog()
 	#define LogTrace(x) 
 	#define LogDebug(x) 
 	#define LogInfo(x)  

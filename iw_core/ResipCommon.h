@@ -57,18 +57,10 @@ namespace ivrworx
 	IwStackHandle 
 	GenerateSipHandle();
 
-	enum TransactionType
-	{
-		TXN_TYPE_UAS,
-		TXN_TYPE_UAC
-	};
-
 	struct SipDialogContext :
 		public noncopyable
 	{
 		SipDialogContext();
-
-		TransactionType transaction_type;
 
 		InviteSessionHandle invite_handle;
 
@@ -78,14 +70,8 @@ namespace ivrworx
 
 		LpHandlePtr call_handler_inbound;
 
-		// used to send responses as it is 
-		// temporary process used to run transaction
-		//
-		IwMessagePtr last_user_request;
-
 		IwStackHandle stack_handle;
 
-		long sdp_version;
 	};
 
 
@@ -98,9 +84,6 @@ namespace ivrworx
 	typedef 
 	map<AppDialogHandle,SipDialogContextPtr> ResipDialogHandlesMap;
 
-
-	CnxInfo 
-	ExtractCnxInfo(const SdpContents& sdp);
 
 	template<class T> 
 	string LogHandleState(SipDialogContextPtr ptr, T is)
@@ -130,9 +113,6 @@ namespace ivrworx
 
 	}
 
-
-	CnxInfo 
-	ExtractCnxInfo(const SdpContents& sdp);
 
 }
 

@@ -33,6 +33,7 @@ namespace ivrworx
 
 		virtual ~UASAppDialog(); 
 
+		
 	};
 
 }
