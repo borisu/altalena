@@ -19,6 +19,7 @@
 
 #include "stdafx.h"
 #include "IwBase.h"
+#include "Profiler.h"
 
 
 using namespace std;
@@ -220,6 +221,8 @@ namespace ivrworx
 	void CnxInfo::init_from_hostname(const char *host_name,int p_port)
 	{
 		
+		IX_PROFILE_FUNCTION();
+
 		struct hostent* phe = ::gethostbyname(host_name);
 
 		if( phe != NULL)

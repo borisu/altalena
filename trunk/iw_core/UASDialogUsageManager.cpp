@@ -20,6 +20,7 @@
 #include "StdAfx.h"
 #include "LightweightProcess.h"
 #include "ResipCommon.h"
+#include "UASAppDialogSet.h"
 #include "UASDialogUsageManager.h"
 #include "UASAppDialogSetFactory.h"
 #include "Call.h"
@@ -90,8 +91,6 @@ namespace ivrworx
 		}
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
-		ctx_ptr->last_user_request = req;
-
 		if (ack->accepted_codecs.empty())
 		{
 			LogWarn("UponCallOfferedAck:: No accepted codec found " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
@@ -137,6 +136,9 @@ namespace ivrworx
 		sdp.session() = session;
 
 		Data encoded(Data::from(sdp));
+
+		((UASAppDialogSet*)(ctx_ptr->uas_invite_handle->getAppDialogSet().get()))->_makeCallAck
+			= req;
 		
 
 		IX_PROFILE_CODE(ctx_ptr->uas_invite_handle.get()->provideAnswer(sdp));
@@ -154,7 +156,6 @@ namespace ivrworx
 
 		// prepare dialog context
 		SipDialogContextPtr ctx_ptr(new SipDialogContext());
-		ctx_ptr->transaction_type = TXN_TYPE_UAS;
 		ctx_ptr->uas_invite_handle = sis;
 		ctx_ptr->stack_handle = GenerateSipHandle();
 
@@ -315,8 +316,9 @@ namespace ivrworx
 		MsgNewCallConnected *conn_msg = 
 			new MsgNewCallConnected();
 
+
 		_sipStack.SendResponse(
-			ctx_ptr->last_user_request, 
+			((UASAppDialogSet *)is->getAppDialogSet().get())->_makeCallAck, 
 			conn_msg);
 
 		LogDebug("onConnectedConfirmed:: " << LogHandleState(ctx_ptr,is));
@@ -333,7 +335,7 @@ namespace ivrworx
 
 		_refIwHandlesMap.erase(ctx_ptr->stack_handle);
 		_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
-		ctx_ptr->uas_invite_handle->end();
+		ctx_ptr->uas_invite_handle->getAppDialogSet()->end();
 
 	}
 

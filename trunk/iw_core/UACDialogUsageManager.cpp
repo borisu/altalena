@@ -24,6 +24,7 @@
 #include "UacDialogUsageManager.h"
 #include "UACAppDialogSet.h"
 #include "Logger.h"
+#include "Profiler.h"
 
 namespace ivrworx
 {
@@ -56,10 +57,12 @@ namespace ivrworx
 
 		IwStackHandle handle = hangup_msg->stack_call_handle;
 
+		LogWarn("UACDialogUsageManager::UponHangupReq iwh:" << hangup_msg->stack_call_handle);
+
 		IwHandlesMap::iterator iter = _iwHandlesMap.find(handle);
 		if (iter == _iwHandlesMap.end())
 		{
-			LogWarn("The call iwh:" << hangup_msg->stack_call_handle << " already hanged up.");
+			LogWarn("UACDialogUsageManager::UponHangupReq - the call iwh:" << hangup_msg->stack_call_handle << " already hanged up.");
 			return;
 		}
 
@@ -69,13 +72,13 @@ namespace ivrworx
 		if (ctx_ptr->uac_invite_handle.isValid())
 		{
 			_resipHandlesMap.erase(ctx_ptr->uac_invite_handle->getAppDialog());
-			ctx_ptr->uac_invite_handle->end();
+			ctx_ptr->uac_invite_handle->getAppDialogSet()->end();
 		}
 
 		if (ctx_ptr->uas_invite_handle.isValid())
 		{
 			_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
-			ctx_ptr->uas_invite_handle->end();
+			ctx_ptr->uas_invite_handle->getAppDialogSet()->end();
 		}
 		
 
@@ -87,9 +90,15 @@ namespace ivrworx
 		FUNCTRACKER;
 
 		_iwHandlesMap.erase(ctx_ptr->stack_handle);
-		if (ctx_ptr->uac_invite_handle.isValid() && !ctx_ptr->uac_invite_handle->isEarly())
+		if (ctx_ptr->uac_invite_handle.isValid())
 		{
 			_resipHandlesMap.erase(ctx_ptr->uac_invite_handle->getAppDialog());
+			ctx_ptr->uac_invite_handle->getAppDialogSet()->end();
+		}
+		if (ctx_ptr->uas_invite_handle.isValid())
+		{
+			_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
+			ctx_ptr->uas_invite_handle->getAppDialogSet()->end();
 		}
 		
 	}
@@ -107,7 +116,7 @@ namespace ivrworx
 
 		if (iter == _iwHandlesMap.end())
 		{
-			LogWarn("::UponMakeCallAckReq non-existent call");
+			LogWarn("::UponMakeCallAckReq non-existent call iwh:" << ack_req->stack_call_handle);
 			return;
 		}
 
@@ -145,8 +154,6 @@ namespace ivrworx
 			SharedPtr<UserProfile> user_profile;
 			user_profile = SharedPtr<UserProfile>(_dum.getMasterProfile());
 			
-
-
 			//
 			// prepare sdp
 			//
@@ -170,28 +177,45 @@ namespace ivrworx
 
 			SdpContents::Session::Medium medium("audio", req->local_media.port_ho(), 0, "RTP/AVP");
 
+			
+			const MediaFormat *dtmf_format = NULL;
 			for (MediaFormatsPtrList::const_iterator iter = _conf.MediaFormats().begin(); 
 				iter != _conf.MediaFormats().end(); 
 				iter ++)	
 			{
 
 				const MediaFormat &media_format = *(*iter);
+				if (MediaFormat::GetMediaType(media_format.sdp_name_tos()) == MediaFormat::MediaType_DTMF)
+				{
+					dtmf_format = &media_format;
+					continue;
+				}
 
 				medium.addFormat(media_format.sdp_mapping_tos().c_str());
-
 				string rtpmap = media_format.sdp_mapping_tos() + " " + media_format.sdp_name_tos() + "/" + media_format.sampling_rate_tos();
 				medium.addAttribute("rtpmap", rtpmap.c_str());
 
-				if (MediaFormat::GetMediaType(media_format.sdp_name_tos()) == MediaFormat::MediaType_DTMF)
-				{
-					string fmap = media_format.sdp_mapping_tos() + " 0-16";
-					medium.addAttribute("fmtp", fmap.c_str());
-				}
+				
 
 			}
 
+			// dtmf format always last
+			if (dtmf_format != NULL)
+			{
+				medium.addFormat(dtmf_format->sdp_mapping_tos().c_str());
+				string rtpmap = dtmf_format->sdp_mapping_tos() + " " + dtmf_format->sdp_name_tos() + "/" + dtmf_format->sampling_rate_tos();
+				medium.addAttribute("rtpmap", rtpmap.c_str());
+				medium.addAttribute("fmtp", (dtmf_format->sdp_mapping_tos() + " 0-16").c_str());
+			}
+
+
+
+
+			medium.addAttribute("sendrecv");
+
 
 			session.addMedium(medium);
+			
 			sdp.session() = session;
 
 			Data encoded(Data::from(sdp));
@@ -203,7 +227,7 @@ namespace ivrworx
 			SipDialogContextPtr ctx_ptr = 
 				SipDialogContextPtr(new SipDialogContext());
 
-			UACAppDialogSet * uac_dialog_set = new UACAppDialogSet(_dum,ctx_ptr);
+			UACAppDialogSet * uac_dialog_set = new UACAppDialogSet(_dum,ctx_ptr,ptr);
 			SharedPtr<SipMessage> invite_session = 
 				_dum.makeInviteSession(
 				name_addr, 
@@ -215,12 +239,9 @@ namespace ivrworx
 			_dum.send(invite_session);
 
 			ctx_ptr->stack_handle = GenerateSipHandle();
-			ctx_ptr->transaction_type = TXN_TYPE_UAC;
 			ctx_ptr->call_handler_inbound = req->call_handler_inbound;
-			ctx_ptr->last_user_request = ptr;
-			 
 
-			LogDebug("sent INVITE iwh:" << ctx_ptr->stack_handle)
+			LogDebug("UACDialogUsageManager::UponMakeCallReq - INVITE iwh:" << ctx_ptr->stack_handle)
 
 	
 		} 
@@ -307,25 +328,25 @@ namespace ivrworx
 
 		LogInfo("UACDialogUsageManager::onFailure rsh:" << is.getId());
 
-		SipDialogContextPtr ctx_ptr = ((UACAppDialogSet*)(is->getAppDialogSet().get()))->_ptr;
+		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
 
-		// handle is in offering mode
-		if (is->isConnected() == false)
+		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
+
+		switch ((uac_set)->_orig_request->message_id)
 		{
-			GetCurrLightWeightProc()->SendResponse(
-				ctx_ptr->last_user_request,
-				new MsgMakeCallNack());
-			
-			CleanUpCall(ctx_ptr);
-
-			is->getAppDialogSet()->end();
+		case MSG_MAKE_CALL_REQ:
+			{
+				GetCurrLightWeightProc()->SendResponse(
+					(uac_set)->_orig_request,
+					new MsgMakeCallNack());
+				CleanUpCall(ctx_ptr);
+				break;
+			}
+		default:
+			{
+				LogWarn("UACDialogUsageManager::onFailure Unknown req:"  << (uac_set)->_orig_request->message_id);
+			}
 		}
-		else
-		{
-
-		}
-
-		
 
 	}
 
@@ -334,6 +355,7 @@ namespace ivrworx
 	UACDialogUsageManager::onConnected(IN ClientInviteSessionHandle is, IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
 
 		ResipDialogHandlesMap::iterator iter = 
 			_resipHandlesMap.find(is->getAppDialog());
@@ -356,10 +378,11 @@ namespace ivrworx
 		const resip::SdpContents sdp = 
 			is->getRemoteSdp();
 		const SdpContents::Session &s = sdp.session();
+		const Data &addr_data = s.connection().getAddress();
+		const string addr = addr_data.c_str();
 
-		CnxInfo data = 
-			ExtractCnxInfo(sdp);
-		ack->remote_media = data;
+		
+		
 
 
 		if (s.media().empty())
@@ -387,9 +410,12 @@ namespace ivrworx
 			return;
 		}
 
+		
+
 		const SdpContents::Session::Medium &medium = *medium_iter;
 
-		
+		int port =	medium.port();
+		ack->remote_media = CnxInfo(addr,port);
 
 		// send list of codecs to the main process
 		const list<Codec> &offered_codecs = medium.codecs();
@@ -405,9 +431,11 @@ namespace ivrworx
 				codec_iter->payloadType()));
 		}
 
+		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
+
 
 		GetCurrLightWeightProc()->SendResponse(
-			ctx_ptr->last_user_request,
+			uac_set->_orig_request,
 			ack);
 
 			

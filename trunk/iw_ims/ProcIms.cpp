@@ -226,41 +226,6 @@ namespace ivrworx
 		}
 	}
 
-	/*this function must be called from the MSTicker thread:
-	it replaces one filter by another one.
-	This is a dirty hack that works anyway.
-	It would be interesting to have something that does the job
-	simplier within the MSTicker api
-	*/
-	void audio_stream_change_decoder(AudioStream *stream, int payload){
-		RtpSession *session=stream->session;
-		RtpProfile *prof=rtp_session_get_profile(session);
-		PayloadType *pt=rtp_profile_get_payload(prof,payload);
-		if (pt!=NULL){
-			MSFilter *dec=ms_filter_create_decoder(pt->mime_type);
-			if (dec!=NULL){
-				ms_filter_unlink(stream->rtprecv, 0, stream->decoder, 0);
-				ms_filter_unlink(stream->decoder,0,stream->dtmfgen,0);
-				ms_filter_postprocess(stream->decoder);
-				ms_filter_destroy(stream->decoder);
-				stream->decoder=dec;
-				if (pt->recv_fmtp!=NULL)
-					ms_filter_call_method(stream->decoder,MS_FILTER_ADD_FMTP,(void*)pt->recv_fmtp);
-				ms_filter_link (stream->rtprecv, 0, stream->decoder, 0);
-				ms_filter_link (stream->decoder,0 , stream->dtmfgen, 0);
-				ms_filter_preprocess(stream->decoder,stream->ticker);
-
-			}else{
-				ms_warning("No decoder found for %s",pt->mime_type);
-			}
-		}else{
-			ms_warning("No payload defined with number %i",payload);
-		}
-	}
-
-
-
-
 	ProcIms::ProcIms(IN LpHandlePair pair, IN Configuration &conf)
 		:LightweightProcess(pair, IMS_Q, "Ims"),
 		_conf(conf),
@@ -385,6 +350,8 @@ namespace ivrworx
 			throw;
 		}
 
+		g_iocpHandle= _iocpPtr->Handle();
+
 		//
 		// initialize ortp
 		//
@@ -393,8 +360,6 @@ namespace ivrworx
 
 		ortp_init();
 		ms_init();
-
-		
 
 		_ticker = ms_ticker_new();
 		if (_ticker == NULL)
@@ -624,7 +589,7 @@ namespace ivrworx
 			goto error;
 		}
 
-		LogDebug("Allocated local ims address:" << _localMedia.ipporttos() );
+		LogDebug("ProcIms::AllocatePlaybackSession - allocated local cnx:" << _localMedia.ipporttos() );
 
 		/********************
 		*
@@ -637,9 +602,97 @@ namespace ivrworx
 		rtp_session_set_profile(rtps,profile);
 		ctx->profile = profile;
 
+		ApiErrorCode res = API_FAILURE;
+		if (req->remote_media_data.is_ip_valid() && 
+			req->remote_media_data.is_port_valid())
+		{
+			res = RecommutateSession(ctx,req->remote_media_data, req->codec);
+			if (IW_FAILURE(res))
+			{
+				goto error;
+			}
+		}
+		else
+		{
+			LogDebug("ProcIms::AllocatePlaybackSession - no valid info, not recommutating");
+		}
+
+		//
+		// update map and send acknowledgment
+		//
+	
+		_streamingObjectSet[handle] = ctx;
+		ctx->session_handler	= req->session_handler;
+
+		MsgAllocateImsSessionAck *ack = 
+			new MsgAllocateImsSessionAck();
+
+		ack->playback_handle = handle;
+		ack->ims_media_data = CnxInfo(_localMedia.iptoa(),local_port);
+
+		ctx->state = IMS_ALLOCATED;
+		SendResponse(req,ack);
+		return;
+
+error:
+		SendResponse(req,new MsgAllocateImsSessionNack());
+		return;
+	}
+
+
+
+	ApiErrorCode 
+	ProcIms::StartTicking(StreamingCtxPtr ctx)
+	{
+		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
+
+		if (ctx->state == IMS_TICKING)
+		{
+			return API_SUCCESS;
+		};
+
+		if (ctx->stream->ticker == NULL)
+		{
+			ctx->stream->ticker = _ticker;
+		};
+
+		// final touch
+		int res = ms_ticker_attach(ctx->stream->ticker,ctx->stream->soundread);
+		if (res < 0)
+		{
+			return API_FAILURE;
+		}
+
+		res = ms_ticker_attach(ctx->stream->ticker,ctx->stream->rtprecv);
+		if (res < 0)
+		{
+			return API_FAILURE;
+		}
+
+		ctx->state = IMS_TICKING;
+
+		return API_SUCCESS;
+
+	}
+
+	ApiErrorCode 
+	ProcIms::RecommutateSession(
+		IN StreamingCtxPtr ctx, 
+		IN const CnxInfo &remoteInfo, 
+		IN const MediaFormat &mediaFormat)
+	{
+		
+		IX_PROFILE_FUNCTION();
+
+		StopTicking(ctx);
+
+		RtpSession *rtps =  ctx->stream->session;
+
 		// update remote end for session
-		int remport  = req->remote_media_data.port_ho();
-		char *remip  = (char *)req->remote_media_data.iptoa();
+		int remport  = remoteInfo.port_ho();
+		char *remip  = (char *)remoteInfo.iptoa();
+
 		int res = rtp_session_set_remote_addr(rtps,remip,remport);
 		if (res < 0) 
 		{
@@ -648,10 +701,10 @@ namespace ivrworx
 		}
 
 		// update session payload type
-		res = rtp_session_set_payload_type(rtps,req->codec.sdp_mapping());
+		res = rtp_session_set_payload_type(rtps,mediaFormat.sdp_mapping());
 		if (res < 0) 
 		{
-			LogWarn("error:rtp_session_set_payload_type " << req->codec.sdp_mapping_tos());
+			LogWarn("error:rtp_session_set_payload_type " << mediaFormat.sdp_mapping_tos());
 			goto error;
 		}
 
@@ -659,6 +712,7 @@ namespace ivrworx
 		rtp_session_set_jitter_compensation(rtps,0/*jitt_comp*/);
 
 		// attach queue to a session
+		rtp_session_unregister_event_queue(rtps,_rtp_q);
 		rtp_session_register_event_queue(rtps,_rtp_q);
 
 		/********************
@@ -666,6 +720,18 @@ namespace ivrworx
 		*		Receiver 
 		*
 		*********************/
+		if (ctx->stream->rtprecv != NULL)
+		{
+			res = ms_filter_unlink(ctx->stream->rtprecv,0,ctx->stream->decoder,0);
+			if (res < 0) 
+			{
+				LogWarn("error:ms_filter_unlink rtprecv->decoder");
+				goto error;
+			}
+			ms_filter_destroy(ctx->stream->rtprecv);
+			ctx->stream->rtprecv = NULL;
+		}
+		
 		ctx->stream->rtprecv=ms_filter_new(MS_RTP_RECV_ID);
 		if (ctx->stream->rtprecv == NULL)
 		{
@@ -685,10 +751,23 @@ namespace ivrworx
 		*		Decoder 
 		*
 		*********************/
-		PayloadType *pt = rtp_profile_get_payload(_avProfile,req->codec.sdp_mapping());
+		if (ctx->stream->decoder != NULL)
+		{
+			ms_filter_postprocess(ctx->stream->decoder);
+			res = ms_filter_unlink(ctx->stream->decoder,0,ctx->stream->dtmfgen,0);
+			if (res < 0) 
+			{
+				LogWarn("error:ms_filter_unlink rtprecv->dtmfgen");
+				goto error;
+			}
+			ms_filter_destroy(ctx->stream->decoder);
+			ctx->stream->decoder = NULL;
+		}
+
+		PayloadType *pt = rtp_profile_get_payload(_avProfile,mediaFormat.sdp_mapping());
 		if (pt==NULL)
 		{
-			LogWarn("error:rtp_profile_get_payload " << req->codec.sdp_mapping_tos());
+			LogWarn("error:rtp_profile_get_payload " << mediaFormat.sdp_mapping_tos());
 			goto error;
 		}
 
@@ -724,6 +803,18 @@ namespace ivrworx
 		*		DTMF 
 		*
 		*********************/
+		if (ctx->stream->dtmfgen != NULL)
+		{
+			res = ms_filter_unlink(ctx->stream->dtmfgen,0,ctx->stream->soundwrite,0);
+			if (res < 0) 
+			{
+				LogWarn("error:ms_filter_unlink dtmfgen->soundwrite");
+				goto error;
+			}
+			ms_filter_destroy(ctx->stream->dtmfgen);
+			ctx->stream->dtmfgen = NULL;
+		}
+
 		ctx->stream->dtmfgen=ms_filter_new(MS_DTMF_GEN_ID);
 		if (ctx->stream->dtmfgen == NULL)
 		{
@@ -731,10 +822,8 @@ namespace ivrworx
 			goto error;
 		}
 
-		
-		ctx->stream->dtmfgen->notify_ud = (void*)handle;
 
-		
+		ctx->stream->dtmfgen->notify_ud = (void*)ctx->ims_handle;
 		res = rtp_session_signal_connect(rtps,"telephone-event",(RtpCallback)on_dtmf_received,(unsigned long)ctx->stream->dtmfgen);
 		if (res < 0) 
 		{
@@ -747,6 +836,12 @@ namespace ivrworx
 		*		Sender 
 		*
 		*********************/
+		if (ctx->stream->rtpsend != NULL)
+		{
+			ms_filter_destroy(ctx->stream->rtpsend);
+			ctx->stream->rtpsend = NULL;
+		}
+
 		ctx->stream->rtpsend =ms_filter_new(MS_RTP_SEND_ID);
 		if (ctx->stream->rtpsend == NULL)
 		{
@@ -766,6 +861,19 @@ namespace ivrworx
 		*		Encoder 
 		*
 		*********************/
+		if (ctx->stream->encoder != NULL)
+		{
+			res = ms_filter_unlink(ctx->stream->encoder,0,ctx->stream->rtpsend,0);
+			if (res < 0) 
+			{
+				LogWarn("error:ms_filter_unlink encoder->rtpsend");
+				goto error;
+			}
+			ms_filter_destroy(ctx->stream->encoder);
+			ctx->stream->encoder = NULL;
+		}
+
+		
 		ctx->stream->encoder = ms_filter_create_encoder(pt->mime_type);
 		if (ctx->stream->encoder == NULL) 
 		{
@@ -779,6 +887,12 @@ namespace ivrworx
 		*		Reader 
 		*
 		*********************/
+		if (ctx->stream->soundread != NULL)
+		{
+			ms_filter_destroy(ctx->stream->soundread);
+			ctx->stream->soundread = NULL;
+		}
+
 		ctx->stream->soundread = ms_filter_new(MS_FILE_PLAYER_ID);
 		if (ctx->stream->soundread  == NULL) 
 		{
@@ -786,16 +900,21 @@ namespace ivrworx
 			goto error;
 		}
 
-		
+
 		ctx->stream->soundread->notify = &on_file_filter_event;
 
-		
+
 
 		/********************
 		*
 		*		Sound Writer  
 		*
 		*********************/
+		if (ctx->stream->soundwrite != NULL)
+		{
+			ms_filter_destroy(ctx->stream->soundwrite);
+			ctx->stream->soundwrite = NULL;
+		}
 
 		ctx->stream->soundwrite=ms_filter_new(MS_FILE_REC_ID);
 		if (ctx->stream->soundwrite == NULL) 
@@ -804,11 +923,8 @@ namespace ivrworx
 			goto error;
 		}
 
-		g_iocpHandle= _iocpPtr->Handle();
-		
-		
-		ctx->stream->soundread->notify_ud = (void*)handle;
-		
+		ctx->stream->soundread->notify_ud = (void*)ctx->ims_handle;
+
 
 		/*********************************************************************
 		*
@@ -817,7 +933,7 @@ namespace ivrworx
 		*           file_recorder  <-  +  <- decoder <- rtp_receiver
 		*
 		***********************************************************************/
-		
+
 		res = ms_filter_link(ctx->stream->soundread,0,ctx->stream->encoder,0);
 		if (res < 0) 
 		{
@@ -853,60 +969,11 @@ namespace ivrworx
 			goto error;
 		}
 
-
-		//
-		// update map and send acknowledgment
-		//
-	
-		_streamingObjectSet[handle] = ctx;
-		ctx->session_handler	= req->session_handler;
-
-		MsgAllocateImsSessionAck *ack = 
-			new MsgAllocateImsSessionAck();
-
-		ack->playback_handle = handle;
-		ack->ims_media_data = CnxInfo(_localMedia.iptoa(),local_port);
-
-		ctx->state = IMS_ALLOCATED;
-		SendResponse(req,ack);
-		return;
+		return API_SUCCESS;
 
 error:
-		SendResponse(req,new MsgAllocateImsSessionNack());
-		return;
-	}
+		return API_FAILURE;
 
-	ApiErrorCode 
-	ProcIms::StartTicking(StreamingCtxPtr ctx)
-	{
-		FUNCTRACKER;
-
-		if (ctx->state == IMS_TICKING)
-		{
-			return API_SUCCESS;
-		};
-
-		if (ctx->stream->ticker == NULL)
-		{
-			ctx->stream->ticker = _ticker;
-		};
-
-		// final touch
-		int res = ms_ticker_attach(ctx->stream->ticker,ctx->stream->soundread);
-		if (res < 0)
-		{
-			return API_FAILURE;
-		}
-
-		res = ms_ticker_attach(ctx->stream->ticker,ctx->stream->rtprecv);
-		if (res < 0)
-		{
-			return API_FAILURE;
-		}
-
-		ctx->state = IMS_TICKING;
-
-		return API_SUCCESS;
 
 	}
 
@@ -914,6 +981,7 @@ error:
 	ProcIms::StopTicking(StreamingCtxPtr ctx)
 	{
 		FUNCTRACKER;
+		IX_PROFILE_FUNCTION();
 
 		if (ctx->state != IMS_TICKING)
 		{
@@ -955,10 +1023,6 @@ error:
 	void 
 	ProcIms::ModifySession(IwMessagePtr msg)
 	{
-
-		// NOT SUPPORTED MUST REWRITE CORRECTLY
-		throw ;
-
 
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
@@ -1010,23 +1074,17 @@ error:
 			goto error;
 		}
 
-		// recreate encoder/decoder
-		audio_stream_change_decoder(ctx->stream, (*payload_iter).second);
-
 		LogDebug("ProcIms::ModifySession imsh:" << req->playback_handle << 
 			", remip:" << remip  << 
 			", port:"  << remport <<
 			", codec(map):" << req->codec.sdp_mapping() << 
 			", codec(name):" << req->codec.sdp_name_tos() );
 
-		res = ms_filter_call_method(ctx->stream->rtpsend,MS_RTP_SEND_SET_SESSION,rtps);
-		if (res < 0) 
-		{
-			LogWarn("error:ms_filter_call_method MS_RTP_SEND_SET_SESSION");
-			goto error;
-		}
+		err = RecommutateSession(
+			ctx,
+			req->remote_media_data,
+			req->codec);
 
-		
 		err = StartTicking(ctx);
 		if (IW_FAILURE(err))
 		{
@@ -1063,12 +1121,13 @@ error:
 		// Check if file exists
 		//
 		WIN32_FIND_DATAA FindFileData;
-		HANDLE hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);
+		HANDLE hFind = NULL; 
+		IX_PROFILE_NAMED_CODE("FindFirstFileA - 1", hFind = ::FindFirstFileA(filename.c_str(), &FindFileData));
 		if (hFind == INVALID_HANDLE_VALUE) 
 		{
 			// relative path?
 			filename = _conf.SoundsPath()+ "\\" + req->file_name;
-			hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);;
+			IX_PROFILE_NAMED_CODE("FindFirstFileA - 2",hFind = ::FindFirstFileA(filename.c_str(), &FindFileData));
 			if (hFind == INVALID_HANDLE_VALUE) 
 			{
 				LogWarn("file:" << filename << " not found.");
@@ -1077,7 +1136,8 @@ error:
 			}
 			else
 			{
-				BOOL res = ::FindClose(hFind);
+				BOOL res = FALSE;
+				IX_PROFILE_CODE(res = ::FindClose(hFind));
 				if (res == FALSE)
 				{
 					LogCrit("::CloseHandle");
@@ -1087,7 +1147,8 @@ error:
 		} 
 		else
 		{
-			BOOL res = ::FindClose(hFind);
+			BOOL res = FALSE;
+			IX_PROFILE_CODE(res = ::FindClose(hFind));
 			if (res == FALSE)
 			{
 				LogCrit("::CloseHandle");
@@ -1099,7 +1160,8 @@ error:
 
 		char buffer[1024];
 		buffer[0] = '\0';
-		DWORD res_len = ::GetFullPathNameA(filename.c_str(),1024,buffer,NULL);
+		DWORD res_len = 0;
+		IX_PROFILE_CODE(res_len=::GetFullPathNameA(filename.c_str(),1024,buffer,NULL));
 		if (res_len <= 0)
 		{
 			LogSysError("::GetFullPathNameA");
@@ -1110,8 +1172,9 @@ error:
 		filename = buffer;
 		LogDebug("StartPlayback:: Play file name:" << filename << ", loop:" << req->loop << ", imsh:" << req->playback_handle);
 
-		StreamingCtxsMap::iterator iter = 
-			_streamingObjectSet.find(req->playback_handle);
+		StreamingCtxsMap::iterator iter = _streamingObjectSet.end();
+
+		IX_PROFILE_CODE(iter = _streamingObjectSet.find(req->playback_handle));
 
 		if (iter == _streamingObjectSet.end())
 		{
@@ -1122,10 +1185,11 @@ error:
 
 		StreamingCtxPtr ctx		= iter->second;
 
-		StopTicking(ctx);
+		IX_PROFILE_CODE(StopTicking(ctx));
 
 		// close it anyway
-		int res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_CLOSE);
+		int res = -1;
+		IX_PROFILE_CODE(res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_CLOSE));
 		if (res < 0)
 		{
 			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_CLOSE imsh:" << req->playback_handle);
@@ -1133,7 +1197,7 @@ error:
 			return;
 		}
 
-		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_OPEN,(void*)filename.c_str());
+		IX_PROFILE_CODE(res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_OPEN,(void*)filename.c_str()));
 		if (res < 0)
 		{
 			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_OPEN imsh:" << req->playback_handle);
@@ -1141,7 +1205,7 @@ error:
 			return;
 		}
 
-		res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_START);
+		IX_PROFILE_CODE(res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_START));
 		if (res < 0)
 		{
 			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_START imsh:" << req->playback_handle);
@@ -1150,7 +1214,7 @@ error:
 		}
 
 		int tmp = 0;
-		res = ms_filter_call_method(ctx->stream->soundread,MS_FILTER_GET_SAMPLE_RATE, &tmp);
+		IX_PROFILE_CODE(res = ms_filter_call_method(ctx->stream->soundread,MS_FILTER_GET_SAMPLE_RATE, &tmp));
 		if (res < 0)
 		{
 			LogWarn("mserror:ms_filter_call_method MS_FILTER_GET_SAMPLE_RATE imsh:" << req->playback_handle);
@@ -1158,7 +1222,7 @@ error:
 			return;
 		};
 
-		res = ms_filter_call_method(ctx->stream->soundwrite,MS_FILTER_SET_SAMPLE_RATE,&tmp);
+		IX_PROFILE_CODE(res = ms_filter_call_method(ctx->stream->soundwrite,MS_FILTER_SET_SAMPLE_RATE,&tmp));
 		if (res < 0)
 		{
 			LogWarn("mserror:ms_filter_call_method MS_FILTER_SET_SAMPLE_RATE imsh:" << req->playback_handle);
@@ -1169,7 +1233,7 @@ error:
 		
 
 		int loop_param = req->loop ? 0 : -2;
-		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_LOOP, &loop_param);
+		IX_PROFILE_CODE(res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_LOOP, &loop_param));
 		if (res < 0)
 		{
 			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_LOOP, imsh:" << req->playback_handle);
@@ -1179,7 +1243,8 @@ error:
 
 		ctx->loop = req->loop;
 		
-		ApiErrorCode iw_res = StartTicking(ctx);
+		ApiErrorCode iw_res = API_FAILURE;
+		IX_PROFILE_CODE(StartTicking(ctx));
 		if (IW_FAILURE(iw_res))
 		{
 			SendResponse(msg, new MsgStartPlayReqNack());
@@ -1188,7 +1253,7 @@ error:
 
 		if (req->send_provisional)
 		{
-			SendResponse(msg, new MsgStartPlayReqAck());
+			IX_PROFILE_CODE(SendResponse(msg, new MsgStartPlayReqAck()));
 		}
 
 		ctx->last_user_request = req;

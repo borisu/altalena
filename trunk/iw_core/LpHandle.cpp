@@ -269,7 +269,7 @@ namespace ivrworx
 				_interruptor->SignalDataOut();
 			}
 
-			IX_PROFILE_ADD_DATA(WStringToString(ptr->message_id_str), ptr->enter_queue_timestamp);
+			IX_PROFILE_ADD_DATA(ptr->message_id_str, ptr->enter_queue_timestamp);
 			IX_PROFILE_ADD_DATA("MSG PUMP AVG", ptr->enter_queue_timestamp);
 		} 
 		catch(PoisonException p)

@@ -25,6 +25,8 @@ using namespace std;
 
 #define PROFILE_INIT() if (gt_ProfileMap == NULL){InitProfile();}
 
+#define MAX_PROFILE_HISTORY 20
+
 namespace ivrworx
 {
 	struct ProfileData
@@ -35,10 +37,16 @@ namespace ivrworx
 
 		__int64 avg;	
 
+		__int64 counter;
+
+		__int64 history[MAX_PROFILE_HISTORY];
 		ProfileData()
 		{
 			hits = 0;
 			avg	 = 0;
+			all	 = 0;
+			counter = 0;
+			::memset(history,0,MAX_PROFILE_HISTORY*sizeof(__int64));
 		}
 
 	} ;
@@ -122,6 +130,7 @@ namespace ivrworx
 			data->hits = 1;
 			data->all = delta_us;
 			data->avg = delta_us;
+			data->history[(data->counter++)%MAX_PROFILE_HISTORY] = delta_us;
 			(*gt_ProfileMap)[name] = data;
 		} else
 		{
@@ -130,30 +139,58 @@ namespace ivrworx
 			data->all += delta_us;
 			data->avg = data->all/(data->hits);
 			(*gt_ProfileMap)[name] = data;
+			data->history[(data->counter++)%MAX_PROFILE_HISTORY] = delta_us;
 		}
 
 
 	}
 
+	
 	void PrintProfile()
 	{
 		PROFILE_INIT();
 
-		LogProfile( "Statistics for thread id " << ::GetCurrentThreadId());
-		LogProfile( "-------------------------------------------------------------------------");
-		LogProfile( std::setw(40)<< std::left << "Profiled Name" << std::setw(10) << "Hits" << std::setw(10) << "Cumulative" );
-		LogProfile( "-------------------------------------------------------------------------");
+		const long MAX_LONG_PRINT_BUF = 2048;
+		char buf[MAX_LONG_PRINT_BUF];
+		_snprintf_s(buf,  MAX_LONG_PRINT_BUF,MAX_LONG_PRINT_BUF,"Statistics for thread id %d", ::GetCurrentThreadId());
+		::OutputDebugStringA(buf);
+
+		_snprintf_s(buf,  MAX_LONG_PRINT_BUF,MAX_LONG_PRINT_BUF,"--------------------------------------------------------------------------------------------------");
+		::OutputDebugStringA(buf);
+
+		_snprintf_s(buf,  MAX_LONG_PRINT_BUF,MAX_LONG_PRINT_BUF,"Profiled Name												            Hits                           Cumulative" );
+		::OutputDebugStringA(buf);
+
+		_snprintf_s(buf,  MAX_LONG_PRINT_BUF,MAX_LONG_PRINT_BUF,"--------------------------------------------------------------------------------------------------");
+		::OutputDebugStringA(buf);
 
 		for (ProfileMap::iterator iter = gt_ProfileMap->begin();
 			iter != gt_ProfileMap->end();
 			iter ++)
 		{
 			ProfileData *data = (*iter).second;
-			LogProfile(std::setw(40)<< std::left << (*iter).first.c_str() << std::setw(10) << std::right << data->hits << std::setw(10) << data->avg);
+
+			// prepare history string
+			//
+			stringstream s;
+			for (int x = 0; x< std::min(data->counter,(__int64)MAX_PROFILE_HISTORY); x++)
+			{
+				s << data->history[x] << " ";
+				if (x < (MAX_PROFILE_HISTORY-1) )
+				{
+					s << ", ";
+				}
+			}
+
+
+
+			
+			_snprintf_s(buf,  MAX_LONG_PRINT_BUF,MAX_LONG_PRINT_BUF,"%-100.100s %-30I64d %-30I64d %s", (*iter).first.c_str(), data->hits, data->avg, s.str().c_str());
+			::OutputDebugStringA(buf);
 		}
 
-		LogProfile( "========================================================================="<< std::endl);
-
+		_snprintf_s(buf,  MAX_LONG_PRINT_BUF, MAX_LONG_PRINT_BUF,"=================================================================================================");
+		::OutputDebugStringA(buf);
 	}
 
 	FuncProfiler::FuncProfiler(string string)

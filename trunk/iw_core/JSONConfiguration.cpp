@@ -211,7 +211,7 @@ namespace ivrworx
 				return API_FAILURE;
 			}
 
-			_mediaFormatPtrsList.push_front(codec);
+			_mediaFormatPtrsList.push_back(codec);
 			iter++;
 		}
 

@@ -88,11 +88,14 @@ namespace ivrworx
 
 	protected:
 
-		
-
 		virtual void AllocatePlaybackSession(IwMessagePtr msg);
 
 		virtual void ModifySession(IwMessagePtr msg);
+
+		virtual ApiErrorCode RecommutateSession(
+			IN StreamingCtxPtr ctx, 
+			IN const CnxInfo &remoteInfo, 
+			IN const MediaFormat &mediaFormat);
 
 		virtual void StartPlayback(IwMessagePtr msg);
 

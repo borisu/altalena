@@ -27,9 +27,13 @@ namespace ivrworx
 {
 
 
-	UACAppDialogSet::UACAppDialogSet(DialogUsageManager& dum, SipDialogContextPtr ptr): 
+	UACAppDialogSet::UACAppDialogSet(
+		IN DialogUsageManager& dum, 
+		IN SipDialogContextPtr ptr,
+		IN IwMessagePtr orig_request): 
 	AppDialogSet(dum),
-	_ptr(ptr)
+	_ptr(ptr),
+	_orig_request(orig_request)
 	{
 		FUNCTRACKER;
 	}

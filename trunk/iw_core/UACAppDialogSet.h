@@ -34,7 +34,8 @@ namespace ivrworx
 
 		UACAppDialogSet(
 			IN DialogUsageManager& dum, 
-			IN SipDialogContextPtr ptr = SipDialogContextPtr((SipDialogContext*)NULL));
+			IN SipDialogContextPtr ptr,
+			IN IwMessagePtr orig_request);
 
 		virtual ~UACAppDialogSet(void);
 
@@ -43,6 +44,8 @@ namespace ivrworx
 		virtual SharedPtr<UserProfile> selectUACUserProfile(const SipMessage& msg);
 
 		SipDialogContextPtr _ptr;
+
+		IwMessagePtr _orig_request;
 
 	};
 
