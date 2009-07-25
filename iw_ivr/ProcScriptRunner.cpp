@@ -35,86 +35,59 @@
  */
 namespace ivrworx
 {
-	ProcScriptRunner::ProcScriptRunner(IN Configuration &conf,
+	ProcScriptRunner::ProcScriptRunner(
+		IN Configuration &conf,
+		IN const string &script_name,
+		IN const char *precompiled_buffer,
+		IN size_t buffer_size,
 		IN shared_ptr<MsgCallOfferedReq> msg, 
 		IN LpHandlePair stack_pair, 
 		IN LpHandlePair pair)
 		:LightweightProcess(pair,"IvrScript"),
 		_conf(conf),
 		_initialMsg(msg),
-		_stackPair(stack_pair)
-	{
-		FUNCTRACKER;
-	}
-
-	ProcScriptRunner::ProcScriptRunner(
-		IN Configuration &conf,
-		IN LpHandlePair stack_pair, 
-		IN LpHandlePair pair)
-		:LightweightProcess(pair,"IvrScript"),
-		_conf(conf),
-		_stackPair(stack_pair)
+		_stackPair(stack_pair),
+		_scriptName(script_name),
+		_precompiledBuffer(precompiled_buffer),
+		_bufferSize(buffer_size)
 	{
 		FUNCTRACKER;
 	}
 
 	ProcScriptRunner::~ProcScriptRunner()
 	{
-
-	}
-
-	void 
-	ProcScriptRunner::RunSuperScript()
-	{
 		FUNCTRACKER;
 
-		const string &script_name = _conf.SuperScript();
+	}
 
-		try
+	void 
+	ProcScriptRunner::RunScript(IwScript &script)
+	{
+
+		FUNCTRACKER;
+
+		bool res = false;
+		if (_precompiledBuffer!=NULL)
 		{
-			CLuaVirtualMachine vm;
-
-		
-			IX_PROFILE_CODE(vm.InitialiseVM());
-
-			if (vm.Ok() == false)
-			{
-				LogCrit("Couldn't initialize lua vm");
-				throw;
-			}
-
-			CLuaDebugger debugger(vm);
-
-			
-
-			START_FORKING_REGION;
-
-			// compile the script if needed
-			IwScript script(forking,_conf,vm);
-
-			bool res = false;
-			IX_PROFILE_CODE(res = script.CompileFile(script_name.c_str()));
-			if (res == false)
-			{
-				LogWarn("Error compiling/running super script:" << script_name);
-				return;
-			}
-
-			END_FORKING_REGION
-
-		}
-		catch (std::exception e)
+			res = script.CompileBuffer((unsigned char*)_precompiledBuffer,_bufferSize);
+		} 
+		else
 		{
-			LogWarn("Exception while running script:" << _conf.ScriptFile() <<", e:" << e.what() << ", iwh:" << _initialMsg->stack_call_handle);
+			res = script.CompileFile(_scriptName.c_str());
 		}
 
-		LogDebug("Super script:" << script_name << " completed successfully.");
+		if (res == false)
+		{
+			LogWarn("Error compiling/running script:" << _conf.ScriptFile() << " ,iwh:" << _initialMsg->stack_call_handle);
+			return;
+		}
 
 	}
 
 	void 
-	ProcScriptRunner::RunIncomingCallHandler()
+	ProcScriptRunner::real_run()
 	{
+
 		FUNCTRACKER;
 
 		try
@@ -129,47 +102,50 @@ namespace ivrworx
 			}
 
 			CLuaDebugger debugger(vm);
-
-			_stackHandle = _initialMsg->stack_call_handle;
-
 			
 			START_FORKING_REGION;
-			CallWithDirectRtpPtr call_session( new CallWithDirectRtp(
-				forking,
-				_initialMsg));
 
-			// the script should be terminated if caller hanged up
-			call_session->SetEventListener(MSG_CALL_HANG_UP_EVT,_inbound);
+			IwScript *script = NULL;
 
-
-			const MediaFormatsPtrList &codecs_list = _conf.MediaFormats();
-			for (MediaFormatsPtrList::const_iterator iter = codecs_list.begin(); iter != codecs_list.end(); iter++)
+			if (_initialMsg)
 			{
-				call_session->EnableMediaFormat(**iter);
-			}
+				_stackHandle = _initialMsg->stack_call_handle;
+				CallWithDirectRtpPtr call_session (
+					new CallWithDirectRtp(
+					forking,
+					_initialMsg));
 
-			
-			
+				// the script should be terminated if caller hanged up
+				call_session->SetEventListener(MSG_CALL_HANG_UP_EVT,_inbound);
 
-			// compile the script if needed
-			IwCallHandlerScript script(forking, _conf,vm,call_session);
 
-			try 
-			{
-				bool res = false;
-				IX_PROFILE_CODE(res = script.CompileFile(_conf.ScriptFile().c_str()));
-				if (res == false)
+				const MediaFormatsPtrList &codecs_list = _conf.MediaFormats();
+				for (MediaFormatsPtrList::const_iterator iter = codecs_list.begin(); iter != codecs_list.end(); iter++)
 				{
-					LogWarn("Error compiling/running script:" << _conf.ScriptFile() << " ,iwh:" << _initialMsg->stack_call_handle);
-					return;
+					call_session->EnableMediaFormat(**iter);
 				}
 
-			}
-			catch (script_hangup_exception)
+				// compile the script if needed
+				IwCallHandlerScript script(forking, _conf,vm,call_session);
+				try 
+				{
+					RunScript(script);
+				}
+				catch (script_hangup_exception)
+				{
+					script.RunOnHangupScript();
+				}
+
+
+			} 
+			else 
 			{
-				script.RunOnHangupScript();
+				IwScript script(forking,_conf,vm);
+				RunScript(script);
+
 			}
 
+			
 			END_FORKING_REGION
 		}
 		catch (std::exception e)
@@ -178,22 +154,6 @@ namespace ivrworx
 		}
 
 		LogDebug("script:" << _conf.ScriptFile() << ", iwh:" << _initialMsg->stack_call_handle <<" completed successfully.");
-
-	}
-
-
-	void 
-	ProcScriptRunner::real_run()
-	{
-		
-		if (_initialMsg)
-		{
-			RunIncomingCallHandler();
-		}
-		else
-		{
-			RunSuperScript();
-		}
 		
 	}
 

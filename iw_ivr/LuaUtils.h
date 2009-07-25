@@ -19,58 +19,18 @@
 
 #pragma once
 
-
-using namespace std;
-
 namespace ivrworx
 {
 
-	class ProcIvr :
-		public LightweightProcess
-	{
 
-	public:
 
-		ProcIvr(IN LpHandlePair pair, IN Configuration &conf);
+class LuaUtils
+{
+public:
+	LuaUtils(void);
+	virtual ~LuaUtils(void);
 
-		virtual void real_run();
-
-		virtual ~ProcIvr(void);
-
-	protected:
-
-		BOOL ProcessStackMessage(
-			IN IwMessagePtr event,
-			IN ScopedForking &forking
-			);
-
-		BOOL ProcessInboundMessage(
-			IN IwMessagePtr event,
-			IN ScopedForking &forking
-			);
-
-		void StartScript(
-			IN IwMessagePtr msg);
-
-	private:
-
-		LpHandlePair _stackPair;
-
-		CnxInfo _sipStackData;
-
-		Configuration &_conf;
-
-		char *_precompiledBuffer_Super;
-		size_t _superSize;
-
-		char *_precompiledBuffer;
-		size_t _scriptSize;
-
-	};
+	static ApiErrorCode Precompile(const string &filename, char **buffer, size_t *size);
+};
 
 }
-
-
-
-
-

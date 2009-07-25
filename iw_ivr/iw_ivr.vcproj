@@ -311,6 +311,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LuaUtils.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaUtils.h"
+				>
+			</File>
+			<File
 				RelativePath=".\LuaVirtualMachine.cpp"
 				>
 			</File>
