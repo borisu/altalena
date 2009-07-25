@@ -218,6 +218,8 @@ namespace ivrworx
 					throw;
 				}
 
+				break;
+
 			}
 		default:
 			{
@@ -436,7 +438,7 @@ namespace ivrworx
 				IW_DEFAULT_IMS_TIMEOUT // The number of milliseconds that the caller is willing to wait for a completion packet to appear at the completion port. If a completion packet does not appear within the specified time, the function times out, returns FALSE, and sets *lpOverlapped to NULL.
 				);
 
-			IX_PROFILE_CHECK_INTERVAL(10000);
+			//IX_PROFILE_CHECK_INTERVAL(10000);
 
 			// error during overlapped I/O?
 			int last_err = ::GetLastError();
@@ -589,7 +591,7 @@ namespace ivrworx
 			goto error;
 		}
 
-		LogDebug("ProcIms::AllocatePlaybackSession - allocated local cnx:" << _localMedia.ipporttos() );
+		LogDebug("ProcIms::AllocatePlaybackSession - allocated local cnx:" << _localMedia.ipporttos() << ", imsh:" <<  handle);
 
 		/********************
 		*
@@ -604,17 +606,19 @@ namespace ivrworx
 
 		ApiErrorCode res = API_FAILURE;
 		if (req->remote_media_data.is_ip_valid() && 
-			req->remote_media_data.is_port_valid())
+			req->remote_media_data.is_port_valid() &&
+			req->codec.get_media_type() != MediaFormat::MediaType_UNKNOWN)
 		{
 			res = RecommutateSession(ctx,req->remote_media_data, req->codec);
 			if (IW_FAILURE(res))
 			{
+				LogDebug("ProcIms::AllocatePlaybackSession - error re-commutating, imsh:" <<  handle);
 				goto error;
 			}
 		}
 		else
 		{
-			LogDebug("ProcIms::AllocatePlaybackSession - no valid info, not recommutating");
+			LogDebug("ProcIms::AllocatePlaybackSession - no valid info, not re-commutating, imsh:" <<  handle);
 		}
 
 		//
@@ -1122,12 +1126,12 @@ error:
 		//
 		WIN32_FIND_DATAA FindFileData;
 		HANDLE hFind = NULL; 
-		IX_PROFILE_NAMED_CODE("FindFirstFileA - 1", hFind = ::FindFirstFileA(filename.c_str(), &FindFileData));
+		hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);
 		if (hFind == INVALID_HANDLE_VALUE) 
 		{
 			// relative path?
 			filename = _conf.SoundsPath()+ "\\" + req->file_name;
-			IX_PROFILE_NAMED_CODE("FindFirstFileA - 2",hFind = ::FindFirstFileA(filename.c_str(), &FindFileData));
+			hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);
 			if (hFind == INVALID_HANDLE_VALUE) 
 			{
 				LogWarn("file:" << filename << " not found.");
@@ -1137,7 +1141,7 @@ error:
 			else
 			{
 				BOOL res = FALSE;
-				IX_PROFILE_CODE(res = ::FindClose(hFind));
+				res = ::FindClose(hFind);
 				if (res == FALSE)
 				{
 					LogCrit("::CloseHandle");
@@ -1148,7 +1152,7 @@ error:
 		else
 		{
 			BOOL res = FALSE;
-			IX_PROFILE_CODE(res = ::FindClose(hFind));
+			res = ::FindClose(hFind);
 			if (res == FALSE)
 			{
 				LogCrit("::CloseHandle");
@@ -1161,7 +1165,7 @@ error:
 		char buffer[1024];
 		buffer[0] = '\0';
 		DWORD res_len = 0;
-		IX_PROFILE_CODE(res_len=::GetFullPathNameA(filename.c_str(),1024,buffer,NULL));
+		res_len=::GetFullPathNameA(filename.c_str(),1024,buffer,NULL);
 		if (res_len <= 0)
 		{
 			LogSysError("::GetFullPathNameA");
@@ -1174,7 +1178,7 @@ error:
 
 		StreamingCtxsMap::iterator iter = _streamingObjectSet.end();
 
-		IX_PROFILE_CODE(iter = _streamingObjectSet.find(req->playback_handle));
+		iter = _streamingObjectSet.find(req->playback_handle);
 
 		if (iter == _streamingObjectSet.end())
 		{
@@ -1185,11 +1189,11 @@ error:
 
 		StreamingCtxPtr ctx		= iter->second;
 
-		IX_PROFILE_CODE(StopTicking(ctx));
+		StopTicking(ctx);
 
 		// close it anyway
 		int res = -1;
-		IX_PROFILE_CODE(res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_CLOSE));
+		res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_CLOSE);
 		if (res < 0)
 		{
 			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_CLOSE imsh:" << req->playback_handle);
@@ -1197,7 +1201,7 @@ error:
 			return;
 		}
 
-		IX_PROFILE_CODE(res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_OPEN,(void*)filename.c_str()));
+		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_OPEN,(void*)filename.c_str());
 		if (res < 0)
 		{
 			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_OPEN imsh:" << req->playback_handle);
@@ -1205,7 +1209,7 @@ error:
 			return;
 		}
 
-		IX_PROFILE_CODE(res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_START));
+		res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_START);
 		if (res < 0)
 		{
 			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_START imsh:" << req->playback_handle);
@@ -1214,7 +1218,7 @@ error:
 		}
 
 		int tmp = 0;
-		IX_PROFILE_CODE(res = ms_filter_call_method(ctx->stream->soundread,MS_FILTER_GET_SAMPLE_RATE, &tmp));
+		res = ms_filter_call_method(ctx->stream->soundread,MS_FILTER_GET_SAMPLE_RATE, &tmp);
 		if (res < 0)
 		{
 			LogWarn("mserror:ms_filter_call_method MS_FILTER_GET_SAMPLE_RATE imsh:" << req->playback_handle);
@@ -1222,7 +1226,7 @@ error:
 			return;
 		};
 
-		IX_PROFILE_CODE(res = ms_filter_call_method(ctx->stream->soundwrite,MS_FILTER_SET_SAMPLE_RATE,&tmp));
+		res = ms_filter_call_method(ctx->stream->soundwrite,MS_FILTER_SET_SAMPLE_RATE,&tmp);
 		if (res < 0)
 		{
 			LogWarn("mserror:ms_filter_call_method MS_FILTER_SET_SAMPLE_RATE imsh:" << req->playback_handle);
@@ -1233,7 +1237,7 @@ error:
 		
 
 		int loop_param = req->loop ? 0 : -2;
-		IX_PROFILE_CODE(res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_LOOP, &loop_param));
+		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_LOOP, &loop_param);
 		if (res < 0)
 		{
 			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_LOOP, imsh:" << req->playback_handle);
@@ -1244,16 +1248,19 @@ error:
 		ctx->loop = req->loop;
 		
 		ApiErrorCode iw_res = API_FAILURE;
-		IX_PROFILE_CODE(StartTicking(ctx));
+		iw_res = StartTicking(ctx);
 		if (IW_FAILURE(iw_res))
 		{
+			LogWarn("Unable to srart ticking on iwh:" << ctx->ims_handle);
 			SendResponse(msg, new MsgStartPlayReqNack());
 			return;
 		}
 
 		if (req->send_provisional)
 		{
-			IX_PROFILE_CODE(SendResponse(msg, new MsgStartPlayReqAck()));
+			IwMessage *rsp = NULL;
+			rsp= new MsgStartPlayReqAck();
+			SendResponse(msg, rsp);
 		}
 
 		ctx->last_user_request = req;
@@ -1414,9 +1421,10 @@ error:
 
 		if (stream->ticker)
 		{
-			ms_ticker_detach(stream->ticker,stream->soundread);
-			ms_ticker_detach(stream->ticker,stream->rtprecv);
-
+			if (stream->soundread)	ms_ticker_detach(stream->ticker,stream->soundread);
+			if (stream->rtprecv) ms_ticker_detach(stream->ticker,stream->rtprecv);
+				
+			
 			rtp_stats_display(rtp_session_get_stats(stream->session),"Audio session's RTP statistics");
 
 			if (stream->ec!=NULL){
@@ -1429,15 +1437,17 @@ error:
 				ms_filter_unlink(stream->dtmfgen,0,stream->soundwrite,0);
 			}
 
-			ms_filter_unlink(stream->encoder,0,stream->rtpsend,0);
-			ms_filter_unlink(stream->rtprecv,0,stream->decoder,0);
-			ms_filter_unlink(stream->decoder,0,stream->dtmfgen,0);
+			if (stream->rtpsend) ms_filter_unlink(stream->encoder,0,stream->rtpsend,0);
+			if (stream->decoder) ms_filter_unlink(stream->rtprecv,0,stream->decoder,0);
+			if (stream->dtmfgen) ms_filter_unlink(stream->decoder,0,stream->dtmfgen,0);
 		}
 
-		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_STOP);
-		ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_CLOSE);
-
-
+		if (stream->soundread)
+		{
+			ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_STOP);
+			ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_CLOSE);
+		}
+		
 	}
 
 
