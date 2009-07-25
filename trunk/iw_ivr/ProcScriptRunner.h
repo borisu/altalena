@@ -23,6 +23,7 @@
 #include "LuaScript.h"
 #include "CallWithDirectRtp.h"
 #include "LuaTable.h"
+#include "IwScriptApi.h"
 
 /**
 @defgroup scripts Scripts
@@ -134,7 +135,7 @@ Table linein:-
 namespace ivrworx
 {
 	typedef 
-		shared_ptr<CLuaVirtualMachine> CLuaVirtualMachinePtr;
+	shared_ptr<CLuaVirtualMachine> CLuaVirtualMachinePtr;
 
 	/**
 	Main Ivr process implementation
@@ -147,12 +148,10 @@ namespace ivrworx
 
 		ProcScriptRunner(
 			IN Configuration &conf,
+			IN const string &script_name,
+			IN const char *precompiled_buffer,
+			IN size_t buffer_size,
 			IN shared_ptr<MsgCallOfferedReq> msg, 
-			IN LpHandlePair stack_pair, 
-			IN LpHandlePair pair);
-
-		ProcScriptRunner(
-			IN Configuration &conf,
 			IN LpHandlePair stack_pair, 
 			IN LpHandlePair pair);
 
@@ -160,13 +159,11 @@ namespace ivrworx
 
 		virtual void real_run();
 
+		virtual void RunScript(IwScript &script);
+
 		virtual BOOL HandleOOBMessage(IN IwMessagePtr msg);
 
 	private:
-
-		virtual void RunSuperScript();
-
-		virtual void RunIncomingCallHandler();
 
 		shared_ptr<MsgCallOfferedReq> _initialMsg;
 
@@ -175,6 +172,12 @@ namespace ivrworx
 		Configuration &_conf;
 
 		int _stackHandle;
+
+		const string &_scriptName;
+
+		const char *_precompiledBuffer;
+
+		size_t _bufferSize;
 
 	};
 

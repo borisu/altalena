@@ -47,6 +47,10 @@ namespace ivrworx
 
 		virtual ApiErrorCode MakeCall(IN const string &destination_uri);
 
+	protected:
+
+		virtual void UponCallTerminated(IwMessagePtr ptr);
+
 	private:
 
 		ImsSession _imsSession;

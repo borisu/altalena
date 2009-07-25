@@ -23,6 +23,9 @@
 #include "ProcScriptRunner.h"
 #include "LocalProcessRegistrar.h"
 #include "ProcHandleWaiter.h"
+#include "LuaUtils.h"
+
+
 using namespace boost::assign;
 
 namespace ivrworx
@@ -33,7 +36,11 @@ namespace ivrworx
 ProcIvr::ProcIvr(IN LpHandlePair pair, IN Configuration &conf)
 :LightweightProcess(pair,IVR_Q,	"Ivr"),
 _conf(conf),
-_sipStackData(conf.IvrCnxInfo())
+_sipStackData(conf.IvrCnxInfo()),
+_precompiledBuffer(NULL),
+_superSize(0),
+_precompiledBuffer_Super(NULL),
+_scriptSize(0)
 {
 }
 
@@ -41,6 +48,8 @@ _sipStackData(conf.IvrCnxInfo())
 
 ProcIvr::~ProcIvr(void)
 {
+	if (_precompiledBuffer_Super != NULL) ::free(_precompiledBuffer_Super);
+	if (_precompiledBuffer != NULL) ::free(_precompiledBuffer);
 }
 
 void
@@ -50,6 +59,29 @@ ProcIvr::real_run()
 	FUNCTRACKER;
 	
 	IwMessagePtr event;
+
+	// Precompile files
+	if (_conf.Precompile())
+	{
+
+		ApiErrorCode res = 
+			LuaUtils::Precompile(_conf.ScriptFile(),&_precompiledBuffer, &_scriptSize);
+
+		if (IW_FAILURE(res))
+		{
+			LogCrit("ProcIvr::real_run - Cannot precompile script file res:" << res);
+			throw critical_exception("Cannot precompile script");
+		}
+
+		res = 
+			LuaUtils::Precompile(_conf.SuperScript(),&_precompiledBuffer_Super, &_superSize);
+		if (IW_FAILURE(res))
+		{
+			LogCrit("ProcIvr::real_run - Cannot precompile super script file res:" << res);
+			throw critical_exception("Cannot precompile super script");
+		}
+
+	}
 
 	START_FORKING_REGION;
 
@@ -79,9 +111,13 @@ ProcIvr::real_run()
 
 		ProcScriptRunner *super_script_proc = 
 			new ProcScriptRunner(
-			_conf,                // configuration
-			_stackPair,			  // handle to stack
-			super_script_handle   // handle created by stack for events
+			_conf,								// configuration
+			_conf.SuperScript(),				// script name
+			_precompiledBuffer_Super,			// precompiled buffer
+			_superSize,							// size of precompiled buffer
+			shared_ptr<MsgCallOfferedReq>(),	// initial incoming message
+			_stackPair,							// handle to stack
+			super_script_handle					// handle created by stack for events
 			);
 
 		if (_conf.SuperMode() == "sync")
@@ -104,7 +140,7 @@ ProcIvr::real_run()
 	
 	while(shutdown_flag == FALSE)
 	{
-		IX_PROFILE_CHECK_INTERVAL(25000);
+		IX_PROFILE_CHECK_INTERVAL(10000);
 		
 		int index = -1;
 		ApiErrorCode err_code = 
@@ -144,7 +180,7 @@ ProcIvr::real_run()
 		default:
 			{
 				LogCrit("Unknown handle signaled");
-				throw;
+				throw critical_exception("Unknown handle signaled");
 			}
 		}
 
@@ -203,12 +239,15 @@ ProcIvr::ProcessStackMessage(IN IwMessagePtr ptr, IN ScopedForking &forking)
 			DECLARE_NAMED_HANDLE_PAIR(script_runner_handle);
 
 			FORK_IN_THIS_THREAD(
-				new ProcScriptRunner(
-					_conf,                // configuration
-					call_offered,		  // original message
-					_stackPair,			  // handle to stack
-					script_runner_handle) // handle created by stack for events
-				);
+					new ProcScriptRunner(
+						_conf,					// configuration
+						_conf.SuperScript(),	// script name
+						_precompiledBuffer,		// precompiled buffer
+						_scriptSize,			// size of precompiled buffer
+						call_offered,			// initial incoming message
+						_stackPair,				// handle to stack
+						script_runner_handle	// handle created by stack for events
+				));
 
 			return FALSE;
 

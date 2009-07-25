@@ -47,8 +47,7 @@ namespace ivrworx
 	CallWithDirectRtp::AcceptInitialOffer()
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
-
+		
 		MediaFormatsList accepted_media_formats;
 		MediaFormat speech_media_format = MediaFormat::PCMU;
 
@@ -62,17 +61,17 @@ namespace ivrworx
 			return res;
 		};
 
-		res = _imsSession.AllocateIMSConnection(RemoteMedia(),speech_media_format);
+		IX_PROFILE_CODE(res = _imsSession.AllocateIMSConnection(RemoteMedia(),speech_media_format));
 		if (IW_FAILURE(res))
 		{
 			RejectCall();
 			return res;
 		};
 
-		res = Call::AcceptInitialOffer(
+		IX_PROFILE_CODE(res = Call::AcceptInitialOffer(
 			_imsSession.ImsMediaData(),
 			accepted_media_formats,
-			speech_media_format);
+			speech_media_format));
 
 		return res;
 
@@ -144,6 +143,14 @@ namespace ivrworx
 
 	}
 
+	void 
+	CallWithDirectRtp::UponCallTerminated(IwMessagePtr ptr)
+	{
+		_imsSession.InterruptWithHangup();
+
+		Call::UponCallTerminated(ptr);
+	}
+
 	ApiErrorCode 
 	CallWithDirectRtp::MakeCall(IN const string &destination_uri)
 	{
@@ -155,7 +162,8 @@ namespace ivrworx
 		}
 
 		// allocate dummy session to save bind time for future
-		ApiErrorCode res = _imsSession.AllocateIMSConnection();
+		ApiErrorCode res = API_SUCCESS;
+		IX_PROFILE_CODE(res = _imsSession.AllocateIMSConnection());
 		if (IW_FAILURE(res))
 		{
 			return res;
@@ -168,7 +176,7 @@ namespace ivrworx
 		};
 
 		// allocate dummy session to save bind time for future
-		res = _imsSession.ModifyConnection(_remoteMedia ,_acceptedSpeechFormat);
+		IX_PROFILE_CODE(res = _imsSession.ModifyConnection(_remoteMedia ,_acceptedSpeechFormat));
 		if (IW_FAILURE(res))
 		{
 			Call::HangupCall();

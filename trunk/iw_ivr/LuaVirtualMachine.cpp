@@ -17,7 +17,9 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include "Profiler.h"
 
+using namespace ivrworx;
 
 
 // ---------------------------------------------------------------------------
@@ -207,7 +209,9 @@ bool CLuaVirtualMachine::RunFile (const char *strFilename)
    bool fSuccess = false;
    int iErr = 0;
 
-   if ((iErr = luaL_loadfile (m_pState, strFilename)) == 0)
+   IX_PROFILE_CODE(iErr = luaL_loadfile (m_pState, strFilename));
+
+   if ((iErr) == 0)
    {
       // Call main...
        if ((iErr = lua_pcall (m_pState, 0, LUA_MULTRET, 0)) == 0)
@@ -250,7 +254,9 @@ bool CLuaVirtualMachine::RunBuffer (const unsigned char *pbBuffer, size_t szLen,
       strName = "Temp";
    }
 
-   if ((iErr = luaL_loadbuffer (m_pState, (const char *) pbBuffer, szLen, strName)) == 0)
+   IX_PROFILE_CODE(iErr = luaL_loadbuffer (m_pState, (const char *) pbBuffer, szLen, strName));
+
+   if ((iErr) == 0)
    {
       // Call main...
        if ((iErr = lua_pcall (m_pState, 0, LUA_MULTRET, 0)) == 0)

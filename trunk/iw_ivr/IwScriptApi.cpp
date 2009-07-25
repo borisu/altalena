@@ -44,19 +44,9 @@ IwScript::IwScript(IN ScopedForking &forking,
 		throw;
 	}
 
-	// add return values enumerations
-
-	// 	enum ApiErrorCode
-	// 	{
-	// 		API_SUCCESS = 0,
-	// 		API_FAILURE,
-	// 		API_SERVER_FAILURE,
-	// 		API_TIMEOUT,
-	// 		API_WRONG_PARAMETER,
-	// 	};
- 
 	IW_REGISTER_GLOBAL_VAR(vm,API_SUCCESS);
 	IW_REGISTER_GLOBAL_VAR(vm,API_FAILURE);
+	IW_REGISTER_GLOBAL_VAR(vm,API_HANGUP);
 	IW_REGISTER_GLOBAL_VAR(vm,API_SERVER_FAILURE);
 	IW_REGISTER_GLOBAL_VAR(vm,API_SUCCESS);
 	IW_REGISTER_GLOBAL_VAR(vm,API_TIMEOUT);
