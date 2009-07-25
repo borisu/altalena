@@ -28,7 +28,6 @@
 	#define IX_PROFILE_FUNCTION() ivrworx::FuncProfiler _dummyIxProfiler(__FUNCTION__)
 	#define IX_PROFILE_PRINT() ivrworx::PrintProfile()
 	#define IX_PROFILE_CHECK_INTERVAL(x) ivrworx::CheckInterval(x)
-	#define IX_PROFILE_ADD_DATA(x,y) ivrworx::AddProfilingData(x,y)
 	#define IX_PROFILE_NAMED_CODE(name, code)										\
 		{																	\
 			{ ivrworx::FuncProfiler _dummyIxProfiler(__FUNCTION__":"name);					\
@@ -53,6 +52,7 @@
 	#define IX_PROFILE_PRINT()
 	#define IX_PROFILE_CODE( code )	code
 	#define IX_PROFILE_CODE_START( code ) code
+	#define IX_PROFILE_NAMED_CODE(name, code)	code
 	#define IX_PROFILE_CODE_END 
 	#define IX_PROFILE_FLUSH() 
 	#define IX_PROFILE_ADD_DATA(x,y) 
@@ -69,17 +69,13 @@ namespace ivrworx
 
 	void CheckInterval(__int64 interval);
 
-	void AddProfilingData(string name, LARGE_INTEGER start, LARGE_INTEGER end);
-
-	void AddProfilingData(string name, LARGE_INTEGER start);
-
 	void Flush();
 
 	class FuncProfiler
 	{
 	public:
 
-		FuncProfiler(string function);
+		FuncProfiler(const string &function);
 		virtual ~FuncProfiler(void);
 
 	private:
@@ -87,6 +83,8 @@ namespace ivrworx
 		LARGE_INTEGER _start;
 
 		string _funcName;
+
+		__int64 _myOverhead;
 	};
 
 	

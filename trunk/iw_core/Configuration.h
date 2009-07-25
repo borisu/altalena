@@ -46,12 +46,23 @@ namespace ivrworx
 	*
 	*/
 	class Configuration
+		:public boost::noncopyable
 	{
 	public:
 
 		Configuration(void);
 
 		virtual ~Configuration(void);
+
+		/**
+		*
+		*	You may use precompile options to load files more efficiently. However you 
+		*	won't be able to update the script files while ivrworx is running (working 
+		*   to improve it).
+		*
+		*	@return Name of the super script.
+		**/
+		virtual bool Precompile();
 
 		/**
 		*
@@ -254,6 +265,8 @@ namespace ivrworx
 	protected:
 
 		mutex _mutex;
+
+		bool _precomile;
 
 		CnxInfo _ivrCnxInfo;
 

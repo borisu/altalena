@@ -43,6 +43,15 @@ namespace ivrworx
 		}
 	}
 
+	bool
+	Configuration::Precompile()
+	{
+		mutex::scoped_lock lock(_mutex);
+
+		return _precomile;
+
+	}
+
 	string
 	Configuration::SuperScript()
 	{

@@ -28,6 +28,20 @@ using namespace csp;
 namespace ivrworx
 {
 
+	
+	critical_exception::critical_exception()
+	{
+
+	}
+
+	critical_exception::critical_exception(const char *what):
+	std::exception(what)
+	{
+		
+	}
+	
+
+
 	MediaFormat::MediaFormat()
 		:name("INVALID"),
 		rate(IW_UNDEFINED),
@@ -70,7 +84,7 @@ namespace ivrworx
 		return rate; 
 	}
 
-	string MediaFormat::sampling_rate_tos() const 
+	const string& MediaFormat::sampling_rate_tos() const 
 	{ 
 		return rate_s; 
 	}
@@ -80,18 +94,18 @@ namespace ivrworx
 		return mapping; 
 	}
 
-	string MediaFormat::sdp_mapping_tos() const 
+	const string& MediaFormat::sdp_mapping_tos() const 
 	{ 
 		return mapping_s; 
 	}
 
-	string MediaFormat::sdp_name_tos() const 
+	const string& MediaFormat::sdp_name_tos() const 
 	{ 
 		return name; 
 	}
 
 
-	string MediaFormat::get_sdp_a() const
+	const string& MediaFormat::get_sdp_a() const
 	{
 		return sdp_a;
 	}
@@ -221,23 +235,21 @@ namespace ivrworx
 	void CnxInfo::init_from_hostname(const char *host_name,int p_port)
 	{
 		
-		IX_PROFILE_FUNCTION();
-
-		struct hostent* phe = ::gethostbyname(host_name);
-
-		if( phe != NULL)
+		unsigned long ia = inet_addr(host_name);
+		if (ia == INADDR_NONE || ia == INADDR_ANY)
 		{
-			::memcpy(&addr.sin_addr.s_addr, phe->h_addr, phe->h_length);
-		} else
-		{
-			addr.sin_addr.S_un.S_addr = htonl( 0x7F000001 );
+			throw std::exception("Invalid ip address supplied to CnxInfo ctor");
 		}
+		//else
+		//{
+		//	addr.sin_addr.S_un.S_addr = htonl( 0x7F000001 );
+		//}
 
 		
+		addr.sin_addr.S_un.S_addr = ia;
 		addr.sin_family = AF_INET;
 		addr.sin_port = ::htons(p_port);
-		
-
+	
 		init_strings();
 
 	}

@@ -211,7 +211,8 @@ namespace ivrworx
 
 
 
-	ApiErrorCode SelectFromChannels(IN  HandlesList &map,
+	ApiErrorCode SelectFromChannels(
+		IN  HandlesList &map,
 		IN  Time timeout, 
 		OUT int &index, 
 		OUT IwMessagePtr &event);

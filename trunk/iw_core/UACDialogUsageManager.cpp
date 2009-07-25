@@ -24,7 +24,7 @@
 #include "UacDialogUsageManager.h"
 #include "UACAppDialogSet.h"
 #include "Logger.h"
-#include "Profiler.h"
+
 
 namespace ivrworx
 {
@@ -136,7 +136,7 @@ namespace ivrworx
 	}
 
 
-
+#pragma TODO ("UACDialogUsageManager::UponMakeCallReq takes 20 ms - SDP preparation should be replaced with simple string concatenation")
 	void 
 	UACDialogUsageManager::UponMakeCallReq(IN IwMessagePtr ptr)
 	{
@@ -178,7 +178,12 @@ namespace ivrworx
 			SdpContents::Session::Medium medium("audio", req->local_media.port_ho(), 0, "RTP/AVP");
 
 			
+			
 			const MediaFormat *dtmf_format = NULL;
+
+			string str_buffer(1024,'\0');
+			
+
 			for (MediaFormatsPtrList::const_iterator iter = _conf.MediaFormats().begin(); 
 				iter != _conf.MediaFormats().end(); 
 				iter ++)	
@@ -192,28 +197,43 @@ namespace ivrworx
 				}
 
 				medium.addFormat(media_format.sdp_mapping_tos().c_str());
-				string rtpmap = media_format.sdp_mapping_tos() + " " + media_format.sdp_name_tos() + "/" + media_format.sampling_rate_tos();
-				medium.addAttribute("rtpmap", rtpmap.c_str());
 
-				
+				str_buffer.clear();
+				str_buffer += media_format.sdp_mapping_tos() ;
+				str_buffer +=" "; 
+				str_buffer += media_format.sdp_name_tos(); 
+				str_buffer += "/"; 
+				str_buffer += media_format.sampling_rate_tos();
+
+				medium.addAttribute("rtpmap", str_buffer.c_str());
 
 			}
+
+			
 
 			// dtmf format always last
 			if (dtmf_format != NULL)
 			{
 				medium.addFormat(dtmf_format->sdp_mapping_tos().c_str());
-				string rtpmap = dtmf_format->sdp_mapping_tos() + " " + dtmf_format->sdp_name_tos() + "/" + dtmf_format->sampling_rate_tos();
-				medium.addAttribute("rtpmap", rtpmap.c_str());
-				medium.addAttribute("fmtp", (dtmf_format->sdp_mapping_tos() + " 0-16").c_str());
+
+				str_buffer.clear();
+				str_buffer += dtmf_format->sdp_mapping_tos();
+				str_buffer += " "; 
+				str_buffer += dtmf_format->sdp_name_tos();
+				str_buffer += "/";
+				str_buffer += dtmf_format->sampling_rate_tos();
+				medium.addAttribute("rtpmap", str_buffer.c_str());
+
+
+				str_buffer.clear();
+				str_buffer += dtmf_format->sdp_mapping_tos();
+				str_buffer += " 0-16";
+
+				medium.addAttribute("fmtp", (str_buffer).c_str());
 			}
 
 
-
-
 			medium.addAttribute("sendrecv");
-
-
 			session.addMedium(medium);
 			
 			sdp.session() = session;
@@ -226,10 +246,11 @@ namespace ivrworx
 			//
 			SipDialogContextPtr ctx_ptr = 
 				SipDialogContextPtr(new SipDialogContext());
+			
 
 			UACAppDialogSet * uac_dialog_set = new UACAppDialogSet(_dum,ctx_ptr,ptr);
-			SharedPtr<SipMessage> invite_session = 
-				_dum.makeInviteSession(
+			SharedPtr<SipMessage> invite_session; 
+			invite_session = _dum.makeInviteSession(
 				name_addr, 
 				user_profile,
 				&sdp, 
@@ -350,13 +371,12 @@ namespace ivrworx
 
 	}
 
-	
+#pragma TODO ("UACDialogUsageManager::onConnected takes 4 ms - SDP inspections is taking long")
 	void 
 	UACDialogUsageManager::onConnected(IN ClientInviteSessionHandle is, IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
-
+	
 		ResipDialogHandlesMap::iterator iter = 
 			_resipHandlesMap.find(is->getAppDialog());
 
@@ -375,15 +395,11 @@ namespace ivrworx
 
 		ack->stack_call_handle = ctx_ptr->stack_handle;
 
-		const resip::SdpContents sdp = 
+		const resip::SdpContents &sdp = 
 			is->getRemoteSdp();
 		const SdpContents::Session &s = sdp.session();
 		const Data &addr_data = s.connection().getAddress();
-		const string addr = addr_data.c_str();
-
-		
-		
-
+	
 
 		if (s.media().empty())
 		{
@@ -391,6 +407,9 @@ namespace ivrworx
 			CleanUpCall(ctx_ptr);
 			return;
 		}
+
+
+		
 
 		// currently we only "audio" conversation
 		list<SdpContents::Session::Medium>::const_iterator medium_iter = s.media().begin();
@@ -415,7 +434,7 @@ namespace ivrworx
 		const SdpContents::Session::Medium &medium = *medium_iter;
 
 		int port =	medium.port();
-		ack->remote_media = CnxInfo(addr,port);
+		ack->remote_media = CnxInfo(addr_data.c_str(),port);
 
 		// send list of codecs to the main process
 		const list<Codec> &offered_codecs = medium.codecs();
