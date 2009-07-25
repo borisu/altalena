@@ -71,6 +71,8 @@ namespace ivrworx
 
 		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
 
+		virtual void InterruptWithHangup();
+
 		virtual const string& GetDtmfString();
 
 		virtual void ClearDtmfs();
@@ -86,6 +88,8 @@ namespace ivrworx
 		ScopedForking &_forking;
 
 		LpHandlePtr _rfc2833DtmfHandle;
+
+		LpHandlePtr _hangupHandle;
 
 		LpHandlePair _imsSessionHandlerPair;
 

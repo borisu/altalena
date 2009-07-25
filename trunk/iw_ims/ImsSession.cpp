@@ -24,6 +24,7 @@
 #include "Call.h"
 
 using namespace boost;
+using namespace boost::assign;
 
 namespace ivrworx
 {
@@ -34,7 +35,8 @@ ImsSession::ImsSession(IN ScopedForking &forking):
 _imsSessionHandle(IW_UNDEFINED),
 _imsSessionHandlerPair(HANDLE_PAIR),
 _forking(forking),
-_rfc2833DtmfHandle(new LpHandle())
+_rfc2833DtmfHandle(new LpHandle()),
+_hangupHandle(new LpHandle())
 {
 	FUNCTRACKER;
 
@@ -64,6 +66,10 @@ ImsSession::~ImsSession(void)
 	{
 		TearDown();
 	}
+
+	_hangupHandle->Poison();
+
+	
 }
 
 ApiErrorCode
@@ -127,15 +133,24 @@ ImsSession::PlayFile(IN const string &file_name,
 		return res;
 	}
 
+	int handle_index = IW_UNDEFINED;
+
 	if (provisional)
 	{
 		res = GetCurrLightWeightProc()->WaitForTxnResponse(
-			ims_play_txn,
+			list_of(ims_play_txn)(_hangupHandle),
+			handle_index,
 			response, 
 			MilliSeconds(GetCurrLightWeightProc()->TransactionTimeout()));
+
 		if (IW_FAILURE(res))
 		{
 			return res;
+		}
+
+		if (handle_index == 1)
+		{
+			return API_HANGUP;
 		}
 
 		if (response->message_id != MSG_START_PLAY_REQ_ACK)
@@ -150,10 +165,20 @@ ImsSession::PlayFile(IN const string &file_name,
 		return API_SUCCESS;
 	}
 
-	res = GetCurrLightWeightProc()->WaitForTxnResponse(ims_play_txn,response,  Seconds(3600));
+	res = GetCurrLightWeightProc()->WaitForTxnResponse(
+			list_of(ims_play_txn)(_hangupHandle),
+			handle_index,
+			response, 
+			Seconds(3600));
+
 	if (IW_FAILURE(res))
 	{
 		return res;
+	}
+
+	if (handle_index == 1)
+	{
+		return API_HANGUP;
 	}
 
 	if (response->message_id != MSG_IMS_PLAY_STOPPED)
@@ -205,17 +230,27 @@ ImsSession::WaitForDtmf(OUT int &dtmf, IN Time timeout)
 	
 	IwMessagePtr ptr = NULL_MSG;
 
-	ApiErrorCode res = GetCurrLightWeightProc()->WaitForTxnResponse(_rfc2833DtmfHandle,ptr,timeout);
+	int handle_index = IW_UNDEFINED;
+	ApiErrorCode res = GetCurrLightWeightProc()->WaitForTxnResponse(
+		list_of(_rfc2833DtmfHandle)(_hangupHandle),
+		handle_index,
+		ptr,
+		timeout);
+
 	if (IW_FAILURE(res))
 	{
 		return res;
 	}
 
-	shared_ptr<MsgImsRfc2833DtmfEvt> dtmf_event = shared_dynamic_cast<MsgImsRfc2833DtmfEvt> (ptr);
+	if (handle_index == 1)
+	{
+		return API_HANGUP;
+	}
+
+	shared_ptr<MsgImsRfc2833DtmfEvt> dtmf_event = 
+		shared_dynamic_cast<MsgImsRfc2833DtmfEvt> (ptr);
 	
 
-	
-	
 	DtmfMap::iterator iter =  _dtmfMap.find(dtmf_event->dtmf_digit);
 	if (iter == _dtmfMap.end())
 	{
@@ -326,6 +361,14 @@ ImsSession::AllocateIMSConnection(IN CnxInfo remote_end,
 	}
 	return res;
 
+}
+
+void
+ImsSession::InterruptWithHangup()
+{
+	FUNCTRACKER;
+
+	_hangupHandle->Send(new MsgCallHangupEvt());
 }
 
 ApiErrorCode
