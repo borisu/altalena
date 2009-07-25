@@ -90,18 +90,27 @@ namespace ivrworx
 		API_SERVER_FAILURE,
 		API_TIMEOUT,
 		API_WRONG_PARAMETER,
-		API_WRONG_STATE
+		API_WRONG_STATE,
+		API_HANGUP
 	};
 
 	#define IW_SUCCESS(x)	((x) == API_SUCCESS)
 	#define IW_FAILURE(x)	((x) != API_SUCCESS)
-
 
 	typedef int HandleId;
 
 	typedef int ProcId;
 
 	typedef LARGE_INTEGER TimeStamp;
+
+	class critical_exception: public exception 
+	{
+	public:
+		critical_exception();
+		critical_exception(const char *);
+	};
+
+	class configuration_exception: 	public exception {};
 
 	enum WellKnownProcAlias
 	{
@@ -137,15 +146,15 @@ namespace ivrworx
 
 		int sampling_rate() const;
 
-		string sampling_rate_tos() const;
+		const string& sampling_rate_tos() const;
 
 		int sdp_mapping() const;
 
-		string sdp_mapping_tos() const;
+		const string& sdp_mapping_tos() const;
 
-		string sdp_name_tos() const;
+		const string& sdp_name_tos() const;
 
-		string get_sdp_a() const;
+		const string& get_sdp_a() const;
 
 		MediaType get_media_type() const;
 

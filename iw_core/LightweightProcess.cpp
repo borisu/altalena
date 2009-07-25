@@ -71,7 +71,7 @@ namespace ivrworx
 	}
 
 	void
-	LightweightProcess::Init(int process_id, string owner_name)
+	LightweightProcess::Init(int process_id, const string &owner_name)
 	{
 
 		FUNCTRACKER;
@@ -164,7 +164,7 @@ namespace ivrworx
 		}
 
 		
-		tl_procMap->insert(pair<PVOID,LightweightProcess*>(fiber,this));
+		(*tl_procMap)[fiber] = this ;
 
 		//
 		// Wait for resume message to start the process.
@@ -209,7 +209,7 @@ namespace ivrworx
 		} 
 		catch (std::exception e)
 		{
-			LogWarn("Exception in process=[" << Name() << "] what=[" << e.what() << "]");
+			LogWarn("Exception proc:" << Name() << ", what:" << e.what());
 		}
 
 clean:
@@ -253,7 +253,7 @@ clean:
 		IN IwMessagePtr request, 
 		IN IwMessage* response)
 	{
-		IX_PROFILE_CODE(response->copy_data_on_response(request.get()));
+		response->copy_data_on_response(request.get());
 		return SendMessage(IwMessagePtr(response));
 	}
 
@@ -280,7 +280,7 @@ clean:
 	LightweightProcess::SendMessage(IN IwMessagePtr message)
 	{
 
-		IX_PROFILE_FUNCTION();
+		FUNCTRACKER;
 
 		int handle_id = message->dest.handle_id;
 		if (message->source.handle_id == IW_UNDEFINED)
@@ -316,9 +316,7 @@ clean:
 			return API_SUCCESS;
 		}
 
-		LogWarn("Unknown destination for message=[" << message->message_id_str 
-			<< "] dest=["<< handle_id << "@" << message->dest.queue_path << "]");
-
+		LogWarn("Unknown destination for msg:" << message->message_id_str << ", dst:"<< handle_id );
 		return API_FAILURE;
 
 	}
@@ -338,7 +336,7 @@ clean:
 
 
 	ApiErrorCode
-		LightweightProcess::DoRequestResponseTransaction(
+	LightweightProcess::DoRequestResponseTransaction(
 		IN LpHandlePtr dest_handle, 
 		IN IwMessagePtr request, 
 		OUT IwMessagePtr &response,
@@ -357,24 +355,20 @@ clean:
 		request->source.handle_id = txn_handle->GetObjectUid();
 		request->transaction_id = GenerateNewTxnId();
 
-		IX_PROFILE_CODE(dest_handle->Send(request));
+		dest_handle->Send(request);
 
 		ApiErrorCode res = WaitForTxnResponse(
 			txn_handle,
 			response,
 			timeout);
 
-		if (res == API_TIMEOUT)
-		{
-			LogDebug("TIMEOUT txn=[" << request->transaction_id<< "]");
-		}
-
+		LogDebug("LightweightProcess::DoRequestResponseTransaction - res:" << res);
 		return res;
 
 	}
 
 	ApiErrorCode	
-		LightweightProcess::DoRequestResponseTransaction(
+	LightweightProcess::DoRequestResponseTransaction(
 		IN ProcId dest_proc_id, 
 		IN IwMessagePtr request, 
 		OUT IwMessagePtr &response, 
@@ -398,28 +392,47 @@ clean:
 		ApiErrorCode res = SendMessage(request);
 		if (IW_FAILURE(res))
 		{
-			return res;
+			goto end;
 		}
 
 		res = WaitForTxnResponse(
 			txn_handle,
 			response,
 			timout);
+end:
 
-		if (res == API_TIMEOUT)
-		{
-			LogDebug("TIMEOUT txn=[" << request->transaction_id<< "]");
-		}
+		LogDebug("LightweightProcess::DoRequestResponseTransaction - res:" << res);
+		return res;
+
+	}
+
+	ApiErrorCode 
+	LightweightProcess::WaitForTxnResponse(
+		IN LpHandlePtr txn_handle,
+		OUT IwMessagePtr &response,
+		IN Time timout)
+	{
+
+		FUNCTRACKER;
+
+		HandlesList temp_list;
+		temp_list.push_back(txn_handle);
+
+		int temp_index = IW_UNDEFINED;
+
+		ApiErrorCode res = 
+			WaitForTxnResponse(temp_list,temp_index,response,timout);
 
 		return res;
 
 	}
 
-	ApiErrorCode	
+	ApiErrorCode 
 	LightweightProcess::WaitForTxnResponse(
-		IN LpHandlePtr txn_handle,
+		IN  const HandlesList &map,
+		OUT int &index,
 		OUT IwMessagePtr &response,
-		IN Time timeout)
+		IN  Time timeout)
 	{
 
 		//
@@ -427,15 +440,11 @@ clean:
 		// we are waiting messages from.
 		//
 		HandlesList list;
-		int interrupted_handle_index = 0;
-
 		list.push_back(_inbound);
-		const int txn_term_index = interrupted_handle_index++;
-		list.push_back(txn_handle);
-		const int txn_inbound_index = interrupted_handle_index++;
+		list.insert(list.end(),map.begin(),map.end());
 
 
-		interrupted_handle_index = IW_UNDEFINED;
+		int interrupted_handle_index = IW_UNDEFINED;
 		ApiErrorCode res= API_SUCCESS;
 
 
@@ -446,7 +455,7 @@ clean:
 		if (timeLeftToWaitMs < 0)
 		{
 			LogWarn("Illegal value for timeout " << timeLeftToWaitMs);
-			return API_FAILURE;
+			return API_WRONG_PARAMETER;
 		}
 		while (timeLeftToWaitMs >= 0)
 		{
@@ -465,36 +474,41 @@ clean:
 			}
 
 
-			if (interrupted_handle_index == txn_term_index)
+			switch (interrupted_handle_index )
 			{
-				BOOL res = this->HandleOOBMessage(response);
-				if (res == FALSE)
+			case 0:
 				{
-					LogWarn("Unhandled OOB message [" << response->message_id_str << "], throwing exception.");
-					throw std::exception("Transaction was terminated");
-				} 
-				else 
-				{
-					// it was terminator who stopped the transaction, so we have
-					// to give transaction unit one more chance
-					int delta = ::GetTickCount() - start;
-					timeLeftToWaitMs -= delta;
-
-					if (timeLeftToWaitMs < 0)
+					BOOL res = this->HandleOOBMessage(response);
+					if (res == FALSE)
 					{
-						timeLeftToWaitMs = 0;
+						LogWarn("Unhandled OOB msg:" << response->message_id_str);
+						throw std::exception("Transaction was terminated");
+					} 
+					else 
+					{
+						// it was terminator who stopped the transaction, so we have
+						// to give transaction unit one more chance
+						int delta = ::GetTickCount() - start;
+						timeLeftToWaitMs -= delta;
+
+						if (timeLeftToWaitMs < 0)
+						{
+							timeLeftToWaitMs = 0;
+						}
+
+						continue;
 					}
 
-					continue;
 				}
-			} 
-			else 
-			{
+			default:
+				{
+					index = interrupted_handle_index - 1;
+					goto select_end;
+				}
+			}// switch
+		} // while
 
-				break;
-
-			}
-		}
+select_end:		
 
 		return res;
 

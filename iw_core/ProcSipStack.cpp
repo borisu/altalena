@@ -19,11 +19,9 @@
 
 #include "StdAfx.h"
 #include "ProcSipStack.h"
-
 #include "UASAppDialogSetFactory.h"
-
 #include "UASDialogUsageManager.h"
-#include "Profiler.h"
+
 
 
 
@@ -287,8 +285,6 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		IX_PROFILE_FUNCTION();
-
 		_dumUac->UponBlindXferReq(req);
 
 	}
@@ -297,8 +293,6 @@ namespace ivrworx
 	ProcSipStack::UponHangupCallReq(IwMessagePtr ptr)
 	{
 		FUNCTRACKER;
-
-		IX_PROFILE_FUNCTION();
 
 		_dumUac->UponHangupReq(ptr);
 		
@@ -326,7 +320,6 @@ namespace ivrworx
 	ProcSipStack::ShutDown(IwMessagePtr req)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
 
 		ShutDown();
 
@@ -336,7 +329,6 @@ namespace ivrworx
 	ProcSipStack::UponCallOfferedAck(IwMessagePtr req)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
 
 		_dumUas->UponCallOfferedAck(req);
 
@@ -346,7 +338,6 @@ namespace ivrworx
 	ProcSipStack::UponCallOfferedNack(IwMessagePtr req)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
 
 		_dumUas->UponCallOfferedNack(req);
 
@@ -356,7 +347,6 @@ namespace ivrworx
 	ProcSipStack::UponMakeCallReq(IwMessagePtr req)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
 
 		_dumUac->UponMakeCallReq(req);
 	}
@@ -365,7 +355,6 @@ namespace ivrworx
 	ProcSipStack::UponMakeCallAckReq(IwMessagePtr req)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
 
 		_dumUac->UponMakeCallAckReq(req);
 	}
@@ -375,15 +364,14 @@ namespace ivrworx
 	{
 
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
-
+		
 		bool shutdown = false;
 		if (InboundPending())
 		{
 			ApiErrorCode res;
 			IwMessagePtr msg;
 
-			IX_PROFILE_CODE(msg = GetInboundMessage(Seconds(0),res));
+			msg = GetInboundMessage(Seconds(0),res);
 			if (IW_FAILURE(res))
 			{
 				throw;
@@ -459,7 +447,7 @@ namespace ivrworx
 		BOOL shutdown_flag = FALSE;
 		while (shutdown_flag == FALSE)
 		{
-			IX_PROFILE_CHECK_INTERVAL(25000);
+			//IX_PROFILE_CHECK_INTERVAL(11000);
 
 			FdSet fdset;
 			_handleInterruptor->buildFdSet(fdset);
@@ -474,9 +462,9 @@ namespace ivrworx
 				throw;
 			}
 
-			IX_PROFILE_CODE(_handleInterruptor->process(fdset));
-			IX_PROFILE_CODE(_stack->process(fdset));
-			IX_PROFILE_CODE(while(_dumMngr->process()));
+			_handleInterruptor->process(fdset);
+			_stack->process(fdset);
+			while(_dumMngr->process());
 
 			shutdown_flag = ProcessIwMessages();
 			if (shutdown_flag)
@@ -521,7 +509,6 @@ namespace ivrworx
 	ProcSipStack::onFailure(IN ClientInviteSessionHandle is, IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
-
 		_dumUac->onFailure(is,msg);
 
 	}

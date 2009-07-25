@@ -123,14 +123,14 @@ public:
 	//
 	// Transaction Management
 	//
-	ApiErrorCode 	DoRequestResponseTransaction(
+	ApiErrorCode DoRequestResponseTransaction(
 		IN ProcId dest_proc_id, 
 		IN IwMessagePtr request, 
 		OUT IwMessagePtr &response,
 		IN Time timout,
 		IN string transaction_name);
 
-	ApiErrorCode 	DoRequestResponseTransaction(
+	ApiErrorCode DoRequestResponseTransaction(
 		IN LpHandlePtr dest_handle, 
 		IN IwMessagePtr request, 
 		OUT IwMessagePtr &response,
@@ -141,6 +141,12 @@ public:
 		IN LpHandlePtr txn_handle,
 		OUT IwMessagePtr &response,
 		IN Time timout);
+
+	ApiErrorCode WaitForTxnResponse(
+		IN  const HandlesList &map,
+		OUT int &index,
+		OUT IwMessagePtr &response,
+		IN  Time timout);
 
 	LpHandlePair _pair;
 
@@ -164,7 +170,7 @@ protected:
 
 private:
 
-	void Init(int UID, string owner_name);
+	void Init(int UID, const string &owner_name);
 
 };
 

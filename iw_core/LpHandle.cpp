@@ -202,6 +202,8 @@ namespace ivrworx
 	{
 		return Send(IwMessagePtr(message));
 	}
+// #pragma push_macro("IX_PROFILE_CODE")
+// #define IX_PROFILE_CODE(code) code
 
 	ApiErrorCode 
 	LpHandle::Send(IN IwMessagePtr message)
@@ -209,11 +211,10 @@ namespace ivrworx
 		FUNCTRACKER;
 
 		::QueryPerformanceCounter(&message->enter_queue_timestamp);
-
 		if (message->source.handle_id == IW_UNDEFINED)
-		{
+		{	
 			message->source.handle_id = GetCurrLpId();
-		}
+		};
 
 		try 
 		{
@@ -229,10 +230,13 @@ namespace ivrworx
 			return API_FAILURE;
 		}
 
-		LpHandlePtr rsp_handle = GetHandle(message->source.handle_id);
+		LpHandlePtr rsp_handle;
+		rsp_handle = GetHandle(message->source.handle_id);
 		LogDebug("snd " << message->message_id_str << " to (" << this << "), via (" << rsp_handle <<").");
 		return API_SUCCESS;
 	}
+
+//#pragma pop_macro("IX_PROFILE_CODE")
 
 	void
 	LpHandle::CheckReader()
@@ -269,8 +273,8 @@ namespace ivrworx
 				_interruptor->SignalDataOut();
 			}
 
-			IX_PROFILE_ADD_DATA(ptr->message_id_str, ptr->enter_queue_timestamp);
-			IX_PROFILE_ADD_DATA("MSG PUMP AVG", ptr->enter_queue_timestamp);
+// 			IX_PROFILE_ADD_DATA(ptr->message_id_str, ptr->enter_queue_timestamp);
+// 			IX_PROFILE_ADD_DATA("MSG PUMP AVG", ptr->enter_queue_timestamp);
 		} 
 		catch(PoisonException p)
 		{

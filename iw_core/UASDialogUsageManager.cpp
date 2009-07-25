@@ -25,7 +25,7 @@
 #include "UASAppDialogSetFactory.h"
 #include "Call.h"
 #include "Logger.h"
-#include "Profiler.h"
+
 
 namespace ivrworx
 {
@@ -72,13 +72,15 @@ namespace ivrworx
 
 		CleanUpCall(ctx_ptr);
 
-		IX_PROFILE_CODE(ctx_ptr->uas_invite_handle->end());
+		ctx_ptr->uas_invite_handle->end();
 
 	}
 
 	void 
 	UASDialogUsageManager::UponCallOfferedAck(IwMessagePtr req)
 	{
+
+		FUNCTRACKER;
 
 		shared_ptr<MsgCalOfferedAck> ack = 
 			dynamic_pointer_cast<MsgCalOfferedAck>(req);
@@ -141,8 +143,8 @@ namespace ivrworx
 			= req;
 		
 
-		IX_PROFILE_CODE(ctx_ptr->uas_invite_handle.get()->provideAnswer(sdp));
-		IX_PROFILE_CODE(ctx_ptr->uas_invite_handle.get()->accept());
+		ctx_ptr->uas_invite_handle.get()->provideAnswer(sdp);
+		ctx_ptr->uas_invite_handle.get()->accept();
 	}
 
 
@@ -175,6 +177,8 @@ namespace ivrworx
 		_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
 	}
 
+#pragma TODO("UASDialogUsageManager::onOffer takes 7 ms - SDP parsing is taking long (almost 4 ms)")
+
 	void 
 	UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp)      
 	{
@@ -192,19 +196,19 @@ namespace ivrworx
 
 		LogDebug("onOffer::" << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 
-		// keep alive session
+		const SdpContents::Session &s = sdp.session();
+		const Data &addr_data = s.connection().getAddress();
+		const string &addr = addr_data.c_str();
+
+
+		// keep alive session with the same sdp version number
 		if (is->isAccepted() && 
-			(sdp.session().origin().getVersion() == is->getLocalSdp().session().origin().getVersion()))
+			(sdp.session().origin().getVersion() == s.origin().getVersion()))
 		{
 			LogWarn("onOffer:: Session timer keep-alive " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
  			is->provideAnswer(is->getLocalSdp());
 			return;
 		}
-
-		
-		const SdpContents::Session &s = sdp.session();
-		const Data &addr_data = s.connection().getAddress();
-		const string addr = addr_data.c_str();
 
 		
 		if (s.media().empty())

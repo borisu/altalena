@@ -154,6 +154,24 @@ namespace ivrworx
 
 	}
 
+	in_addr convert_hname_to_addrin(const char *name)
+	{
+		hostent *phe = ::gethostbyname(name);
+		if (phe == NULL)
+		{
+			DWORD last_error = ::GetLastError();
+			std::cerr << "::gethostbyname returned error for host:" << name << ", le:" << last_error;
+			throw configuration_exception();
+		}
+
+
+		// take only first result
+		struct in_addr addr;
+		addr.s_addr = *(u_long *) phe->h_addr;
+
+		return addr;
+
+	}
 
 
 	ApiErrorCode
@@ -161,6 +179,9 @@ namespace ivrworx
 	{
 
 		Object root_obj(_value.get_obj());
+
+		// precompile option
+		_precomile = find_bool(root_obj, "precompile");
 
 		//
 		// resiprocate logging
@@ -185,14 +206,23 @@ namespace ivrworx
 		const string ivr_host_str = find_str(root_obj, "ivr_sip_host" );
 		const int ivr_ip_int	= find_int(root_obj, "ivr_sip_port" );
 
-		_ivrCnxInfo = CnxInfo(ivr_host_str,ivr_ip_int);
+		
+		
+		_ivrCnxInfo = CnxInfo(
+			convert_hname_to_addrin(ivr_host_str.c_str()),
+			ivr_ip_int);
 
 		//
 		// ims
 		//
 		const string ims_host_str = find_str(root_obj, "ims_host" );
+
+
 		
-		_imsCnxInfo = CnxInfo(ims_host_str,0);
+		_imsCnxInfo = CnxInfo(
+			convert_hname_to_addrin(ivr_host_str.c_str()),
+			0);
+
 		_imsTopPort		= find_int(root_obj, "ims_top_port" );
 		_imsBottomPort	= find_int(root_obj, "ims_bottom_port" );
 
