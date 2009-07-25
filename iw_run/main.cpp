@@ -160,10 +160,10 @@ namespace ivrworx
 
 using namespace ivrworx;
 
-
 int _tmain(int argc, _TCHAR* argv[])
 {
 
+ 
 	wstring conf_file;
 
 	if (argc < 2)
