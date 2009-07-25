@@ -13,6 +13,7 @@
     "ivr_sip_host": "$COMPUTERNAME",
     "ivr_sip_port": 5060,
     
+    "precompile" : true,
     "super_script": "scripts\\super.lua",
     "super_mode":   "sync",
     

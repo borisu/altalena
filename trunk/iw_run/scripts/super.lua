@@ -9,7 +9,7 @@ ivrworx.loginf("Super script started");
 --
 -- Make call
 --
-res,handle = ivrworx.make_call("sip:24001@10.0.0.1:5060");
+res,handle = ivrworx.make_call("sip:6095@10.0.0.1:5060");
 if (res ~= API_SUCCESS) then
 	ivrworx.loginf("Error making call res:" .. res)
 	return
@@ -46,9 +46,12 @@ while dtmf ~= "#" do
 	--
 	-- Wait for DTMF's for less than 20 sec.
 	--
-	res,int_dtmf = ivrworx.wait_for_dtmf(handle,20000);
+	res,int_dtmf = ivrworx.wait_for_dtmf(handle,10000);
 	
-	
+	if (res == API_HANGUP) then
+		ivrworx.loginf("Caller hanged up." )
+		return
+	end
 	
  	if (res == API_TIMEOUT) then
  	--
@@ -61,6 +64,12 @@ while dtmf ~= "#" do
 			return
 		end
     else
+    
+    if (res ~= API_SUCCESS) then
+		ivrworx.loginf("Unknown error.")
+		return
+	end
+    
     --
 	-- Add received dtmf to the buffer and stop playing
 	--
