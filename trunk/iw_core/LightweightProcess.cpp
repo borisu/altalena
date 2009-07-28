@@ -429,11 +429,13 @@ end:
 
 	ApiErrorCode 
 	LightweightProcess::WaitForTxnResponse(
-		IN  const HandlesList &map,
+		IN  const HandlesList &handles_list,
 		OUT int &index,
 		OUT IwMessagePtr &response,
 		IN  Time timeout)
 	{
+
+		FUNCTRACKER;
 
 		//
 		// Create lists of handles that 
@@ -441,7 +443,7 @@ end:
 		//
 		HandlesList list;
 		list.push_back(_inbound);
-		list.insert(list.end(),map.begin(),map.end());
+		list.insert(list.end(),handles_list.begin(),handles_list.end());
 
 
 		int interrupted_handle_index = IW_UNDEFINED;

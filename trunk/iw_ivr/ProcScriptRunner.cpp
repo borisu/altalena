@@ -153,7 +153,7 @@ namespace ivrworx
 			LogWarn("Exception while running script:" << _conf.ScriptFile() <<", e:" << e.what() << ", iwh:" << _initialMsg->stack_call_handle);
 		}
 
-		LogDebug("script:" << _conf.ScriptFile() << ", iwh:" << _initialMsg->stack_call_handle <<" completed successfully.");
+		LogDebug("script:" << _conf.ScriptFile() << ", iwh:" << (_initialMsg ? _initialMsg->stack_call_handle : IW_UNDEFINED) << " completed successfully.");
 		
 	}
 
