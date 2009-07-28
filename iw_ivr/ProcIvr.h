@@ -66,6 +66,8 @@ namespace ivrworx
 		char *_precompiledBuffer;
 		size_t _scriptSize;
 
+		BOOL _waitingForSuperCompletion;
+
 	};
 
 }

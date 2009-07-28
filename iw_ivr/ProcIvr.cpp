@@ -40,7 +40,8 @@ _sipStackData(conf.IvrCnxInfo()),
 _precompiledBuffer(NULL),
 _superSize(0),
 _precompiledBuffer_Super(NULL),
-_scriptSize(0)
+_scriptSize(0),
+_waitingForSuperCompletion(FALSE)
 {
 }
 
@@ -102,14 +103,13 @@ ProcIvr::real_run()
 	LogInfo("Ivr process started successfully");
 	I_AM_READY;
 
-    DECLARE_NAMED_HANDLE_PAIR(super_script_handle);
 	//
 	// Run super script
 	//
-	{
-		
-
-		ProcScriptRunner *super_script_proc = 
+	DECLARE_NAMED_HANDLE_PAIR(super_script_handle);
+	AddShutdownListener(super_script_handle,_inbound);
+	
+	ProcScriptRunner *super_script_proc = 
 			new ProcScriptRunner(
 			_conf,								// configuration
 			_conf.SuperScript(),				// script name
@@ -120,16 +120,15 @@ ProcIvr::real_run()
 			super_script_handle					// handle created by stack for events
 			);
 
-		if (_conf.SuperMode() == "sync")
-		{
-			csp::Run(super_script_proc);
-		} 
-		else
-		{
-			FORK_IN_THIS_THREAD(super_script_proc);
-		}
+	
 
-	}
+	if (_conf.SuperMode() == "sync")
+	{
+		_waitingForSuperCompletion = TRUE;
+	} ;
+
+	FORK_IN_THIS_THREAD(super_script_proc);
+
 
 	HandlesList list = list_of(stack_pair.outbound)(_inbound);
 
@@ -137,7 +136,6 @@ ProcIvr::real_run()
 	// Message Loop
 	// 
 	BOOL shutdown_flag = FALSE;
-	
 	while(shutdown_flag == FALSE)
 	{
 		IX_PROFILE_CHECK_INTERVAL(10000);
@@ -150,12 +148,25 @@ ProcIvr::real_run()
 			index, 
 			event);
 
-		if (err_code == API_TIMEOUT)
+		switch (err_code)
 		{
-			LogInfo("Ivr keep alive.");
-			continue;
+		case API_TIMEOUT:
+			{
+				LogInfo("Ivr keep alive.");
+				continue;
+			}
+		case API_SUCCESS:
+			{
+				break;
+			}
+		default:
+			{
+				LogCrit("ProcIvr::real_run - Unknown error code. Exiting");
+				throw critical_exception("ProcIvr::real_run - Unknown error code. Exiting");
+			}
 		}
 
+		
 		switch (index)
 		{
 		case 0:
@@ -169,6 +180,7 @@ ProcIvr::real_run()
 			}
 		case 1:
 			{
+				
 				shutdown_flag = ProcessInboundMessage(event, forking);
 				if (shutdown_flag == TRUE)
 				{
@@ -204,6 +216,12 @@ ProcIvr::ProcessInboundMessage(IN IwMessagePtr event, IN ScopedForking &forking)
 	FUNCTRACKER;
 	switch (event->message_id)
 	{
+	case MSG_PROC_SHUTDOWN_EVT:
+		{
+			// currently it can be only from super script, so no checking.
+			_waitingForSuperCompletion = FALSE;
+			return FALSE;
+		}
 	case MSG_PROC_SHUTDOWN_REQ:
 		{
 			return TRUE;
@@ -232,9 +250,18 @@ ProcIvr::ProcessStackMessage(IN IwMessagePtr ptr, IN ScopedForking &forking)
 	{
 	case MSG_CALL_OFFERED:
 		{
-			
+
 			shared_ptr<MsgCallOfferedReq> call_offered = 
 				shared_polymorphic_cast<MsgCallOfferedReq> (ptr);
+
+			// still waiting for super to finish
+			if (_waitingForSuperCompletion == TRUE)
+			{
+				LogDebug("Receive CallOfferedMsg while super script is running in sync mode. Rejecting the call iwh:" << call_offered->stack_call_handle);
+				SendResponse(ptr, new MsgCallOfferedNack());
+				return FALSE;
+			}
+
 
 			DECLARE_NAMED_HANDLE_PAIR(script_runner_handle);
 
@@ -254,6 +281,7 @@ ProcIvr::ProcessStackMessage(IN IwMessagePtr ptr, IN ScopedForking &forking)
 		}
 	case MSG_PROC_SHUTDOWN_EVT:
 		{
+			LogWarn("Detected Sip process shutdown. Exiting.");
 			return TRUE;
 			break;
 		}

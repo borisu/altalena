@@ -1,11 +1,11 @@
 {
 	
-	"sync_log"  : true,
+	"sync_log"  : false,
 	
 	"resip_log" : "TRANSPORT,DBG|SIP,DBG|DUM,DBG",
 	
 	"debug_level"  : "TRC",
-	"debug_outputs" : "console,syslog,debug",
+	"debug_outputs" : "debug,console",
 	
 	"syslogd_host" : "127.0.0.1",
 	"syslogd_port" : 515,

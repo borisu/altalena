@@ -6,25 +6,33 @@ require "play_phrase"
 
 ivrworx.loginf("Super script started");
 
+
 --
 -- Make call
 --
-res,handle = ivrworx.make_call("sip:6095@10.0.0.1:5060");
+res,handle = ivrworx.make_call("sip:6095@192.168.100.241:5060");
 if (res ~= API_SUCCESS) then
 	ivrworx.loginf("Error making call res:" .. res)
-	return
+return
+else 	
+	ivrworx.loginf("Sucess, call handle:" .. handle);
 end
 
-ivrworx.loginf("Sucess, call handle:" .. handle);
+
+
+
+
 
 --
 -- Play greetings
 --
+while true do 
 res = ivrworx.play(handle,"test\\welcome-to-ivrworx.wav",true,false);
 if (res ~= API_SUCCESS) then
 	ivrworx.loginf("Error playing welcome file - res:" .. res)
 	return
 end
+end -- while
 
 --
 -- Ask user to enter id

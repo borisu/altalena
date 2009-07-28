@@ -169,7 +169,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (argc < 2)
 	{
 		cerr << "Usage: ivrworx.exe [configuration_file]" << std::endl;
-		cerr << "Starts lightweight IVR application." << std::endl;
+		cerr << "\tStarts lightweight IVR application." << std::endl;
 		cerr << "Trying default conf.json file...";
 
 		conf_file = L"conf.json";

@@ -34,7 +34,8 @@ namespace ivrworx
 	#define IW_LOG_LOG_COMPLETION_KEY	0
 	#define IW_LOG_EXIT_COMPLETION_KEY	1
 
-	
+	#define IW_MAX_MESSAGES_IN_QUEUE	1000
+
 
 	string 
 	FormatLastSysError(const char *lpszFunction) 
@@ -76,6 +77,9 @@ namespace ivrworx
 	}
 
 	mutex		g_loggerMutex;
+
+	HANDLE		g_queueSemaphore = NULL;
+
 	HANDLE		g_IocpLogger	= NULL;
 	HANDLE		g_loggerThread	= NULL;
 
@@ -140,6 +144,19 @@ namespace ivrworx
 		if (g_IocpLogger != NULL)
 		{
 			return TRUE;
+		}
+
+		g_queueSemaphore = ::CreateSemaphore(
+			NULL,
+			IW_MAX_MESSAGES_IN_QUEUE,
+			IW_MAX_MESSAGES_IN_QUEUE,NULL);
+
+		if (g_queueSemaphore == NULL)
+		{
+			string err = FormatLastSysError("CreateSemaphore");
+			std::cerr << "Cannot init logging - " << err;
+
+			return FALSE;
 		}
 
 		g_IocpLogger = 	::CreateIoCompletionPort(
@@ -347,6 +364,7 @@ namespace ivrworx
 	int 
 	basic_debugbuf::sync()
 	{
+		
 		LogBucket *lb = new LogBucket();
 
 		lb->log_level  = log_level;
@@ -356,6 +374,9 @@ namespace ivrworx
 		lb->log_str	   = str();
 		lb->script_log = script_log;
 
+		// Clear the string buffer
+		str(std::basic_string<char>());
+
 		if (::InterlockedExchangeAdd(( LONG *)&g_LogSyncMode,0) == TRUE)
 		{
 			mutex::scoped_lock scoped_lock(g_loggerMutex);
@@ -363,14 +384,24 @@ namespace ivrworx
 		}
 		else
 		{
-			::PostQueuedCompletionStatus(
+			DWORD res = ::WaitForSingleObject(
+				g_queueSemaphore,
+				INFINITE);
+
+			if (res != WAIT_OBJECT_0)
+			{
+				delete lb;
+				return 0;
+			}
+
+			res = ::PostQueuedCompletionStatus(
 				g_IocpLogger,
 				IW_LOG_LOG_COMPLETION_KEY,
 				0,
 				lb);
 		}
 
-		str(std::basic_string<char>());    // Clear the string buffer
+		    
 
 		return 0;
 	}
@@ -460,6 +491,7 @@ namespace ivrworx
 
 		delete lb;
 
+		
 
 	}
 
@@ -501,6 +533,8 @@ namespace ivrworx
 			LogBucket *lb = (LogBucket *)olap;
 
 			LogBucketAndDelete(lb);
+
+			::ReleaseSemaphore(g_queueSemaphore,1,NULL);
 
 			
 		}
