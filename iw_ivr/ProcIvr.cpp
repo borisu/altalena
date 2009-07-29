@@ -61,7 +61,9 @@ ProcIvr::real_run()
 	
 	IwMessagePtr event;
 
+	//
 	// Precompile files
+	//
 	if (_conf.Precompile())
 	{
 
@@ -74,15 +76,17 @@ ProcIvr::real_run()
 			throw critical_exception("Cannot precompile script");
 		}
 
-		res = 
-			LuaUtils::Precompile(_conf.SuperScript(),&_precompiledBuffer_Super, &_superSize);
-		if (IW_FAILURE(res))
+		if (_conf.SuperScript().empty() != false)
 		{
-			LogCrit("ProcIvr::real_run - Cannot precompile super script file res:" << res);
-			throw critical_exception("Cannot precompile super script");
-		}
-
-	}
+			res = 
+				LuaUtils::Precompile(_conf.SuperScript(),&_precompiledBuffer_Super, &_superSize);
+			if (IW_FAILURE(res))
+			{
+				LogCrit("ProcIvr::real_run - Cannot precompile super script file res:" << res);
+				throw critical_exception("Cannot precompile super script");
+			} //if failure precompiling
+		}//if super exists
+	}// if precompilation needed
 
 	START_FORKING_REGION;
 
@@ -107,9 +111,12 @@ ProcIvr::real_run()
 	// Run super script
 	//
 	DECLARE_NAMED_HANDLE_PAIR(super_script_handle);
-	AddShutdownListener(super_script_handle,_inbound);
-	
-	ProcScriptRunner *super_script_proc = 
+
+	if (_conf.SuperScript().empty() != false)
+	{
+		AddShutdownListener(super_script_handle,_inbound);
+
+		ProcScriptRunner *super_script_proc = 
 			new ProcScriptRunner(
 			_conf,								// configuration
 			_conf.SuperScript(),				// script name
@@ -120,15 +127,15 @@ ProcIvr::real_run()
 			super_script_handle					// handle created by stack for events
 			);
 
+		if (_conf.SuperMode() == "sync")
+		{
+			_waitingForSuperCompletion = TRUE;
+		} ;
+
+		FORK_IN_THIS_THREAD(super_script_proc);
+
+	}
 	
-
-	if (_conf.SuperMode() == "sync")
-	{
-		_waitingForSuperCompletion = TRUE;
-	} ;
-
-	FORK_IN_THIS_THREAD(super_script_proc);
-
 
 	HandlesList list = list_of(stack_pair.outbound)(_inbound);
 

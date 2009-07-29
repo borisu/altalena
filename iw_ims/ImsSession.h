@@ -39,17 +39,17 @@ namespace ivrworx
 
 		virtual ~ImsSession (void);
 
-		ApiErrorCode	AllocateIMSConnection();
+		virtual ApiErrorCode	AllocateIMSConnection();
 
-		ApiErrorCode	AllocateIMSConnection(
+		virtual ApiErrorCode	AllocateIMSConnection(
 			IN CnxInfo remote_end, 
 			IN MediaFormat codec);
 
-		ApiErrorCode	ModifyConnection(
+		virtual ApiErrorCode	ModifyConnection(
 			IN CnxInfo remote_end, 
 			IN MediaFormat codec);
 
-		ApiErrorCode	StopPlay();
+		virtual ApiErrorCode	StopPlay();
 
 		virtual ApiErrorCode PlayFile(
 			IN const string &file_name,
