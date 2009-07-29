@@ -39,8 +39,6 @@ namespace ivrworx
 	typedef 
 	boost::tokenizer<resip_conf_separator> resip_conf_tokenizer;
 
-	
-
 	ResipInterruptor::ResipInterruptor()
 	{
 
@@ -169,6 +167,15 @@ namespace ivrworx
 		{
 			
 			
+			//
+			// Prepare interruptor
+			//
+			_handleInterruptor = ResipInterruptorPtr(new ResipInterruptor());
+			_inbound->HandleInterruptor(_handleInterruptor);
+
+			//
+			// Prepare SIP stack
+			//
 			CnxInfo ipAddr = _conf.IvrCnxInfo();
 
 			_stack->addTransport(
@@ -193,6 +200,18 @@ namespace ivrworx
 				Data::Empty,
 				SecurityTypes::TLSv1 );
 
+
+			//
+			// Prepare thread
+			//
+			_stackThread = InterruptableStackThreadPtr(
+				new InterruptableStackThread(*_stack,*_handleInterruptor));
+
+
+
+			//
+			// Prepare DUM handlers
+			//
 			_dumMngr  = DialogUsageManagerPtr(new DialogUsageManager(*_stack));
 
 			string uasUri = "sip:" + _conf.From() + "@" + ipAddr.ipporttos();
@@ -266,8 +285,8 @@ namespace ivrworx
 				*this,
 				*_dumMngr));
 
-			_handleInterruptor = ResipInterruptorPtr(new ResipInterruptor());
-			_inbound->HandleInterruptor(_handleInterruptor);
+			
+			_stackThread->run();
 
 			return API_SUCCESS;
 
@@ -312,7 +331,8 @@ namespace ivrworx
 		_shutDownFlag = true;
 
  		_dumMngr->forceShutdown(NULL);
-
+		_stackThread->shutdown();
+		_stackThread->join();
 		_stack->shutdown();
 	}
 
@@ -360,7 +380,7 @@ namespace ivrworx
 	}
 
 	bool 
-	ProcSipStack::ProcessIwMessages()
+	ProcSipStack::ProcessApplicationMessages()
 	{
 
 		FUNCTRACKER;
@@ -437,8 +457,10 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		if (Init() != API_SUCCESS)
+		ApiErrorCode res = Init();
+		if (IW_FAILURE(res))
 		{
+			LogCrit("Cannot start sip stack res:" << res);
 			return;
 		}
 
@@ -466,7 +488,7 @@ namespace ivrworx
 			_stack->process(fdset);
 			while(_dumMngr->process());
 
-			shutdown_flag = ProcessIwMessages();
+			shutdown_flag = ProcessApplicationMessages();
 			if (shutdown_flag)
 			{
 				break;

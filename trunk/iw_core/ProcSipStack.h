@@ -65,6 +65,8 @@ namespace ivrworx
 	typedef
 	shared_ptr<SipStack> SipStackPtr;		
 
+	typedef
+	shared_ptr<InterruptableStackThread> InterruptableStackThreadPtr;
 
 	class ResipInterruptor
 		:public WaitInterruptor, 
@@ -160,13 +162,13 @@ namespace ivrworx
 
 	protected:
 
-		virtual bool ProcessIwMessages();
+		virtual bool ProcessApplicationMessages();
 
-		bool _shutDownFlag;
 
+		//
+		// Configuration & logging
+		//
 		IwResipLogger _logger;
-
-		ResipInterruptorPtr _handleInterruptor;
 
 		Configuration &_conf;
 
@@ -175,24 +177,32 @@ namespace ivrworx
 
 		ConfSessionTimerModeMap _confSessionTimerModeMap;
 
+		//
+		// Resiprocate objects
+		//
+		ResipInterruptorPtr _handleInterruptor;
 
 		SipStackPtr _stack;
+
+		InterruptableStackThreadPtr _stackThread;
+
+		
+		//
+		// Application objects
+		//
+		bool _shutDownFlag;
 
 		IwHandlesMap _iwHandlesMap;
 
 		ResipDialogHandlesMap _resipHandlesMap;
 
-		typedef
-		shared_ptr<DialogUsageManager> DialogUsageManagerPtr;
 		DialogUsageManagerPtr _dumMngr;
 
 		UACDialogUsageManagerPtr _dumUac;
 
 		UASDialogUsageManagerPtr _dumUas;
 
-		
 
-		
 
 	};
 
