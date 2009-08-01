@@ -82,6 +82,9 @@ namespace ivrworx
 	Almost all session classes are using this logic to provide the callback for 
 	unsolicited events.
 
+	You have to stop active object fiber in dtor of inheriting classes, otherwise race
+	condition may occur and cause code invokation on partially deleted classes.
+
 	**/
 
 	class ActiveObject: 
@@ -106,6 +109,13 @@ namespace ivrworx
 		
 		*/
 		virtual void StartActiveObjectLwProc(IN ScopedForking &forking, IN LpHandlePair pair, IN const string &name);
+
+		/**
+
+		Stops the listening light process. Must be called in dtor of inheriting class
+
+		*/
+		virtual void StopActiveObjectLwProc();
 
 		
 		/**

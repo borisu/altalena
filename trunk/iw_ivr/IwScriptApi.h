@@ -26,6 +26,12 @@
 namespace ivrworx
 {
 
+	enum ScriptState
+	{
+		SCRIPT_STATE_NORMAL,
+		SCRIPT_STATE_RUNNING_LONG_OPERATION
+	};
+
 /**
 Core ivrworx &reg; lua interface for script that handles incoming call.
 **/
@@ -137,9 +143,6 @@ protected:
 	**/
 	int LuaStopPlay(CLuaVirtualMachine& vm);
 
-
-
-
 protected:
 
 	CLuaVirtualMachine &_vmPtr;
@@ -157,6 +160,8 @@ protected:
 	map<HandleId,CallPtr> CallMap;
 
 	CallMap _callMap;
+
+	ScriptState _scriptState;
 
 private:
 

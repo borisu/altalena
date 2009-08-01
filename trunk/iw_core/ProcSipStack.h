@@ -50,48 +50,53 @@ namespace ivrworx
 	};
 
 
-	typedef
-	SharedPtr<DialogUsageManager> DialogUsageManagerPtr;
+	// this trick only to make queue member available
+	class IwDialogUsageManager: public DialogUsageManager
+	{
+		IwDialogUsageManager(SipStack &sipStack):
+	DialogUsageManager(sipStack){};
+	public:
+		friend class ResipInterruptor;
+		friend class ProcSipStack;
+
+		virtual ~IwDialogUsageManager(){};
+	};
 
 	typedef
-	shared_ptr<UASDialogUsageManager> UASDialogUsageManagerPtr;
+	SharedPtr<IwDialogUsageManager> IwDialogUsageManagerPtr;
 
-	typedef
-	shared_ptr<UACDialogUsageManager> UACDialogUsageManagerPtr;
-
-	typedef
-	shared_ptr<SelectInterruptor> SelectInterruptorPtr;
-
-	typedef
-	shared_ptr<SipStack> SipStackPtr;		
-
-	typedef
-	shared_ptr<InterruptableStackThread> InterruptableStackThreadPtr;
 
 	class ResipInterruptor
-		:public WaitInterruptor, 
-		public SelectInterruptor, 
-		public noncopyable
+		:public WaitInterruptor,
+		 public noncopyable
 	{
 
 	public:
 
-		ResipInterruptor();
+		ResipInterruptor(IwDialogUsageManager *dum);
 
 		virtual void SignalDataIn();
 
 		virtual void SignalDataOut();
+
+		virtual void Destroy();
+
+		virtual ~ResipInterruptor();
+
+	private:
+
+		IwDialogUsageManager* _dumPtr;
+
+		mutex _mutex;
 
 	};
 
 	typedef
 	shared_ptr<ResipInterruptor> ResipInterruptorPtr;
 
-
-
-
 	class ProcSipStack : 
-		public LightweightProcess, public SipSessionHandlerAdapter
+		public LightweightProcess, 
+		public SipSessionHandlerAdapter
 	{
 	public:
 
@@ -180,12 +185,12 @@ namespace ivrworx
 		//
 		// Resiprocate objects
 		//
-		ResipInterruptorPtr _handleInterruptor;
 
-		SipStackPtr _stack;
+		SelectInterruptor _si;
 
-		InterruptableStackThreadPtr _stackThread;
+		SipStack _stack;
 
+		InterruptableStackThread _stackThread;
 		
 		//
 		// Application objects
@@ -196,13 +201,15 @@ namespace ivrworx
 
 		ResipDialogHandlesMap _resipHandlesMap;
 
-		DialogUsageManagerPtr _dumMngr;
+		ResipInterruptorPtr _dumInt;
 
-		UACDialogUsageManagerPtr _dumUac;
+		IwDialogUsageManager _dumMngr;
 
-		UASDialogUsageManagerPtr _dumUas;
+		UASDialogUsageManager _dumUas;
 
+		UACDialogUsageManager _dumUac;
 
+		
 
 	};
 

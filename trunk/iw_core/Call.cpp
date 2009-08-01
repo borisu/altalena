@@ -19,7 +19,6 @@
 
 #include "StdAfx.h"
 #include "Call.h"
-#include "Profiler.h"
 #include "Logger.h"
 #include "ResipCommon.h"
 
@@ -43,7 +42,7 @@ _callState(CALL_STATE_UNKNOWN)
 
 	CALL_RESET_STATE(CALL_STATE_UNKNOWN);
 
-	StartActiveObjectLwProc(forking,_handlerPair,__FUNCTION__);
+	StartActiveObjectLwProc(forking,_handlerPair,"Call Session Handler");
 
 	_stackCallHandle = GenerateSipHandle();
 
@@ -104,8 +103,6 @@ Call::NegotiateMediaFormats(IN const MediaFormatsList &offered_medias,
 					  OUT MediaFormat &accepted_speech_format)
 {
 	FUNCTRACKER;
-
-	IX_PROFILE_FUNCTION();
 
 	for (MediaFormatsList::const_iterator i = offered_medias.begin();
 		i != offered_medias.end();
@@ -199,7 +196,11 @@ Call::~Call(void)
 {
 	FUNCTRACKER;
 
+	StopActiveObjectLwProc();
+
 	HangupCall();
+
+	
 }
 
 void 
@@ -280,9 +281,14 @@ Call::AcceptInitialOffer( IN const CnxInfo &local_connection,
 {
 	
 	FUNCTRACKER;
-	IX_PROFILE_FUNCTION();
-
+	
 	LogDebug("AcceptInitialOffer:: iwh:" << _stackCallHandle);
+
+	if (_callState != CALL_STATE_INITIAL_OFFERED)
+	{
+		LogDebug("AcceptInitialOffer:: wrong call state:" << _callState << ", iwh:" << _stackCallHandle);
+		return API_WRONG_STATE;
+	}
 
 	
 	_acceptedSpeechFormat = speech_codec;

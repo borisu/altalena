@@ -1,53 +1,58 @@
 require "ivrworx";
 require "play_phrase";
 
+--
+-- This functions will run when caller hangs up
+-- 
 function on_hangup()
  ivrworx.logdbg("remote hangup detected for script ani:"..linein["ani"]..", dnis:"..linein["dnis"]);
 end
 
---
--- This is only to test parallel execution in load (duplicates script logic)
---
---a = 1
--- ivrworx.run(function() a = 4 end )
--- ivrworx.loginf( "script>"..a)
 
+---
+--- INCOMING is handle of incoming call 
+---
 handle = INCOMING;
-
-ivrworx.answer();
-ivrworx.logdbg("script started ani:"..linein["ani"]..", dnis:"..linein["dnis"]);
+ivrworx.loginf("start incoming call");
 
 --
--- Play greetings
+-- Answer the calls (you may filter calls by ani)
 --
-res = ivrworx.play(handle,"test\\welcome-to-ivrworx.wav",true,false);
+res = ivrworx.answer();
 if (res ~= API_SUCCESS) then
-	ivrworx.loginf("Error playing welcome file - res:" .. res)
-	return
+	ivrworx.loginf("Error answering the call - res:" .. res);
+	return;
 end
+
+-- 
+-- Small example of running long operation in 
+-- separate thread (NOT in parallel).
+--
+-- a = 1
+-- ivrworx.run(function() a = 4; os.execute("pause"); end )
+-- ivrworx.loginf( "script>"..a)
+--
+
+ivrworx.logdbg("script started ani:"..linein["ani"]..", dnis:"..linein["dnis"]);
 
 if string.len(linein["ani"]) ~= 0 
 then
-	ivrworx.play(handle, "test\\your-ani-number-is.wav",true,false);
+	ivrworx.play(handle, "test\\your-callerid-is.wav",true,false);
 	play_phrase.spell(handle, linein["ani"]);
 end 
 
-if string.len(linein["dnis"]) ~= 0 
-then
-	ivrworx.play(handle, "test\\your-dnis-number-is.wav",true,false);
-	play_phrase.spell(handle, linein["dnis"]);
-end 
+--if string.len(linein["dnis"]) ~= 0 
+--then
+--	ivrworx.play(handle, "test\\your-callerid-is..wav",true,false);
+--	play_phrase.spell(handle, linein["dnis"]);
+--end 
 
 
 --
 -- Ask user to enter id
 --
-res = ivrworx.play(handle,"test\\press-your-id-number-followed-by-pound-key.wav",false,false);
+ivrworx.play(handle,"test\\vm-enter-num-to-call.wav",true,false);
 playing = true;
-if (res ~= API_SUCCESS) then
-	ivrworx.loginf("Error playing `pres...` file - res:" .. res)
-	return
-end
 
 
 local dtmf = ""
@@ -62,12 +67,11 @@ while dtmf ~= "#" do
 	res,int_dtmf = ivrworx.wait_for_dtmf(handle,20000);
 	
 	
-	
  	if (res == API_TIMEOUT) then
  	--
 	-- If timeout play request again
 	--
-     	ivrworx.play(handle,"test\\press-your-id-number-followed-by-pound-key.wav",true,false);
+     	res = ivrworx.play(handle,"test\\vm-enter-num-to-call.wav",true,false);
      	playing = true;
      	if (res ~= API_SUCCESS) then
 			ivrworx.loginf("Error playing `pres...` file - res:" .. res)
@@ -77,18 +81,22 @@ while dtmf ~= "#" do
     --
 	-- Add received dtmf to the buffer and stop playing
 	--
-		if (playing == true) then ivrworx.stop_play(handle); playing = false; end;
+		if (playing == true) then 
+		  ivrworx.stop_play(handle); 
+		  playing = false; 
+		end;
+		
 		dtmf = string.char(int_dtmf);
     	ivrworx.logdbg("received dtmf:"..dtmf);
 		dtmf_str = dtmf_str..dtmf;
+		
 	end;
 end
-
 
 --
 -- Replay id number to user
 -- 
-res = ivrworx.play(handle,"test\\your-id-number-is.wav",true,false);
+res = ivrworx.play(handle,"test\\vm-extension.wav",true,false);
 if (res ~= API_SUCCESS) then
 	ivrworx.loginf("Error playing `your-id...` file - res:" .. res)
 	return
@@ -96,7 +104,13 @@ end
 
 play_phrase.spell(handle,dtmf_str);
 
-ivrworx.play(handle, "test\\goodbye.wav",true,false);
+res = ivrworx.play(handle,"test\\vm-isunavail.wav",true,false);
+if (res ~= API_SUCCESS) then
+	ivrworx.loginf("Error playing `your-id...` file - res:" .. res)
+	return
+end
+
+ivrworx.play(handle, "test\\vm-goodbye.wav",true,false);
 if (res ~= API_SUCCESS) then
 	ivrworx.loginf("Error playing goodbye file - res:" .. res)
 	return

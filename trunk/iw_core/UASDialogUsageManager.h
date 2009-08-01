@@ -41,7 +41,7 @@ namespace ivrworx
 			IN Configuration &conf,
 			IN IwHandlesMap &ccu_handles_map,
 			IN ResipDialogHandlesMap &resipHandlesMap,
-			IN LightweightProcess &ccu_stack,
+			IN LpHandlePtr events_handle,
 			IN DialogUsageManager &dum);
 
 		virtual ~UASDialogUsageManager(void);
@@ -72,7 +72,7 @@ namespace ivrworx
 
 		IwHandlesMap &_refIwHandlesMap;
 
-		LightweightProcess &_sipStack;
+		LpHandlePtr _eventsHandle;
 
 		long _sdpVersionCounter;
 

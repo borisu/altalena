@@ -33,12 +33,12 @@ namespace ivrworx
 		IN Configuration &conf,
 		IN IwHandlesMap &handles_map,
 		IN ResipDialogHandlesMap &resipHandlesMap,
-		IN LightweightProcess &stack,
+		IN LpHandlePtr events_handle,
 		IN DialogUsageManager &dum):
 		_conf(conf),
 		_resipHandlesMap(resipHandlesMap),
 		_refIwHandlesMap(handles_map),
-		_sipStack(stack),
+		_eventsHandle(events_handle),
 		_dum(dum)
 	{
 
@@ -292,7 +292,7 @@ namespace ivrworx
 		} 
 		else
 		{
-			_sipStack._outbound->Send(offered);
+			_eventsHandle->Send(offered);
 		}
 		
 
@@ -321,7 +321,7 @@ namespace ivrworx
 			new MsgNewCallConnected();
 
 
-		_sipStack.SendResponse(
+		GetCurrLightWeightProc()->SendResponse(
 			((UASAppDialogSet *)is->getAppDialogSet().get())->_makeCallAck, 
 			conn_msg);
 

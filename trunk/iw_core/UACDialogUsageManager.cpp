@@ -36,7 +36,6 @@ namespace ivrworx
 		IN Configuration &conf,
 		IN IwHandlesMap &ccu_handles_map,
 		IN ResipDialogHandlesMap &resip_handles_map,
-		IN LightweightProcess &ccu_stack,
 		IN DialogUsageManager &dum):
 		_conf(conf),
 		_dum(dum),
@@ -57,12 +56,12 @@ namespace ivrworx
 
 		IwStackHandle handle = hangup_msg->stack_call_handle;
 
-		LogWarn("UACDialogUsageManager::UponHangupReq iwh:" << hangup_msg->stack_call_handle);
+		LogDebug("UACDialogUsageManager::UponHangupReq iwh:" << hangup_msg->stack_call_handle);
 
 		IwHandlesMap::iterator iter = _iwHandlesMap.find(handle);
 		if (iter == _iwHandlesMap.end())
 		{
-			LogWarn("UACDialogUsageManager::UponHangupReq - the call iwh:" << hangup_msg->stack_call_handle << " already hanged up.");
+			LogDebug("UACDialogUsageManager::UponHangupReq - the call iwh:" << hangup_msg->stack_call_handle << " already hanged up.");
 			return;
 		}
 
@@ -256,7 +255,7 @@ namespace ivrworx
 				&sdp, 
 				uac_dialog_set); 
 
-
+			
 			_dum.send(invite_session);
 
 			ctx_ptr->stack_handle = GenerateSipHandle();
@@ -285,7 +284,14 @@ namespace ivrworx
 		SipDialogContextPtr ctx_ptr = ((UACAppDialogSet*)(s->getAppDialogSet().get()))->_ptr;
 		ctx_ptr->uac_invite_handle = s;
 
+		
+		ctx_ptr->invite_handle =_dum.findInviteSession(s->getAppDialog()->getDialogId());
+		if (!ctx_ptr->invite_handle.isValid())
+		{
+			LogWarn("Invalid invite handle");
+		}
 
+		
 		//
 		// put them in maps
 		//
@@ -313,11 +319,13 @@ namespace ivrworx
 		}
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
-		InviteSessionHandle invite_handle = ctx_ptr->invite_handle;
 
-		if (invite_handle->isConnected() == false)
+		InviteSessionHandle invite_handle_to_replace = ctx_ptr->invite_handle;
+		
+
+		if (!invite_handle_to_replace.isValid() || invite_handle_to_replace->isConnected() == false)
 		{
-			LogWarn("Cannot xfer in not connected state, " << LogHandleState(ctx_ptr, invite_handle))
+			LogWarn("Cannot xfer in not connected state, " << LogHandleState(ctx_ptr, invite_handle_to_replace))
 				GetCurrLightWeightProc()->SendResponse(
 				req,
 				new MsgCallBlindXferNack());
@@ -326,16 +334,16 @@ namespace ivrworx
 		}
 
 
-		LogDebug("UponBlindXferReq:: dst:" << xfer_req->destination_uri << ", " << LogHandleState(ctx_ptr, invite_handle));
+		LogDebug("UponBlindXferReq:: dst:" << xfer_req->destination_uri << ", " << LogHandleState(ctx_ptr, invite_handle_to_replace));
 
 		NameAddr name_addr(xfer_req->destination_uri.c_str());
-		invite_handle->refer(name_addr,false);
+		invite_handle_to_replace->refer(name_addr,false);
 
 		GetCurrLightWeightProc()->SendResponse(
 			req,
 			new MsgCallBlindXferAck());
 
-		invite_handle->end();
+		invite_handle_to_replace->end();
 
 	}
 

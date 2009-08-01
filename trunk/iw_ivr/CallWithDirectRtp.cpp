@@ -47,6 +47,12 @@ namespace ivrworx
 	CallWithDirectRtp::AcceptInitialOffer()
 	{
 		FUNCTRACKER;
+
+		if (_callState != CALL_STATE_INITIAL_OFFERED)
+		{
+			LogDebug("CallWithDirectRtp::AcceptInitialOffer wrong call state:" << _callState << ", iwh:" << _stackCallHandle);
+			return API_WRONG_STATE;
+		}
 		
 		MediaFormatsList accepted_media_formats;
 		MediaFormat speech_media_format = MediaFormat::PCMU;
