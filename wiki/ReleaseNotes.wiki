@@ -1,5 +1,16 @@
 #summary Release Notes
 
+= ivrworx 1.0.5-alpha-dbg =
+----
+=== What's new in this version ===
+
+ * Mainly stability build, though there is lot to do. :(
+
+ * Added precompiling lua scripts.
+
+ * Several bug fixes
+ 
+
 = ivrworx 1.0.4-alpha-dbg =
 ----
 === What's new in this version ===
