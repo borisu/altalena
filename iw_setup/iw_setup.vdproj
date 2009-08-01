@@ -39,12 +39,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_0E167FD11BEF424D9B92AF893D80240F"
-        "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_0E54E0EC21774C91885130E0F801148F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -75,7 +69,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_184693BF68614A928DDED3991A562C70"
+        "MsmKey" = "8:_1B026A4D69624D2983BF005B5E562C1F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -105,6 +99,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_26F84831ED9F488899ECDFA2EBFEF48E"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_2C6167D3A4F353B469BD30CA8EFAC921"
         "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
         "MsmSig" = "8:_UNDEFINED"
@@ -117,13 +117,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_34770F6FA0C8470FBC3ED73A435682A2"
+        "MsmKey" = "8:_35F29125A564467AB4F7C1C0A2917E5C"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_35F29125A564467AB4F7C1C0A2917E5C"
+        "MsmKey" = "8:_3C3CE0C555C648E1B29D02CECF56AA87"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -148,6 +148,12 @@
         "Entry"
         {
         "MsmKey" = "8:_4C5641A93BDB42ACBB58DC44BAC2C3E2"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_4DD7FE735EEA46CA9047F9028B751BFF"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -225,18 +231,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_62856AEA51534B8594AAABDD2F53E9AF"
-        "OwnerKey" = "8:_0E167FD11BEF424D9B92AF893D80240F"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_67EA44531FB44ABD9B5C2C6C994D0CBD"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_681C9791A40745EBBCBCDC508F29D875"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -281,12 +275,6 @@
         {
         "MsmKey" = "8:_7F674085FA6842F88E5FB5F4AC965A4D"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_7FB05E5A86EAF8DF3A0989B9CF9AB82A"
-        "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -345,19 +333,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_8BB9D3A03BA94628AE15F60E46476F51"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_907B6E564233446899807ACB4B5D21B4"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_91233E6D76080D29738B82EFA492733D"
+        "MsmKey" = "8:_9137AF632E91AB3DE66989F94B22C37F"
         "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -376,6 +358,12 @@
         "Entry"
         {
         "MsmKey" = "8:_96D485BA212B4095B6FDA59C8D1A874D"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_98D4E51AFDBF4573B1C531020E5C9EF6"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -435,6 +423,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_B2CD6B463A936DCAFF8C1AA295308C4A"
+        "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_B308D8B74A5A4E1890872B37DE38DAC3"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -448,12 +442,6 @@
         "Entry"
         {
         "MsmKey" = "8:_B469105966BC4687A189323D38563236"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_B8B29942B4F24560829333E616668B5F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -473,6 +461,12 @@
         {
         "MsmKey" = "8:_BEF9617E3BD44D64AD84C2676856413A"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C18BC531E87847F8A87E0004FDD2CCA0"
+        "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -508,12 +502,6 @@
         "Entry"
         {
         "MsmKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_C6111145D3774CF991BDB5BC29A5D381"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -561,6 +549,18 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_D32CA38B802B4D918B5B734D912447B0"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_D4519140132141B881B19386306C8078"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_D6C9F0B8BDA6467DBE0316219785924B"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -597,6 +597,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_DAC2A6CB2AE04ED6BAABDD95D99B208B"
+        "OwnerKey" = "8:_C18BC531E87847F8A87E0004FDD2CCA0"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_E3983919FDAB4E40BA2DBAB6B5BFBB72"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -610,6 +616,12 @@
         "Entry"
         {
         "MsmKey" = "8:_EA166351501F4F5DAACCF3D0B1BE8593"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EA750D6C615E4BBD9C2657C289F6DE68"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -645,7 +657,7 @@
         "DisplayName" = "8:Debug"
         "IsDebugOnly" = "11:TRUE"
         "IsReleaseOnly" = "11:FALSE"
-        "OutputFilename" = "8:Debug\\ivrworx-alpha-1.0.4-dbg.msi"
+        "OutputFilename" = "8:Debug\\ivrworx-alpha-1.0.5-dbg.msi"
         "PackageFilesAs" = "3:2"
         "PackageFileSize" = "3:-2147483648"
         "CabType" = "3:1"
@@ -936,10 +948,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_184693BF68614A928DDED3991A562C70"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1B026A4D69624D2983BF005B5E562C1F"
             {
-            "SourcePath" = "8:..\\iw_run\\sounds\\test\\your-id-number-is.wav"
-            "TargetName" = "8:your-id-number-is.wav"
+            "SourcePath" = "8:..\\iw_run\\sounds\\test\\enter-ext-of-person.wav"
+            "TargetName" = "8:enter-ext-of-person.wav"
             "Tag" = "8:"
             "Folder" = "8:_E869E95A97DA487289403291BF3DC457"
             "Condition" = "8:"
@@ -1036,6 +1048,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_26F84831ED9F488899ECDFA2EBFEF48E"
+            {
+            "SourcePath" = "8:..\\iw_run\\sounds\\test\\vm-extension.wav"
+            "TargetName" = "8:vm-extension.wav"
+            "Tag" = "8:"
+            "Folder" = "8:_E869E95A97DA487289403291BF3DC457"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2C6167D3A4F353B469BD30CA8EFAC921"
             {
             "SourcePath" = "8:iphlpapi.dll"
@@ -1076,12 +1108,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_34770F6FA0C8470FBC3ED73A435682A2"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_35F29125A564467AB4F7C1C0A2917E5C"
             {
-            "SourcePath" = "8:..\\iw_run\\sounds\\test\\your-ani-number-is.wav"
-            "TargetName" = "8:your-ani-number-is.wav"
+            "SourcePath" = "8:..\\iw_run\\sounds\\basic_words\\numbers\\13.wav"
+            "TargetName" = "8:13.wav"
             "Tag" = "8:"
-            "Folder" = "8:_E869E95A97DA487289403291BF3DC457"
+            "Folder" = "8:_EF0EB97B4B314F8398AF748B76113C77"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1096,12 +1128,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_35F29125A564467AB4F7C1C0A2917E5C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3C3CE0C555C648E1B29D02CECF56AA87"
             {
-            "SourcePath" = "8:..\\iw_run\\sounds\\basic_words\\numbers\\13.wav"
-            "TargetName" = "8:13.wav"
+            "SourcePath" = "8:..\\iw_run\\sounds\\test\\vm-isunavail.wav"
+            "TargetName" = "8:vm-isunavail.wav"
             "Tag" = "8:"
-            "Folder" = "8:_EF0EB97B4B314F8398AF748B76113C77"
+            "Folder" = "8:_E869E95A97DA487289403291BF3DC457"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1182,6 +1214,26 @@
             "TargetName" = "8:2.wav"
             "Tag" = "8:"
             "Folder" = "8:_EF0EB97B4B314F8398AF748B76113C77"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4DD7FE735EEA46CA9047F9028B751BFF"
+            {
+            "SourcePath" = "8:..\\iw_run\\sounds\\test\\your-callerid-is.wav"
+            "TargetName" = "8:your-callerid-is.wav"
+            "Tag" = "8:"
+            "Folder" = "8:_E869E95A97DA487289403291BF3DC457"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1436,26 +1488,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_67EA44531FB44ABD9B5C2C6C994D0CBD"
-            {
-            "SourcePath" = "8:..\\iw_run\\sounds\\test\\goodbye.wav"
-            "TargetName" = "8:goodbye.wav"
-            "Tag" = "8:"
-            "Folder" = "8:_E869E95A97DA487289403291BF3DC457"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_681C9791A40745EBBCBCDC508F29D875"
             {
             "SourcePath" = "8:..\\iw_run\\sounds\\basic_words\\numbers\\9.wav"
@@ -1614,26 +1646,6 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7FB05E5A86EAF8DF3A0989B9CF9AB82A"
-            {
-            "SourcePath" = "8:ortp.dll"
-            "TargetName" = "8:ortp.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_4297B6AD822A4AA893980396FC470571"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7FFC606719474882B714B325185253BF"
@@ -1816,26 +1828,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8BB9D3A03BA94628AE15F60E46476F51"
-            {
-            "SourcePath" = "8:..\\iw_run\\sounds\\test\\press-your-id-number-followed-by-pound-key.wav"
-            "TargetName" = "8:press-your-id-number-followed-by-pound-key.wav"
-            "Tag" = "8:"
-            "Folder" = "8:_E869E95A97DA487289403291BF3DC457"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_907B6E564233446899807ACB4B5D21B4"
             {
             "SourcePath" = "8:..\\iw_run\\sounds\\basic_words\\numbers\\mon-10.wav"
@@ -1856,7 +1848,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_91233E6D76080D29738B82EFA492733D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9137AF632E91AB3DE66989F94B22C37F"
             {
             "SourcePath" = "8:mediastreamer2.dll"
             "TargetName" = "8:mediastreamer2.dll"
@@ -1922,6 +1914,26 @@
             "TargetName" = "8:19.wav"
             "Tag" = "8:"
             "Folder" = "8:_EF0EB97B4B314F8398AF748B76113C77"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_98D4E51AFDBF4573B1C531020E5C9EF6"
+            {
+            "SourcePath" = "8:..\\iw_run\\sounds\\test\\vm-enter-num-to-call.wav"
+            "TargetName" = "8:vm-enter-num-to-call.wav"
+            "Tag" = "8:"
+            "Folder" = "8:_E869E95A97DA487289403291BF3DC457"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2116,6 +2128,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B2CD6B463A936DCAFF8C1AA295308C4A"
+            {
+            "SourcePath" = "8:ortp.dll"
+            "TargetName" = "8:ortp.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_4297B6AD822A4AA893980396FC470571"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B308D8B74A5A4E1890872B37DE38DAC3"
             {
             "SourcePath" = "8:..\\iw_run\\sounds\\basic_words\\numbers\\oh.wav"
@@ -2162,26 +2194,6 @@
             "TargetName" = "8:h-3.wav"
             "Tag" = "8:"
             "Folder" = "8:_EF0EB97B4B314F8398AF748B76113C77"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B8B29942B4F24560829333E616668B5F"
-            {
-            "SourcePath" = "8:..\\iw_run\\sounds\\test\\your-dnis-number-is.wav"
-            "TargetName" = "8:your-dnis-number-is.wav"
-            "Tag" = "8:"
-            "Folder" = "8:_E869E95A97DA487289403291BF3DC457"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2356,26 +2368,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C6111145D3774CF991BDB5BC29A5D381"
-            {
-            "SourcePath" = "8:..\\iw_run\\sounds\\test\\welcome-to-ivrworx.wav"
-            "TargetName" = "8:welcome-to-ivrworx.wav"
-            "Tag" = "8:"
-            "Folder" = "8:_E869E95A97DA487289403291BF3DC457"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CB76A664B4CB4783BAA1A86B7356A969"
             {
             "SourcePath" = "8:..\\iw_run\\sounds\\basic_words\\numbers\\20.wav"
@@ -2502,6 +2494,46 @@
             "TargetName" = "8:h-9.wav"
             "Tag" = "8:"
             "Folder" = "8:_EF0EB97B4B314F8398AF748B76113C77"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D32CA38B802B4D918B5B734D912447B0"
+            {
+            "SourcePath" = "8:..\\iw_run\\sounds\\test\\vm-goodbye.wav"
+            "TargetName" = "8:vm-goodbye.wav"
+            "Tag" = "8:"
+            "Folder" = "8:_E869E95A97DA487289403291BF3DC457"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D4519140132141B881B19386306C8078"
+            {
+            "SourcePath" = "8:..\\iw_run\\sounds\\test\\vm-then-pound.wav"
+            "TargetName" = "8:vm-then-pound.wav"
+            "Tag" = "8:"
+            "Folder" = "8:_E869E95A97DA487289403291BF3DC457"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2682,6 +2714,26 @@
             "TargetName" = "8:test.lua"
             "Tag" = "8:"
             "Folder" = "8:_D4664D1729B44852B779918AAD224757"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EA750D6C615E4BBD9C2657C289F6DE68"
+            {
+            "SourcePath" = "8:..\\iw_run\\sounds\\test\\auth-thankyou.wav"
+            "TargetName" = "8:auth-thankyou.wav"
+            "Tag" = "8:"
+            "Folder" = "8:_E869E95A97DA487289403291BF3DC457"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -3402,11 +3454,11 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_0E167FD11BEF424D9B92AF893D80240F"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_C18BC531E87847F8A87E0004FDD2CCA0"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:Microsoft_VC80_CRT_x86.msm"
+            "SourcePath" = "8:Microsoft_VC80_DebugCRT_x86.msm"
                 "Properties"
                 {
                 }
@@ -3416,11 +3468,11 @@
             "Feature" = "8:"
             "IsolateTo" = "8:"
             }
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_62856AEA51534B8594AAABDD2F53E9AF"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_DAC2A6CB2AE04ED6BAABDD95D99B208B"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:policy_8_0_microsoft_vc80_crt_x86.msm"
+            "SourcePath" = "8:policy_8_0_microsoft_vc80_debugcrt_x86.msm"
                 "Properties"
                 {
                 }
@@ -3463,7 +3515,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C5CA6E9F16A64CE199B7CF67EEF4E251"
             {
-            "SourcePath" = "8:..\\solutions\\altalena_all\\release\\iw_run.exe"
+            "SourcePath" = "8:..\\solutions\\altalena_all\\debug\\iw_run.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_4297B6AD822A4AA893980396FC470571"
