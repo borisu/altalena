@@ -39,20 +39,50 @@ namespace ivrworx
 	typedef 
 	boost::tokenizer<resip_conf_separator> resip_conf_tokenizer;
 
-	ResipInterruptor::ResipInterruptor()
+	ResipInterruptor::ResipInterruptor(IwDialogUsageManager *dum):
+	_dumPtr(dum)
 	{
+
+		
 
 	}
 
 	void 
 	ResipInterruptor::SignalDataIn()
 	{
-		interrupt();
+		
+		boost::mutex::scoped_lock lock(_mutex);
+
+		if (_dumPtr)
+		{
+			_dumPtr->mFifo.add(NULL, TimeLimitFifo<Message>::InternalElement);
+		}
+		
 	}
 
 	void 
 	ResipInterruptor::SignalDataOut()
 	{
+		
+
+
+	}
+
+	void 
+	ResipInterruptor::Destroy()
+	{
+		FUNCTRACKER;
+
+		boost::mutex::scoped_lock lock(_mutex);
+
+		_dumPtr = NULL;
+
+	}
+
+	 
+	ResipInterruptor::~ResipInterruptor()
+	{
+		FUNCTRACKER;
 
 	}
 
@@ -60,13 +90,17 @@ namespace ivrworx
 		IN Configuration &conf):
 		LightweightProcess(pair,SIP_STACK_Q,"SipStack"),
 		_shutDownFlag(false),
-		_conf(conf)
+		_conf(conf),
+		_stack(NULL, resip::DnsStub::EmptyNameserverList, &_si),
+		_stackThread(_stack,_si),
+		_dumMngr(_stack),
+		_dumUas(_conf,_iwHandlesMap,_resipHandlesMap,pair.outbound,_dumMngr),
+		_dumUac(_conf,_iwHandlesMap,_resipHandlesMap,_dumMngr)
+
 	{
 		FUNCTRACKER;
 
 		Log::initialize(Log::OnlyExternal, Log::Debug, NULL, _logger);
-		_stack = SipStackPtr(new SipStack());
-
 		SetResipLogLevel();
 				
 	}
@@ -168,17 +202,11 @@ namespace ivrworx
 			
 			
 			//
-			// Prepare interruptor
-			//
-			_handleInterruptor = ResipInterruptorPtr(new ResipInterruptor());
-			_inbound->HandleInterruptor(_handleInterruptor);
-
-			//
 			// Prepare SIP stack
 			//
 			CnxInfo ipAddr = _conf.IvrCnxInfo();
 
-			_stack->addTransport(
+			_stack.addTransport(
 				UDP,
 				ipAddr.port_ho(),
 				V4,
@@ -190,7 +218,7 @@ namespace ivrworx
 
 
 
-			_stack->addTransport(
+			_stack.addTransport(
 				TCP,
 				ipAddr.port_ho(),
 				V4,
@@ -202,35 +230,29 @@ namespace ivrworx
 
 
 			//
-			// Prepare thread
+			// Prepare interruptor
 			//
-			_stackThread = InterruptableStackThreadPtr(
-				new InterruptableStackThread(*_stack,*_handleInterruptor));
+			_dumInt = ResipInterruptorPtr(new ResipInterruptor(&_dumMngr));
+			_inbound->HandleInterruptor(_dumInt);
 
-
-
-			//
-			// Prepare DUM handlers
-			//
-			_dumMngr  = DialogUsageManagerPtr(new DialogUsageManager(*_stack));
 
 			string uasUri = "sip:" + _conf.From() + "@" + ipAddr.ipporttos();
 			NameAddr uasAor	(uasUri.c_str());
 
 
-			_dumMngr->setMasterProfile(SharedPtr<MasterProfile>(new MasterProfile()));
+			_dumMngr.setMasterProfile(SharedPtr<MasterProfile>(new MasterProfile()));
 
 			auto_ptr<ClientAuthManager> uasAuth (new ClientAuthManager());
-			_dumMngr->setClientAuthManager(uasAuth);
-			uasAuth.release();
+			_dumMngr.setClientAuthManager(uasAuth);
+			
 
-			_dumMngr->getMasterProfile()->setDefaultFrom(uasAor);
-			_dumMngr->getMasterProfile()->setDefaultRegistrationTime(70);
+			_dumMngr.getMasterProfile()->setDefaultFrom(uasAor);
+			_dumMngr.getMasterProfile()->setDefaultRegistrationTime(70);
 
 
 			if (_conf.EnableSessionTimer())
 			{
-				_dumMngr->getMasterProfile()->addSupportedOptionTag(Token(Symbols::Timer));
+				_dumMngr.getMasterProfile()->addSupportedOptionTag(Token(Symbols::Timer));
 
 				_confSessionTimerModeMap["prefer_uac"]	  = Profile::PreferUACRefreshes;
 				_confSessionTimerModeMap["prefer_uas"]	  = Profile::PreferUASRefreshes;
@@ -245,48 +267,27 @@ namespace ivrworx
 				else
 				{
 					LogInfo("Setting refresh mode to " << i->first);
-					_dumMngr->getMasterProfile()->setDefaultSessionTimerMode(i->second);
-					_dumMngr->getMasterProfile()->setDefaultSessionTime(_conf.SipDefaultSessionTime());
+					_dumMngr.getMasterProfile()->setDefaultSessionTimerMode(i->second);
+					_dumMngr.getMasterProfile()->setDefaultSessionTime(_conf.SipDefaultSessionTime());
 
 				}
 
 			}
 
-			_dumMngr->setClientRegistrationHandler(this);
-			_dumMngr->setInviteSessionHandler(this);
-			_dumMngr->addClientSubscriptionHandler("refer",this);
-			_dumMngr->addOutOfDialogHandler(OPTIONS, this);
+			_dumMngr.setClientRegistrationHandler(this);
+			_dumMngr.setInviteSessionHandler(this);
+			_dumMngr.addClientSubscriptionHandler("refer",this);
+			_dumMngr.addOutOfDialogHandler(OPTIONS, this);
 
 
 			auto_ptr<AppDialogSetFactory> uas_dsf(new UASAppDialogSetFactory());
-			_dumMngr->setAppDialogSetFactory(uas_dsf);
-			uas_dsf.release();
+			_dumMngr.setAppDialogSetFactory(uas_dsf);
+			
 
 			LogInfo("UAS started on " << ipAddr.ipporttos());
 
 
-			//
-			// UAS
-			//
-			_dumUas = UASDialogUsageManagerPtr(new UASDialogUsageManager(
-				_conf,
-				_iwHandlesMap,
-				_resipHandlesMap,
-				*this,
-				*_dumMngr));
-
-			//
-			// UAC
-			// 
-			_dumUac = UACDialogUsageManagerPtr(new UACDialogUsageManager(
-				_conf,
-				_iwHandlesMap,
-				_resipHandlesMap,
-				*this,
-				*_dumMngr));
-
-			
-			_stackThread->run();
+			_stackThread.run();
 
 			return API_SUCCESS;
 
@@ -304,7 +305,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUac->UponBlindXferReq(req);
+		_dumUac.UponBlindXferReq(req);
 
 	}
 
@@ -313,7 +314,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUac->UponHangupReq(ptr);
+		_dumUac.UponHangupReq(ptr);
 		
 		
 	}
@@ -330,10 +331,11 @@ namespace ivrworx
 
 		_shutDownFlag = true;
 
- 		_dumMngr->forceShutdown(NULL);
-		_stackThread->shutdown();
-		_stackThread->join();
-		_stack->shutdown();
+ 		_dumMngr.forceShutdown(NULL);
+		_stackThread.shutdown();
+		_stackThread.join();
+		_stack.shutdown();
+		_dumInt->Destroy();
 	}
 
 	void
@@ -350,7 +352,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUas->UponCallOfferedAck(req);
+		_dumUas.UponCallOfferedAck(req);
 
 	}
 
@@ -359,7 +361,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUas->UponCallOfferedNack(req);
+		_dumUas.UponCallOfferedNack(req);
 
 	}
 
@@ -368,7 +370,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUac->UponMakeCallReq(req);
+		_dumUac.UponMakeCallReq(req);
 	}
 
 	void
@@ -376,7 +378,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUac->UponMakeCallAckReq(req);
+		_dumUac.UponMakeCallAckReq(req);
 	}
 
 	bool 
@@ -469,31 +471,31 @@ namespace ivrworx
 		BOOL shutdown_flag = FALSE;
 		while (shutdown_flag == FALSE)
 		{
-			//IX_PROFILE_CHECK_INTERVAL(11000);
+			// ***
+			// IX_PROFILE_CHECK_INTERVAL(11000);
+			// ***
 
-			FdSet fdset;
-			_handleInterruptor->buildFdSet(fdset);
-			_stack->buildFdSet(fdset);
-
-
-
-			int ret = fdset.selectMilliSeconds(_stack->getTimeTillNextProcessMS());
-			if (ret < 0)
+			// taken from DumThread
+			std::auto_ptr<Message> msg(_dumMngr.mFifo.getNext(60000));  // Only need to wake up to see if we are shutdown
+			if (msg.get())
 			{
-				LogCrit("Error while selecting in sip stack res=[" << ret << "].");
-				throw;
-			}
-
-			_handleInterruptor->process(fdset);
-			_stack->process(fdset);
-			while(_dumMngr->process());
-
-			shutdown_flag = ProcessApplicationMessages();
-			if (shutdown_flag)
+				_dumMngr.internalProcess(msg);
+			} 
+			else
 			{
-				break;
+				if (InboundPending())
+				{
+					shutdown_flag = ProcessApplicationMessages();
+					if (shutdown_flag)
+					{
+						break;
+					}
+				}
+				else
+				{
+					LogInfo("Sip keep alive.");
+				}
 			}
-
 		}
 	}
 
@@ -504,7 +506,7 @@ namespace ivrworx
 		IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
-		_dumUac->onNewSession(s,oat,msg);
+		_dumUac.onNewSession(s,oat,msg);
 	}
 
 	void 
@@ -513,7 +515,7 @@ namespace ivrworx
 		IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
-		_dumUac->onConnected(is,msg);
+		_dumUac.onConnected(is,msg);
 	}
 
 
@@ -524,14 +526,14 @@ namespace ivrworx
 		IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
-		_dumUas->onNewSession(sis,oat,msg);
+		_dumUas.onNewSession(sis,oat,msg);
 	}
 
 	void 
 	ProcSipStack::onFailure(IN ClientInviteSessionHandle is, IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
-		_dumUac->onFailure(is,msg);
+		_dumUac.onFailure(is,msg);
 
 	}
 
@@ -547,7 +549,7 @@ namespace ivrworx
 		// it may be in first invite, or in response to empty invite
 		// in this case it is not correct to send it to uas.
 		// this case is not handled.
-		_dumUas->onOffer(is,msg,sdp);
+		_dumUas.onOffer(is,msg,sdp);
 	}
 
 	/// called when ACK (with out an answer) is received for initial invite (UAS)
@@ -558,7 +560,7 @@ namespace ivrworx
 	{
 
 		FUNCTRACKER;
-		_dumUas->onConnectedConfirmed(is,msg);
+		_dumUas.onConnectedConfirmed(is,msg);
 	}
 
 	void 
@@ -567,7 +569,7 @@ namespace ivrworx
 		IN const SipMessage& request)
 	{
 		FUNCTRACKER;
-		_dumUas->onReceivedRequest(ood,request);
+		_dumUas.onReceivedRequest(ood,request);
 	}
 
 	void 

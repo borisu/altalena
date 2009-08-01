@@ -34,7 +34,8 @@ IwScript::IwScript(IN ScopedForking &forking,
 				   _forking(forking),
 				   _vmPtr(vm),
 				   _confTable(vm),
-				   _conf(conf)
+				   _conf(conf),
+				   _scriptState(SCRIPT_STATE_NORMAL)
 {
 	FUNCTRACKER;
 
@@ -51,6 +52,7 @@ IwScript::IwScript(IN ScopedForking &forking,
 	IW_REGISTER_GLOBAL_VAR(vm,API_SUCCESS);
 	IW_REGISTER_GLOBAL_VAR(vm,API_TIMEOUT);
 	IW_REGISTER_GLOBAL_VAR(vm,API_WRONG_PARAMETER);
+	IW_REGISTER_GLOBAL_VAR(vm,API_WRONG_STATE);
 
 
 	_confTable.Create("conf");
@@ -149,9 +151,14 @@ int
 IwScript::LuaStopPlay(CLuaVirtualMachine& vm)
 {
 	FUNCTRACKER;
-	IX_PROFILE_FUNCTION();
-
+	
 	lua_State *state = (lua_State *) vm;
+
+	if (_scriptState != SCRIPT_STATE_NORMAL)
+	{
+		lua_pushnumber (state, API_WRONG_STATE);
+		return 1;
+	}
 
 	if (lua_isnumber(state, -1) != 1 )
 	{
@@ -184,6 +191,11 @@ IwScript::LuaStopPlay(CLuaVirtualMachine& vm)
 int
 IwScript::LuaRun(CLuaVirtualMachine& vm)
 {
+	if (_scriptState != SCRIPT_STATE_NORMAL)
+	{
+		return 0;
+	}
+	
 	lua_State *state = (lua_State *) vm;
 
 	if (lua_isfunction(state, -1) == 0 )
@@ -192,8 +204,12 @@ IwScript::LuaRun(CLuaVirtualMachine& vm)
 		return 0;
 	}
 
+	_scriptState = SCRIPT_STATE_RUNNING_LONG_OPERATION;
+
 	DECLARE_NAMED_HANDLE_PAIR(runner_pair);
 	csp::Run(new ProcBlockingOperationRunner(runner_pair,vm));
+
+	_scriptState = SCRIPT_STATE_NORMAL;
 
 	return 0;
 }
@@ -229,9 +245,15 @@ int
 IwScript::LuaMakeCall(CLuaVirtualMachine& vm)
 {
 	FUNCTRACKER;
-	IX_PROFILE_FUNCTION();
-
+	
 	lua_State *state = (lua_State *) vm;
+
+	if (_scriptState != SCRIPT_STATE_NORMAL)
+	{
+		lua_pushnumber (state, API_WRONG_STATE);
+		lua_pushnil(state);
+		return 2;
+	}
 
 	if (lua_isstring(state, -1) != 1 )
 	{
@@ -276,9 +298,15 @@ int
 IwScript::LuaHangupCall(CLuaVirtualMachine& vm)
 {
 	FUNCTRACKER;
-	IX_PROFILE_FUNCTION();
+	
 
 	lua_State *state = (lua_State *) vm;
+
+	if (_scriptState != SCRIPT_STATE_NORMAL)
+	{
+		lua_pushnumber (state, API_WRONG_STATE);
+		return 1;
+	}
 
 	if (lua_isnumber(state, -1) != 1 )
 	{
@@ -315,6 +343,12 @@ IwScript::LuaPlayFile(CLuaVirtualMachine& vm)
 	FUNCTRACKER;
 
 	lua_State *state = (lua_State *) vm;
+
+	if (_scriptState != SCRIPT_STATE_NORMAL)
+	{
+		lua_pushnumber (state, API_WRONG_STATE);
+		return 1;
+	}
 
 	if (lua_isnumber(state, -4) != 1 )
 	{
@@ -375,7 +409,16 @@ IwScript::LuaPlayFile(CLuaVirtualMachine& vm)
 int
 IwScript::LuaWaitForDtmf(CLuaVirtualMachine& vm)
 {
+	FUNCTRACKER;
+
 	lua_State *state = (lua_State *) vm;
+
+	if (_scriptState != SCRIPT_STATE_NORMAL)
+	{
+		lua_pushnumber (state, API_WRONG_STATE);
+		lua_pushnil(state);
+		return 2;
+	}
 
 	if (lua_isnumber(state, -2) != 1 )
 	{
@@ -429,7 +472,15 @@ IwScript::LuaWaitForDtmf(CLuaVirtualMachine& vm)
 int
 IwScript::LuaSendDtmf(CLuaVirtualMachine& vm)
 {
+	FUNCTRACKER;
+
 	lua_State *state = (lua_State *) vm;
+
+	if (_scriptState != SCRIPT_STATE_NORMAL)
+	{
+		lua_pushnumber (state, API_WRONG_STATE);
+		return 1;
+	}
 
 	if (lua_isnumber(state, -1) != 1 )
 	{
@@ -482,7 +533,15 @@ IwScript::LuaSendDtmf(CLuaVirtualMachine& vm)
 int
 IwScript::LuaBlindXfer(CLuaVirtualMachine& vm)
 {
+	FUNCTRACKER;
+
 	lua_State *state = (lua_State *) vm;
+
+	if (_scriptState != SCRIPT_STATE_NORMAL)
+	{
+		lua_pushnumber (state, API_WRONG_STATE);
+		return 1;
+	}
 
 	if (lua_isnumber(state, -2) != 1 )
 	{
@@ -494,7 +553,8 @@ IwScript::LuaBlindXfer(CLuaVirtualMachine& vm)
 	if (lua_isstring(state, -1) != 1 )
 	{
 		LogWarn("IwCallHandlerScript::LuaBlindXfer - destination para, of incorrect type");
-		return 0;
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
 	}
 
 	long handle = (long) lua_tonumber (state, -2);
@@ -514,6 +574,11 @@ IwScript::LuaBlindXfer(CLuaVirtualMachine& vm)
 	const char* destination = lua_tostring(state, -1);
 	ApiErrorCode res = call->BlindXfer(destination);
 
+	if (IW_SUCCESS(res))
+	{
+		_callMap.erase(iter);
+	}
+
 
 	lua_pushnumber (state, res);
 	return 1;
@@ -526,9 +591,14 @@ int
 IwScript::LuaWaitTillHangup(CLuaVirtualMachine& vm)
 {
 	FUNCTRACKER;
-	IX_PROFILE_FUNCTION();
 
 	lua_State *state = (lua_State *) vm;
+
+	if (_scriptState != SCRIPT_STATE_NORMAL)
+	{
+		lua_pushnumber (state, API_WRONG_STATE);
+		return 1;
+	}
 
 	if (lua_isnumber(state, -1) != 1 )
 	{
@@ -537,7 +607,7 @@ IwScript::LuaWaitTillHangup(CLuaVirtualMachine& vm)
 		return 1;
 	}
 
-	long handle = (long) lua_tonumber (state, -2);
+	long handle = (long) lua_tonumber (state, -1);
 
 	LogDebug("IwScript::LuaWaitTillHangup - iwh:" << handle);
 
@@ -564,8 +634,7 @@ int
 IwScript::LuaLog(CLuaVirtualMachine& vm)
 {
 	FUNCTRACKER;
-	IX_PROFILE_FUNCTION();
-
+	
 	lua_State *state = (lua_State *) vm;
 
 	if (lua_isnumber(state, -2) != 1 )
@@ -691,7 +760,7 @@ void
 IwCallHandlerScript::RunOnHangupScript()
 {
 	FUNCTRACKER;
-	IX_PROFILE_FUNCTION();
+	
 
 	LogDebug("Running hangup script call iwh:" << _incomingCallSession->StackCallHandle());
 
@@ -715,11 +784,16 @@ int
 IwCallHandlerScript::LuaAnswerCall(CLuaVirtualMachine& vm)
 {
 	FUNCTRACKER;
-	IX_PROFILE_FUNCTION();
 
 	LogDebug("Answer call iwh:" << _incomingCallSession->StackCallHandle());
 
 	lua_State *state = (lua_State *) vm;
+
+	if (_scriptState != SCRIPT_STATE_NORMAL)
+	{
+		lua_pushnumber (state, API_WRONG_STATE);
+		return 1;
+	}
 
 	ApiErrorCode res = _incomingCallSession->AcceptInitialOffer();
 	lua_pushnumber (state, res);

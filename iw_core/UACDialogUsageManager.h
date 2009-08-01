@@ -37,7 +37,6 @@ public:
 		IN Configuration &conf,
 		IN IwHandlesMap &ccu_handles_map,
 		IN ResipDialogHandlesMap &resip_handles_map,
-		IN LightweightProcess &ccu_stack,
 		IN DialogUsageManager &dum);
 
 	virtual ~UACDialogUsageManager(void);

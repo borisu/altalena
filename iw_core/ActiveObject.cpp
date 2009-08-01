@@ -32,22 +32,10 @@ namespace ivrworx
 
 	ActiveObject::~ActiveObject(void)
 	{
-		if (!_started)
-		{
-			return;
-		}
+		FUNCTRACKER;
 
-		_started = false;
-
-		_shutdownFlag = TRUE;
-		_handlePair.inbound->Send(new MsgShutdownReq());
-
-		// We must ensure that the process stops otherwise 
-		// it may use deleted objects.
-		if (_listenerBucket)
-		{
-			LightweightProcess::Join(_listenerBucket);
-		}
+		StopActiveObjectLwProc();
+		
 	}
 
 	void
@@ -69,6 +57,31 @@ namespace ivrworx
 		_listenerBucket = evt_listener->_bucket;
 
 		forking.forkInThisThread(evt_listener);
+	}
+
+	void
+	ActiveObject::StopActiveObjectLwProc()
+	{
+		FUNCTRACKER;
+
+		if (!_started)
+		{
+			return;
+		}
+
+		_started = false;
+
+		_shutdownFlag = TRUE;
+		_handlePair.inbound->Send(new MsgShutdownReq());
+
+		// We must ensure that the process stops otherwise 
+		// it may use deleted objects.
+		if (_listenerBucket)
+		{
+			LightweightProcess::Join(_listenerBucket);
+		}
+
+
 	}
 
 	void 

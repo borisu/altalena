@@ -44,12 +44,14 @@
 #include "resip/dum/AppDialog.hxx"
 #include "resip/dum/AppDialogSet.hxx"
 #include "resip/dum/AppDialogSetFactory.hxx"
+#include "resip/dum/DumThread.hxx"
 #include "rutil/Log.hxx"
 #include "rutil/Logger.hxx"
 #include "rutil/Random.hxx"
 #include "rutil/WinLeakCheck.hxx"
 #include "rutil/Data.hxx"
 #include "rutil/Subsystem.hxx"
+
 
 
 #include "json_spirit.h"

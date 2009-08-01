@@ -62,6 +62,8 @@ ImsSession::~ImsSession(void)
 {
 	FUNCTRACKER;
 
+	StopActiveObjectLwProc();
+
 	if (_imsSessionHandle != IW_UNDEFINED)
 	{
 		TearDown();
@@ -130,6 +132,7 @@ ImsSession::PlayFile(IN const string &file_name,
 	ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(IMS_Q,IwMessagePtr(msg));
 	if (IW_FAILURE(res))
 	{
+		LogDebug("Error sending play request to ims, imsh:" << _imsSessionHandle);
 		return res;
 	}
 
@@ -145,16 +148,20 @@ ImsSession::PlayFile(IN const string &file_name,
 
 		if (IW_FAILURE(res))
 		{
+			
+			LogDebug("Error receiving provisional response from ims, imsh:" << _imsSessionHandle);
 			return res;
 		}
 
 		if (handle_index == 1)
 		{
+			LogDebug("Hangup detected imsh:" << _imsSessionHandle);
 			return API_HANGUP;
 		}
 
 		if (response->message_id != MSG_START_PLAY_REQ_ACK)
 		{
+			LogDebug("Play request nacked by ims, imsh:" << _imsSessionHandle);
 			return API_FAILURE;
 		}
 
@@ -173,16 +180,19 @@ ImsSession::PlayFile(IN const string &file_name,
 
 	if (IW_FAILURE(res))
 	{
+		LogDebug("Error receiving ack response from ims, imsh:" << _imsSessionHandle);
 		return res;
 	}
 
 	if (handle_index == 1)
 	{
+		LogDebug("Hangup detected imsh:" << _imsSessionHandle);
 		return API_HANGUP;
 	}
 
 	if (response->message_id != MSG_IMS_PLAY_STOPPED)
 	{
+		LogDebug("Play request nacked by ims, imsh:" << _imsSessionHandle);
 		return API_FAILURE;
 	}
 

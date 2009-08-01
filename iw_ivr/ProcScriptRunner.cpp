@@ -60,7 +60,7 @@ namespace ivrworx
 
 	}
 
-	void 
+	BOOL 
 	ProcScriptRunner::RunScript(IwScript &script)
 	{
 
@@ -76,11 +76,7 @@ namespace ivrworx
 			res = script.CompileFile(_scriptName.c_str());
 		}
 
-		if (res == false)
-		{
-			LogWarn("Error compiling/running script:" << _conf.ScriptFile() << " ,iwh:" << _initialMsg->stack_call_handle);
-			return;
-		}
+		return res;
 
 	}
 
@@ -89,6 +85,8 @@ namespace ivrworx
 	{
 
 		FUNCTRACKER;
+
+		HandleId iwh = (_initialMsg ? _initialMsg->stack_call_handle : IW_UNDEFINED);
 
 		try
 		{
@@ -106,6 +104,8 @@ namespace ivrworx
 			START_FORKING_REGION;
 
 			IwScript *script = NULL;
+
+			
 
 			if (_initialMsg)
 			{
@@ -150,10 +150,10 @@ namespace ivrworx
 		}
 		catch (std::exception e)
 		{
-			LogWarn("Exception while running script:" << _conf.ScriptFile() <<", e:" << e.what() << ", iwh:" << _initialMsg->stack_call_handle);
+			LogWarn("Exception while running script:" << _conf.ScriptFile() <<", e:" << e.what() << ", iwh:" << iwh);
 		}
 
-		LogDebug("script:" << _conf.ScriptFile() << ", iwh:" << (_initialMsg ? _initialMsg->stack_call_handle : IW_UNDEFINED) << " completed successfully.");
+		LogDebug("script:" << _conf.ScriptFile() << ", iwh:" << iwh << " completed.") ;
 		
 	}
 

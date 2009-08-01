@@ -159,7 +159,7 @@ namespace ivrworx
 
 		virtual void real_run();
 
-		virtual void RunScript(IwScript &script);
+		virtual BOOL RunScript(IwScript &script);
 
 		virtual BOOL HandleOOBMessage(IN IwMessagePtr msg);
 
@@ -173,7 +173,7 @@ namespace ivrworx
 
 		int _stackHandle;
 
-		const string &_scriptName;
+		const string _scriptName;
 
 		const char *_precompiledBuffer;
 

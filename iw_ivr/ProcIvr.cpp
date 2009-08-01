@@ -112,7 +112,7 @@ ProcIvr::real_run()
 	//
 	DECLARE_NAMED_HANDLE_PAIR(super_script_handle);
 
-	if (_conf.SuperScript().empty() != false)
+	if (!_conf.SuperScript().empty())
 	{
 		AddShutdownListener(super_script_handle,_inbound);
 
@@ -275,7 +275,7 @@ ProcIvr::ProcessStackMessage(IN IwMessagePtr ptr, IN ScopedForking &forking)
 			FORK_IN_THIS_THREAD(
 					new ProcScriptRunner(
 						_conf,					// configuration
-						_conf.SuperScript(),	// script name
+						_conf.ScriptFile(),		// script name
 						_precompiledBuffer,		// precompiled buffer
 						_scriptSize,			// size of precompiled buffer
 						call_offered,			// initial incoming message

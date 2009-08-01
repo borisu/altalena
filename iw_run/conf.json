@@ -4,7 +4,7 @@
 	
 	"resip_log" : "TRANSPORT,DBG|SIP,DBG|DUM,DBG",
 	
-	"debug_level"  : "TRC",
+	"debug_level"  : "INF",
 	"debug_outputs" : "debug,console",
 	
 	"syslogd_host" : "127.0.0.1",
@@ -13,7 +13,7 @@
     "ivr_sip_host": "$COMPUTERNAME",
     "ivr_sip_port": 5060,
     
-    "precompile" : true,
+    "precompile" : false,
     "super_script": "scripts\\super.lua",
     "super_mode":   "sync",
     
