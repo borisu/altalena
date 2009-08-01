@@ -216,12 +216,12 @@ function play_number(handle,i)
 
 	if  (i == 0) 
 	then
-	  return  play_zero()
+	  return  play_zero(handle)
 	end
 
 	if (i < 0)
 	then
-	  return play_minus();
+	  return play_minus(handle);
 	end
 
 
