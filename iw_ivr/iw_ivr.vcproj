@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\iw_lanes;..\iw_core;..\iw_ims;..\lua5.1\include"
+				AdditionalIncludeDirectories="..\iw_lanes;..\iw_core;..\iw_ims;..\lua5.1\include;..\luasql;&quot;..\sqlite-amalgamation-3_6_17&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -326,6 +326,18 @@
 				RelativePath=".\LuaVirtualMachine.h"
 				>
 			</File>
+			<Filter
+				Name="luasqldrver"
+				>
+				<File
+					RelativePath=".\ls_sqlite3.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\ls_sqlite3.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="scriptapi"

@@ -43,5 +43,7 @@ extern "C"
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
+#include "luasql.h"
+#include "sqlite3.h"
 }
 

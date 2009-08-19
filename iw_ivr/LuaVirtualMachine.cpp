@@ -14,10 +14,9 @@
 //#include "luaLib/luainc.h"
 #include "StdAfx.h"
 #include "luavirtualmachine.h"
-#include <assert.h>
-#include <string.h>
-#include <stdio.h>
+#include "ls_sqlite3.h"
 #include "Profiler.h"
+
 
 using namespace ivrworx;
 
@@ -149,6 +148,7 @@ bool CLuaVirtualMachine::InitialiseVM (void)
 //       luaopen_debug (m_pState);
 //       luaopen_io (m_pState);
       luaL_openlibs (m_pState);
+	  luaopen_luasql_sqlite3(m_pState);
 //	  luaopen_lanes (m_pState); 
 	  
 
