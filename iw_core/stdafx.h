@@ -19,8 +19,11 @@
 #include <ws2tcpip.h>
 #include <stdarg.h>
 
+// sqlite
+#include <sqlite3.h>
 
-// ReSip
+
+// resiprocate
 #include "resip/stack/SdpContents.hxx"
 #include "resip/stack/SipMessage.hxx"
 #include "resip/stack/ShutdownMessage.hxx"

@@ -117,7 +117,8 @@ namespace ivrworx
 		IVR_Q,						
 		IMS_Q,
 		SIP_STACK_Q,
-		WAITER_Q
+		WAITER_Q,
+		SQLITE_Q
 	};
 
 	/**
