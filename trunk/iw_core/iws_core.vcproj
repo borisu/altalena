@@ -43,7 +43,7 @@
 				AdditionalOptions="/Zm200&#x0D;&#x0A;"
 				Optimization="0"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories="..\resiprocate\resiprocate;..\json_spirit\json_spirit_v2.06\json_spirit\"
+				AdditionalIncludeDirectories="&quot;..\sqlite-amalgamation-3_6_17&quot;;..\resiprocate\resiprocate;..\json_spirit\json_spirit_v2.06\json_spirit\"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -550,6 +550,33 @@
 			<File
 				RelativePath=".\UIDOwner.h"
 				>
+			</File>
+		</Filter>
+		<Filter
+			Name="sqlite"
+			>
+			<File
+				RelativePath=".\ProcSqlite.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ProcSqlite.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SqliteSession.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SqliteSession.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<File
