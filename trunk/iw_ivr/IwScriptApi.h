@@ -22,6 +22,7 @@
 #include "LuaScript.h"
 #include "LuaTable.h"
 #include "CallWithDirectRtp.h"
+#include "SqliteSession.h"
 
 namespace ivrworx
 {
@@ -34,6 +35,9 @@ namespace ivrworx
 
 /**
 Core ivrworx &reg; lua interface for script that handles incoming call.
+
+See @ref sql for more info on sql connectivity and db examples.
+
 **/
 class IwScript : 
 	public CLuaScript
@@ -42,7 +46,7 @@ public:
 
 	IwScript(
 		IN ScopedForking &forking,
-		IN Configuration &conf, 
+		IN Configuration &conf,
 		IN CLuaVirtualMachine &vm);
 
 	~IwScript();
@@ -177,7 +181,7 @@ public:
 	IwCallHandlerScript(
 		IN ScopedForking &forking,
 		IN Configuration &conf, 
-		IN CLuaVirtualMachine &vm, 
+		IN CLuaVirtualMachine &vm,
 		IN CallPtr call);
 
 
@@ -198,7 +202,6 @@ private:
 	int _methodBase;
 
 	LuaTable _lineInTable;
-
 
 	/**
 	ivrworx.accept - Accepts the call. Upon calling this function is script 200 response will be 

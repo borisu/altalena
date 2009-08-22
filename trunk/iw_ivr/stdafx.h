@@ -36,6 +36,7 @@
 #include "Call.h"
 #include "SipStackFactory.h"
 #include "ImsSession.h"
+#include "SqliteSession.h"
 
 
 extern "C"

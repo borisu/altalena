@@ -147,8 +147,12 @@ bool CLuaVirtualMachine::InitialiseVM (void)
 //       luaopen_math (m_pState);
 //       luaopen_debug (m_pState);
 //       luaopen_io (m_pState);
+
       luaL_openlibs (m_pState);
+
+	  // open sqlite and register sqlite session
 	  luaopen_luasql_sqlite3(m_pState);
+
 //	  luaopen_lanes (m_pState); 
 	  
 

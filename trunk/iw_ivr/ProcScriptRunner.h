@@ -79,6 +79,7 @@ Pay attention that ivrwox api cannot be used within such a block.
 
 The api that ivrworx provides to lua scripts is divided into two groups :-
 - Core functions which are bound to C functions. See documentation for ivrworx::IwScript class in order to see documentation for all exposed internal API. 
+You may also look at @ref sql for info on working with sqlite db.
 
 - Utility functions which are provided as additional lua scripts for example, play_phrase.lua exposes
 play_number function which only uses core play_file API. All parsing logic is implemented in lua script itself.

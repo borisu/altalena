@@ -102,11 +102,7 @@ namespace ivrworx
 			CLuaDebugger debugger(vm);
 			
 			START_FORKING_REGION;
-
-			IwScript *script = NULL;
-
-			
-
+	
 			if (_initialMsg)
 			{
 				_stackHandle = _initialMsg->stack_call_handle;

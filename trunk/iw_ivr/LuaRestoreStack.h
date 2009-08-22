@@ -14,7 +14,7 @@
 #ifndef __LUA_RESTORE_STACK_H__
 #define __LUA_RESTORE_STACK_H__
 
-//#include "lualib/luainc.h"
+#include "LuaVirtualMachine.h"
 
 class CLuaRestoreStack
 {
@@ -26,6 +26,12 @@ public:
       {
          m_iTop = lua_gettop (m_pState);
       }
+   }
+
+   CLuaRestoreStack (lua_State *state) : m_pState (NULL)
+   {
+	   m_pState = state;
+	   m_iTop = lua_gettop (m_pState);
    }
 
    virtual ~CLuaRestoreStack (void)
