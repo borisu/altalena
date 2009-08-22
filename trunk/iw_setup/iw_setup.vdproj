@@ -21,6 +21,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_06259B4CA63549A2AF79380BACDBFBF3"
+        "OwnerKey" = "8:_1E89C73B525B4FA0978904C7DA90F04C"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_074B543A05E64DE19010667F661A861D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -77,6 +83,12 @@
         {
         "MsmKey" = "8:_1CAE13C2974245AE8FEF4837B2406F6C"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_1E89C73B525B4FA0978904C7DA90F04C"
+        "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -465,12 +477,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_C18BC531E87847F8A87E0004FDD2CCA0"
-        "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_C19A350435784CCFB2A750DB937CB0F1"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -597,12 +603,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_DAC2A6CB2AE04ED6BAABDD95D99B208B"
-        "OwnerKey" = "8:_C18BC531E87847F8A87E0004FDD2CCA0"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_E3983919FDAB4E40BA2DBAB6B5BFBB72"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -657,7 +657,7 @@
         "DisplayName" = "8:Debug"
         "IsDebugOnly" = "11:TRUE"
         "IsReleaseOnly" = "11:FALSE"
-        "OutputFilename" = "8:Debug\\ivrworx-alpha-1.0.5-dbg.msi"
+        "OutputFilename" = "8:Debug\\ivrworx-alpha-1.0.6-dbg.msi"
         "PackageFilesAs" = "3:2"
         "PackageFileSize" = "3:-2147483648"
         "CabType" = "3:1"
@@ -3454,11 +3454,11 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_C18BC531E87847F8A87E0004FDD2CCA0"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_06259B4CA63549A2AF79380BACDBFBF3"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:Microsoft_VC80_DebugCRT_x86.msm"
+            "SourcePath" = "8:policy_8_0_microsoft_vc80_debugcrt_x86.msm"
                 "Properties"
                 {
                 }
@@ -3468,11 +3468,11 @@
             "Feature" = "8:"
             "IsolateTo" = "8:"
             }
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_DAC2A6CB2AE04ED6BAABDD95D99B208B"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_1E89C73B525B4FA0978904C7DA90F04C"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:policy_8_0_microsoft_vc80_debugcrt_x86.msm"
+            "SourcePath" = "8:Microsoft_VC80_DebugCRT_x86.msm"
                 "Properties"
                 {
                 }
