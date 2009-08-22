@@ -18,64 +18,296 @@
 */
 #pragma once
 #include "Message.h"
+#include "sqlite3.h"
+
+/**
+@defgroup sql SQL Connectivity
+
+@section Lua Scripts SQL Connectivity
+
+In order to supply fiber non blocking SQL connectivity to the scripts, 
+<A HREF="http://www.keplerproject.org/luasql/">Lua SQL</A> libarary was 
+extended with sqlite driver. Of cause, you may use any lua sql driver you like, but running long sql 
+queries will block all fibers in the main thread.
+
+IwWorx sqlite driver outsources the long operation to a different thread by thus making fiber
+reschedule possible while waiting for results. Any api available for lua sql is available for
+ivrworx driver also.
+
+Working with sqlite db is as simple as
+
+@code
+ env = assert(luasql.sqlite3());
+ con = assert(env:connect("voice.db"))
+ cur = assert(con:execute"SELECT * FROM users")
+
+ row = cur:fetch ({}, "a")
+ while row do
+   ivrworx.loginf(string.format("user: %s, password: %s", row.login, row.password))
+   -- reusing the table of results
+   row = cur:fetch (row, "a")
+ end
+ -- close everything
+ cur:close()
+ con:close()
+ env:close()
+@endcode
+
+
+**/
+
+
 
 namespace ivrworx
 {
 	enum SqlEvts
 	{
 		MSG_SQL_OPEN_CONNECTION_REQ = MSG_USER_DEFINED,
-		MSG_SQL_OPEN_CONNECTION_ACK
+		MSG_SQL_OPEN_CONNECTION_ACK,
+		MSG_SQL_OPEN_CONNECTION_NACK,
+		MSG_SQL_CLOSE_CONNECTION_REQ,
+		MSG_SQL_EXEC_REQ,
+		MSG_SQL_EXEC_ACK,
+		MSG_SQL_EXEC_NACK,
+		MSG_SQL_STEP_REQ,
+		MSG_SQL_STEP_ACK,
+		MSG_SQL_STEP_NACK,
+		MSG_SQL_FINALIZE_REQ,
+		MSG_SQL_RESET_REQ
+	};
+
+
+	class MsgSqlMixin
+	{
+	public:
+
+		MsgSqlMixin(): db(NULL),rc(IW_UNDEFINED),session_id(IW_UNDEFINED){};
+
+		struct sqlite3 *db;
+
+		int rc;
+
+		int session_id;
+
+		virtual void copy_data_on_response(IN IwMessage *request)
+		{
+			MsgSqlMixin *req = 
+				dynamic_cast<MsgSqlMixin*>(request);
+
+			db		   = req->db != NULL ? req->db : db;
+			session_id = req->session_id != IW_UNDEFINED ? req->session_id : session_id ;
+		}
+
 	};
 
 	
 	class MsgSqlOpenConnectionReq: 
-		public MsgRequest
+		public MsgSqlMixin, public MsgRequest
 	{
-
 	public:
 		MsgSqlOpenConnectionReq():
 		  MsgRequest(MSG_SQL_OPEN_CONNECTION_REQ, NAME(MSG_SQL_OPEN_CONNECTION_REQ)){};
 
 		  string connection_url;
-	};
 
+		 
+	};
 
 	class MsgSqlOpenConnectionAck: 
-		public MsgResponse
+		public MsgSqlMixin, public MsgResponse
 	{
-
 	public:
 		MsgSqlOpenConnectionAck():
-		  MsgResponse(MSG_SQL_OPEN_CONNECTION_ACK, NAME(MSG_SQL_OPEN_CONNECTION_ACK)),
-		  db(NULL), 
-		  rc(IW_UNDEFINED){};
+		  MsgResponse(MSG_SQL_OPEN_CONNECTION_ACK, NAME(MSG_SQL_OPEN_CONNECTION_ACK)){};
 
-		  sqlite3 *db;
+		 virtual void copy_data_on_response(IN IwMessage *request)
+		 {
+			  MsgSqlMixin::copy_data_on_response(request);
+			  MsgResponse::copy_data_on_response(request);
+		 }
 
-		  int rc;
 
 	};
 
+	class MsgSqlOpenConnectionNack: 
+		public MsgSqlMixin, public MsgResponse
+	{
+	public:
+		MsgSqlOpenConnectionNack():
+		  MsgResponse(MSG_SQL_OPEN_CONNECTION_NACK, NAME(MSG_SQL_OPEN_CONNECTION_NACK)){};
 
+		  virtual void copy_data_on_response(IN IwMessage *request)
+		  {
+			  MsgSqlMixin::copy_data_on_response(request);
+			  MsgResponse::copy_data_on_response(request);
+		  }
+
+	};
+
+	class MsgSqlCloseConnectionReq: 
+		public MsgSqlMixin, public MsgRequest
+	{
+	public:
+		MsgSqlCloseConnectionReq():
+		  MsgRequest(MSG_SQL_CLOSE_CONNECTION_REQ, NAME(MSG_SQL_CLOSE_CONNECTION_REQ)){};
+
+	};
+
+	class MsgSqlExecReq: 
+		public MsgSqlMixin, public MsgRequest
+	{
+	public:
+		MsgSqlExecReq():
+		  MsgRequest(MSG_SQL_EXEC_REQ, NAME(MSG_SQL_EXEC_REQ)){};
+
+		string sql_statement;
+
+	};
+
+	class MsgSqlExecAck: 
+		public MsgSqlMixin, public MsgResponse
+	{
+	public:
+		MsgSqlExecAck():
+		  MsgResponse(MSG_SQL_EXEC_ACK, NAME(MSG_SQL_EXEC_ACK)),errmsg(NULL){};
+
+		char *errmsg;
+
+		virtual void copy_data_on_response(IN IwMessage *request)
+		{
+			MsgSqlMixin::copy_data_on_response(request);
+			MsgResponse::copy_data_on_response(request);
+		}
+
+	};
+
+	class MsgSqlExecNack: 
+		public MsgSqlMixin, public MsgResponse
+	{
+	public:
+		MsgSqlExecNack():
+		  MsgResponse(MSG_SQL_EXEC_NACK, NAME(MSG_SQL_EXEC_NACK)){};
+
+		  virtual void copy_data_on_response(IN IwMessage *request)
+		  {
+			  MsgSqlMixin::copy_data_on_response(request);
+			  MsgResponse::copy_data_on_response(request);
+		  }
+
+	};
+
+	class MsgSqlStepReq: 
+		public MsgSqlMixin, public MsgRequest
+	{
+	public:
+		MsgSqlStepReq():
+		  MsgRequest(MSG_SQL_STEP_REQ, NAME(MSG_SQL_STEP_REQ)){};
+
+		sqlite3_stmt *pStmt;
+
+	};
+
+	class MsgSqlStepAck: 
+		public MsgSqlMixin, public MsgResponse
+	{
+	public:
+		MsgSqlStepAck():
+		  MsgResponse(MSG_SQL_STEP_ACK, NAME(MSG_SQL_STEP_ACK)){};
+
+		int rc;
+
+		virtual void copy_data_on_response(IN IwMessage *request)
+		{
+			MsgSqlMixin::copy_data_on_response(request);
+			MsgResponse::copy_data_on_response(request);
+		}
+
+	};
+
+	class MsgSqlStepNack: 
+		public MsgSqlMixin, public MsgResponse
+	{
+	public:
+		MsgSqlStepNack():
+		  MsgResponse(MSG_SQL_STEP_NACK, NAME(MSG_SQL_STEP_NACK)){};
+
+		  virtual void copy_data_on_response(IN IwMessage *request)
+		  {
+			  MsgSqlMixin::copy_data_on_response(request);
+			  MsgResponse::copy_data_on_response(request);
+		  }
+
+	};
+
+	class MsgSqlFinalizeReq: 
+		public MsgSqlMixin, public MsgRequest
+	{
+	public:
+		MsgSqlFinalizeReq():
+		  MsgRequest(MSG_SQL_FINALIZE_REQ, NAME(MSG_SQL_FINALIZE_REQ)){};
+
+		  sqlite3_stmt *pStmt;
+
+	};
+
+	/**
+	Sqlite fiber non blocking connectivity
+	**/
 	class SqliteSession
 	{
 	public:
 		SqliteSession(void);
+
 		virtual ~SqliteSession(void);
 
-		ApiErrorCode OpenConnection(const string &connection_url, sqlite3 **db, int &rc);
+		ApiErrorCode sqlite3_open(const char *connection_url, int &rc);
 
-		ApiErrorCode Finalize();
+		ApiErrorCode sqlite3_prepare( 
+			const char *zSql,       /* SQL statement, UTF-8 encoded */
+			int nByte,              /* Maximum length of zSql in bytes. */
+			sqlite3_stmt **ppStmt,  /* OUT: Statement handle */
+			const char **pzTail,    /* OUT: Pointer to unused portion of zSql */
+			int &res				/* OUT: sqlite result */
+			);
 
-		ApiErrorCode Step();
+		const char *sqlite3_errmsg();
 
-		ApiErrorCode Compile();
+		void sqlite3_close();
 
-		ApiErrorCode Reset();
+		ApiErrorCode sqlite3_exec( 
+			const char *sql,                           /* SQL to be evaluated */
+			int (*callback)(void*,int,char**,char**),  /* Callback function */
+			void *,                                    /* 1st argument to callback */
+			char **errmsg,                             /* Error msg written here */
+			int &rc									   /* OUT: sqlite result */	
+			);
 
-		
+		ApiErrorCode sqlite3_finalize(
+			sqlite3_stmt *pStmt,
+			int &rc						   
+			);
 
+		ApiErrorCode sqlite3_step( 
+			sqlite3_stmt *pStmt,
+			int &rc						   
+			);
 
+		ApiErrorCode sqlite3_reset( 
+			sqlite3_stmt *pStmt,
+			int &rc						   
+			);
+
+		int sqlite3_busy_timeout(int ms);
+
+		sqlite3_int64 sqlite3_last_insert_rowid();
+
+		int sqlite3_changes();
+
+	private:
+
+		int _sessionId;
+
+		sqlite3 *_db;
 
 	};
 

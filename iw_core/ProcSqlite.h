@@ -23,6 +23,9 @@
 
 namespace ivrworx
 {
+	
+	typedef map<int,sqlite3*> SqlSessionsMap;
+	
 	class ProcSqlite :
 		public LightweightProcess
 	{
@@ -36,7 +39,19 @@ namespace ivrworx
 
 		void UponSqlOpenConnectionReq(IwMessagePtr msg);
 
+		void UponSqlCloseConnectionReq(IwMessagePtr msg);
+
+		void UponSqlStepReq(IwMessagePtr msg);
+
+		void UponSqlExecReq(IwMessagePtr msg);
+
+		void UponSqlFinalizeReq(IwMessagePtr msg);
+
+		void CloseAllConnections();
+
 		Configuration &_conf;
+
+		SqlSessionsMap _sqlMap;
 
 	};
 

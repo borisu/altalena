@@ -588,6 +588,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\SqlFactory.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\SqlFactory.h"
+			>
+		</File>
+		<File
 			RelativePath=".\stdafx.cpp"
 			>
 			<FileConfiguration
