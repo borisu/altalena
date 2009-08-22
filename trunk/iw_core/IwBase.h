@@ -33,7 +33,7 @@ application, where you can write your call flow scripts in <A HREF="http://www.l
 @section Documentation
 
 - @ref scripts 
-This section gives brief explanation on how to wirite ivrworx lua scripts.
+This section gives brief explanation on how to write ivrworx lua scripts.
 
 - @ref configuration
 This section explains how to configure the system
@@ -91,7 +91,9 @@ namespace ivrworx
 		API_TIMEOUT,
 		API_WRONG_PARAMETER,
 		API_WRONG_STATE,
-		API_HANGUP
+		API_HANGUP,
+		API_UNKNOWN_DESTINATION,
+		API_UNKNOWN_RESPONSE
 	};
 
 	#define IW_SUCCESS(x)	((x) == API_SUCCESS)

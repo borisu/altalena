@@ -317,7 +317,7 @@ clean:
 		}
 
 		LogWarn("Unknown destination for msg:" << message->message_id_str << ", dst:"<< handle_id );
-		return API_FAILURE;
+		return API_UNKNOWN_DESTINATION;
 
 	}
 
