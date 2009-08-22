@@ -16,6 +16,9 @@
 
 //#include "lualib/luainc.h"
 #include "luadebugger.h"
+#include "SqliteSession.h"
+
+using namespace ivrworx;
 
 class CLuaDebugger;
 

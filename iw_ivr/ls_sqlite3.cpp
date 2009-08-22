@@ -7,13 +7,18 @@
 */
 #include "stdafx.h"
 #include "ls_sqlite3.h"
+#include "SqliteSession.h"
+#include "LuaRestoreStack.h"
+
+#pragma warning (push)
+#pragma warning (disable:4244)
 
 #if ! defined (LUA_VERSION_NUM) || LUA_VERSION_NUM < 501
 #include "compat-5.1.h"
 #endif
 
 
-
+using namespace ivrworx;
 
 #define LUASQL_ENVIRONMENT_SQLITE "SQLite3 environment"
 #define LUASQL_CONNECTION_SQLITE "SQLite3 connection"
@@ -31,7 +36,8 @@ typedef struct
   int          env;                /* reference to environment */
   short        auto_commit;        /* 0 for manual commit */
   unsigned int cur_counter;
-  sqlite3      *sql_conn;
+  // sqlite3      *sql_conn;
+  SqliteSession      *sql_conn;
 } conn_data;
 
 
@@ -46,7 +52,6 @@ typedef struct
 } cur_data;
 
 //LUASQL_API int luaopen_luasql_sqlite3(lua_State *L);
-
 
 /*
 ** Check for valid environment.
@@ -85,13 +90,20 @@ static cur_data *getcursor(lua_State *L) {
 ** Return nil + errmsg or nil in case of sucess
 */
 static int finalize(lua_State *L, cur_data *cur) {
-  const char *errmsg;
-  if (sqlite3_finalize(cur->sql_vm) != SQLITE_OK)
-    {
-      errmsg = sqlite3_errmsg(cur->conn_data->sql_conn);
-      cur->sql_vm = NULL;
-      return luasql_faildirect(L, errmsg);
-    }
+//  const char *errmsg;
+  int res;
+  ApiErrorCode iw_res = cur->conn_data->sql_conn->sqlite3_finalize(cur->sql_vm,res);
+  if (IW_FAILURE(iw_res))
+  {
+    cur->sql_vm = NULL;
+    return luasql_faildirect(L, "iw error sqlite3_finalize");
+  }  
+//   if (cur->conn_data->sqlite3_finalize(cur->sql_vm) != SQLITE_OK)
+//     {
+//       errmsg = cur->conn_data->sql_conn->sqlite3_errmsg();
+//       cur->sql_vm = NULL;
+//       return luasql_faildirect(L, errmsg);
+//     }
   cur->sql_vm = NULL;
   lua_pushnil(L);
   return 1;
@@ -134,8 +146,13 @@ static int cur_fetch (lua_State *L) {
   if (vm == NULL)
     return 0;
 
-  res = sqlite3_step(vm);
-
+  // res = sqlite3_step(vm);
+  ApiErrorCode iw_res = cur->conn_data->sql_conn->sqlite3_step(vm,res);
+  if (IW_FAILURE(iw_res))
+  {
+	  return finalize(L, cur);
+  }
+	
   /* no more results? */
   if (res == SQLITE_DONE)
     return finalize(L, cur);
@@ -199,10 +216,12 @@ static int cur_close(lua_State *L)
 
   /* Nullify structure fields. */
   cur->closed = 1;
-  sqlite3_finalize(cur->sql_vm);
+  // sqlite3_finalize(cur->sql_vm);
+  int res;
+  cur->conn_data->sql_conn->sqlite3_finalize(cur->sql_vm,res);
   /* Decrement cursor counter on connection object */
   lua_rawgeti (L, LUA_REGISTRYINDEX, cur->conn);
-  // borisu added casting
+  // conn = lua_touserdata (L, -1); 
   conn = (conn_data *)lua_touserdata (L, -1);
   conn->cur_counter--;
 
@@ -305,7 +324,9 @@ static int conn_close(lua_State *L)
   /* Nullify structure fields. */
   conn->closed = 1;
   luaL_unref(L, LUA_REGISTRYINDEX, conn->env);
-  sqlite3_close(conn->sql_conn);
+  //sqlite3_close(conn->sql_conn);
+  conn->sql_conn->sqlite3_close();
+  delete conn->sql_conn;
   lua_pushboolean(L, 1);
   return 1;
 }
@@ -341,35 +362,48 @@ static int conn_execute(lua_State *L)
   int numcols;
   const char *tail;
 
-  res = sqlite3_prepare(conn->sql_conn, statement, -1, &vm, &tail);
+  // res = sqlite3_prepare(conn->sql_conn, statement, -1, &vm, &tail);
+  conn->sql_conn->sqlite3_prepare(statement, -1, &vm, &tail,res);
   if (res != SQLITE_OK)
     {
-      errmsg = sqlite3_errmsg(conn->sql_conn);
+      // errmsg = sqlite3_errmsg(conn->sql_conn);
+	  errmsg = conn->sql_conn->sqlite3_errmsg();
       return luasql_faildirect(L, errmsg);
     }
 
   /* process first result to retrive query information and type */
-  res = sqlite3_step(vm);
+  // res = sqlite3_step(vm);
+  ApiErrorCode iw_res = conn->sql_conn->sqlite3_step(vm,res);
+  if (IW_FAILURE(iw_res))
+  {
+   int res;
+   conn->sql_conn->sqlite3_finalize(vm,res);
+   return luasql_faildirect(L, "iw error sqlite3_step");
+  }
   numcols = sqlite3_column_count(vm);
 
   /* real query? if empty, must have numcols!=0 */
   if ((res == SQLITE_ROW) || ((res == SQLITE_DONE) && numcols))
     {
-      sqlite3_reset(vm);
+      // sqlite3_reset(vm);
+	  conn->sql_conn->sqlite3_reset(vm,res);
       return create_cursor(L, 1, conn, vm, numcols);
     }
 
   if (res == SQLITE_DONE) /* and numcols==0, INSERT,UPDATE,DELETE statement */
     {
-      sqlite3_finalize(vm);
+      // sqlite3_finalize(vm);
+	  conn->sql_conn->sqlite3_finalize(vm,res);
       /* return number of columns changed */
-      lua_pushnumber(L, sqlite3_changes(conn->sql_conn));
+      lua_pushnumber(L, conn->sql_conn->sqlite3_changes());
       return 1;
     }
 
   /* error */
-  errmsg = sqlite3_errmsg(conn->sql_conn);
-  sqlite3_finalize(vm);
+  // errmsg = sqlite3_errmsg(conn->sql_conn);
+  // sqlite3_finalize(vm);
+  errmsg = conn->sql_conn->sqlite3_errmsg();
+  conn->sql_conn->sqlite3_finalize(vm,res);
   return luasql_faildirect(L, errmsg);
 }
 
@@ -386,8 +420,14 @@ static int conn_commit(lua_State *L)
 
   if (conn->auto_commit == 0) sql = "COMMIT;BEGIN";
 
-  res = sqlite3_exec(conn->sql_conn, sql, NULL, NULL, &errmsg);
-
+  // res = sqlite3_exec(conn->sql_conn, sql, NULL, NULL, &errmsg);
+  ApiErrorCode iw_res = conn->sql_conn->sqlite3_exec(sql, NULL, NULL, &errmsg,res);
+  if (IW_FAILURE(iw_res))
+  {
+	  lua_pushnil(L);
+	  lua_pushstring(L, "iw-error executing sqlite3_exec");
+	  return 2;
+  }
   if (res != SQLITE_OK)
     {
       lua_pushnil(L);
@@ -414,7 +454,14 @@ static int conn_rollback(lua_State *L)
 
   if (conn->auto_commit == 0) sql = "ROLLBACK;BEGIN";
 
-  res = sqlite3_exec(conn->sql_conn, sql, NULL, NULL, &errmsg);
+  // res = sqlite3_exec(conn->sql_conn, sql, NULL, NULL, &errmsg);
+  ApiErrorCode iw_res = conn->sql_conn->sqlite3_exec(sql, NULL, NULL, &errmsg,res);
+  if (IW_FAILURE(iw_res))
+  {
+	  lua_pushnil(L);
+	  lua_pushstring(L, "iw-error executing sqlite3_exec");
+	  return 2;
+  }
   if (res != SQLITE_OK)
     {
       lua_pushnil(L);
@@ -431,7 +478,7 @@ static int conn_rollback(lua_State *L)
 static int conn_getlastautoid(lua_State *L)
 {
   conn_data *conn = getconnection(L);
-  lua_pushnumber(L, sqlite3_last_insert_rowid(conn->sql_conn));
+  lua_pushnumber(L, conn->sql_conn->sqlite3_last_insert_rowid());
   return 1;
 }
 
@@ -448,22 +495,29 @@ static int conn_setautocommit(lua_State *L)
     {
       conn->auto_commit = 1;
       /* undo active transaction - ignore errors */
-      sqlite3_exec(conn->sql_conn, "ROLLBACK", NULL, NULL, NULL);
-    }
+	  // sqlite3_exec(conn->sql_conn, "ROLLBACK", NULL, NULL, NULL);
+      int res;
+	  conn->sql_conn->sqlite3_exec("ROLLBACK", NULL, NULL, NULL,res);
+	 }
   else
     {
       char *errmsg;
       int res;
       conn->auto_commit = 0;
-      res = sqlite3_exec(conn->sql_conn, "BEGIN", NULL, NULL, &errmsg);
-      if (res != SQLITE_OK)
-        {
+      //res = sqlite3_exec(conn->sql_conn, "BEGIN", NULL, NULL, &errmsg);
+	  ApiErrorCode iw_res = conn->sql_conn->sqlite3_exec("BEGIN", NULL, NULL, &errmsg,res);
+	  if (IW_FAILURE(iw_res))
+	  {
+		  lua_pushstring(L, "iw-error executing sqlite3_exec");
+		  lua_error(L);
+	  } else if (res != SQLITE_OK)
+      {
 	  lua_pushliteral(L, LUASQL_PREFIX);
 	  lua_pushstring(L, errmsg);
 	  sqlite3_free(errmsg);
 	  lua_concat(L, 2);
 	  lua_error(L);
-        }
+      }
     }
   lua_pushboolean(L, 1);
   return 1;
@@ -473,7 +527,7 @@ static int conn_setautocommit(lua_State *L)
 /*
 ** Create a new Connection object and push it on top of the stack.
 */
-static int create_connection(lua_State *L, int env, sqlite3 *sql_conn)
+static int create_connection(lua_State *L, int env, SqliteSession *sql_conn)
 {
   conn_data *conn = (conn_data*)lua_newuserdata(L, sizeof(conn_data));
   luasql_setmeta(L, LUASQL_CONNECTION_SQLITE);
@@ -496,27 +550,37 @@ static int create_connection(lua_State *L, int env, sqlite3 *sql_conn)
 static int env_connect(lua_State *L)
 {
   const char *sourcename;
-  sqlite3 *conn;
+  //sqlite3 *conn;
   const char *errmsg;
   int res;
   getenvironment(L);  /* validate environment */
 
   sourcename = luaL_checkstring(L, 2);
 
-  res = sqlite3_open(sourcename, &conn);
-  if (res != SQLITE_OK)
-    {
-      errmsg = sqlite3_errmsg(conn);
+  //conn = NULL;
+  SqliteSession *sqls = new SqliteSession();
+  if (IW_FAILURE(sqls->sqlite3_open(sourcename,res)))
+  {
+	 errmsg = "iw error sqlite3_open";
+	 luasql_faildirect(L, errmsg);
+	 sqls->sqlite3_close();
+	 delete sqls;
+	 return 2;
+  } 
+  else if (res != SQLITE_OK)
+  {
+      errmsg = sqls->sqlite3_errmsg();
       luasql_faildirect(L, errmsg);
-      sqlite3_close(conn);
+      sqls->sqlite3_close();
+	  delete sqls;
       return 2;
-    }
-
-  if (lua_isnumber(L, 3)) {
-  	sqlite3_busy_timeout(conn, lua_tonumber(L,3)); // TODO: remove this
   }
 
-  return create_connection(L, 1, conn);
+  if (lua_isnumber(L, 3)) {
+  	sqls->sqlite3_busy_timeout(lua_tonumber(L,3)); // TODO: remove this
+  }
+
+  return create_connection(L, 1, sqls);
 }
 
 
@@ -545,8 +609,8 @@ static int opts_settimeout  (lua_State *L)
 {
 	conn_data *conn = getconnection(L);
 	int milisseconds = luaL_checknumber(L, 2);
-	// borisu changed the implicit conversion into getting field
-	lua_pushnumber(L, sqlite3_busy_timeout(conn->sql_conn, milisseconds));
+	// lua_pushnumber(L, sqlite3_busy_timeout(conn, milisseconds));
+	lua_pushnumber(L, conn->sql_conn->sqlite3_busy_timeout(milisseconds));
 	return 1;
 }
 
@@ -615,3 +679,5 @@ LUASQL_API int luaopen_luasql_sqlite3(lua_State *L)
   luasql_set_info (L);
   return 1;
 }
+
+#pragma warning (pop)

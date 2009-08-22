@@ -20,9 +20,8 @@
 #include "StdAfx.h"
 #include "IwScriptApi.h"
 
-#define IW_REGISTER_GLOBAL_VAR(V,N) lua_pushnumber((lua_State *)V,N); \
+#define IW_REGISTER_GLOBAL_CONST(V,N) lua_pushnumber((lua_State *)V,N); \
 	lua_setglobal ((lua_State *)V, #N);
-
 
 namespace ivrworx
 {
@@ -45,16 +44,18 @@ IwScript::IwScript(IN ScopedForking &forking,
 		throw;
 	}
 
-	IW_REGISTER_GLOBAL_VAR(vm,API_SUCCESS);
-	IW_REGISTER_GLOBAL_VAR(vm,API_FAILURE);
-	IW_REGISTER_GLOBAL_VAR(vm,API_HANGUP);
-	IW_REGISTER_GLOBAL_VAR(vm,API_SERVER_FAILURE);
-	IW_REGISTER_GLOBAL_VAR(vm,API_SUCCESS);
-	IW_REGISTER_GLOBAL_VAR(vm,API_TIMEOUT);
-	IW_REGISTER_GLOBAL_VAR(vm,API_WRONG_PARAMETER);
-	IW_REGISTER_GLOBAL_VAR(vm,API_WRONG_STATE);
+	IW_REGISTER_GLOBAL_CONST(vm,API_SUCCESS);
+	IW_REGISTER_GLOBAL_CONST(vm,API_FAILURE);
+	IW_REGISTER_GLOBAL_CONST(vm,API_HANGUP);
+	IW_REGISTER_GLOBAL_CONST(vm,API_SERVER_FAILURE);
+	IW_REGISTER_GLOBAL_CONST(vm,API_SUCCESS);
+	IW_REGISTER_GLOBAL_CONST(vm,API_TIMEOUT);
+	IW_REGISTER_GLOBAL_CONST(vm,API_WRONG_PARAMETER);
+	IW_REGISTER_GLOBAL_CONST(vm,API_WRONG_STATE);
+	IW_REGISTER_GLOBAL_CONST(vm,API_UNKNOWN_DESTINATION);
+	IW_REGISTER_GLOBAL_CONST(vm,API_UNKNOWN_RESPONSE);
 
-
+	
 	_confTable.Create("conf");
 	_confTable.AddParam("sounds_dir",_conf.SoundsPath());
 
@@ -703,7 +704,7 @@ IwScript::LuaLog(CLuaVirtualMachine& vm)
 IwCallHandlerScript::IwCallHandlerScript(
 	IN ScopedForking &forking,
 	IN Configuration &conf,
-	IN CLuaVirtualMachine &vm, 
+	IN CLuaVirtualMachine &vm,
 	IN CallWithDirectRtpPtr call_session)
 	:IwScript(forking,conf, vm),
 	_incomingCallSession(call_session),
