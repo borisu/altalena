@@ -44,7 +44,7 @@
 				AdditionalOptions="-Zm120"
 				Optimization="0"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories="..\iw_core;..\iw_ims;..\iw_ivr"
+				AdditionalIncludeDirectories="..\iw_core;..\iw_ims;..\iw_ivr;&quot;..\sqlite-amalgamation-3_6_17&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"

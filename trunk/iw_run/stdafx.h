@@ -43,3 +43,5 @@
 #include "ActiveObject.h"
 #include "ImsFactory.h"
 #include "IvrFactory.h"
+#include "SqlFactory.h"
+

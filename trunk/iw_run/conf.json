@@ -4,7 +4,7 @@
 	
 	"resip_log" : "TRANSPORT,DBG|SIP,DBG|DUM,DBG",
 	
-	"debug_level"  : "INF",
+	"debug_level"  : "DBG",
 	"debug_outputs" : "debug,console",
 	
 	"syslogd_host" : "127.0.0.1",

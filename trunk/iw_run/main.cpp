@@ -48,20 +48,19 @@ namespace ivrworx
 			START_FORKING_REGION;
 
 			//
-			// Start Waiter
+			// Start SQL
 			//
-//			DECLARE_NAMED_HANDLE_PAIR(waiter_pair);
-//
-// 			DECLARE_NAMED_HANDLE(waiter_shutdown_handle);
-// 			AddShutdownListener(waiter_pair,waiter_shutdown_handle);
-// 
-// 			FORK(new ProcHandleWaiter(waiter_pair));
-// 			if (IW_FAILURE(WaitTillReady(Seconds(15), waiter_pair)))
-// 			{
-// 				LogCrit("Cannot start Waiter process.");
-// 				return;
-// 			};
+			DECLARE_NAMED_HANDLE_PAIR(sql_pair);
 
+			DECLARE_NAMED_HANDLE(sql_shutdown_handle);
+			AddShutdownListener(sql_pair,sql_shutdown_handle);
+
+			FORK(SqlFactory::CreateProcSql(sql_pair, _conf));
+			if (IW_FAILURE(WaitTillReady(Seconds(15), sql_pair)))
+			{
+				LogCrit("Cannot start Sql process.");
+				return;
+			};
 	
 			//
 			// Start IMS 
@@ -75,6 +74,7 @@ namespace ivrworx
 			if (IW_FAILURE(WaitTillReady(Seconds(15), ims_pair)))
 			{
 				LogCrit("Cannot start Ims process.");
+				Shutdown(Seconds(5),sql_pair);
 				return;
 			};
 
@@ -92,6 +92,7 @@ namespace ivrworx
 			{
 				LogCrit("Cannot start Ivr process.");
 				Shutdown(Seconds(5),ims_pair);
+				Shutdown(Seconds(5),sql_pair);
 				return;
 			}
 
@@ -100,7 +101,7 @@ namespace ivrworx
 			while(true)
 			{
 				HandlesList selected_handles =
-					list_of(_inbound)(ivr_shutdown_handle)(ims_shutdown_handle);
+					list_of(_inbound)(ivr_shutdown_handle)(ims_shutdown_handle)(sql_shutdown_handle);
 
 				IwMessagePtr msg;
 				int index = 0;
@@ -121,6 +122,12 @@ namespace ivrworx
 						LogWarn("Ims process did not respond in timely fashion to keep alive request, consider restarting the application.")
 					}
 
+					ping_res = Ping(sql_pair);
+					if (IW_FAILURE(ping_res))
+					{
+						LogWarn("SQL process did not respond in timely fashion to keep alive request, consider restarting the application.")
+					}
+
 					continue;
 				}
 
@@ -130,12 +137,21 @@ namespace ivrworx
 					{
 						LogWarn("Ivr process terminated unexpectedly. Shutting down.")
 						Shutdown(Seconds(5),ims_pair);
+						Shutdown(Seconds(5),sql_pair);
 						return;
 					}
 				case 2:
 					{
 						LogWarn("Ims process terminated. Shutting down.")
 						Shutdown(Seconds(5),ivr_pair);
+						Shutdown(Seconds(5),sql_pair);
+						return;
+					}
+				case 3:
+					{
+						LogWarn("Sql process terminated. Shutting down.")
+						Shutdown(Seconds(5),ivr_pair);
+						Shutdown(Seconds(5),ims_pair);
 						return;
 					}
 				default:

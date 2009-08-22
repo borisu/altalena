@@ -4,13 +4,29 @@
 require "ivrworx"
 require "play_phrase"
 
-
-ivrworx.loginf("Super script started");
-
 --
 -- Super script runs on application startup
 -- You may use any ivrworx api apart from answer
 --
+
+
+
+-- env = assert(luasql.sqlite3());
+-- con = assert(env:connect("C:\\altalena\\altalena\\solutions\\altalena_all\\debug\\voice.db"))
+-- cur = assert(con:execute"SELECT * FROM users")
+
+-- row = cur:fetch ({}, "a")
+-- while row do
+--   ivrworx.loginf(string.format("user: %s, paswword: %s", row.login, row.password))
+--   -- reusing the table of results
+--   row = cur:fetch (row, "a")
+-- end
+-- -- close everything
+-- cur:close()
+-- con:close()
+-- env:close()
+
+
 
 --
 -- Make the call and blind transfer it to another destination
