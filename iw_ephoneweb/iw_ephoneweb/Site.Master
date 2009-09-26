@@ -1,0 +1,88 @@
+<%@ Master Language="C#" AutoEventWireup="false" CodeBehind="Site.master.cs" Inherits="iw_ephoneweb.Site" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" >
+    <head runat="server">
+        <title>Polly The Parrot</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link href="style.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+    <form id="MainForm" runat="server">
+    
+        <!------------>
+        <!-- HEADER -->
+        <!------------>
+        <div id="header">
+          <div id="logo" >
+            <table>
+                <tr>
+                  <td><img src="images/polly.png" alt="" /></td>
+                  <td><h1>Welcome to <span style="font-weight:bold; color:#73868C;">Polly</span> Application</h1></td>
+                </tr>
+            </table>
+          </div>
+          <div id="login" class="login">
+              <asp:LoginView ID="LoginView_Header" runat="server">
+                <AnonymousTemplate>
+                    <asp:Login ID="SiteLogin" runat="server" CreateUserUrl="RegisterWizard.aspx" 
+                        onloggedin="SiteLogin_LoggedIn" CssClass="login">
+                    </asp:Login>
+                 </AnonymousTemplate>
+                <LoggedInTemplate>
+                    <br />
+                    <br />
+                    <h3>
+                    Welcome <b></noframes><em><asp:LoginName ID="LoginName_Header" runat="server" />!</em><b>
+                    </h3>
+                    <asp:LoginStatus ID="LoginStatus_Header" runat="server" />
+                </LoggedInTemplate>
+              </asp:LoginView>
+           </div>
+         </div>
+          
+         <!----------------------->
+         <!-- LEFT MAIN CONTENT -->
+         <!----------------------->
+    <div id="master-body">
+        <table id="master-table">
+            <tr>
+                <td valign="top">
+                    <img src="images/parrot.jpg"/>
+                </td>
+                <td valign="top">
+                    <!--CONTENT-->
+                    <div id="master-content">
+                        <div id="navcontainer">
+                            <ul id="nav">
+                                <li id="nav-1"><a href="Default.aspx">Home</a></li>
+                                <li id="nav-2"><a href="RegisterWizard.aspx">Register</a></li>
+                                <li id="nav-3"><a href="Contact.aspx">Contact</a></li>
+                            </ul>
+                        </div>
+                        <div id="master-content-bottom">
+                            <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+                            </asp:ContentPlaceHolder>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+         
+         
+       
+          
+         
+         
+         
+         
+         <!-- FOOTER -->
+         <div id="footer">
+             <a href="http://www.prettythingsflying.com/">Pretty Things Flying</a> | <a href="mailto:webmaster@www.prettythingsflying.com">contact</a> | &copy; 2007 Anyone | Design by <a href="http://www.mitchinson.net"> www.mitchinson.net</a> | Licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 License</a> 
+          </div>
+            
+       </form>
+    </body>
+</html>
