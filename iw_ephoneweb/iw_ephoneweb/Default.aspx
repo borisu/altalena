@@ -1,7 +1,9 @@
 <%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Default.aspx.cs" MasterPageFile="~/Site.Master" Inherits="iw_ephoneweb._Default" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+
     <asp:LoginView ID="LoginViewControl" runat="server">
+    
             <AnonymousTemplate>
                 <div id="anonymous-center">
                     <h1>Welcome to <span style="font-weight:bold; color:#C4DA64;">Polly the Parrot</span> Application</h1>
@@ -27,44 +29,62 @@
                        <p>
                            IVR application that powers up Polly is built upon
                            <a href="http://code.google.com/p/altalena/">ivrworx</a> infrastructure.</p>
-                       <p>
                        </p>
-                       <p>
-                       </p>
-                       </p>
-                   </p>
+                       
                 </div>
                 <div id="anonymous-right">
                 </div>
             </AnonymousTemplate> 
            
             <LoggedInTemplate>
-                <p>
-                    Select <a>All</a>, <a>None</a>.
-                    <asp:Button ID="DeleteButton" runat="server" Text="Delete Selected" />
-                </p>
-                <p>
-               
-                    <asp:Label ID="MessageLabel" runat="server" Text=""></asp:Label>
-                    <table ID="UpdateMemoTable"> 
-                        <tr>
-                            <td>Memo Id</td>
-                            <td>Value</td>
-                            <td>Value</td>
-                        </tr>
-                        <tr>  
-                            <td><asp:TextBox ID="MemoKeyTextBox" runat="server"></asp:TextBox></td>
-                            <td><asp:TextBox ID="MemoValueTextBox" runat="server"></asp:TextBox></td>
-                            <td><asp:Button ID="InsertMemoButton" runat="server" Text="Button" onclick="InsertMemoButton_Click"/></td>
-                        </tr>
-                    </table>
-                </p> 
+                <asp:Table ID="InsertMemoTable" runat="server">
+                    <asp:TableHeaderRow>
+                        <asp:TableHeaderCell>
+                            <asp:Label Text="Memo Id" runat="server"/>
+                        </asp:TableHeaderCell>
+                        <asp:TableHeaderCell>
+                            <asp:Label Text="Memo Value" runat="server"/>
+                        </asp:TableHeaderCell>
+                    </asp:TableHeaderRow>
+                    <asp:TableRow>
+                        <asp:TableCell>
+                            <asp:TextBox ID="MemoKeyTextBox" runat="server"/>
+                        </asp:TableCell>
+                        <asp:TableCell>
+                            <asp:TextBox runat="server" ID="MemoValueTextBox"/>
+                        </asp:TableCell>
+                        <asp:TableCell>
+                            <asp:Button ID="InsertButton" 
+                                Text="Insert" 
+                                runat="server"
+                                OnClick="InsertMemoButton_Click"/>
+                        </asp:TableCell>
+                    </asp:TableRow>
+                </asp:Table>
+                
+                
                 <hr/>
+                <asp:Button ID="DeleteButton" runat="server" Text="Delete Selected" OnClick="DeleteButton_Click"/>
                 
                 <p>
-                  <asp:Table ID="MemosTable" runat="server" onload="MemosTable_Load">
-                  </asp:Table>
+                    <asp:Table ID="MemosTableCtrl" runat="server" OnInit="MemosTableCtrl_Init" OnPreRender="MemosTableCtrl_PreRender">
+                        <asp:TableHeaderRow>
+                            <asp:TableHeaderCell>
+                                <asp:CheckBox ID="CheckAllCheckBox" runat="server" AutoPostBack="true"
+                                OnCheckedChanged="ShowAllCheckBox_CheckedChanged"/>
+                            </asp:TableHeaderCell>
+                            <asp:TableHeaderCell>
+                                <asp:Label Text="Memo Id" runat="server"/>
+                            </asp:TableHeaderCell>
+                            <asp:TableHeaderCell>
+                                <asp:Label Text="Memo Value" runat="server"/>
+                            </asp:TableHeaderCell>
+                        </asp:TableHeaderRow>
+                   </asp:Table>
+                  
+                  
                 </p>
+                
             </LoggedInTemplate>
        </asp:LoginView>
 </asp:Content>
