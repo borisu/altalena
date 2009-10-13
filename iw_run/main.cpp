@@ -30,11 +30,27 @@ namespace con = JadedHoboConsole;
 #define IW_ERROR_PARSING_CONF		 -2
 
 
+#define  IW_DEFAULT_BOOT_TIME		15000
+#define  IW_DEFAULT_KEEP_ALIVE_TIME 60000
+
 namespace ivrworx
 {
 	class ProcSystemStarter: 
 		public LightweightProcess
 	{
+	private:
+
+		
+		typedef shared_ptr<IProcFactory> 
+		ProcFactoryPtr;
+
+		typedef list<ProcFactoryPtr> 
+		FactoryPtrList;
+
+		typedef list<LpHandlePair>
+		HandlePairList;
+
+
 	public:
 		ProcSystemStarter(LpHandlePair pair,Configuration &conf)
 			:LightweightProcess(pair,"SystemStarter"),
@@ -47,120 +63,124 @@ namespace ivrworx
 		{
 			START_FORKING_REGION;
 
-			//
-			// Start SQL
-			//
-			DECLARE_NAMED_HANDLE_PAIR(sql_pair);
+			FactoryPtrList factories_list = 
+				list_of
+				(ProcFactoryPtr(new SqlFactory()))
+				(ProcFactoryPtr(new ImsFactory()))
+				(ProcFactoryPtr(new MrcpFactory()))
+				(ProcFactoryPtr(new IvrFactory()))
+				
+			;
 
-			DECLARE_NAMED_HANDLE(sql_shutdown_handle);
-			AddShutdownListener(sql_pair,sql_shutdown_handle);
 
-			FORK(SqlFactory::CreateProcSql(sql_pair, _conf));
-			if (IW_FAILURE(WaitTillReady(Seconds(15), sql_pair)))
+			if (factories_list.size() == 0)
 			{
-				LogCrit("Cannot start Sql process.");
+				LogInfo("No processes to boot, exiting.");
 				return;
-			};
-	
-			//
-			// Start IMS 
-			//
-			DECLARE_NAMED_HANDLE_PAIR(ims_pair);
-
-			DECLARE_NAMED_HANDLE(ims_shutdown_handle);
-			AddShutdownListener(ims_pair,ims_shutdown_handle);
-
-			FORK(ImsFactory::CreateProcIms(ims_pair, _conf));
-			if (IW_FAILURE(WaitTillReady(Seconds(15), ims_pair)))
-			{
-				LogCrit("Cannot start Ims process.");
-				Shutdown(Seconds(5),sql_pair);
-				return;
-			};
-
-
-			//
-			// Start IVR
-			//
-			DECLARE_NAMED_HANDLE_PAIR(ivr_pair);
-
-			DECLARE_NAMED_HANDLE(ivr_shutdown_handle);
-			AddShutdownListener(ivr_pair, ivr_shutdown_handle);
-
-			FORK(IvrFactory::CreateProcIvr(ivr_pair,_conf));
-			if (IW_FAILURE(WaitTillReady(Seconds(15), ivr_pair)))
-			{
-				LogCrit("Cannot start Ivr process.");
-				Shutdown(Seconds(5),ims_pair);
-				Shutdown(Seconds(5),sql_pair);
-				return;
+					
 			}
 
+			HandlePairList proc_handlepairs;
+
+			HandlesVector selected_handles;
+			selected_handles.push_back(_inbound);
+
+			BOOL all_booted = TRUE;
+			for (FactoryPtrList::iterator i = factories_list.begin(); 
+				i !=  factories_list.end(); 
+				++i)
+			{
+				// listen to process shutdown event
+				DECLARE_NAMED_HANDLE(shutdown_handle);
+				DECLARE_NAMED_HANDLE_PAIR(proc_pair);
+
+				AddShutdownListener(proc_pair,shutdown_handle);
+				LightweightProcess *p = (*i)->Create(proc_pair,_conf);
+				string name = p->Name();
+
+				FORK(p);
+				if (IW_FAILURE(WaitTillReady(MilliSeconds(IW_DEFAULT_BOOT_TIME), proc_pair)))
+				{
+					LogCrit("Cannot start proc:" << name << " ");
+					all_booted = FALSE;
+					break;
+				};
+
+				proc_handlepairs.push_back(proc_pair);
+				selected_handles.push_back(shutdown_handle);
+				
+			};
+
+			if (all_booted == FALSE)
+			{
+				goto exit;
+			}
+
+	
 			I_AM_READY;
+
+			{
+				MrcpSession s(forking);
+				s.AllocateSession();
+
+				string text = "<?xml version=\"1.0\"?>				\r\n" 
+				"	<speak>								\r\n" 
+				"	<paragraph>							\r\n" 
+				"	<sentence>Please enter your ID number.</sentence>	\r\n" 
+				"	</paragraph>						\r\n" 
+				"</speak>								\r\n" ;
+
+				s.Speak(text);
+
+				::Sleep(INFINITE);
+			
+			}
+			
 
 			while(true)
 			{
-				HandlesList selected_handles =
-					list_of(_inbound)(ivr_shutdown_handle)(ims_shutdown_handle)(sql_shutdown_handle);
-
+				
 				IwMessagePtr msg;
 				int index = 0;
 
 				ApiErrorCode code = 
-					SelectFromChannels(selected_handles,Seconds(60),index,msg);
+					SelectFromChannels(selected_handles,MilliSeconds(IW_DEFAULT_KEEP_ALIVE_TIME),index,msg);
 
+				
 				if (code == API_TIMEOUT)
 				{
-					ApiErrorCode ping_res = Ping(ivr_pair);
-					if (IW_FAILURE(ping_res))
+					for (HandlePairList::iterator i = proc_handlepairs.begin();
+						i!= proc_handlepairs.end();
+						++i)
 					{
-						LogWarn("Ivr process did not respond in timely fashion to keep alive request, consider restarting the application.")
-					}
-					ping_res = Ping(ims_pair);
-					if (IW_FAILURE(ping_res))
-					{
-						LogWarn("Ims process did not respond in timely fashion to keep alive request, consider restarting the application.")
-					}
+						ApiErrorCode ping_res = Ping(*i);
+						if (IW_FAILURE(ping_res))
+						{
+							LogWarn("One of processes did not respond in timely fashion to keep alive request, consider restarting the application.")
+						}
 
-					ping_res = Ping(sql_pair);
-					if (IW_FAILURE(ping_res))
-					{
-						LogWarn("SQL process did not respond in timely fashion to keep alive request, consider restarting the application.")
 					}
-
+					
 					continue;
-				}
 
-				switch (index)
+				} else
 				{
-				case 1:
-					{
-						LogWarn("Ivr process terminated unexpectedly. Shutting down.")
-						Shutdown(Seconds(5),ims_pair);
-						Shutdown(Seconds(5),sql_pair);
-						return;
-					}
-				case 2:
-					{
-						LogWarn("Ims process terminated. Shutting down.")
-						Shutdown(Seconds(5),ivr_pair);
-						Shutdown(Seconds(5),sql_pair);
-						return;
-					}
-				case 3:
-					{
-						LogWarn("Sql process terminated. Shutting down.")
-						Shutdown(Seconds(5),ivr_pair);
-						Shutdown(Seconds(5),ims_pair);
-						return;
-					}
-				default:
-					{
-						LogCrit("Selected unknown index");
-						throw;
-					}
+					
+					LogWarn("One of the process terminated unexpectedly. Shutting down all procesees.");
+					break;
 				}
 			}
+
+exit:
+
+			// shutdown in reverse order (pop) first one
+			for (HandlePairList::reverse_iterator i = proc_handlepairs.rbegin(); 
+				i!= proc_handlepairs.rend();
+				++i)
+			{
+				Shutdown(Seconds(5000), (*i));
+			}
+
 			
 			END_FORKING_REGION;
 
@@ -197,12 +217,18 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	}
 
-	
+	WSADATA dat;
+	if (WSAStartup(MAKEWORD(2,2),&dat)!=0)
+	{
+		cerr << "Error starting up WIN socket, err:" << ::GetLastError();
+		return -1;
+	}
 
 	
 	ApiErrorCode err_code = API_SUCCESS;
 	ConfigurationPtr conf = 
 		ConfigurationFactory::CreateJsonConfiguration(WStringToString(conf_file),err_code);
+
 	if (IW_FAILURE(err_code))
 	{
 		return IW_ERROR_PARSING_CONF;
@@ -223,6 +249,11 @@ int _tmain(int argc, _TCHAR* argv[])
  	End_CPPCSP();
 
 	ExitLog();
+	LogInfo(">>>>>> IVRWORX END <<<<<<");
+
+	WSACleanup();
+
+
 	return 0;
 	
 }

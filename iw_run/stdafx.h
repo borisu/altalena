@@ -44,4 +44,5 @@
 #include "ImsFactory.h"
 #include "IvrFactory.h"
 #include "SqlFactory.h"
+#include "MrcpFactory.h"
 

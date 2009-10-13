@@ -27,7 +27,7 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
-				CommandLine="echo on&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\mediastreamer2\build\win32native\Debug\mediastreamer2.dll $(OutDir)&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\win32-bin\lib\*.dll $(OutDir)&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\oRTP\build\win32native\Debug\oRTP.dll $(OutDir)&#x0D;&#x0A;&#x0D;&#x0A;&#x0D;&#x0A;&#x0D;&#x0A;"
+				CommandLine="echo on&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\mediastreamer2\build\win32native\Debug\mediastreamer2.dll $(OutDir)&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\win32-bin\lib\*.dll $(OutDir)&#x0D;&#x0A;copy $(ProjectDir)\..\mediastreamer2-antisip-4.3.3-rc2\oRTP\build\win32native\Debug\oRTP.dll $(OutDir)&#x0D;&#x0A;copy $(OutDir)\bin\*.dll $(OutDir)&#x0D;&#x0A;&#x0D;&#x0A;&#x0D;&#x0A;&#x0D;&#x0A;"
 				Outputs="out.txt"
 			/>
 			<Tool
@@ -44,7 +44,7 @@
 				AdditionalOptions="-Zm120"
 				Optimization="0"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories="..\iw_core;..\iw_ims;..\iw_ivr;&quot;..\sqlite-amalgamation-3_6_17&quot;"
+				AdditionalIncludeDirectories="..\iw_core;..\iw_ims;..\iw_ivr;..\iw_mrcp;..\iw_sql;..\iw_sip;&quot;..\sqlite-amalgamation-3_6_17&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
