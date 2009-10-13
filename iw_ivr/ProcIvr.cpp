@@ -26,13 +26,14 @@
 #include "LuaUtils.h"
 
 
+
+#define IVR_Q 0
+
 using namespace boost::assign;
 
 namespace ivrworx
 {
 
-
-	
 ProcIvr::ProcIvr(IN LpHandlePair pair, IN Configuration &conf)
 :LightweightProcess(pair,IVR_Q,	"Ivr"),
 _conf(conf),
@@ -137,7 +138,7 @@ ProcIvr::real_run()
 	}
 	
 
-	HandlesList list = list_of(stack_pair.outbound)(_inbound);
+	HandlesVector list = list_of(stack_pair.outbound)(_inbound);
 
 	//
 	// Message Loop
