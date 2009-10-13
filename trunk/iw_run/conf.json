@@ -1,6 +1,6 @@
 {
 	
-	"sync_log"  : false,
+	"sync_log"  : true,
 	
 	"resip_log" : "TRANSPORT,DBG|SIP,DBG|DUM,DBG",
 	
@@ -27,6 +27,11 @@
     "ims_host": "$COMPUTERNAME",
     "ims_top_port" : 62000,
     "ims_bottom_port" : 61000,
+    
+    "mrcp_client_host": "$COMPUTERNAME",
+    "mrcp_client_base_port" : 6000, 
+    "mrcp_client_top_port" : 7000,
+    
     
     "script_file" : "scripts\\test.lua",
     
