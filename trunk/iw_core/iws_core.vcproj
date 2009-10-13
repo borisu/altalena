@@ -43,7 +43,7 @@
 				AdditionalOptions="/Zm200&#x0D;&#x0A;"
 				Optimization="0"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories="&quot;..\sqlite-amalgamation-3_6_17&quot;;..\resiprocate\resiprocate;..\json_spirit\json_spirit_v2.06\json_spirit\"
+				AdditionalIncludeDirectories="..\json_spirit\json_spirit_v2.06\json_spirit\"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -301,110 +301,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="resip"
-			>
-			<File
-				RelativePath=".\Call.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Call.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcSipStack.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcSipStack.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ResipCommon.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ResipCommon.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SipSessionHandlerAdapter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SipStackFactory.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SipStackFactory.h"
-				>
-			</File>
-			<Filter
-				Name="uac"
-				>
-				<File
-					RelativePath=".\UACAppDialog.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\UACAppDialog.h"
-					>
-				</File>
-				<File
-					RelativePath=".\UACAppDialogSet.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\UACAppDialogSet.h"
-					>
-				</File>
-				<File
-					RelativePath=".\UACDialogUsageManager.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\UACDialogUsageManager.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="uas"
-				>
-				<File
-					RelativePath=".\UASAppDialog.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\UASAppDialog.h"
-					>
-				</File>
-				<File
-					RelativePath=".\UASAppDialogSet.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\UASAppDialogSet.h"
-					>
-				</File>
-				<File
-					RelativePath=".\UASAppDialogSetFactory.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\UASAppDialogSetFactory.h"
-					>
-				</File>
-				<File
-					RelativePath=".\UASDialogUsageManager.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\UASDialogUsageManager.h"
-					>
-				</File>
-			</Filter>
-		</Filter>
-		<Filter
 			Name="utils"
 			>
 			<File
@@ -552,47 +448,12 @@
 				>
 			</File>
 		</Filter>
-		<Filter
-			Name="sqlite"
-			>
-			<File
-				RelativePath=".\ProcSqlite.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcSqlite.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SqliteSession.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SqliteSession.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>
 		</File>
 		<File
 			RelativePath=".\resource.h"
-			>
-		</File>
-		<File
-			RelativePath=".\SqlFactory.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\SqlFactory.h"
 			>
 		</File>
 		<File

@@ -21,6 +21,7 @@
 #include "IwBase.h"
 #include "UIDOwner.h"
 #include "LpHandle.h"
+#include "Configuration.h"
 
 using namespace csp;
 using namespace boost;
@@ -143,7 +144,7 @@ public:
 		IN Time timout);
 
 	ApiErrorCode WaitForTxnResponse(
-		IN  const HandlesList &map,
+		IN  const HandlesVector &map,
 		OUT int &index,
 		OUT IwMessagePtr &response,
 		IN  Time timout);
@@ -175,6 +176,14 @@ private:
 };
 
 #pragma endregion
+
+class IProcFactory
+{
+public:
+	virtual LightweightProcess *Create(LpHandlePair pair, Configuration &conf) = 0;
+
+	virtual ~IProcFactory(){};
+};
 
 //
 // owners map, used for logging mostly

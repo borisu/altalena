@@ -60,6 +60,10 @@ namespace ivrworx
 		**/
 		ApiErrorCode InitFromString(IN const string &is);
 
+		virtual int GetInt(const string &name);
+
+		virtual string GetString(const string &name);
+
 	private:
 
 		ApiErrorCode InitDb();

@@ -104,7 +104,7 @@ namespace ivrworx
 
 		virtual void SignalDataOut();
 
-		HANDLE Handle();
+		HANDLE WinHandle();
 		
 	private:
 
@@ -141,7 +141,7 @@ namespace ivrworx
 	shared_ptr<LpHandle> LpHandlePtr;
 
 	typedef 
-	vector<LpHandlePtr> HandlesList;
+	vector<LpHandlePtr> HandlesVector;
 
 	class LpHandle :
 	public UIDOwner
@@ -202,7 +202,7 @@ namespace ivrworx
 		friend ostream& operator << (ostream &ostream, const LpHandle *lpHandlePtr);
 
 		friend ApiErrorCode SelectFromChannels(
-			IN  HandlesList &map,
+			IN  HandlesVector &map,
 			IN  Time timeout, 
 			OUT int &index, 
 			OUT IwMessagePtr &event);
@@ -212,7 +212,7 @@ namespace ivrworx
 
 
 	ApiErrorCode SelectFromChannels(
-		IN  HandlesList &map,
+		IN  HandlesVector &map,
 		IN  Time timeout, 
 		OUT int &index, 
 		OUT IwMessagePtr &event);

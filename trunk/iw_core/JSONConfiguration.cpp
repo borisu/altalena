@@ -125,6 +125,24 @@ namespace ivrworx
 	{
 	}
 
+	int
+	JSONConfiguration::GetInt(IN const string &name)
+	{
+
+		Object root_obj(_value.get_obj());
+		return find_int(root_obj, name);
+
+	}
+
+	string
+	JSONConfiguration::GetString(IN const string &name)
+	{
+
+		Object root_obj(_value.get_obj());
+		return find_str(root_obj, name);
+
+	}
+
 	ApiErrorCode
 	JSONConfiguration::InitFromFile(IN const string &filename)
 	{

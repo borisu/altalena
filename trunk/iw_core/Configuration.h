@@ -262,6 +262,10 @@ namespace ivrworx
 		*/
 		virtual bool SyncLog();
 
+		virtual int GetInt(const string &name) = 0;
+
+		virtual string GetString(const string &name) = 0;
+
 	protected:
 
 		mutex _mutex;

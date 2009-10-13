@@ -112,7 +112,7 @@ namespace ivrworx
 	}
 
 	HANDLE 
-	IocpInterruptor::Handle()
+	IocpInterruptor::WinHandle()
 	{
 		return _iocpHandle;
 	}
@@ -383,7 +383,7 @@ read:
 
 	ApiErrorCode 
 	SelectFromChannels(
-		IN  HandlesList &param_handles_list,
+		IN  HandlesVector &param_handles_list,
 		IN  Time timeout, 
 		OUT int &res_index, 
 		OUT IwMessagePtr &res_event)
@@ -408,7 +408,7 @@ read:
 		// messages	so we won't do heavy operations.
 		//
 		int index = 0;
-		for (HandlesList::iterator iter = param_handles_list.begin(); 
+		for (HandlesVector::iterator iter = param_handles_list.begin(); 
 			iter!= param_handles_list.end(); iter++)
 		{
 			LpHandlePtr ptr = (*iter);
