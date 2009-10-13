@@ -23,12 +23,13 @@
 
 namespace ivrworx
 {
-	class ImsFactory
+	class ImsFactory :
+		public IProcFactory
 	{
 	public:
 		ImsFactory(void);
 
-		static LightweightProcess *CreateProcIms(LpHandlePair pair, Configuration &conf);
+		LightweightProcess *Create(LpHandlePair pair, Configuration &conf);
 
 		static ImsSessionPtr CreateImsSession();
 

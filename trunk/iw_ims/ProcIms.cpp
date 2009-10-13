@@ -21,7 +21,7 @@
 #include "ProcIms.h"
 #include "Ims.h"
 #include "ImsSession.h"
-#include "Call.h"
+
 
 namespace ivrworx 
 {
@@ -348,11 +348,12 @@ namespace ivrworx
 		WSADATA dat;
 		if (WSAStartup(MAKEWORD(2,2),&dat)!=0)
 		{
-			LogCrit("Error starting up WIN socket");
-			throw;
+			LogCrit("Error starting up WIN socket.");
+			return;
 		}
 
-		g_iocpHandle= _iocpPtr->Handle();
+		
+		g_iocpHandle= _iocpPtr->WinHandle();
 
 		//
 		// initialize ortp
@@ -431,7 +432,7 @@ namespace ivrworx
 			LPOVERLAPPED lpOverlapped = NULL;
 
 			BOOL res = ::GetQueuedCompletionStatus(
-				_iocpPtr->Handle(),		// A handle to the completion port. To create a completion port, use the CreateIoCompletionPort function.
+				_iocpPtr->WinHandle(),		// A handle to the completion port. To create a completion port, use the CreateIoCompletionPort function.
 				&number_of_bytes,		// A pointer to a variable that receives the number of bytes transferred during an I/O operation that has completed.
 				&completion_key,		// A pointer to a variable that receives the completion key value associated with the file handle whose I/O operation has completed. A completion key is a per-file key that is specified in a call to CreateIoCompletionPort.
 				&lpOverlapped,			// A pointer to a variable that receives the address of the OVERLAPPED structure that was specified when the completed I/O operation was started. 

@@ -35,7 +35,7 @@ namespace ivrworx
 
 
 	LightweightProcess *
-	ImsFactory::CreateProcIms(LpHandlePair pair,Configuration &conf)
+	ImsFactory::Create(LpHandlePair pair,Configuration &conf)
 	{
 		return new ProcIms(pair, conf);
 
