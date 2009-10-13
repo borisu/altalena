@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "ImsSession.h"
-#include "ImsFactory.h"
+#define IMS_Q 1
 
 namespace ivrworx
 {
@@ -50,6 +49,9 @@ namespace ivrworx
 		MSG_IMS_MODIFY_NACK
 
 	};
+
+	typedef int 
+	ImsHandle;
 
 
 	class MsgAllocateImsSessionReq:
@@ -107,7 +109,7 @@ namespace ivrworx
 
 		  MediaFormat codec;
 
-		  ImsHandle playback_handle;
+		  int playback_handle;
 
 		
 	};
@@ -149,6 +151,10 @@ namespace ivrworx
 		  BOOL loop;
 
 		  BOOL send_provisional;
+
+		  BOOL speak_request;
+
+		  string text_to_speak;
 
 	};
 
@@ -257,6 +263,8 @@ namespace ivrworx
 		ImsHandle handle;
 
 	};
+
+	
 
 }
 

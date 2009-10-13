@@ -21,7 +21,7 @@
 #include "ProcIms.h"
 #include "ImsSession.h"
 #include "Ims.h"
-#include "Call.h"
+
 
 using namespace boost;
 using namespace boost::assign;
@@ -378,7 +378,7 @@ ImsSession::InterruptWithHangup()
 {
 	FUNCTRACKER;
 
-	_hangupHandle->Send(new MsgCallHangupEvt());
+	_hangupHandle->Send(new MsgStopPlaybackReq());
 }
 
 ApiErrorCode

@@ -20,12 +20,10 @@
 #pragma once
 using namespace boost;
 
+#include "Ims.h"
+
 namespace ivrworx
 {
-
-	typedef 
-
-	int ImsHandle;
 
 	typedef map<int,char> 
 	DtmfMap;
