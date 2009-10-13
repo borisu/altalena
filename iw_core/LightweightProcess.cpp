@@ -355,7 +355,10 @@ clean:
 		request->source.handle_id = txn_handle->GetObjectUid();
 		request->transaction_id = GenerateNewTxnId();
 
-		dest_handle->Send(request);
+		if (IW_FAILURE(dest_handle->Send(request)))
+		{
+			return API_UNKNOWN_DESTINATION;
+		}
 
 		ApiErrorCode res = WaitForTxnResponse(
 			txn_handle,
@@ -415,7 +418,7 @@ end:
 
 		FUNCTRACKER;
 
-		HandlesList temp_list;
+		HandlesVector temp_list;
 		temp_list.push_back(txn_handle);
 
 		int temp_index = IW_UNDEFINED;
@@ -429,7 +432,7 @@ end:
 
 	ApiErrorCode 
 	LightweightProcess::WaitForTxnResponse(
-		IN  const HandlesList &handles_list,
+		IN  const HandlesVector &handles_list,
 		OUT int &index,
 		OUT IwMessagePtr &response,
 		IN  Time timeout)
@@ -441,7 +444,7 @@ end:
 		// Create lists of handles that 
 		// we are waiting messages from.
 		//
-		HandlesList list;
+		HandlesVector list;
 		list.push_back(_inbound);
 		list.insert(list.end(),handles_list.begin(),handles_list.end());
 

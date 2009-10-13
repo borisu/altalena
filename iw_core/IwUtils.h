@@ -26,6 +26,9 @@
 #pragma warning (disable: 4018)
 #pragma warning (disable: 4099)
 
+#ifndef _WIN32_WINNT		//Allow use of features specific to Windows XP or later.                   
+#define _WIN32_WINNT 0x0501	// Change this to the appropriate value to target other versions of Windows.
+#endif						
 
 
 // windows

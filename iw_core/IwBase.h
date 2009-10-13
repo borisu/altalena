@@ -114,15 +114,6 @@ namespace ivrworx
 
 	class configuration_exception: 	public exception {};
 
-	enum WellKnownProcAlias
-	{
-		IVR_Q,						
-		IMS_Q,
-		SIP_STACK_Q,
-		WAITER_Q,
-		SQLITE_Q
-	};
-
 	/**
 
 	Denotes SDP format (speech codec, dtmf encoding..)

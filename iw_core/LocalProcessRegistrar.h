@@ -77,7 +77,7 @@ namespace ivrworx
 		LocalProcessesMap _locProcessesMap;
 
 		typedef
-		map<ProcId, HandlesList> ListenersMap;
+		map<ProcId, HandlesVector> ListenersMap;
 		ListenersMap _listenersMap;
 
 		typedef

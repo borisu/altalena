@@ -96,8 +96,8 @@ LocalProcessRegistrar::UnregisterChannel(IN int handle_id)
 	ListenersMap::iterator iter = _listenersMap.find(handle_id);
 	if (iter != _listenersMap.end())
 	{
-		HandlesList &list = (*iter).second;
-		for (HandlesList::iterator set_iter = list.begin(); 
+		HandlesVector &list = (*iter).second;
+		for (HandlesVector::iterator set_iter = list.begin(); 
 			set_iter != list.end(); 
 			set_iter++)
 		{
@@ -132,7 +132,7 @@ LocalProcessRegistrar::AddShutdownListener(IN int procId, IN LpHandlePtr channel
 	//
 	if (_listenersMap.find(procId) == _listenersMap.end())
 	{
-		HandlesList list; 
+		HandlesVector list; 
 		_listenersMap[procId] = list;
 	}
 
