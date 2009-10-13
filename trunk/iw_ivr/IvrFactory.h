@@ -21,7 +21,8 @@
 
 namespace ivrworx
 {
-	class IvrFactory
+	class IvrFactory : public
+		IProcFactory
 	{
 	public:
 
@@ -29,7 +30,7 @@ namespace ivrworx
 
 		virtual ~IvrFactory(void);
 
-		static LightweightProcess *CreateProcIvr(LpHandlePair pair, Configuration  &conf);
+		LightweightProcess *Create(LpHandlePair pair, Configuration  &conf);
 
 	};
 

@@ -33,7 +33,7 @@ namespace ivrworx
 
 
 	LightweightProcess*
-	IvrFactory::CreateProcIvr(LpHandlePair pair, Configuration  &conf)
+	IvrFactory::Create(LpHandlePair pair, Configuration  &conf)
 	{
 		return new ProcIvr(pair, conf);
 	}

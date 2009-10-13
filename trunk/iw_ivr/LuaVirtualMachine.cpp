@@ -14,7 +14,6 @@
 //#include "luaLib/luainc.h"
 #include "StdAfx.h"
 #include "luavirtualmachine.h"
-#include "ls_sqlite3.h"
 #include "Profiler.h"
 
 
@@ -149,9 +148,6 @@ bool CLuaVirtualMachine::InitialiseVM (void)
 //       luaopen_io (m_pState);
 
       luaL_openlibs (m_pState);
-
-	  // open sqlite and register sqlite session
-	  luaopen_luasql_sqlite3(m_pState);
 
 //	  luaopen_lanes (m_pState); 
 	  

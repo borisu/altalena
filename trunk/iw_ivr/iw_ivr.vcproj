@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\iw_lanes;..\iw_core;..\iw_ims;..\lua5.1\include;..\luasql;&quot;..\sqlite-amalgamation-3_6_17&quot;"
+				AdditionalIncludeDirectories="..\iw_core;..\iw_ims;..\iw_sip;..\iw_sql;..\lua5.1\include;..\luasql;&quot;..\sqlite-amalgamation-3_6_17&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -278,54 +278,6 @@
 		<Filter
 			Name="luacore"
 			>
-			<File
-				RelativePath=".\LuaDebugger.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\LuaDebugger.h"
-				>
-			</File>
-			<File
-				RelativePath=".\LuaRestoreStack.h"
-				>
-			</File>
-			<File
-				RelativePath=".\LuaScript.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\LuaScript.h"
-				>
-			</File>
-			<File
-				RelativePath=".\LuaTable.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\LuaTable.h"
-				>
-			</File>
-			<File
-				RelativePath=".\LuaThis.h"
-				>
-			</File>
-			<File
-				RelativePath=".\LuaUtils.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\LuaUtils.h"
-				>
-			</File>
-			<File
-				RelativePath=".\LuaVirtualMachine.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\LuaVirtualMachine.h"
-				>
-			</File>
 			<Filter
 				Name="luasqldrver"
 				>
@@ -384,6 +336,58 @@
 			</File>
 			<File
 				RelativePath=".\ProcScriptRunner.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="lua"
+			>
+			<File
+				RelativePath=".\LuaDebugger.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaDebugger.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaRestoreStack.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaScript.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaScript.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaTable.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaTable.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaThis.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaUtils.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaUtils.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaVirtualMachine.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LuaVirtualMachine.h"
 				>
 			</File>
 		</Filter>
