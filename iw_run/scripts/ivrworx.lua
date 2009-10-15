@@ -55,6 +55,10 @@ function iw_log(level, str)
 	return this.iw_log(this, level, str);
 end
 
+function speak(handle, str)
+	return this.speak(this, handle, str);
+end
+
 function logcrt(str)
 	return iw_log(LOG_LEVEL_CRITICAL,str);
 end

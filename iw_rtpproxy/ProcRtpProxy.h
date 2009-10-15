@@ -31,14 +31,27 @@
 
 namespace ivrworx
 {
+	
+	enum CONNECTION_STATE
+	{
+		CONNECTION_STATE_AVAILABLE,
+		CONNECTION_STATE_ALLOCATED,
+		CONNECTION_STATE_INPUT,
+		CONNECTION_STATE_OUTPUT
+	};
+	
 	class ProcRtpProxy :
-		LightweightProcess
+		public LightweightProcess
 	{
 	public:
 
 		
 		typedef shared_ptr<Groupsock>
 		GroupSockPtr;
+
+		struct RtpConnection;
+		typedef shared_ptr<struct RtpConnection> 
+		RtpConnectionPtr;
 
 		struct RtpConnection
 		{
@@ -51,6 +64,17 @@ namespace ivrworx
 			int connection_id;
 
 			GroupSockPtr live_socket;
+
+			CONNECTION_STATE state;
+
+			CnxInfo local_cnx_ino;
+
+			RtpConnectionPtr source_conn;
+			FramedSource* source;
+
+			RtpConnectionPtr destination_conn;
+			MediaSink* sink;
+			
 		};
 
 
@@ -70,21 +94,23 @@ namespace ivrworx
 
 		virtual void UponBridgeReq(IwMessagePtr msg);
 
+		virtual ApiErrorCode UponUnBridgeReq(RtpConnectionPtr msg);
+
 	private:
+
+		Configuration &_conf;
 
 		TaskScheduler *_scheduler;
 
 		BasicUsageEnvironment *_env;
 		
-		typedef shared_ptr<ProcRtpProxy::RtpConnection> 
-		RtpConnectionPtr;
-
 		typedef std::map<int,RtpConnectionPtr> 
 		RtpConnectionsMap;
 
-		RtpConnectionsMap _map;
-	
-		Configuration &_conf;
+		RtpConnectionsMap _connectionsMap;
+
+		in_addr _localInAddr;
+
 
 
 	};

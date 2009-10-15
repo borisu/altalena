@@ -119,6 +119,7 @@ namespace iw_ephoneweb
                 TableCell checkBoxCell = new TableCell();
                 CheckBox checkBox = new CheckBox();
                 checkBox.ID = "checkbox_" + memoId;
+                checkBox.Attributes.Add("onClick", "checkedChanged()");
                 checkBoxCell.Controls.Add(checkBox);
                 tr.Cells.Add(checkBoxCell);
 
@@ -129,7 +130,7 @@ namespace iw_ephoneweb
 
 
 
-                keyTextBox.Text = memoKey + ":" + keyTextBox.ID;
+                keyTextBox.Text = memoKey;
                 keyTextBox.TextChanged += KeyTextChanged;
 
 
@@ -144,7 +145,7 @@ namespace iw_ephoneweb
 
 
 
-                valueTextBox.Text = memoValue + ":" + valueTextBox.ID;
+                valueTextBox.Text = memoValue;
                 valueTextBox.TextChanged += ValueTextChanged;
 
 
@@ -192,18 +193,24 @@ namespace iw_ephoneweb
             bool header = true;
             foreach (TableRow row in tableCtrl.Rows)
             {
+                CheckBox checkBox = row.Cells[0].Controls[0] as CheckBox;
+
                 if (header)
                 {
                     header = false;
+                    CheckAllCheckBox_Id.Value = checkBox.ClientID;
                     continue;
                 }
-                CheckBox checkBox = row.Cells[0].Controls[0] as CheckBox;
+
+                
                 if (checkedItems.ContainsKey(checkBox.ID))
                 {
                     checkBox.Checked = checkedItems[checkBox.ID];
                 }
                 
             }
+
+            
 
         }
 

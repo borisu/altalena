@@ -21,7 +21,7 @@
 
 #include "LuaScript.h"
 #include "LuaTable.h"
-#include "CallWithDirectRtp.h"
+#include "CallWithRtpManagement.h"
 #include "SqliteSession.h"
 
 namespace ivrworx
@@ -64,12 +64,6 @@ protected:
 	**/
 	int LuaWait(CLuaVirtualMachine& vm);
 
-	/**
-	ivrworx.log(log_level,log) - script logging.
-
-	@returns always 0
-	**/
-	int LuaLog(CLuaVirtualMachine& vm);
 
 	/**
 	ivrworx.run(f) - if script needs to perform long blocking operation
@@ -147,6 +141,14 @@ protected:
 	**/
 	int LuaStopPlay(CLuaVirtualMachine& vm);
 
+
+	/**
+	ivrworx.speak(handle, mrcp) - speaks mrcp request
+
+	@returns result of the operation.
+	**/
+	int LuaSpeak(CLuaVirtualMachine& vm);
+
 protected:
 
 	CLuaVirtualMachine &_vmPtr;
@@ -158,7 +160,7 @@ protected:
 	ScopedForking &_forking;
 
 	typedef 
-	shared_ptr<CallWithDirectRtp> CallPtr;
+	shared_ptr<CallWithRtpManagement> CallPtr;
 
 	typedef 
 	map<HandleId,CallPtr> CallMap;
@@ -212,7 +214,7 @@ private:
 	int LuaAnswerCall(CLuaVirtualMachine& vm);
 
 	
-	CallWithDirectRtpPtr _incomingCallSession;
+	CallWithRtpManagementPtr _incomingCallSession;
 
 };
 

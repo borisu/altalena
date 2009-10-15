@@ -26,7 +26,8 @@ require "play_phrase"
 -- con:close()
 -- env:close()
 
-
+a = LoggerBridge:new();
+a:loginfo("he he");
 
 --
 -- Make the call and blind transfer it to another destination

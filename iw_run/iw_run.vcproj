@@ -44,7 +44,7 @@
 				AdditionalOptions="-Zm120"
 				Optimization="0"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories="..\iw_core;..\iw_ims;..\iw_ivr;..\iw_mrcp;..\iw_sql;..\iw_sip;&quot;..\sqlite-amalgamation-3_6_17&quot;"
+				AdditionalIncludeDirectories="..\iw_core;..\iw_ims;..\iw_ivr;..\iw_mrcp;..\iw_sql;..\iw_rtpproxy;..\iw_sip;&quot;..\sqlite-amalgamation-3_6_17&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"

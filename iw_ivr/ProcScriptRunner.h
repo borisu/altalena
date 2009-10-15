@@ -21,7 +21,7 @@
 
 #include "LuaVirtualMachine.h"
 #include "LuaScript.h"
-#include "CallWithDirectRtp.h"
+#include "CallWithRtpManagement.h"
 #include "LuaTable.h"
 #include "IwScriptApi.h"
 

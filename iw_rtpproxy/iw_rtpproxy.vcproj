@@ -45,7 +45,7 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="1"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
@@ -152,6 +152,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\RtpProxyFactory.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\RtpProxySession.cpp"
 				>
 			</File>
@@ -167,6 +171,10 @@
 			>
 			<File
 				RelativePath=".\ProcRtpProxy.h"
+				>
+			</File>
+			<File
+				RelativePath=".\RtpProxyFactory.h"
 				>
 			</File>
 			<File

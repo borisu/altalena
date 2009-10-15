@@ -22,7 +22,10 @@ namespace ivrworx
 
 	MrcpSessionCtx::MrcpSessionCtx()
 		:state(MRCP_INITIAL),
-		mrcp_handle(IW_UNDEFINED)
+		mrcp_handle(IW_UNDEFINED),
+		session(NULL),
+		channel(NULL)
+
 	{
 
 	}
@@ -60,6 +63,7 @@ namespace ivrworx
 		olap->mrcp_handle_id = (int)((mrcp_client_session_t*)session)->app_obj;
 		olap->status = status;
 		olap->channel = channel;
+		olap->session = session;
 
 		BOOL res = ::PostQueuedCompletionStatus(
 					g_iocpHandle,				//A handle to an I/O completion port to which the I/O completion packet is to be posted.
@@ -201,13 +205,17 @@ namespace ivrworx
 					UponSpeakReq(ptr);
 					break;
 				}
+			case MSG_MRCP_TEARDOWN_REQ:
+				{
+					UponTearDownReq(ptr);
+					break;
+				}
 			default:
 				{
 					BOOL oob_res = HandleOOBMessage(ptr);
 					if (oob_res == FALSE)
 					{
-						LogCrit("Received unknown OOB msg:" << ptr->message_id);
-						return;
+						LogWarn("Received unknown OOB msg:" << ptr->message_id);
 					}// if
 				}// default
 			}// switch
@@ -216,7 +224,7 @@ namespace ivrworx
 	}
 
 	/** Create demo RTP termination descriptor */
-	mpf_rtp_termination_descriptor_t* rtp_descriptor_create(apr_pool_t *pool, Configuration &conf)
+	mpf_rtp_termination_descriptor_t* rtp_descriptor_create(apr_pool_t *pool, const CnxInfo &info,const MediaFormat &media_format)
 	{
 		mpf_codec_descriptor_t *codec_descriptor;
 		mpf_rtp_media_descriptor_t *media;
@@ -227,47 +235,71 @@ namespace ivrworx
 		/* create rtp local media */
 		media = (mpf_rtp_media_descriptor_t *)apr_palloc(pool,sizeof(mpf_rtp_media_descriptor_t));
 		mpf_rtp_media_descriptor_init(media);
-		apt_string_assign(&media->base.ip,conf.GetString("mrcp_client_host").c_str(),pool);
-		media->base.port = conf.GetInt("mrcp_client_base_port");
+		apt_string_assign(&media->base.ip,info.iptoa(),pool);
+		media->base.port = info.port_ho();
 		media->base.state = MPF_MEDIA_ENABLED;
 		media->mode = STREAM_MODE_RECEIVE;
 
 		
-
-		const MediaFormatsPtrList &list = conf.MediaFormats();
-
 		/* initialize codec list */
-		mpf_codec_list_init(&media->codec_list,2,pool);
+		mpf_codec_list_init(&media->codec_list,1,pool);
 
-		for (MediaFormatsPtrList::const_iterator i = list.begin(); 
-			i!= list.end(); 
-			i++)
+		
+
+		if (media_format.get_media_type() == MediaFormat::MediaType_SPEECH)
 		{
-			
-			const MediaFormat *codec = (*i);
-
-			if (codec->get_media_type() == MediaFormat::MediaType_SPEECH)
-			{
-				/* set another codec descriptor */
-				codec_descriptor = mpf_codec_list_add(&media->codec_list);
-				if(codec_descriptor) {
-					codec_descriptor->payload_type = codec->sdp_mapping();
-					apt_string_set(&codec_descriptor->name,codec->sdp_name_tos().c_str());
-					codec_descriptor->sampling_rate = codec->sampling_rate();
-					codec_descriptor->channel_count = 1;
-				}
+			/* set another codec descriptor */
+			codec_descriptor = mpf_codec_list_add(&media->codec_list);
+			if(codec_descriptor) {
+				codec_descriptor->payload_type = media_format.sdp_mapping();
+				apt_string_set(&codec_descriptor->name,media_format.sdp_name_tos().c_str());
+				codec_descriptor->sampling_rate = media_format.sampling_rate();
+				codec_descriptor->channel_count = 1;
 			}
 		}
+		
 
 		rtp_descriptor->audio.local = media;
 		return rtp_descriptor;
 	}
 
 	void
+	ProcMrcp::UponTearDownReq(IwMessagePtr msg)
+	{
+		FUNCTRACKER;
+
+
+		shared_ptr<MsgMrcpTearDownReq> req  =
+			dynamic_pointer_cast<MsgMrcpTearDownReq> (msg);
+
+		MrcpCtxMap::iterator iter =  _mrcpCtxMap.find(req->mrcp_handle);
+		if (iter == _mrcpCtxMap.end())
+		{
+
+			LogWarn("ProcMrcp::UponTearDownReq - non existent ctx.");
+			SendResponse(req, new MsgMrcpSpeakReqNack());
+			return;
+		}
+
+		MrcpSessionCtxPtr ctx = (*iter).second;
+
+		if (ctx->state != MRCP_ALLOCATED)
+		{
+			
+			return;
+		}
+
+		mrcp_application_session_terminate(ctx->session);
+		ctx->session = NULL;
+
+
+	}
+
+	void
 	ProcMrcp::UponSpeakReq(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
+		
 
 		shared_ptr<MsgMrcpSpeakReq> req  =
 			dynamic_pointer_cast<MsgMrcpSpeakReq> (msg);
@@ -399,7 +431,7 @@ namespace ivrworx
 		ctx->session = session;
 
 		mpf_rtp_termination_descriptor_t *rtp_descriptor = 
-			rtp_descriptor_create(session->pool,_conf);
+			rtp_descriptor_create(session->pool,req->remote_media_data, req->codec);
 
 		mrcp_channel_t *channel;
 		/* create synthesizer channel */
@@ -421,7 +453,6 @@ namespace ivrworx
 		ctx->channel = channel;
 
 		_mrcpCtxMap[ctx->mrcp_handle] = ctx;
-
 
 	}
 
@@ -448,6 +479,7 @@ namespace ivrworx
 		MrcpCtxMap::iterator iter =  _mrcpCtxMap.find(handle);
 		if (iter == _mrcpCtxMap.end())
 		{
+			mrcp_application_session_destroy(olap->session);
 			LogWarn("Channel status event on non existent ctx.");
 			return;
 		}
@@ -465,19 +497,29 @@ namespace ivrworx
 				break;
 			}
 		case MRCP_SIG_STATUS_CODE_FAILURE:
+		case MRCP_SIG_STATUS_CODE_CANCEL:
 			{
 				MsgMrcpAllocateSessionNack * rsp = new MsgMrcpAllocateSessionNack();
 				SendResponse(ctx->last_user_request,rsp);
 				break;
 			}
 		case MRCP_SIG_STATUS_CODE_TERMINATE:
-		case MRCP_SIG_STATUS_CODE_CANCEL:
 			{
-				MsgMrcpTearDownEvt * rsp = new MsgMrcpTearDownEvt();
-				rsp->mrcp_handle = handle;
-				SendMessage(ctx->session_handler.inbound,IwMessagePtr(rsp));
+		
+				_mrcpCtxMap.erase(iter);
+				if (ctx->session_handler.inbound)
+				{
+					MsgMrcpTearDownEvt * rsp = new MsgMrcpTearDownEvt();
+					rsp->mrcp_handle = handle;
+					SendMessage(ctx->session_handler.inbound,IwMessagePtr(rsp));
+				}
+				mrcp_application_session_destroy(ctx->session);
 				break;
+				
+		
 			}
+		
+			
 		default:
 			{
 				LogWarn("Channel status event on non existent ctx.");

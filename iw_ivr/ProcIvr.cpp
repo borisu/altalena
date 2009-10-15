@@ -19,7 +19,7 @@
 
 #include "StdAfx.h"
 #include "ProcIvr.h"
-#include "CallWithDirectRtp.h"
+#include "CallWithRtpManagement.h"
 #include "ProcScriptRunner.h"
 #include "LocalProcessRegistrar.h"
 #include "ProcHandleWaiter.h"

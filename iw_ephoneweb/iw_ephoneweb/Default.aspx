@@ -70,7 +70,9 @@
                     <asp:Table ID="MemosTableCtrl" runat="server" OnInit="MemosTableCtrl_Init" OnPreRender="MemosTableCtrl_PreRender">
                         <asp:TableHeaderRow>
                             <asp:TableHeaderCell>
-                                <asp:CheckBox ID="CheckAllCheckBox" runat="server" AutoPostBack="true"
+                                <asp:CheckBox 
+                                ID="CheckAllCheckBox"
+                                runat="server" AutoPostBack="true"
                                 OnCheckedChanged="ShowAllCheckBox_CheckedChanged"/>
                             </asp:TableHeaderCell>
                             <asp:TableHeaderCell>
@@ -81,10 +83,33 @@
                             </asp:TableHeaderCell>
                         </asp:TableHeaderRow>
                    </asp:Table>
-                  
-                  
+                   
+                   
+                                  
                 </p>
+                
                 
             </LoggedInTemplate>
        </asp:LoginView>
+       
+    <asp:HiddenField id="CheckAllCheckBox_Id" runat="server"/>
+       
+    <script language="javascript" type="text/javascript">
+        function getObj(id) {
+            if (document.getElementById)
+                var returnVar = document.getElementById(id);
+            else if (document.all)
+                var returnVar = document.all[id];
+            else if (document.layers)
+                var returnVar = document.layers[id];
+            return returnVar;
+        }
+
+        function checkedChanged() {
+            var selectAllCheck = getObj('<%=CheckAllCheckBox_Id.Value%>');
+            selectAllCheck.checked = false;
+
+        }
+            
+  </script>   
 </asp:Content>

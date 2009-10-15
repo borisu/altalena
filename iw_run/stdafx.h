@@ -45,4 +45,5 @@
 #include "IvrFactory.h"
 #include "SqlFactory.h"
 #include "MrcpFactory.h"
+#include "RtpProxyFactory.h"
 
