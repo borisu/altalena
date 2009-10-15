@@ -37,9 +37,9 @@ namespace ivrworx
 
 		virtual ~ImsSession (void);
 
-		virtual ApiErrorCode	AllocateIMSConnection();
+		virtual ApiErrorCode	Allocate();
 
-		virtual ApiErrorCode	AllocateIMSConnection(
+		virtual ApiErrorCode	Allocate(
 			IN CnxInfo remote_end, 
 			IN MediaFormat codec);
 

@@ -106,8 +106,8 @@ namespace ivrworx
 			if (_initialMsg)
 			{
 				_stackHandle = _initialMsg->stack_call_handle;
-				CallWithDirectRtpPtr call_session (
-					new CallWithDirectRtp(
+				CallWithRtpManagementPtr call_session (
+					new CallWithRtpManagement(
 					forking,
 					_initialMsg));
 

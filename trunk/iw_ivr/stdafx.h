@@ -37,6 +37,8 @@
 #include "SipStackFactory.h"
 #include "ImsSession.h"
 #include "SqliteSession.h"
+#include "RtpProxySession.h"
+#include "MrcpSession.h"
 
 
 extern "C"

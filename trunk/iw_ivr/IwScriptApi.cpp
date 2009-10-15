@@ -61,8 +61,7 @@ IwScript::IwScript(IN ScopedForking &forking,
 
 
 	// !!! The order should be preserved for later switch statement !!!
-	_methodBase = RegisterFunction("iw_log");
-	RegisterFunction("wait");
+	_methodBase = RegisterFunction("wait");
 	RegisterFunction("run");
 	RegisterFunction("make_call");
 	RegisterFunction("hangup");
@@ -72,6 +71,7 @@ IwScript::IwScript(IN ScopedForking &forking,
 	RegisterFunction("blind_xfer");
 	RegisterFunction("wait_till_hangup");
 	RegisterFunction("stop_play");
+	RegisterFunction("speak");
 
 
 }
@@ -95,47 +95,47 @@ IwScript::ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber)
 	{
 	case 0:
 		{
-			return LuaLog(vm);
+			return LuaWait(vm);
 		}
 	case 1:
 		{
-			return LuaWait(vm);
+			return LuaRun(vm);
 		}
 	case 2:
 		{
-			return LuaRun(vm);
+			return LuaMakeCall(vm);
 		}
 	case 3:
 		{
-			return LuaMakeCall(vm);
+			return LuaHangupCall(vm);
 		}
 	case 4:
 		{
-			return LuaHangupCall(vm);
+			return LuaPlayFile(vm);
 		}
 	case 5:
 		{
-			return LuaPlayFile(vm);
+			return LuaWaitForDtmf(vm);
 		}
 	case 6:
 		{
-			return LuaWaitForDtmf(vm);
+			return LuaSendDtmf(vm);
 		}
 	case 7:
 		{
-			return LuaSendDtmf(vm);
+			return LuaBlindXfer(vm);
 		}
 	case 8:
 		{
-			return LuaBlindXfer(vm);
+			return LuaWaitTillHangup(vm);
 		}
 	case 9:
 		{
-			return LuaWaitTillHangup(vm);
+			return LuaStopPlay(vm);
 		}
 	case 10:
 		{
-			return LuaStopPlay(vm);
+			return LuaSpeak(vm);
 		}
 	default:
 		{
@@ -269,7 +269,7 @@ IwScript::LuaMakeCall(CLuaVirtualMachine& vm)
 
 	LogDebug("IwScript::LuaMakeCall - dst:" << sip_uri);
 
-	CallPtr call_ptr(new CallWithDirectRtp(_forking));
+	CallPtr call_ptr(new CallWithRtpManagement(_forking));
 
 	const MediaFormatsPtrList &codecs_list = _conf.MediaFormats();
 	for (MediaFormatsPtrList::const_iterator iter = codecs_list.begin(); iter != codecs_list.end(); iter++)
@@ -587,6 +587,57 @@ IwScript::LuaBlindXfer(CLuaVirtualMachine& vm)
 
 }
 
+int
+IwScript::LuaSpeak(CLuaVirtualMachine& vm)
+{
+	FUNCTRACKER;
+
+	lua_State *state = (lua_State *) vm;
+
+	if (_scriptState != SCRIPT_STATE_NORMAL)
+	{
+		lua_pushnumber (state, API_WRONG_STATE);
+		return 1;
+	}
+
+	if (lua_isnumber(state, -2) != 1 )
+	{
+		LogWarn("IwScript::LuaSpeak - handle param of incorrect type.");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
+	}
+	
+	if (lua_isstring(state, -1) != 1 )
+	{
+		LogWarn("IwScript::LuaSpeak - Wrong type of parameter for speak - mrcp");
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		return 1;
+	}
+
+
+	long handle = (long) lua_tonumber (state, -2);
+
+	LogDebug("IwScript::LuaWaitTillHangup - iwh:" << handle);
+
+	CallMap::iterator iter  = _callMap.find(handle);
+	if (iter == _callMap.end())
+	{
+		lua_pushnumber (state, API_WRONG_PARAMETER);
+		LogWarn("IwScript::LuaWaitTillHangup - Cannot find call iwh:" << handle);
+		return 1;
+
+	}
+
+	CallPtr call = (*iter).second;
+
+	const char* destination = lua_tostring(state, -1);
+	call->Speak(destination);
+
+	lua_pushnumber (state, API_SUCCESS);
+	return 1;
+
+}
+
 
 int
 IwScript::LuaWaitTillHangup(CLuaVirtualMachine& vm)
@@ -631,81 +682,14 @@ IwScript::LuaWaitTillHangup(CLuaVirtualMachine& vm)
 }
 
 
-int
-IwScript::LuaLog(CLuaVirtualMachine& vm)
-{
-	FUNCTRACKER;
-	
-	lua_State *state = (lua_State *) vm;
 
-	if (lua_isnumber(state, -2) != 1 )
-	{
-		LogWarn("Wrong type of parameter for log - loglevel");
-		return 0;
-	}
-
-	if (lua_isstring(state, -1) != 1 )
-	{
-		LogWarn("Wrong type of parameter for log - logstring");
-		return 0;
-	}
-
-	size_t string_length = 0;
-	LogLevel log_level = (LogLevel)((long)lua_tonumber(state,  -2));
-	const char *log_string = lua_tolstring(state, -1, &string_length);
-
-	LogStartScriptLog();
-	switch(log_level)
-	{
-	case LOG_LEVEL_OFF:
-		{
-			break;
-		}
-	case LOG_LEVEL_CRITICAL:
-		{
-			LogCrit(log_string);
-			break;
-		}
-	case LOG_LEVEL_WARN:
-		{
-			LogWarn(log_string);
-			break;
-		}
-	case LOG_LEVEL_INFO:
-		{
-			LogInfo(log_string);
-			break;
-		}
-	case LOG_LEVEL_DEBUG:
-		{
-			LogDebug(log_string);
-			break;
-		}
-	case LOG_LEVEL_TRACE:
-		{
-			LogTrace(log_string);
-			break;
-		}
-	default:
-		{
-			LogDebug(log_string);
-		}
-	}
-
-	LogStopScriptLog();
-
-
-	lua_pushnumber (state, API_SUCCESS);
-	return 1;
-
-}
 
 
 IwCallHandlerScript::IwCallHandlerScript(
 	IN ScopedForking &forking,
 	IN Configuration &conf,
 	IN CLuaVirtualMachine &vm,
-	IN CallWithDirectRtpPtr call_session)
+	IN CallWithRtpManagementPtr call_session)
 	:IwScript(forking,conf, vm),
 	_incomingCallSession(call_session),
 	_lineInTable(vm)

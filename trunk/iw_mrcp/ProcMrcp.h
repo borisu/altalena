@@ -53,6 +53,8 @@ namespace ivrworx
 		mrcp_sig_status_code_e status;
 
 		mrcp_channel_t *channel;
+
+		mrcp_session_t *session;
 	};
 
 	class ProcMrcp : 
@@ -69,6 +71,8 @@ namespace ivrworx
 		virtual void UponAllocateSessionReq(IwMessagePtr msg);
 
 		virtual void UponSpeakReq(IwMessagePtr msg);
+
+		virtual void UponTearDownReq(IwMessagePtr msg);
 
 		virtual void UponChnannelConnected( MrcpOverlapped* mrcpOlap);
 

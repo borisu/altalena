@@ -352,5 +352,25 @@ namespace ivrworx
 
 	}
 
+	in_addr convert_hname_to_addrin(const char *name)
+	{
+		hostent *phe = ::gethostbyname(name);
+		if (phe == NULL)
+		{
+			DWORD last_error = ::GetLastError();
+			cerr << "::gethostbyname returned error for host:" << name << ", le:" << last_error;
+			throw configuration_exception();
+		}
+
+
+		// take only first result
+		struct in_addr addr;
+		addr.s_addr = *(u_long *) phe->h_addr;
+
+		return addr;
+
+	}
+
+
 }
 

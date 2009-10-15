@@ -69,6 +69,7 @@ namespace ivrworx
 				(ProcFactoryPtr(new ImsFactory()))
 				(ProcFactoryPtr(new MrcpFactory()))
 				(ProcFactoryPtr(new IvrFactory()))
+				(ProcFactoryPtr(new RtpProxyFactory()))
 				
 			;
 
@@ -119,23 +120,6 @@ namespace ivrworx
 	
 			I_AM_READY;
 
-			{
-				MrcpSession s(forking);
-				s.AllocateSession();
-
-				string text = "<?xml version=\"1.0\"?>				\r\n" 
-				"	<speak>								\r\n" 
-				"	<paragraph>							\r\n" 
-				"	<sentence>Please enter your ID number.</sentence>	\r\n" 
-				"	</paragraph>						\r\n" 
-				"</speak>								\r\n" ;
-
-				s.Speak(text);
-
-				::Sleep(INFINITE);
-			
-			}
-			
 
 			while(true)
 			{

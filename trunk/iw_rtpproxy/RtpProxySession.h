@@ -22,6 +22,8 @@
 #include "IwUtils.h"
 #include "Message.h"
 
+#define RTP_PROXY_Q 10
+
 namespace ivrworx
 {
 	enum RtpProxyEvents
@@ -42,6 +44,8 @@ namespace ivrworx
 	public :
 		RtpProxyMixin():rtp_proxy_handle(IW_UNDEFINED){};
 		RtpProxyHandle rtp_proxy_handle;
+		CnxInfo local_media;
+		CnxInfo remote_media;
 	};		
 
 
@@ -53,8 +57,6 @@ namespace ivrworx
 		MsgRtpProxyAllocateReq():
 		  MsgRequest(MSG_RTP_PROXY_ALLOCATE_REQ, 
 			  NAME(MSG_RTP_PROXY_ALLOCATE_REQ)){};
-
-		  CnxInfo remote_cnx_info;
 
 	};
 
@@ -116,15 +118,35 @@ namespace ivrworx
 		  MsgRequest(MSG_RTP_PROXY_MODIFY_REQ, 
 			  NAME(MSG_RTP_PROXY_MODIFY_REQ)){};
 
-		  CnxInfo remote_media_data;
-
 	};
 
 	class RtpProxySession
 	{
 	public:
+
 		RtpProxySession(void);
+
 		virtual ~RtpProxySession(void);
+
+		virtual ApiErrorCode Allocate();
+
+		virtual ApiErrorCode Allocate(const CnxInfo &remote_media);
+
+		virtual ApiErrorCode Deallocate();
+
+		virtual ApiErrorCode Modify(const CnxInfo &conn);
+
+		virtual ApiErrorCode Bridge(IN const RtpProxySession &dest);
+
+		virtual CnxInfo GetLocalInfo();
+
+	private:
+
+		CnxInfo _conn;
+
+		RtpProxyHandle _handle;
+
+
 	};
 
 

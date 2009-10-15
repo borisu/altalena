@@ -190,22 +190,20 @@ MrcpSession::UponActiveObjectEvent(IwMessagePtr ptr)
 }
 
 ApiErrorCode
-MrcpSession::AllocateSession()
+MrcpSession::Allocate()
 {
 	FUNCTRACKER;
 
-	return AllocateSession(CnxInfo(),MediaFormat()); 
-		
-
+	return Allocate(CnxInfo(),MediaFormat()); 
 }
 
 ApiErrorCode
-MrcpSession::AllocateSession(IN CnxInfo remote_end, 
+MrcpSession::Allocate(IN CnxInfo remote_end, 
 								  IN MediaFormat codec)
 {
 	FUNCTRACKER;
 
-	LogDebug("AllocateSession:: remote:" <<  remote_end.ipporttos()  << ", codec:"  << codec << ", mrcph:" << _mrcpSessionHandle);
+	LogDebug("MrcpSession::Allocate remote:" <<  remote_end.ipporttos()  << ", codec:"  << codec << ", mrcph:" << _mrcpSessionHandle);
 	
 	if (_mrcpSessionHandle != IW_UNDEFINED)
 	{

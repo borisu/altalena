@@ -15,6 +15,8 @@
 #include "StdAfx.h"
 #include "luavirtualmachine.h"
 #include "Profiler.h"
+#include "Luna.h"
+#include "LoggerBridge.h"
 
 
 using namespace ivrworx;
@@ -140,17 +142,17 @@ bool CLuaVirtualMachine::InitialiseVM (void)
       m_fIsOk = true;
 
       // Load util libs into lua
-//       luaopen_base (m_pState);
-//       luaopen_table (m_pState);
-//       luaopen_string (m_pState);
-//       luaopen_math (m_pState);
-//       luaopen_debug (m_pState);
-//       luaopen_io (m_pState);
+//        luaopen_base (m_pState);
+//        luaopen_table (m_pState);
+//        luaopen_string (m_pState);
+//        luaopen_math (m_pState);
+//        luaopen_debug (m_pState);
+//        luaopen_io (m_pState);
 
-      luaL_openlibs (m_pState);
+       luaL_openlibs (m_pState);
 
-//	  luaopen_lanes (m_pState); 
-	  
+	   Luna<LoggerBridge>::Register(m_pState);
+
 
       // setup global printing (trace)
       lua_pushcclosure (m_pState, printMessage, 0);

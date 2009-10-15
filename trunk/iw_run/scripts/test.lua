@@ -1,11 +1,13 @@
 require "ivrworx";
 require "play_phrase";
 
+a = LoggerBridge:new();
+a:loginfo("he he");
 --
 -- This functions will run when caller hangs up
 -- 
 function on_hangup()
- ivrworx.logdbg("remote hangup detected for script ani:"..linein["ani"]..", dnis:"..linein["dnis"]);
+ a:loginfo("remote hangup detected for script ani:"..linein["ani"]..", dnis:"..linein["dnis"]);
 end
 
 
@@ -13,16 +15,32 @@ end
 --- INCOMING is handle of incoming call 
 ---
 handle = INCOMING;
-ivrworx.loginf("start incoming call");
+a:loginfo("start incoming call");
 
 --
 -- Answer the calls (you may filter calls by ani)
 --
 res = ivrworx.answer();
 if (res ~= API_SUCCESS) then
-	ivrworx.loginf("Error answering the call - res:" .. res);
+	a:loginfo("Error answering the call - res:" .. res);
 	return;
 end
+
+mrcp = [[<?xml version=\"1.0\"?>
+<speak>
+  <paragraph>
+    <sentence>Hello.</sentence>
+  </paragraph>
+</speak>]]
+
+ivrworx.speak(INCOMING,mrcp);
+ivrworx.wait(10000);
+
+if (1)
+then
+return;
+end
+
 
 -- 
 -- Small example of running long operation in 
@@ -33,7 +51,7 @@ end
 -- ivrworx.loginf( "script>"..a)
 --
 
-ivrworx.logdbg("script started ani:"..linein["ani"]..", dnis:"..linein["dnis"]);
+a:loginfo("script started ani:"..linein["ani"]..", dnis:"..linein["dnis"]);
 
 if string.len(linein["ani"]) ~= 0 
 then

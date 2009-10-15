@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\iw_core;..\iw_ims;..\iw_sip;..\iw_sql;..\lua5.1\include;..\luasql;&quot;..\sqlite-amalgamation-3_6_17&quot;"
+				AdditionalIncludeDirectories="..\iw_mrcp;..\iw_core;..\iw_ims;..\iw_sip;..\iw_sql;..\lua5.1\include;..\iw_rtpproxy;..\luasql;&quot;..\sqlite-amalgamation-3_6_17&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -276,30 +276,14 @@
 	</References>
 	<Files>
 		<Filter
-			Name="luacore"
-			>
-			<Filter
-				Name="luasqldrver"
-				>
-				<File
-					RelativePath=".\ls_sqlite3.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\ls_sqlite3.h"
-					>
-				</File>
-			</Filter>
-		</Filter>
-		<Filter
 			Name="scriptapi"
 			>
 			<File
-				RelativePath=".\CallWithDirectRtp.cpp"
+				RelativePath=".\CallWithRtpManagement.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\CallWithDirectRtp.h"
+				RelativePath=".\CallWithRtpManagement.h"
 				>
 			</File>
 			<File
@@ -390,6 +374,38 @@
 				RelativePath=".\LuaVirtualMachine.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Luna.h"
+				>
+			</File>
+			<Filter
+				Name="luacore"
+				>
+				<Filter
+					Name="luasqldrver"
+					>
+					<File
+						RelativePath=".\ls_sqlite3.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\ls_sqlite3.h"
+						>
+					</File>
+				</Filter>
+			</Filter>
+			<Filter
+				Name="bridges"
+				>
+				<File
+					RelativePath=".\LoggerBridge.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\LoggerBridge.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"

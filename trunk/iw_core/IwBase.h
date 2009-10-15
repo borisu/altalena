@@ -192,6 +192,8 @@ namespace ivrworx
 
 	ostream& operator << (ostream &ostream, const MediaFormat &ptr);
 
+	in_addr convert_hname_to_addrin(const char *name);
+
 	/**
 
 	Encapsulates the ip and port information. If supplied host name tries to resolve it to ip addr structure.
@@ -256,6 +258,8 @@ namespace ivrworx
 		friend int operator == (const CnxInfo &right,const CnxInfo &left);
 
 	};
+
+	
 
 	typedef 
 	list<CnxInfo> CnxInfosList;

@@ -266,9 +266,9 @@ namespace ivrworx
 
 		virtual ~MrcpSession (void);
 
-		virtual ApiErrorCode	AllocateSession();
+		virtual ApiErrorCode	Allocate();
 
-		virtual ApiErrorCode	AllocateSession(
+		virtual ApiErrorCode	Allocate(
 			IN CnxInfo remote_end, 
 			IN MediaFormat codec);
 
