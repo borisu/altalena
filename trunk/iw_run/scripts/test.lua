@@ -29,12 +29,12 @@ end
 mrcp = [[<?xml version=\"1.0\"?>
 <speak>
   <paragraph>
-    <sentence>Hello.</sentence>
+    <sentence>Hello Boris. You are cool!</sentence>
   </paragraph>
 </speak>]]
 
 ivrworx.speak(INCOMING,mrcp);
-ivrworx.wait(10000);
+ivrworx.wait(20000);
 
 if (1)
 then
