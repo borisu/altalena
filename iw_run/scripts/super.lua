@@ -26,8 +26,18 @@ require "play_phrase"
 -- con:close()
 -- env:close()
 
-a = LoggerBridge:new();
-a:loginfo("he he");
+logger = assert(ivrworx.LOGGER)
+conf = assert(ivrworx.CONF)
+
+logger:loginfo("welcome");
+
+
+env = assert(luasql.sqlite3());
+conn_string = assert(conf:getstring("polly_db"));
+con = assert(env:connect(conn_string));
+
+logger:loginfo("db:"..conn_string.." open");
+
 
 --
 -- Make the call and blind transfer it to another destination
