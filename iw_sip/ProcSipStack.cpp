@@ -249,6 +249,9 @@ namespace ivrworx
 			_dumMngr.getMasterProfile()->setDefaultFrom(uasAor);
 			_dumMngr.getMasterProfile()->setDefaultRegistrationTime(70);
 
+			_dumMngr.getMasterProfile()->addSupportedMethod(INFO);
+			_dumMngr.getMasterProfile()->addSupportedMimeType(INFO,Mime("application","dtmf-relay"));
+
 
 			if (_conf.EnableSessionTimer())
 			{
@@ -278,6 +281,7 @@ namespace ivrworx
 			_dumMngr.setInviteSessionHandler(this);
 			_dumMngr.addClientSubscriptionHandler("refer",this);
 			_dumMngr.addOutOfDialogHandler(OPTIONS, this);
+			
 
 
 			auto_ptr<AppDialogSetFactory> uas_dsf(new UASAppDialogSetFactory());
