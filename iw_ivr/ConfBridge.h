@@ -16,41 +16,31 @@
 *	License along with this library; if not, write to the Free Software
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-
 #pragma once
-
-#include "LuaVirtualMachine.h"
+#include "Luna.h"
 
 namespace ivrworx
 {
-	class LuaTable
+	class ConfBridge
 	{
 	public:
+		
+		ConfBridge(lua_State *L);
 
-		LuaTable(IN CLuaVirtualMachine& vm);
+		ConfBridge(Configuration *conf);
 
-		void Create(IN const string &table_name);
+		virtual ~ConfBridge(void);
 
-		void AddParam(IN const string &key,  IN const string &value);
+		int getstring(lua_State *L);
+		int getint(lua_State *L);
 
-		void AddParam(IN const string &key,  IN const int value);
+		static const char className[];
+		static Luna<ConfBridge>::RegType methods[];
 
-		void AddFunction(IN const string &key,  IN const lua_CFunction func);
-
-		int TableRef();
-			  
-		virtual ~LuaTable (void);
-
-	protected:
-
-		string _tableName;
-
-		int _oldRef;
-
-		CLuaVirtualMachine& _vm;
-
-		int _tableRef;
-
+		Configuration *_conf;
 	};
 
+
+
 }
+
