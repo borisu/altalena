@@ -19,38 +19,18 @@
 
 #pragma once
 
-#include "LuaVirtualMachine.h"
 
-namespace ivrworx
-{
-	class LuaTable
-	{
-	public:
+#define LUA_STRING_PARAM(L,N,I) if (lua_isstring(L, I) != 1 ) \
+	{ lua_pushnumber (L, API_WRONG_PARAMETER); return 1;}    \
+	const char *N = NULL; {	size_t string_length = 0;		 \
+	N = lua_tolstring(L, I, &string_length);};		 
 
-		LuaTable(IN CLuaVirtualMachine& vm);
+#define LUA_INT_PARAM(L,N,I) if (lua_isnumber(L, I) != 1 ) \
+	{ lua_pushnumber (L, API_WRONG_PARAMETER); return 1;}  \
+	lua_Integer N = lua_tointeger(L, I);	
 
-		void Create(IN const string &table_name);
-
-		void AddParam(IN const string &key,  IN const string &value);
-
-		void AddParam(IN const string &key,  IN const int value);
-
-		void AddFunction(IN const string &key,  IN const lua_CFunction func);
-
-		int TableRef();
-			  
-		virtual ~LuaTable (void);
-
-	protected:
-
-		string _tableName;
-
-		int _oldRef;
-
-		CLuaVirtualMachine& _vm;
-
-		int _tableRef;
-
-	};
-
-}
+#define LUA_BOOL_PARAM(L,N,I) if (lua_isboolean(L, I) != 1 ) \
+	{ lua_pushnumber (L, API_WRONG_PARAMETER); return 1;}  \
+	BOOL N = lua_toboolean(L, I);	
+	
+	

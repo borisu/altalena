@@ -164,6 +164,8 @@ namespace ivrworx
 
 		virtual BOOL HandleOOBMessage(IN IwMessagePtr msg);
 
+		static int LuaWait(lua_State *L);
+
 	private:
 
 		shared_ptr<MsgCallOfferedReq> _initialMsg;

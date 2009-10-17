@@ -151,8 +151,7 @@ bool CLuaVirtualMachine::InitialiseVM (void)
 
        luaL_openlibs (m_pState);
 
-	   Luna<LoggerBridge>::Register(m_pState);
-
+	 
 
       // setup global printing (trace)
       lua_pushcclosure (m_pState, printMessage, 0);

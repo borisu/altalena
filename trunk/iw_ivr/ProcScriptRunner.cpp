@@ -20,6 +20,11 @@
 #include "StdAfx.h"
 #include "ProcScriptRunner.h"
 #include "IwScriptApi.h"
+#include "BridgeMacros.h"
+#include "LoggerBridge.h"
+#include "ConfBridge.h"
+#include "CallBridge.h"
+#include "ls_sqlite3.h"
 
 /*!
  * \brief
@@ -60,6 +65,22 @@ namespace ivrworx
 
 	}
 
+	int
+	ProcScriptRunner::LuaWait(lua_State *state)
+	{
+		FUNCTRACKER;
+
+		LUA_INT_PARAM(state,time_to_sleep,-1);
+
+		LogDebug("IwScript::LuaWait - Wait for " << time_to_sleep);
+
+#pragma warning (suppress:4244)
+		csp::SleepFor(MilliSeconds(time_to_sleep));
+		lua_pushnumber (state, API_SUCCESS);
+
+		return 1;
+	}
+
 	BOOL 
 	ProcScriptRunner::RunScript(IwScript &script)
 	{
@@ -92,7 +113,6 @@ namespace ivrworx
 		{
 			CLuaVirtualMachine vm;
 			IX_PROFILE_CODE(vm.InitialiseVM());
-
 			if (vm.Ok() == false)
 			{
 				LogCrit("Couldn't initialize lua vm");
@@ -100,7 +120,51 @@ namespace ivrworx
 			}
 
 			CLuaDebugger debugger(vm);
+
+			LuaTable ivrworx_table(vm);
+			ivrworx_table.Create("ivrworx");
+
+			ivrworx_table.AddParam(NAME(API_SUCCESS),API_SUCCESS);
+			ivrworx_table.AddParam(NAME(API_FAILURE),API_FAILURE);
+			ivrworx_table.AddParam(NAME(API_SERVER_FAILURE),API_SERVER_FAILURE);
+			ivrworx_table.AddParam(NAME(API_TIMEOUT),API_TIMEOUT);
+			ivrworx_table.AddParam(NAME(API_WRONG_PARAMETER),API_WRONG_PARAMETER);
+			ivrworx_table.AddParam(NAME(API_WRONG_STATE),API_WRONG_STATE);
+			ivrworx_table.AddParam(NAME(API_HANGUP),API_HANGUP);
+			ivrworx_table.AddParam(NAME(API_UNKNOWN_DESTINATION),API_UNKNOWN_DESTINATION);
+			ivrworx_table.AddParam(NAME(API_UNKNOWN_RESPONSE),API_UNKNOWN_RESPONSE);
+
+			ivrworx_table.AddFunction("sleep",ProcScriptRunner::LuaWait);
+
+
+
 			
+
+			
+			//
+			// ivrworx.LOGGER
+			//
+			LoggerBridge b(vm);
+			Luna<LoggerBridge>::RegisterType(vm,TRUE);
+			Luna<LoggerBridge>::RegisterObject(vm,&b,ivrworx_table.TableRef(),"LOGGER");
+
+			//
+			// ivrworx.CONF
+			//
+			ConfBridge conf_bridge(&_conf);
+			Luna<ConfBridge>::RegisterType(vm,TRUE);
+			Luna<ConfBridge>::RegisterObject(vm,&conf_bridge,ivrworx_table.TableRef(),"CONF");
+
+			//
+			// register sql library
+			//
+			if (!luaopen_luasql_sqlite3(vm))
+			{
+				LogWarn("ProcScriptRunner::real_run - cannot register sql library");
+				return;
+			}
+
+
 			START_FORKING_REGION;
 	
 			if (_initialMsg)
@@ -120,6 +184,15 @@ namespace ivrworx
 				{
 					call_session->EnableMediaFormat(**iter);
 				}
+
+
+				//
+				// ivrworx.INCOMING
+				//
+				CallBridge call_bridge(call_session.get());
+				Luna<CallBridge>::RegisterType(vm,TRUE);
+				Luna<CallBridge>::RegisterObject(vm,&call_bridge,ivrworx_table.TableRef(),"INCOMING");
+
 
 				// compile the script if needed
 				IwCallHandlerScript script(forking, _conf,vm,call_session);

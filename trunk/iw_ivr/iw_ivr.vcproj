@@ -394,18 +394,38 @@
 					</File>
 				</Filter>
 			</Filter>
-			<Filter
-				Name="bridges"
+		</Filter>
+		<Filter
+			Name="bridges"
+			>
+			<File
+				RelativePath=".\BridgeMacros.h"
 				>
-				<File
-					RelativePath=".\LoggerBridge.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\LoggerBridge.h"
-					>
-				</File>
-			</Filter>
+			</File>
+			<File
+				RelativePath=".\CallBridge.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CallBridge.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ConfBridge.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ConfBridge.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LoggerBridge.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LoggerBridge.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
