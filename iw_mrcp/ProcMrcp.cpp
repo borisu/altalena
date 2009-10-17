@@ -8,6 +8,7 @@
 
 
 #define IW_MRCP_CHANNEL_STATUS_EVT 5000
+#define IW_MRCP_MESSAGE_RECEIVE_EVT 5001
 
 namespace ivrworx
 {
@@ -82,12 +83,43 @@ namespace ivrworx
 		return TRUE;
 	}
 
+	apt_bool_t iw_application_on_message_receive(
+		mrcp_application_t *application, 
+		mrcp_session_t *session, 
+		mrcp_channel_t *channel, 
+		mrcp_message_t *message)
+	{
+
+		MrcpOverlapped *olap = new MrcpOverlapped();
+		SecureZeroMemory(olap, sizeof(MrcpOverlapped));
+		olap->mrcp_handle_id = (int)((mrcp_client_session_t*)session)->app_obj;
+		olap->message = message;
+		olap->channel = channel;
+		olap->session = session;
+
+		BOOL res = ::PostQueuedCompletionStatus(
+			g_iocpHandle,				 //A handle to an I/O completion port to which the I/O completion packet is to be posted.
+			0,							 //The value to be returned through the lpNumberOfBytesTransferred parameter of the GetQueuedCompletionStatus function.
+			IW_MRCP_MESSAGE_RECEIVE_EVT, //The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
+			olap						 //The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
+			);
+
+		if (res == FALSE)
+		{
+			LogSysError("::PostQueuedCompletionStatus");
+			throw std::exception("System error in iw_application_on_channel_add");
+		}
+
+
+		return TRUE;
+	}
+
 	static const mrcp_app_message_dispatcher_t iw_application_dispatcher = {
 		NULL, //iw_application_on_session_update,
 		NULL, //iw_application_on_session_terminate,
 		iw_application_on_channel_add, 
 		NULL, //iw_application_on_channel_remove,
-		NULL, //iw_application_on_message_receive
+		iw_application_on_message_receive, //iw_application_on_message_receive
 		iw_application_on_message_ready,
 		NULL,
 		NULL
@@ -174,11 +206,11 @@ namespace ivrworx
 					UponChnannelConnected((MrcpOverlapped*)lpOverlapped);
 					continue;
 				}
-// 			case IW_IMS_DTMF_EVENT:
-// 				{
-// 					UponDtmfEvent((ImsOverlapped*)lpOverlapped);
-// 					continue;
-// 				}
+			case IW_MRCP_MESSAGE_RECEIVE_EVT:
+				{
+					UponMessageReceived((MrcpOverlapped*)lpOverlapped);
+					continue;
+				}
 			default:
 				{
 					if (completion_key!=IOCP_UNIQUE_COMPLETION_KEY)
@@ -308,7 +340,7 @@ namespace ivrworx
 		if (iter == _mrcpCtxMap.end())
 		{
 			
-			LogWarn("Channel status event on non existent ctx.");
+			LogWarn("ProcMrcp::UponSpeakReq - non existent mrcph:" << req->mrcp_handle);
 			SendResponse(req, new MsgMrcpSpeakReqNack());
 			return;
 		}
@@ -383,9 +415,7 @@ namespace ivrworx
 			req->mrcp_xml.size(),
 			mrcp_message->pool);
 
-		
-		ctx->state = MRCP_SPEAKING;
-
+	
 		/* send MRCP request (non-blocking, asynchronous processing) */
 		apt_bool_t res = mrcp_application_message_send(ctx->session,ctx->channel,mrcp_message);
 		if (!res)
@@ -395,7 +425,14 @@ namespace ivrworx
 			return;
 		}
 
-		SendResponse(req, new MsgMrcpSpeakReqAck());
+		ctx->last_user_request = req;
+
+		if (req->send_provisional)
+		{
+			SendResponse(req, new MsgMrcpSpeakReqAck());
+		}
+
+		
 
 	}
 
@@ -457,6 +494,44 @@ namespace ivrworx
 	}
 
 	void
+	ProcMrcp::UponMessageReceived(MrcpOverlapped *olap)
+	{
+		FUNCTRACKER;
+
+		if (olap == NULL)
+		{
+			LogWarn("olap NULL!");
+			return;
+		}
+
+		shared_ptr<MrcpOverlapped> guard(olap);
+
+		MrcpHandle handle = olap->mrcp_handle_id;
+		LogDebug("ProcMrcp::UponMessageReceived handle:" <<  olap->mrcp_handle_id << ", status:" << olap->status);
+
+		
+
+		MrcpCtxMap::iterator iter =  _mrcpCtxMap.find(handle);
+		if (iter == _mrcpCtxMap.end())
+		{
+			mrcp_application_session_destroy(olap->session);
+			LogWarn("ProcMrcp::UponMessageReceived mrcph:" << handle << " not found.");
+			return;
+		}
+
+		MrcpSessionCtxPtr ctx = (*iter).second;
+
+		string method_name (olap->message->start_line.method_name.buf);
+
+		if (method_name == "SPEAK-COMPLETE")
+		{
+			MsgMrcpSpeakStoppedEvt *stopped_msg = new MsgMrcpSpeakStoppedEvt();
+			SendResponse(ctx->last_user_request, stopped_msg);
+		}
+
+	}
+
+	void
 	ProcMrcp::UponChnannelConnected(MrcpOverlapped *olap)
 	{
 		FUNCTRACKER;
@@ -467,14 +542,15 @@ namespace ivrworx
 			return;
 		}
 
+		shared_ptr<MrcpOverlapped> ptr (olap);
+
 	
 		MrcpHandle handle = olap->mrcp_handle_id;
 		mrcp_sig_status_code_e status = olap->status;
 
 		LogDebug("UponChnannelConnected handle:" <<  olap->mrcp_handle_id << ", status:" << olap->status);
 
-		delete olap;
- 
+		
 
 		MrcpCtxMap::iterator iter =  _mrcpCtxMap.find(handle);
 		if (iter == _mrcpCtxMap.end())

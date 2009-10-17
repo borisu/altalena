@@ -8,8 +8,6 @@ namespace ivrworx
 		MRCP_INITIAL,
 		MRCP_CONNECTING,
 		MRCP_ALLOCATED,
-		MRCP_SPEAKING,
-		MRCP_STOPPED,
 		MRCP_TORNDOWN
 	};
 
@@ -55,6 +53,8 @@ namespace ivrworx
 		mrcp_channel_t *channel;
 
 		mrcp_session_t *session;
+
+		mrcp_message_t *message;
 	};
 
 	class ProcMrcp : 
@@ -74,7 +74,9 @@ namespace ivrworx
 
 		virtual void UponTearDownReq(IwMessagePtr msg);
 
-		virtual void UponChnannelConnected( MrcpOverlapped* mrcpOlap);
+		virtual void UponChnannelConnected(MrcpOverlapped* mrcpOlap);
+
+		virtual void UponMessageReceived(MrcpOverlapped *olap);
 
 	private:
 		
