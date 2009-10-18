@@ -27,6 +27,8 @@ namespace ivrworx
 	Luna<CallBridge>::RegType CallBridge::methods[] = {
 		method(CallBridge, answer),
 		method(CallBridge, speak),
+		method(CallBridge, cleandtmfbuffer),
+		method(CallBridge, waitfordtmf),
 		{0,0}
 	};
 
@@ -46,6 +48,48 @@ namespace ivrworx
 
 	CallBridge::~CallBridge(void)
 	{
+	}
+
+	int
+	CallBridge::cleandtmfbuffer(lua_State *L)
+	{
+		FUNCTRACKER;
+		
+		LogDebug("CallBridge::cleandtmfbuffer iwh:" << _call->StackCallHandle());
+
+		_call->CleanDtmfBuffer();
+
+		lua_pushnumber (L, API_SUCCESS);
+		return 1;
+
+	}
+
+	int
+	CallBridge::waitfordtmf(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		
+		LUA_INT_PARAM(L,timeout,-1);
+		
+		LogDebug("CallBridge::cleandtmfbuffer iwh:" << _call->StackCallHandle() << ", timeout:" << timeout);
+
+		string signal;
+		ApiErrorCode res = 
+			_call->WaitForDtmf(signal, MilliSeconds(timeout));
+
+		lua_pushnumber (L, res);
+		if (IW_SUCCESS(res))
+		{
+			lua_pushstring(L, signal.c_str());
+		} 
+		else
+		{
+			lua_pushnil(L);
+		}
+
+		return 1;
+
 	}
 
 	int

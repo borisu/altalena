@@ -606,10 +606,60 @@ namespace ivrworx
 			{
 				_resipHandlesMap.erase(ctx_ptr->uac_invite_handle->getAppDialog());
 			}
-			
-
 		} 
 	}
+
+	void 
+	ProcSipStack::onInfo(
+		IN InviteSessionHandle is, 
+		IN const SipMessage& msg)
+	{
+		FUNCTRACKER;
+
+		LogInfo("ProcSipStack::onInfo rsh:" << is.getId());
+
+		IwStackHandle ixhandle = IW_UNDEFINED;
+		ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
+		if (iter != _resipHandlesMap.end())
+		{
+			if (!msg.exists(h_ContentType))
+			{
+				LogWarn("Cannot deduce content/type type");
+				return;
+			};
+
+			// early termination
+			SipDialogContextPtr ctx_ptr = (*iter).second;
+
+			Mime mime = msg.getContents()->getType();
+
+			if (mime.type() == "application" && 
+				mime.subType() == "dtmf-relay")
+			{
+				Data data = msg.getContents()->getBodyData();
+
+
+				std::istringstream iss(data.c_str());
+				string signal,duration;
+
+				std::getline(iss, signal,'=');
+				std::getline(iss, signal);
+
+				MsgCallDtmfEvt *dtmf_evt = 
+					new MsgCallDtmfEvt();
+
+				dtmf_evt->signal = signal;
+
+				ctx_ptr->call_handler_inbound->Send(IwMessagePtr(dtmf_evt));
+
+
+			}
+
+		}
+
+
+	}
+
 
 	IwResipLogger::~IwResipLogger()
 	{

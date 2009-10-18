@@ -64,6 +64,8 @@ namespace ivrworx
 
 		virtual string GetString(const string &name);
 
+		virtual BOOL GetBool(const string &name);
+
 	private:
 
 		ApiErrorCode InitDb();

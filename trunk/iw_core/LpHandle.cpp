@@ -192,6 +192,8 @@ namespace ivrworx
 	void 
 	LpHandle::Poison()
 	{
+		FUNCTRACKER;
+
 		_channel.reader().poison();
 		_channel.writer().poison();
 	}
@@ -354,7 +356,7 @@ read:
 
 	LpHandle::~LpHandle(void)
 	{
-
+		Poison();
 	}
 
 	LpHandlePair::LpHandlePair(const LpHandlePair &other)

@@ -111,7 +111,7 @@ protected:
 
 	@returns pair of 0 and dtmf digit upon success or other error code and nil in case of error.
 	**/
-	int LuaWaitForDtmf(CLuaVirtualMachine& vm);
+	int LuaWaitForDtmf(CLuaVirtualMachine& vm) { return 0;};
 
 	/**
 	ivrworx.send_dtmf(handle) - sends RFC2833to to the call specified by handle.

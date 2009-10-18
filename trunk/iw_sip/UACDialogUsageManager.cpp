@@ -134,8 +134,10 @@ namespace ivrworx
 
 	}
 
+	
 
-#pragma TODO ("UACDialogUsageManager::UponMakeCallReq takes 20 ms - SDP preparation should be replaced with simple string concatenation")
+	#pragma TODO ("UACDialogUsageManager::UponMakeCallReq takes 20 ms - SDP preparation should be replaced with simple string concatenation")
+
 	void 
 	UACDialogUsageManager::UponMakeCallReq(IN IwMessagePtr ptr)
 	{
