@@ -65,7 +65,7 @@ public:
 
 	virtual void CleanUpCall(
 		IN SipDialogContextPtr ctx_ptr);
-	
+
 private:
 
 	Configuration &_conf;

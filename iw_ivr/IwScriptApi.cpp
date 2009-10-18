@@ -269,7 +269,7 @@ IwScript::LuaMakeCall(CLuaVirtualMachine& vm)
 
 	LogDebug("IwScript::LuaMakeCall - dst:" << sip_uri);
 
-	CallPtr call_ptr(new CallWithRtpManagement(_forking));
+	CallPtr call_ptr(new CallWithRtpManagement(_conf,_forking));
 
 	const MediaFormatsPtrList &codecs_list = _conf.MediaFormats();
 	for (MediaFormatsPtrList::const_iterator iter = codecs_list.begin(); iter != codecs_list.end(); iter++)
@@ -407,68 +407,6 @@ IwScript::LuaPlayFile(CLuaVirtualMachine& vm)
 
 }
 
-int
-IwScript::LuaWaitForDtmf(CLuaVirtualMachine& vm)
-{
-	FUNCTRACKER;
-
-	lua_State *state = (lua_State *) vm;
-
-	if (_scriptState != SCRIPT_STATE_NORMAL)
-	{
-		lua_pushnumber (state, API_WRONG_STATE);
-		lua_pushnil(state);
-		return 2;
-	}
-
-	if (lua_isnumber(state, -2) != 1 )
-	{
-		LogWarn("IwScript::LuaWaitForDtmf - handle param of incorrect type.");
-		lua_pushnumber (state, API_WRONG_PARAMETER);
-		return 1;
-	}
-
-	if (lua_isnumber(state, -1) != 1 )
-	{
-		LogWarn("IwScript::LuaWaitForDtmf - timeout param of incorrect type.");
-		lua_pushnumber (state, API_WRONG_PARAMETER);
-		return 1;
-	}
-
-
-	long handle = (long) lua_tonumber (state, -2);
-
-	CallMap::iterator iter  = _callMap.find(handle);
-	if (iter == _callMap.end())
-	{
-		lua_pushnumber (state, API_WRONG_PARAMETER);
-		LogWarn("IwScript::LuaWaitForDtmf - Cannot find call iwh:" << handle);
-		return 1;
-
-	}
-
-	CallPtr call = (*iter).second;
-
-	long time_to_sleep  = (long) lua_tonumber (state, -1);
-
-	LogDebug("IwScript::LuaWaitForDtmf - timeout:" << time_to_sleep << ", iwh:" << handle);
-
-	int dtmf = -1;
-	ApiErrorCode res = call->WaitForDtmf(dtmf, MilliSeconds(time_to_sleep));
-
-	lua_pushnumber (state, res);
-	if (IW_SUCCESS(res))
-	{
-		lua_pushnumber (state, dtmf);
-	} 
-	else
-	{
-		lua_pushnil(state);
-	}
-
-	return 2;
-
-}
 
 int
 IwScript::LuaSendDtmf(CLuaVirtualMachine& vm)

@@ -172,6 +172,7 @@ namespace ivrworx
 				_stackHandle = _initialMsg->stack_call_handle;
 				CallWithRtpManagementPtr call_session (
 					new CallWithRtpManagement(
+					_conf,
 					forking,
 					_initialMsg));
 

@@ -28,7 +28,8 @@
     "ims_top_port" : 62000,
     "ims_bottom_port" : 61000,
     
-    "mrcp_server": "10.0.0.2",
+    "mrcp_enabled": false,
+    "rtsp_enabled": false,
     
 	"rtp_proxy_base_port" : 8000,
     "rtp_proxy_top_port" : 9000,
@@ -37,7 +38,7 @@
     
     
     
-    "script_file" : "scripts\\test.lua",
+    "script_file" : "scripts\\polly.lua",
     
     "sounds_dir" : "sounds",
     
@@ -57,5 +58,7 @@
             "sdp_mapping": 101,
             "sampling_rate": 8000
         } 
-    ]
+    ],
+    
+    "polly_db" : "voice.db"
 }

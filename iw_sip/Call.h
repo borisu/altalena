@@ -271,6 +271,17 @@ namespace ivrworx
 
 	};
 
+	class MsgCallDtmfEvt:
+		public MsgVoipCallMixin,public IwMessage
+	{
+	public:
+		MsgCallDtmfEvt():IwMessage(MSG_CALL_DTMF_EVT, 
+			NAME(MSG_CALL_DTMF_EVT)){}
+
+		string signal;
+
+	};
+
 
 	class MsgCallBlindXferReq:
 		public MsgVoipCallMixin,public IwMessage
@@ -330,9 +341,11 @@ namespace ivrworx
 
 		virtual ~Call(void);
 
-		virtual void EnableMediaFormat(IN const MediaFormat& codec);
+		virtual void EnableMediaFormat(
+			IN const MediaFormat& codec);
 
-		virtual void UponCallTerminated(IwMessagePtr ptr);
+		virtual void UponCallTerminated(
+			IN IwMessagePtr ptr);
 
 		virtual ApiErrorCode NegotiateMediaFormats(
 			IN const MediaFormatsList &offered_medias, 
@@ -344,6 +357,12 @@ namespace ivrworx
 			IN const MediaFormatsList &accepted_codec,
 			IN const MediaFormat &speech_codec);
 
+		virtual void CleanDtmfBuffer();
+
+		virtual ApiErrorCode WaitForDtmf(
+			OUT string &signal, 
+			IN const Time timeout);
+
 		virtual ApiErrorCode RejectCall();
 
 		virtual ApiErrorCode MakeCall(
@@ -352,7 +371,8 @@ namespace ivrworx
 
 		virtual ApiErrorCode HangupCall();
 
-		virtual ApiErrorCode BlindXfer(IN const string &destination_uri);
+		virtual ApiErrorCode BlindXfer(
+			IN const string &destination_uri);
 
 		virtual void WaitTillHangup();
 
@@ -369,6 +389,8 @@ namespace ivrworx
 		int StackCallHandle() const;
 
 		void UponActiveObjectEvent(IwMessagePtr ptr);
+
+		void UponDtmfEvt(IwMessagePtr ptr);
 
 	protected:
 

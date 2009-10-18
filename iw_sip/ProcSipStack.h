@@ -163,6 +163,10 @@ namespace ivrworx
 			IN InviteSessionHandler::TerminatedReason reason, 
 			IN const SipMessage* msg);
 
+		virtual void onInfo(
+			IN InviteSessionHandle, 
+			IN const SipMessage& msg);
+	
 		virtual void ShutDown();
 
 	protected:

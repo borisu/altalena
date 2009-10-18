@@ -24,25 +24,36 @@ using namespace boost;
 namespace ivrworx
 {
 	CallWithRtpManagement::CallWithRtpManagement(
+		IN Configuration &conf,
 		IN ScopedForking &forking)
 		:Call(forking),
+		_conf(conf),
+		_mrcpEnabled(FALSE),
+		_rtspEnabled(FALSE),
 		_imsSession(forking),
 		_bridgeState(BRIDGE_STATE_NONE),
 		_mrcpSession(forking)
 	{
-
+		_mrcpEnabled = _conf.GetBool("mrcp_enabled");
+		_rtspEnabled = _conf.GetBool("rtsp_enabled");
 		
 	}
 
 	CallWithRtpManagement::CallWithRtpManagement(
+		IN Configuration &conf,
 		IN ScopedForking &forking,
 		IN shared_ptr<MsgCallOfferedReq> offered_msg)
 		:Call(forking,offered_msg),
+		_conf(conf),
+		_mrcpEnabled(FALSE),
+		_rtspEnabled(FALSE),
 		_origOffereReq(offered_msg),
 		_imsSession(forking),
 		_bridgeState(BRIDGE_STATE_NONE),
 		_mrcpSession(forking)
 	{
+		_mrcpEnabled = _conf.GetBool("mrcp_enabled");
+		_rtspEnabled = _conf.GetBool("rtsp_enabled");
 		
 		RemoteMedia(offered_msg->remote_media);
 	}
@@ -82,40 +93,36 @@ namespace ivrworx
 
 		LogDebug("CallWithDirectRtp::AcceptInitialOffer caller connection:" << _callerRtpSession.GetLocalInfo());
 
-		res = _imsRtpSession.Allocate();
-		if (IW_FAILURE(res))
+		if (_rtspEnabled == TRUE)
 		{
-			RejectCall();
-			return res;
+			res = _imsRtpSession.Allocate();
+			if (IW_FAILURE(res))
+			{
+				RejectCall();
+				return res;
+
+			}
+
+			LogDebug("CallWithDirectRtp::AcceptInitialOffer ims connection:" << _imsRtpSession.GetLocalInfo());
 
 		}
+	
 
-		LogDebug("CallWithDirectRtp::AcceptInitialOffer ims connection:" << _imsRtpSession.GetLocalInfo());
-
-		res = _mrcpRtpSession.Allocate();
-		if (IW_FAILURE(res))
+		if (_mrcpEnabled)
 		{
-			RejectCall();
-			return res;
+			res = _mrcpRtpSession.Allocate();
+			if (IW_FAILURE(res))
+			{
+				RejectCall();
+				return res;
 
+			}
+
+			LogDebug("CallWithDirectRtp::AcceptInitialOffer mrcp connection:" << _mrcpRtpSession.GetLocalInfo());
 		}
-
-		LogDebug("CallWithDirectRtp::AcceptInitialOffer mrcp connection:" << _mrcpRtpSession.GetLocalInfo());
-
-		res = _imsSession.Allocate(_imsRtpSession.GetLocalInfo(),speech_media_format);
-		if (IW_FAILURE(res))
-		{
-			RejectCall();
-			return res;
-		};
-
-		res = _mrcpSession.Allocate(_mrcpRtpSession.GetLocalInfo(),speech_media_format);
-		if (IW_FAILURE(res))
-		{
-			RejectCall();
-			return res;
-		};
-
+		
+		
+		
 		IX_PROFILE_CODE(res = Call::AcceptInitialOffer(
 			_callerRtpSession.GetLocalInfo(),
 			accepted_media_formats,
@@ -129,6 +136,11 @@ namespace ivrworx
 	CallWithRtpManagement::PlayFile(IN const string &file_name, IN BOOL sync, IN BOOL loop)
 	{
 		FUNCTRACKER;
+
+		if (!_rtspEnabled)
+		{
+			return API_FAILURE;
+		}
 
 		if (_callState != CALL_STATE_CONNECTED)
 		{
@@ -151,6 +163,11 @@ namespace ivrworx
 	CallWithRtpManagement::Speak(IN const string &mrcp_body, BOOL sync )
 	{
 		FUNCTRACKER;
+
+		if (!_rtspEnabled)
+		{
+			return API_FAILURE;
+		}
 
 		if (_callState != CALL_STATE_CONNECTED)
 		{
@@ -175,6 +192,11 @@ namespace ivrworx
 	CallWithRtpManagement::StopPlay()
 	{
 		FUNCTRACKER;
+
+		if (!_rtspEnabled)
+		{
+			return API_FAILURE;
+		}
 
 		if (_callState != CALL_STATE_CONNECTED)
 		{
@@ -204,22 +226,6 @@ namespace ivrworx
 	
 		return res;
 
-
-	}
-
-	ApiErrorCode 
-	CallWithRtpManagement::WaitForDtmf(OUT int &dtmf, IN Time timeout)
-	{
-		FUNCTRACKER;
-
-		if (_callState != CALL_STATE_CONNECTED)
-		{
-			return API_WRONG_STATE;
-		}
-
-		ApiErrorCode res = _imsSession.WaitForDtmf(dtmf, timeout);
-
-		return res;
 
 	}
 

@@ -262,9 +262,23 @@ namespace ivrworx
 		*/
 		virtual bool SyncLog();
 
+		/**
+		* Gets integer value of configuration file
+		*
+		*/
 		virtual int GetInt(const string &name) = 0;
 
+		/**
+		* Gets string value of configuration file
+		*
+		*/
 		virtual string GetString(const string &name) = 0;
+
+		/**
+		* Gets bool value of configuration file
+		*
+		*/
+		virtual BOOL GetBool(const string &name) = 0;
 
 	protected:
 

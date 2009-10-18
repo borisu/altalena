@@ -143,6 +143,15 @@ namespace ivrworx
 
 	}
 
+	BOOL
+	JSONConfiguration::GetBool(IN const string &name)
+	{
+
+		Object root_obj(_value.get_obj());
+		return find_bool(root_obj, name);
+
+	}
+
 	ApiErrorCode
 	JSONConfiguration::InitFromFile(IN const string &filename)
 	{

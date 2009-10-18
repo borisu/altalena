@@ -52,10 +52,12 @@ protected:
 		  Boolean doNormalMBitRule);
       // called only by createNew()
 
-private:
   // redefined virtual functions:
   virtual Boolean processSpecialHeader(BufferedPacket* packet,
-                                       unsigned& resultSpecialHeaderSize);
+	  unsigned& resultSpecialHeaderSize);
+
+private:
+  
   virtual char const* MIMEtype() const;
 
 private:

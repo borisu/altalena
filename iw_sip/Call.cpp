@@ -204,6 +204,71 @@ Call::~Call(void)
 }
 
 void 
+Call::UponDtmfEvt(IwMessagePtr ptr)
+{
+	FUNCTRACKER;
+
+	// just proxy the event
+	_dtmfChannel->Send(ptr);
+
+}
+
+void 
+Call::CleanDtmfBuffer()
+{
+	FUNCTRACKER;
+
+	// the trick we are using
+	// to clean the buffer is just replace the handle
+	// with  new one
+	_dtmfChannel->Poison();
+	_dtmfChannel = LpHandlePtr(new LpHandle());
+
+	LogDebug("Call::CleanDtmfBuffer iwh:" << _stackCallHandle);
+
+}
+
+
+ApiErrorCode 
+Call::WaitForDtmf(OUT string &signal, IN const Time timeout)
+{
+	FUNCTRACKER;
+
+	// just proxy the event
+	int handle_index= IW_UNDEFINED;
+	IwMessagePtr response = NULL_MSG;
+
+	ApiErrorCode res = GetCurrLightWeightProc()->WaitForTxnResponse(
+		assign::list_of(_dtmfChannel)(_hangupChannel),
+		handle_index,
+		response, 
+		timeout);
+
+	if (IW_FAILURE(res))
+	{
+		return res;
+	}
+
+	if (handle_index == 1)
+	{
+		return API_HANGUP;
+	}
+
+	shared_ptr<MsgCallDtmfEvt> dtmf_evt = 
+		dynamic_pointer_cast<MsgCallDtmfEvt> (response);
+
+	signal = dtmf_evt->signal;
+
+	LogDebug("Call::WaitForDtmf iwh:" << _stackCallHandle << " received signal:" << signal);
+
+	return API_SUCCESS;
+
+
+}
+
+
+
+void 
 Call::UponActiveObjectEvent(IwMessagePtr ptr)
 {
 	FUNCTRACKER;
@@ -214,6 +279,12 @@ Call::UponActiveObjectEvent(IwMessagePtr ptr)
 		{
 			
 			UponCallTerminated(ptr);
+			break;
+		}
+	case MSG_CALL_DTMF_EVT:
+		{
+
+			UponDtmfEvt(ptr);
 			break;
 		}
 	default:
