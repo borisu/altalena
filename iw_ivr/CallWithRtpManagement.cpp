@@ -189,6 +189,27 @@ namespace ivrworx
 	}
 
 	ApiErrorCode 
+	CallWithRtpManagement::StopSpeak()
+	{
+		FUNCTRACKER;
+
+		if (!_mrcpEnabled)
+		{
+			return API_FAILURE;
+		}
+
+		if (_callState != CALL_STATE_CONNECTED)
+		{
+			return API_WRONG_STATE;
+		}
+
+		ApiErrorCode res = _mrcpSession.StopSpeak();
+
+		return res;
+
+	}
+
+	ApiErrorCode 
 	CallWithRtpManagement::StopPlay()
 	{
 		FUNCTRACKER;
@@ -203,27 +224,8 @@ namespace ivrworx
 			return API_WRONG_STATE;
 		}
 
-		ApiErrorCode res = API_SUCCESS;
+		ApiErrorCode res =  _imsSession.StopPlay();
 
-		switch (_bridgeState)
-		{
-		case BRIDGE_STATE_IMS:
-			{
-				res = _imsSession.StopPlay();
-				break;
-			}
-		case BRIDGE_STATE_MRCP:
-			{
-				res = _mrcpSession.StopSpeak();
-				break;
-			}
-		default:
-			{
-
-			}
-		}
-
-	
 		return res;
 
 

@@ -52,6 +52,8 @@ namespace ivrworx
 
 		virtual ApiErrorCode StopPlay();
 
+		virtual ApiErrorCode StopSpeak();
+
 		virtual ApiErrorCode SendRfc2833Dtmf(IN char dtmf);
 
 		virtual ApiErrorCode MakeCall(IN const string &destination_uri);
