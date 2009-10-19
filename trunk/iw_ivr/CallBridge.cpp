@@ -29,6 +29,7 @@ namespace ivrworx
 		method(CallBridge, speak),
 		method(CallBridge, cleandtmfbuffer),
 		method(CallBridge, waitfordtmf),
+		method(CallBridge, stopspeak),
 		{0,0}
 	};
 
@@ -48,6 +49,20 @@ namespace ivrworx
 
 	CallBridge::~CallBridge(void)
 	{
+	}
+
+	int
+	CallBridge::stopspeak(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		LogDebug("CallBridge::cleandtmfbuffer iwh:" << _call->StackCallHandle());
+
+		_call->StopPlay();
+
+		lua_pushnumber (L, API_SUCCESS);
+		return 1;
+
 	}
 
 	int
@@ -72,7 +87,7 @@ namespace ivrworx
 		
 		LUA_INT_PARAM(L,timeout,-1);
 		
-		LogDebug("CallBridge::cleandtmfbuffer iwh:" << _call->StackCallHandle() << ", timeout:" << timeout);
+		LogDebug("CallBridge::waitfordtmf iwh:" << _call->StackCallHandle() << ", timeout:" << timeout);
 
 		string signal;
 		ApiErrorCode res = 
@@ -88,7 +103,7 @@ namespace ivrworx
 			lua_pushnil(L);
 		}
 
-		return 1;
+		return 2;
 
 	}
 
