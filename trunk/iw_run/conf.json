@@ -2,7 +2,7 @@
 	
 	"sync_log"  : true,
 	
-	"resip_log" : "TRANSPORT,DBG|SIP,DBG|DUM,DBG",
+	"resip_log" : "TRANSPORT,DBG",
 	
 	"debug_level"  : "DBG",
 	"debug_outputs" : "debug,console",
@@ -28,7 +28,10 @@
     "ims_top_port" : 62000,
     "ims_bottom_port" : 61000,
     
-    "mrcp_enabled": false,
+    "mrcp_enabled": true,
+    "unimrcp_conf_dir": "./unimrcp",
+    "unimrcp_client_profile": "MRCPv2-Default",
+    
     "rtsp_enabled": false,
     
 	"rtp_proxy_base_port" : 8000,

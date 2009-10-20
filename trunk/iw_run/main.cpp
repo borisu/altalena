@@ -162,7 +162,8 @@ exit:
 				i!= proc_handlepairs.rend();
 				++i)
 			{
-				Shutdown(Seconds(5000), (*i));
+				LogInfo("Shutting down proc:" << (*i).inbound->HandleName());
+				Shutdown(Seconds(15), (*i));
 			}
 
 			
@@ -179,7 +180,6 @@ exit:
 }
 
 using namespace ivrworx;
-
 int _tmain(int argc, _TCHAR* argv[])
 {
 
