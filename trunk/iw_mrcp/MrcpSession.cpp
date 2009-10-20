@@ -88,6 +88,7 @@ MrcpSession::Speak(IN const string &mrcp_xml,
 
 	if (_mrcpSessionHandle == IW_UNDEFINED)
 	{
+		LogWarn("MrcpSession::Speak session is not allocated.");
 		return API_FAILURE;
 	}
 
