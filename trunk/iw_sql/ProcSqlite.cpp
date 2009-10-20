@@ -70,6 +70,7 @@ namespace  ivrworx
 			{
 			case MSG_PROC_SHUTDOWN_REQ:
 				{
+					SendResponse(msg,new MsgShutdownAck());
 					shutdown_flag = TRUE;
 					continue;
 				}
