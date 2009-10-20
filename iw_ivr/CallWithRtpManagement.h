@@ -66,22 +66,24 @@ namespace ivrworx
 
 		Configuration &_conf;
 
-		BOOL _rtspEnabled;
-
-		BOOL _mrcpEnabled;
-
-		ImsSession _imsSession;
-
-		MrcpSession _mrcpSession;
-
-		RtpProxySession _mrcpRtpSession;
-
-		RtpProxySession _imsRtpSession;
-
 		RtpProxySession _callerRtpSession;
 
-		shared_ptr<MsgCallOfferedReq> _origOffereReq;
+		//
+		// rtsp
+		//
+		BOOL			_rtspEnabled;
+		ImsSession		_rtspSession;
+		RtpProxySession _rtspRtpSession;
 
+		//
+		// mrcp
+		//
+		BOOL			_mrcpEnabled;
+		RtpProxySession _mrcpRtpSession;
+		MrcpSession		_mrcpSession;
+
+	
+		shared_ptr<MsgCallOfferedReq> _origOffereReq;
 		BRIDGE_STATE _bridgeState;
 
 	};
