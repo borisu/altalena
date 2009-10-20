@@ -116,7 +116,6 @@ namespace ivrworx
 		LUA_STRING_PARAM(L,mrcp_string,-2);
 
 		LogDebug("CallBridge::speak  iwh:" << _call->StackCallHandle() << ", speak:" << mrcp_string << ", sync:" << sync);
-
 		ApiErrorCode res =_call->Speak(mrcp_string,sync);
 
 		lua_pushnumber (L, res);

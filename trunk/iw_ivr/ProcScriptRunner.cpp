@@ -133,6 +133,7 @@ namespace ivrworx
 			ivrworx_table.AddParam(NAME(API_HANGUP),API_HANGUP);
 			ivrworx_table.AddParam(NAME(API_UNKNOWN_DESTINATION),API_UNKNOWN_DESTINATION);
 			ivrworx_table.AddParam(NAME(API_UNKNOWN_RESPONSE),API_UNKNOWN_RESPONSE);
+			ivrworx_table.AddParam(NAME(API_FEATURE_DISABLED),API_FEATURE_DISABLED);
 
 			ivrworx_table.AddFunction("sleep",ProcScriptRunner::LuaWait);
 

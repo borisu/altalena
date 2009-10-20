@@ -30,7 +30,7 @@ namespace ivrworx
 		_conf(conf),
 		_mrcpEnabled(FALSE),
 		_rtspEnabled(FALSE),
-		_imsSession(forking),
+		_rtspSession(forking),
 		_bridgeState(BRIDGE_STATE_NONE),
 		_mrcpSession(forking)
 	{
@@ -48,7 +48,7 @@ namespace ivrworx
 		_mrcpEnabled(FALSE),
 		_rtspEnabled(FALSE),
 		_origOffereReq(offered_msg),
-		_imsSession(forking),
+		_rtspSession(forking),
 		_bridgeState(BRIDGE_STATE_NONE),
 		_mrcpSession(forking)
 	{
@@ -95,15 +95,21 @@ namespace ivrworx
 
 		if (_rtspEnabled == TRUE)
 		{
-			res = _imsRtpSession.Allocate();
+			res = _rtspRtpSession.Allocate();
 			if (IW_FAILURE(res))
 			{
 				RejectCall();
 				return res;
-
 			}
 
-			LogDebug("CallWithDirectRtp::AcceptInitialOffer ims connection:" << _imsRtpSession.GetLocalInfo());
+			res = _rtspSession.Allocate(_rtspRtpSession.GetLocalInfo(),speech_media_format);
+			if (IW_FAILURE(res))
+			{
+				RejectCall();
+				return res;
+			}
+
+			LogDebug("CallWithDirectRtp::AcceptInitialOffer ims connection:" << _rtspRtpSession.GetLocalInfo());
 
 		}
 	
@@ -111,6 +117,14 @@ namespace ivrworx
 		if (_mrcpEnabled)
 		{
 			res = _mrcpRtpSession.Allocate();
+			if (IW_FAILURE(res))
+			{
+				RejectCall();
+				return res;
+
+			}
+
+			res = _mrcpSession.Allocate(_mrcpRtpSession.GetLocalInfo(),speech_media_format);
 			if (IW_FAILURE(res))
 			{
 				RejectCall();
@@ -151,10 +165,10 @@ namespace ivrworx
 		if (_bridgeState != BRIDGE_STATE_IMS)
 		{
 			_bridgeState = BRIDGE_STATE_IMS;
-			_imsRtpSession.Bridge(_callerRtpSession);
+			_rtspRtpSession.Bridge(_callerRtpSession);
 		}
 
-		ApiErrorCode res = _imsSession.PlayFile(file_name, sync, loop,TRUE);
+		ApiErrorCode res = _rtspSession.PlayFile(file_name, sync, loop,TRUE);
 
 		return res;
 
@@ -164,9 +178,9 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		if (!_rtspEnabled)
+		if (!_mrcpEnabled)
 		{
-			return API_FAILURE;
+			return API_FEATURE_DISABLED;
 		}
 
 		if (_callState != CALL_STATE_CONNECTED)
@@ -195,7 +209,7 @@ namespace ivrworx
 
 		if (!_mrcpEnabled)
 		{
-			return API_FAILURE;
+			return API_FEATURE_DISABLED;
 		}
 
 		if (_callState != CALL_STATE_CONNECTED)
@@ -216,7 +230,7 @@ namespace ivrworx
 
 		if (!_rtspEnabled)
 		{
-			return API_FAILURE;
+			return API_FEATURE_DISABLED;
 		}
 
 		if (_callState != CALL_STATE_CONNECTED)
@@ -224,7 +238,7 @@ namespace ivrworx
 			return API_WRONG_STATE;
 		}
 
-		ApiErrorCode res =  _imsSession.StopPlay();
+		ApiErrorCode res =  _rtspSession.StopPlay();
 
 		return res;
 
@@ -243,7 +257,7 @@ namespace ivrworx
 		}
 
 
-		ApiErrorCode res = _imsSession.SendDtmf(dtmf);
+		ApiErrorCode res = _rtspSession.SendDtmf(dtmf);
 		return res;
 
 	}
@@ -251,7 +265,7 @@ namespace ivrworx
 	void 
 	CallWithRtpManagement::UponCallTerminated(IwMessagePtr ptr)
 	{
-		_imsSession.InterruptWithHangup();
+		_rtspSession.InterruptWithHangup();
 
 		Call::UponCallTerminated(ptr);
 	}
@@ -268,20 +282,20 @@ namespace ivrworx
 
 		// allocate dummy session to save bind time for future
 		ApiErrorCode res = API_SUCCESS;
-		IX_PROFILE_CODE(res = _imsSession.Allocate());
+		IX_PROFILE_CODE(res = _rtspSession.Allocate());
 		if (IW_FAILURE(res))
 		{
 			return res;
 		};
 		
-		res = Call::MakeCall(destination_uri,_imsSession.ImsMediaData());
+		res = Call::MakeCall(destination_uri,_rtspSession.ImsMediaData());
 		if (IW_FAILURE(res))
 		{
 			return res;
 		};
 
 		// allocate dummy session to save bind time for future
-		IX_PROFILE_CODE(res = _imsSession.ModifyConnection(_remoteMedia ,_acceptedSpeechFormat));
+		IX_PROFILE_CODE(res = _rtspSession.ModifyConnection(_remoteMedia ,_acceptedSpeechFormat));
 		if (IW_FAILURE(res))
 		{
 			Call::HangupCall();
@@ -296,7 +310,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_imsSession.TearDown();
+		_rtspSession.TearDown();
 	}
 
 }
