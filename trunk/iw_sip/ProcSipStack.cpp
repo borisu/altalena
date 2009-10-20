@@ -339,7 +339,7 @@ namespace ivrworx
 		_stackThread.shutdown();
 		_stackThread.join();
 		_stack.shutdown();
-		_dumInt->Destroy();
+		if (_dumInt)_dumInt->Destroy();
 	}
 
 	void
@@ -643,17 +643,20 @@ namespace ivrworx
 				string signal,duration;
 
 				std::getline(iss, signal,'=');
-				std::getline(iss, signal);
+				char signal_value;
+				iss >> signal_value;
 
 				MsgCallDtmfEvt *dtmf_evt = 
 					new MsgCallDtmfEvt();
 
-				dtmf_evt->signal = signal;
+				dtmf_evt->signal = signal_value;
 
 				ctx_ptr->call_handler_inbound->Send(IwMessagePtr(dtmf_evt));
+				is->acceptNIT();
+				return;
+			} 
 
-
-			}
+			is->rejectNIT();
 
 		}
 
