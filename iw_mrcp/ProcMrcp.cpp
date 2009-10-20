@@ -457,12 +457,13 @@ namespace ivrworx
 
 		/* create session */
 		mrcp_session_t *session = 
-			mrcp_application_session_create(_application,"MRCPv2-Default", (void *)handle);
+			mrcp_application_session_create(_application,_conf.GetString("unimrcp_client_profile").c_str(), (void *)handle);
 
 		if (!session)
 		{
 			LogWarn("error:mrcp_application_session_create");
 			SendResponse(req,new MsgMrcpAllocateSessionNack());
+			return;
 		}
 
 		ctx->session = session;
@@ -485,6 +486,7 @@ namespace ivrworx
 		{
 			LogWarn("error:mrcp_application_channel_add");
 			SendResponse(req,new MsgMrcpAllocateSessionNack());
+			return;
 		}
 
 		ctx->channel = channel;
@@ -632,7 +634,7 @@ namespace ivrworx
 
 		/* create default directory layout relative to root directory path */
 		apt_dir_layout_t *dir_layout = 
-			apt_default_dir_layout_create("c:\\mrcp",_pool);
+			apt_default_dir_layout_create(_conf.GetString("unimrcp_conf_dir").c_str(),_pool);
 		if(!dir_layout) {
 			LogWarn("error:apt_default_dir_layout_create");
 			goto error;
