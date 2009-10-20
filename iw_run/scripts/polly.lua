@@ -3,6 +3,14 @@ logger   = assert(ivrworx.LOGGER)
 conf     = assert(ivrworx.CONF)
 incoming = assert(ivrworx.INCOMING)
 
+mrcp_goodbye = [[<?xml version=\"1.0\"?>
+<speak>
+  <paragraph>
+    <sentence>Good bye.</sentence>
+  </paragraph>
+</speak>]]
+
+
 --
 -- Utility functions
 --
@@ -36,16 +44,7 @@ function getdtmfs(prompt_mrcp, termination_digit, interdigit_timeout, max_digits
 			-- Add received dtmf to the buffer and stop playing
 			--
 			incoming:stopspeak(); 
-			
-			logger:loginfo(">>>dtmf_buffer:"..dtmf_buffer);
-			logger:loginfo(">>>curr_dtmf:"..curr_dtmf);
-			
 			dtmf_buffer = dtmf_buffer..curr_dtmf;
-			logger:loginfo(">>>+++dtmf_buffer:"..dtmf_buffer);
-			
-			-- str = "Received dtmf:"..curr_dtmf..", dtmf_buffer:"..dtmf_buffer;
-			-- logger:loginfo(str);
-			
 		else 
 		
 			logger:logwarn("Error receiveing dtmf, err:"..res);
@@ -73,9 +72,6 @@ con = assert(env:connect(conn_string));
 logger:loginfo("db:"..conn_string.." open");
 
 assert(incoming:answer() == ivrworx.API_SUCCESS);
-getdtmfs("", "#", 10000, 5, 3)
-
-ivrworx.sleep(200000);
 
 mrcp = [[<?xml version=\"1.0\"?>
 <speak>
@@ -86,8 +82,6 @@ mrcp = [[<?xml version=\"1.0\"?>
 
 incoming:speak(mrcp,true);
 
-
-
 mrcp = [[<?xml version=\"1.0\"?>
 <speak>
   <paragraph>
@@ -95,7 +89,16 @@ mrcp = [[<?xml version=\"1.0\"?>
   </paragraph>
 </speak>]]
 
-incoming:speak(mrcp,false);
+
+res = getdtmfs(mrcp, "#", 10000, 5, 3)
+if (res == "") then
+	incoming:speak(mrcp_goodbye,true);
+	return
+end
+
+
+ivrworx.sleep(200000);
+
 
 ivrworx.sleep(20000)
 
