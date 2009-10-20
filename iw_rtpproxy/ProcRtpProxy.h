@@ -69,6 +69,8 @@ namespace ivrworx
 
 			CnxInfo local_cnx_ino;
 
+			CnxInfo remote_cnx_ino;
+
 			RtpConnectionPtr source_conn;
 			FramedSource* source;
 

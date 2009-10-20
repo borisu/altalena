@@ -362,12 +362,10 @@ ProcRtpProxy::UponAllocateReq(IwMessagePtr msg)
 	ack->local_media = candidate->local_cnx_ino;
 
 	candidate->state = CONNECTION_STATE_ALLOCATED;
+	candidate->remote_cnx_ino = req->remote_media;
 
 	if (req->remote_media.is_ip_valid())
 	{
-// 		struct in_addr outputAddress;
-// 		outputAddress.s_addr = our_inet_addr("10.0.0.1");
-
 		candidate->live_socket->changeDestinationParameters(
 			req->remote_media.inaddr(),
 			req->remote_media.port_ho(),225);
@@ -425,6 +423,7 @@ ProcRtpProxy::UponModifyReq(IwMessagePtr msg)
 	}
 
 	RtpConnectionPtr conn = iter->second;
+	conn->remote_cnx_ino = req->remote_media;
 
 	conn->live_socket->changeDestinationParameters(req->remote_media.inaddr(),
 		req->remote_media.port_ho(),0);
@@ -563,8 +562,12 @@ ProcRtpProxy::UponBridgeReq(IwMessagePtr msg)
 	
 
 	LogDebug(
-		"conn:" << source_connection->connection_id << " :" << source_connection->local_cnx_ino << " ==> " <<
-		"conn:" << destination_connection->connection_id << " dst:" << destination_connection->local_cnx_ino );
+		source_connection->remote_cnx_ino << " -> " <<
+		source_connection->local_cnx_ino  << 
+		" (rtpid:" << source_connection->connection_id << ") ==> (" <<
+		"rtpid:" << destination_connection->connection_id << ") " <<
+		destination_connection->local_cnx_ino << " ->" <<
+		destination_connection->remote_cnx_ino );
 
 }
 
