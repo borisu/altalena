@@ -35,6 +35,8 @@ namespace ivrworx
 
 		mrcp_channel_t *channel;
 
+		mrcp_message_t *last_message;
+
 	};
 
 	typedef 
@@ -72,11 +74,13 @@ namespace ivrworx
 
 		virtual void UponSpeakReq(IwMessagePtr msg);
 
+		virtual void UponStopSpeakReq(IwMessagePtr msg);
+
 		virtual void UponTearDownReq(IwMessagePtr msg);
 
 		virtual void UponChnannelConnected(MrcpOverlapped* mrcpOlap);
 
-		virtual void UponMessageReceived(MrcpOverlapped *olap);
+		virtual void onMrcpMessageReceived(MrcpOverlapped *olap);
 
 	private:
 		

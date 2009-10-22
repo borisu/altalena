@@ -35,7 +35,8 @@ MrcpSession::MrcpSession(IN ScopedForking &forking):
 _mrcpSessionHandle(IW_UNDEFINED),
 _mrcpSessionHandlerPair(HANDLE_PAIR),
 _forking(forking),
-_hangupHandle(new LpHandle())
+_hangupHandle(new LpHandle()),
+_playStoppedHandle(new LpHandle())
 {
 	FUNCTRACKER;
 
@@ -71,7 +72,13 @@ MrcpSession::StopSpeak()
 	MsgMrcpStopSpeakReq *msg = new MsgMrcpStopSpeakReq();
 	msg->mrcp_handle	= _mrcpSessionHandle;
 	
-	ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(MRCP_Q,IwMessagePtr(msg));
+	IwMessagePtr response = NULL_MSG;
+	ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
+		MRCP_Q,
+		IwMessagePtr(msg),
+		response,
+		Seconds(5),
+		"Stop Speak TXN");
 	return res;
 
 }
@@ -80,8 +87,7 @@ MrcpSession::StopSpeak()
 
 ApiErrorCode
 MrcpSession::Speak(IN const string &mrcp_xml,
-					 IN BOOL sync,
-					 IN BOOL provisional)
+					 IN BOOL sync)
 {
 
 	FUNCTRACKER;
@@ -92,89 +98,62 @@ MrcpSession::Speak(IN const string &mrcp_xml,
 		return API_FAILURE;
 	}
 
-	IwMessagePtr response = NULL_MSG;
-	
-	DECLARE_NAMED_HANDLE(mrcp_play_txn);
-	mrcp_play_txn->HandleName("Mrcp Speak TXN"); // for logging purposes
-	mrcp_play_txn->Direction(MSG_DIRECTION_INBOUND);
-
-	RegistrationGuard guard(mrcp_play_txn);
-
-	
 	MsgMrcpSpeakReq *msg = new MsgMrcpSpeakReq();
 	msg->mrcp_handle	= _mrcpSessionHandle;
 	msg->mrcp_xml			= mrcp_xml;
-	msg->send_provisional	= provisional;
-	msg->source.handle_id	= mrcp_play_txn->GetObjectUid();
+
 	
-	ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(MRCP_Q,IwMessagePtr(msg));
-	if (IW_FAILURE(res))
+	IwMessagePtr response  = NULL_MSG;
+	ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
+		MRCP_Q,
+		IwMessagePtr(msg),
+		response,
+		Seconds(5),
+		"Speak txn");
+
+	if (IW_FAILURE(res) || response->message_id != MSG_MRCP_SPEAK_ACK)
 	{
 		LogDebug("Error sending play request to mrcp, mrcph:" << _mrcpSessionHandle);
 		return res;
 	}
 
-	int handle_index = IW_UNDEFINED;
-
-	if (provisional)
-	{
-		res = GetCurrLightWeightProc()->WaitForTxnResponse(
-			list_of(mrcp_play_txn)(_hangupHandle),
-			handle_index,
-			response, 
-			MilliSeconds(GetCurrLightWeightProc()->TransactionTimeout()));
-
-		if (IW_FAILURE(res))
-		{
-			
-			LogDebug("Error receiving provisional response from mrcp, mrcph:" << _mrcpSessionHandle);
-			return res;
-		}
-
-		if (handle_index == 1)
-		{
-			LogDebug("Hangup detected mrcph:" << _mrcpSessionHandle);
-			return API_HANGUP;
-		}
-
-		if (response->message_id != MSG_MRCP_STOP_SPEAK_ACK)
-		{
-			LogDebug("Speak request nacked by mrcp, mrcph:" << _mrcpSessionHandle);
-			return API_FAILURE;
-		}
-
-	}
-	
 	if (!sync)
 	{
 		return API_SUCCESS;
 	}
 
-	res = GetCurrLightWeightProc()->WaitForTxnResponse(
-			list_of(mrcp_play_txn)(_hangupHandle),
+	shared_ptr<MsgMrcpSpeakAck> ack = 
+		dynamic_pointer_cast<MsgMrcpSpeakAck>(response);
+	
+
+	while  (true)
+	{
+		int handle_index = IW_UNDEFINED;
+		res = GetCurrLightWeightProc()->WaitForTxnResponse(
+			list_of(_playStoppedHandle)(_hangupHandle),
 			handle_index,
 			response, 
 			Seconds(3600));
 
-	if (IW_FAILURE(res))
-	{
-		LogDebug("Error receiving ack response from mrcp, mrcph:" << _mrcpSessionHandle);
-		return res;
-	}
+		if (handle_index == 1)
+		{
+			return API_HANGUP;
+		}
 
-	if (handle_index == 1)
-	{
-		LogDebug("Hangup detected mrcph:" << _mrcpSessionHandle);
-		return API_HANGUP;
-	}
+		if (IW_FAILURE(res))
+		{
+			return res;
+		}
 
-	if (response->message_id != MSG_MRCP_SPEAK_STOPPED_EVT)
-	{
-		LogDebug("Speak request nacked by mrcp, mrcph:" << _mrcpSessionHandle);
-		return API_FAILURE;
-	}
+		shared_ptr<MsgMrcpSpeakStoppedEvt> stopped_evt = 
+			dynamic_pointer_cast<MsgMrcpSpeakStoppedEvt>(response);
 
-	return API_SUCCESS;
+		if (stopped_evt->correlation_id == ack->correlation_id)
+		{
+			return API_SUCCESS;
+		}
+
+	} 
 }
 
 
@@ -186,6 +165,15 @@ void
 MrcpSession::UponActiveObjectEvent(IwMessagePtr ptr)
 {
 	FUNCTRACKER;
+
+	switch (ptr->message_id)
+	{
+	case MSG_MRCP_SPEAK_STOPPED_EVT:
+		{
+			_playStoppedHandle->Send(ptr);
+			break;
+		}
+	}
 
 	ActiveObject::UponActiveObjectEvent(ptr);
 }
