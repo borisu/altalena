@@ -52,8 +52,9 @@ namespace ivrworx
 	class MrcpMixin 
 	{
 	public :
-		MrcpMixin():mrcp_handle(IW_UNDEFINED){};
+		MrcpMixin():mrcp_handle(IW_UNDEFINED),correlation_id(IW_UNDEFINED){};
 		MrcpHandle mrcp_handle;
+		int correlation_id;
 	};		
 
 
@@ -146,21 +147,20 @@ namespace ivrworx
 	{
 	public:
 		MsgMrcpSpeakReq():
-		  MsgRequest(MSG_MRCP_SPEAK_REQ, NAME(MSG_MRCP_SPEAK_REQ)),
-			send_provisional(false) {};
+		  MsgRequest(MSG_MRCP_SPEAK_REQ, NAME(MSG_MRCP_SPEAK_REQ)){};
 
 		  string mrcp_xml;
 
-		  BOOL send_provisional;
+		
 
 	};
 
-	class MsgMrcpSpeakReqAck:
+	class MsgMrcpSpeakAck:
 		public IwMessage, 
 		public MrcpMixin
 	{
 	public:
-		MsgMrcpSpeakReqAck():
+		MsgMrcpSpeakAck():
 		  IwMessage(MSG_MRCP_SPEAK_ACK, NAME(MSG_MRCP_SPEAK_ACK)){};
 
 	};
@@ -280,8 +280,7 @@ namespace ivrworx
 
 		virtual ApiErrorCode Speak(
 			IN const string &file_name,
-			IN BOOL sync = TRUE,
-			IN BOOL provisional = FALSE);
+			IN BOOL sync = TRUE);
 
 		virtual void TearDown();
 
@@ -304,6 +303,8 @@ namespace ivrworx
 		ScopedForking &_forking;
 
 		LpHandlePtr _hangupHandle;
+
+		LpHandlePtr _playStoppedHandle;
 
 		LpHandlePair _mrcpSessionHandlerPair;
 
