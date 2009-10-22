@@ -58,7 +58,7 @@ namespace ivrworx
 
 		LogDebug("CallBridge::cleandtmfbuffer iwh:" << _call->StackCallHandle());
 
-		_call->StopPlay();
+		_call->StopSpeak();
 
 		lua_pushnumber (L, API_SUCCESS);
 		return 1;
