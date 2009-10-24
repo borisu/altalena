@@ -31,6 +31,7 @@
     "mrcp_enabled": true,
     "unimrcp_conf_dir": "./unimrcp",
     "unimrcp_client_profile": "MRCPv2-Default",
+    "unimrcp_log_file": "unimrcpclient",
     
     "rtsp_enabled": false,
     
