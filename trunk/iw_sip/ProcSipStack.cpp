@@ -643,14 +643,112 @@ namespace ivrworx
 				string signal,duration;
 
 				std::getline(iss, signal,'=');
-				char signal_value;
-				iss >> signal_value;
+				string str_signal_value;
+				int signal_value;
+
+				// the value may be index
+				// or symbol
+
+
+				iss >> str_signal_value;
+
+				if (str_signal_value == "*")
+				{
+					signal_value = 10;
+				} else if (str_signal_value == "#")
+				{
+					signal_value = 11;
+				} else 
+				{
+					
+					signal_value = ::atoi(str_signal_value.c_str());
+
+					if (signal_value < 0 || signal_value > 15)
+					{
+						is->rejectNIT();
+						return;
+					}
+				}
+
+				
+
+
 
 				MsgCallDtmfEvt *dtmf_evt = 
 					new MsgCallDtmfEvt();
 
-				dtmf_evt->signal = signal_value;
+				switch (signal_value)
+				{
+				case 0:
+					{
+						dtmf_evt->signal = "0";
+						break;
+					}
+				case 1:
+					{
+						dtmf_evt->signal = "1";
+						break;
+					}
+				case 2:
+					{
+						dtmf_evt->signal = "2";
+						break;
+					}
+				case 3:
+					{
+						dtmf_evt->signal = "3";
+						break;
+					}
+				case 4:
+					{
+						dtmf_evt->signal = "4";
+						break;
+					}
+				case 5:
+					{
+						dtmf_evt->signal = "5";
+						break;
+					}
+				case 6:
+					{
+						dtmf_evt->signal = "6";
+						break;
+					}
+				case 7:
+					{
+						dtmf_evt->signal = "7";
+						break;
+					}
+				case 8:
+					{
+						dtmf_evt->signal = "8";
+						break;
+					}
+				case 9:
+					{
+						dtmf_evt->signal = "9";
+						break;
+					}
+				case 10:
+					{
+						dtmf_evt->signal = "*";
+						break;
+					}
+				case 11:
+					{
+						dtmf_evt->signal = "#";
+						break;
+					}
+				default:
+					{
+						
+						is->rejectNIT();
+						return;
+					}
 
+				}
+
+			
 				ctx_ptr->call_handler_inbound->Send(IwMessagePtr(dtmf_evt));
 				is->acceptNIT();
 				return;
