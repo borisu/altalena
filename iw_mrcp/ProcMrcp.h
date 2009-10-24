@@ -7,8 +7,7 @@ namespace ivrworx
 	{
 		MRCP_INITIAL,
 		MRCP_CONNECTING,
-		MRCP_ALLOCATED,
-		MRCP_TORNDOWN
+		MRCP_ALLOCATED
 	};
 
 
@@ -64,23 +63,38 @@ namespace ivrworx
 	{
 	public:
 
-		ProcMrcp(LpHandlePair pair, Configuration &vonf);
+		ProcMrcp(IN LpHandlePair pair, IN Configuration &conf);
 
 		virtual ~ProcMrcp(void);
 
 		void real_run();	
 
-		virtual void UponAllocateSessionReq(IwMessagePtr msg);
+		
+		// client events
+		virtual void UponAllocateSessionReq(
+			IN IwMessagePtr msg);
 
-		virtual void UponSpeakReq(IwMessagePtr msg);
+		virtual void UponSpeakReq(
+			IN IwMessagePtr msg);
 
-		virtual void UponStopSpeakReq(IwMessagePtr msg);
+		virtual void UponStopSpeakReq(
+			IN IwMessagePtr msg);
 
-		virtual void UponTearDownReq(IwMessagePtr msg);
+		virtual void UponTearDownReq(
+			IN IwMessagePtr msg);
 
-		virtual void UponChnannelConnected(MrcpOverlapped* mrcpOlap);
+		// mrcp server events
+		virtual void onMrcpChanndelAddEvt(
+			IN MrcpOverlapped *olap);
 
-		virtual void onMrcpMessageReceived(MrcpOverlapped *olap);
+		virtual void onMrcpMessageReceived(
+			IN MrcpOverlapped *olap);
+
+		virtual void onMrcpSessionTerminatedEvt(
+			IN MrcpOverlapped *olap);
+
+		virtual void onMrcpTerminatedEvt(
+			IN MrcpOverlapped *olap);
 
 	private:
 		
@@ -88,7 +102,7 @@ namespace ivrworx
 
 		void Destroy();
 
-		void TearDownSession(MrcpSessionCtxPtr ctx);
+		void FinalizeSessionContext(MrcpSessionCtxPtr ctx);
 
 		Configuration &_conf;
 
