@@ -159,15 +159,21 @@ namespace ivrworx
 
 	const MediaFormat MediaFormat::PCMA("PCMA",8000,8, MediaType_SPEECH);
 
+	const MediaFormat MediaFormat::SPEEX("SPEEX",8000,97, MediaType_SPEECH);
+
 	const MediaFormat MediaFormat::DTMF_RFC2833("telephone-event", 8000, 101, MediaType_DTMF);
 
-	MediaFormat::MediaType  MediaFormat::GetMediaType(string media_name)
+	MediaFormat::MediaType  MediaFormat::GetMediaType(const string &media_name)
 	{
 		if (media_name == "PCMA")
 		{
 			return MediaFormat::MediaType_SPEECH;
 		}
 		if (media_name == "PCMU")
+		{
+			return MediaFormat::MediaType_SPEECH;
+		}
+		if (media_name == "SPEEX")
 		{
 			return MediaFormat::MediaType_SPEECH;
 		}

@@ -159,9 +159,11 @@ namespace ivrworx
 
 		static const MediaFormat DTMF_RFC2833;
 
+		static const MediaFormat SPEEX;
+
 		int operator == (const MediaFormat &other) const;
 
-		static MediaType GetMediaType(string name);
+		static MediaType GetMediaType(const string &name);
 
 	private:
 
