@@ -267,7 +267,7 @@ namespace ivrworx
 					{
 					case MSG_MRCP_ALLOCATE_SESSION_REQ:
 						{
-							UponAllocateSessionReq(ptr);
+							UponMrcpAllocateSessionReq(ptr);
 							break;
 						}
 					case MSG_MRCP_SPEAK_REQ:
@@ -548,8 +548,28 @@ namespace ivrworx
 
 	}
 
+	void 
+	ProcMrcp::UponRtspAllocateSessionReq(
+		IN IwMessagePtr msg)
+	{
+		FUNCTRACKER;
+
+		/* create session */
+		mrcp_session_t *session = 
+			mrcp_application_session_create(_application,"RTSP-Client", NULL);
+
+		mpf_rtp_termination_descriptor_t *rtp_descriptor = 
+			rtp_descriptor_create(session->pool,CnxInfo("10.0.0.2",9000), MediaFormat::PCMA);
+
+
+
+
+
+
+	}
+
 	void
-	ProcMrcp::UponAllocateSessionReq(IwMessagePtr msg)
+	ProcMrcp::UponMrcpAllocateSessionReq(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 		
@@ -622,7 +642,7 @@ namespace ivrworx
 		MrcpCtxMap::iterator iter =  _mrcpCtxMap.find(handle);
 		if (iter == _mrcpCtxMap.end())
 		{
-			mrcp_application_session_destroy(olap->session);
+			//mrcp_application_session_destroy(olap->session);
 			LogWarn("ProcMrcp::UponMessageReceived mrcph:" << handle << " not found.");
 			return;
 		}
@@ -690,7 +710,7 @@ namespace ivrworx
 		if (iter == _mrcpCtxMap.end())
 		{
 			LogWarn("session terminated event on non existent ctx.");
-			mrcp_application_session_destroy(olap->session);
+			//mrcp_application_session_destroy(olap->session);
 	
 		} 
 		else 
@@ -698,7 +718,7 @@ namespace ivrworx
 			MrcpSessionCtxPtr ctx = (*iter).second;
 			ctx->session_handler.inbound->Send(new MsgMrcpTearDownEvt());
 			_mrcpCtxMap.erase(iter);
-			mrcp_application_session_destroy(ctx->session);
+			//mrcp_application_session_destroy(ctx->session);
 
 		}
 
@@ -721,7 +741,7 @@ namespace ivrworx
 
 
 		// if we got here ctx does not exist already
-		mrcp_application_session_destroy(olap->session);
+		//mrcp_application_session_destroy(olap->session);
 		
 		
 	}
@@ -844,10 +864,10 @@ namespace ivrworx
 
 		_logInititiated = TRUE;
 
-		/* create client stack */
-		_client = 
+		/* create MRCP client stack */
+		_mrcpClient = 
 			unimrcp_client_create(dir_layout);
-		if(!_client) {
+		if(!_mrcpClient) {
 			LogWarn("error:unimrcp_client_create");
 			goto error;
 		}
@@ -859,7 +879,7 @@ namespace ivrworx
 			goto error;
 		}
 
-		res = mrcp_client_application_register(_client,_application,"ivrworx_mrcp_app");
+		res = mrcp_client_application_register(_mrcpClient,_application,"ivrworx_mrcp_app");
 		if(!res) {
 			LogWarn("error:mrcp_client_application_register");
 			goto error;
@@ -890,7 +910,7 @@ namespace ivrworx
 		
 		
 		/* asynchronous start of client stack processing */
-		res = mrcp_client_start(_client);
+		res = mrcp_client_start(_mrcpClient);
 		if(!res) {
 			LogWarn("error:mrcp_client_start");
 			::CloseHandle(ready_event);

@@ -71,7 +71,10 @@ namespace ivrworx
 
 		
 		// client events
-		virtual void UponAllocateSessionReq(
+		virtual void UponMrcpAllocateSessionReq(
+			IN IwMessagePtr msg);
+
+		virtual void UponRtspAllocateSessionReq(
 			IN IwMessagePtr msg);
 
 		virtual void UponSpeakReq(
@@ -114,7 +117,7 @@ namespace ivrworx
 
 		apr_pool_t *_pool;
 
-		mrcp_client_t *_client;
+		mrcp_client_t *_mrcpClient;
 	
 		MrcpCtxMap _mrcpCtxMap;
 	};
