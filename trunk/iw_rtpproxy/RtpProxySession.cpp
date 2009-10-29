@@ -186,7 +186,7 @@ namespace ivrworx
 	}
 
 	CnxInfo 
-	RtpProxySession::GetLocalInfo()
+	RtpProxySession::LocalCnxInfo()
 	{
 		return _conn;
 	}
