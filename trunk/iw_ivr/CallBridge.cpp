@@ -30,18 +30,22 @@ namespace ivrworx
 		method(CallBridge, cleandtmfbuffer),
 		method(CallBridge, waitfordtmf),
 		method(CallBridge, stopspeak),
+		method(CallBridge, play),
+		method(CallBridge, stopplay),
+		method(CallBridge, waitforhangup),
+		method(CallBridge, ani),
+		method(CallBridge, dnis),
+		method(CallBridge, makecall),
+		method(CallBridge, blindxfer),
 		{0,0}
 	};
 
-	CallBridge::CallBridge(lua_State *L):
-	_call(NULL)
+	CallBridge::CallBridge(lua_State *L)
 	{
-		// should never be called directly needed
-		// only to compile with luna
-		throw;
+		
 	}
 
-	CallBridge::CallBridge(CallWithRtpManagement *call):
+	CallBridge::CallBridge(CallWithRtpManagementPtr call):
 	_call(call)
 	{
 		
@@ -50,6 +54,60 @@ namespace ivrworx
 	CallBridge::~CallBridge(void)
 	{
 	}
+
+	int 
+	CallBridge::play(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		LUA_BOOL_PARAM(L,loop,-1);
+		LUA_BOOL_PARAM(L,sync,-2);
+		LUA_STRING_PARAM(L,file_to_play,-3);
+
+		ApiErrorCode res = _call->PlayFile(file_to_play,loop);
+		lua_pushnumber (L, res);
+
+		return 1;
+
+	}
+
+	int
+	CallBridge::stopplay(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		ApiErrorCode res = _call->StopPlay();
+		lua_pushnumber (L, res);
+
+		return 1;
+	}
+
+	int
+	CallBridge::makecall(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		LUA_STRING_PARAM(L,dest,-1);
+
+		ApiErrorCode res = _call->MakeCall(dest);
+		lua_pushnumber (L, res);
+
+		return 1;
+	}
+
+	int
+	CallBridge::blindxfer(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		LUA_STRING_PARAM(L,dest,-1);
+
+		ApiErrorCode res = _call->BlindXfer(dest);
+		lua_pushnumber (L, res);
+
+		return 1;
+	}
+
 
 	int
 	CallBridge::stopspeak(lua_State *L)
@@ -90,8 +148,9 @@ namespace ivrworx
 		LogDebug("CallBridge::waitfordtmf iwh:" << _call->StackCallHandle() << ", timeout:" << timeout);
 
 		string signal;
-		ApiErrorCode res = 
-			_call->WaitForDtmf(signal, MilliSeconds(timeout));
+#pragma TODO ("CSP++ Does not handle correctly the large timeouts")
+#pragma warning (suppress:4244)
+		ApiErrorCode res = 	_call->WaitForDtmf(signal, MilliSeconds(timeout));
 
 		lua_pushnumber (L, res);
 		if (IW_SUCCESS(res))
@@ -121,6 +180,36 @@ namespace ivrworx
 		lua_pushnumber (L, res);
 		return 1;
 
+	}
+
+	int
+	CallBridge::ani(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		lua_pushstring(L,_call->Ani().c_str());
+
+		return 1;
+		
+	}
+
+	int
+	CallBridge::dnis(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		lua_pushstring(L,_call->Dnis().c_str());
+
+		return 1;
+	}
+
+	int
+	CallBridge::waitforhangup(lua_State *L)
+	{
+		_call->WaitTillHangup();
+
+		lua_pushnumber (L, API_SUCCESS);
+		return 1;
 	}
 
 	int

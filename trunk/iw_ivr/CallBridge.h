@@ -49,7 +49,7 @@ namespace ivrworx
 
 		CallBridge(lua_State *L);
 
-		CallBridge(CallWithRtpManagement *call);
+		CallBridge(CallWithRtpManagementPtr call);
 
 		virtual ~CallBridge(void);
 
@@ -58,15 +58,20 @@ namespace ivrworx
 		int cleandtmfbuffer(lua_State *L);
 		int waitfordtmf(lua_State *L);
 		int stopspeak(lua_State *L);
-
-		
+		int play(lua_State *L);
+		int stopplay(lua_State *L);
+		int waitforhangup(lua_State *L);
+		int ani(lua_State *L);
+		int dnis(lua_State *L);
+		int makecall(lua_State *L);
+		int blindxfer(lua_State *L);
 
 		static const char className[];
 		static Luna<CallBridge>::RegType methods[];
 
 	private:
 
-		CallWithRtpManagement *_call;
+		CallWithRtpManagementPtr _call;
 	};
 
 
