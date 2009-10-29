@@ -24,16 +24,14 @@
     "from_id" : "ivrworx",
     "from_display_name": "ivrworx",
     
-    "ims_host": "$COMPUTERNAME",
-    "ims_top_port" : 62000,
-    "ims_bottom_port" : 61000,
-    
-    "mrcp_enabled": true,
+     
+    "mrcp_enabled": false,
     "unimrcp_conf_dir": "./unimrcp",
     "unimrcp_client_profile": "MRCPv2-Default",
     "unimrcp_log_file": "unimrcpclient",
     
     "rtsp_enabled": false,
+    
     
 	"rtp_proxy_base_port" : 8000,
     "rtp_proxy_top_port" : 9000,
@@ -58,8 +56,8 @@
             "sampling_rate": 8000
         }, 
         {
-            "name": "telephone-event" ,
-            "sdp_mapping": 101,
+            "name": "SPEEX" ,
+            "sdp_mapping": 97,
             "sampling_rate": 8000
         } 
     ],

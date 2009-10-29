@@ -382,10 +382,6 @@
 			Name="scripts"
 			>
 			<File
-				RelativePath=".\scripts\ivrworx.lua"
-				>
-			</File>
-			<File
 				RelativePath=".\scripts\play_phrase.lua"
 				>
 			</File>
