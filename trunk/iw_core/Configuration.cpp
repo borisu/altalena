@@ -80,15 +80,6 @@ namespace ivrworx
 
 	}
 
-	CnxInfo
-	Configuration::ImsCnxInfo()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _imsCnxInfo;
-
-	}
-
 	string
 	Configuration::ScriptFile()
 	{
@@ -96,23 +87,6 @@ namespace ivrworx
 
 		return  _scriptFile;
 	}
-
-	int 
-	Configuration::ImsTopPort()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return  _imsTopPort;
-	}
-
-	int 
-	Configuration::ImsBottomPort()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return  _imsBottomPort;
-	}
-
 
 	void
 	Configuration::AddMediaFormat(IN const MediaFormat& codec)

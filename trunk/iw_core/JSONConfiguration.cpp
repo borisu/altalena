@@ -221,20 +221,6 @@ namespace ivrworx
 			convert_hname_to_addrin(ivr_host_str.c_str()),
 			ivr_ip_int);
 
-		//
-		// ims
-		//
-		const string ims_host_str = find_str(root_obj, "ims_host" );
-
-
-		
-		_imsCnxInfo = CnxInfo(
-			convert_hname_to_addrin(ivr_host_str.c_str()),
-			0);
-
-		_imsTopPort		= find_int(root_obj, "ims_top_port" );
-		_imsBottomPort	= find_int(root_obj, "ims_bottom_port" );
-
 		// configuration file
 		_scriptFile = find_str(root_obj, "script_file");
 

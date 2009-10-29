@@ -124,28 +124,6 @@ namespace ivrworx
 		
 
 		/**
-		*	The connection info of IMS thread. The port is ignored.
-		*
-		*	@return The connection info of IMS thread.
-		**/
-		virtual CnxInfo ImsCnxInfo();
-
-		/**
-		*
-		*	Top port of IMS ports range.
-		*	
-		*	@return Port number.
-		**/
-		virtual int ImsTopPort();
-
-		/**
-		*	Bottom port of IMS ports range.
-		*
-		*	@return Port number.
-		**/
-		virtual int ImsBottomPort();
-
-		/**
 		*
 		*	Name of the lua file to run on each call.
 		*
@@ -287,8 +265,6 @@ namespace ivrworx
 		bool _precomile;
 
 		CnxInfo _ivrCnxInfo;
-
-		CnxInfo _imsCnxInfo;
 
 		string _scriptFile;
 
