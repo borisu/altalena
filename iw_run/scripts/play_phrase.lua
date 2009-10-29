@@ -1,5 +1,5 @@
 module("play_phrase",package.seeall)
-require "ivrworx"
+
 
 local thousands_sounds = {
 		[1]  = "1000.wav",
