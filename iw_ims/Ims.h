@@ -28,22 +28,17 @@ namespace ivrworx
 
 	enum ImsEvents
 	{
-		MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST = MSG_USER_DEFINED,
-		MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK,
-		MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK,
-		MSG_START_PLAYBACK_REQUEST,
-		MSG_START_PLAY_REQ_ACK,
-		MSG_IMS_START_PLAY_REQ_NACK,
-		MSG_STOP_PLAYBACK_REQUEST,
-		MSG_STOP_PLAYBACK_REQUEST_ACK,
-		MSG_STOP_PLAYBACK_REQUEST_NACK,
-		MSG_IMS_PLAY_STOPPED,
+		MSG_IMS_ALLOCATE_SESSION_REQ = MSG_USER_DEFINED,
+		MSG_IMS_ALLOCATE_SESSION_ACK,
+		MSG_IMS_ALLOCATE_SESSION_NACK,
+		MSG_IMS_PLAY_REQUEST,
+		MSG_IMS_PLAY_ACK,
+		MSG_IMS_PLAY_NACK,
+		MSG_IMS_STOP_PLAY_REQ,
+		MSG_IMS_STOP_PLAY_ACK,
+		MSG_IMS_STOP_PLAY_NACK,
+		MSG_IMS_PLAY_STOPPED_EVT,
 		MSG_IMS_TEARDOWN_REQ,
-		MSG_IMS_RFC2833DTMF_EVT,
-		MSG_IMS_SEND_RFC2833DTMF_REQ,
-		MSG_IMS_START_RECORD_REQ,
-		MSG_IMS_START_RECORD_ACK,
-		MSG_IMS_STOP_RECORD_REQ,
 		MSG_IMS_MODIFY_REQ,
 		MSG_IMS_MODIFY_ACK,
 		MSG_IMS_MODIFY_NACK
@@ -53,70 +48,83 @@ namespace ivrworx
 	typedef int 
 	ImsHandle;
 
-
-	class MsgAllocateImsSessionReq:
-		public MsgRequest
+	class ImsMixin
 	{
 	public:
-		MsgAllocateImsSessionReq():
-		  MsgRequest(MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST, 
-			  NAME(MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST)){};
 
-		  CnxInfo remote_media_data;
+		ImsMixin():
+		  ims_handle(IW_UNDEFINED),
+			  correlation_id(IW_UNDEFINED){}
 
-		  MediaFormat codec;
+		CnxInfo local_media_data;
 
-		  LpHandlePair session_handler;
+		CnxInfo remote_media_data;
 
+		MediaFormat codec;
+
+		LpHandlePair session_handler;
+
+		ImsHandle ims_handle;
+
+		int correlation_id;
+
+
+
+	};
+
+
+	class MsgImsAllocateSessionReq:
+		public MsgRequest,
+		public ImsMixin
+	{
+	public:
+		MsgImsAllocateSessionReq():
+		  MsgRequest(MSG_IMS_ALLOCATE_SESSION_REQ, 
+			  NAME(MSG_IMS_ALLOCATE_SESSION_REQ)){};
+
+		
 	};
 
 	
 
-	class MsgAllocateImsSessionAck:
-		public IwMessage
+	class MsgImsAllocateSessionAck:
+		public IwMessage,
+		public ImsMixin
 	{
 	public:
-		MsgAllocateImsSessionAck():
-		  IwMessage(MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK, 
-			  NAME(MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK)),
-			  playback_handle(IW_UNDEFINED){};
-
-		  int playback_handle;
-
-		  CnxInfo ims_media_data;
+		MsgImsAllocateSessionAck():
+		  IwMessage(MSG_IMS_ALLOCATE_SESSION_ACK, 
+			  NAME(MSG_IMS_ALLOCATE_SESSION_ACK)){};
 
 	};
 
-	class MsgAllocateImsSessionNack:
-		public IwMessage
+	class MsgImsAllocateSessionNack:
+		public IwMessage,
+		public ImsMixin
 	{
 	public:
-		MsgAllocateImsSessionNack():
-		  IwMessage(MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK, 
-			  NAME(MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK)){};
+		MsgImsAllocateSessionNack():
+		  IwMessage(MSG_IMS_ALLOCATE_SESSION_NACK, 
+			  NAME(MSG_IMS_ALLOCATE_SESSION_NACK)){};
 
 	};
 
 	class MsgImsModifyReq:
-		public MsgRequest
+		public MsgRequest,
+		public ImsMixin
 	{
 	public:
 		MsgImsModifyReq():
 		  MsgRequest(MSG_IMS_MODIFY_REQ, 
 			  NAME(MSG_IMS_MODIFY_REQ)){};
 
-		  CnxInfo remote_media_data;
-
-		  MediaFormat codec;
-
-		  int playback_handle;
-
-		
+	
 	};
 
 
 	class MsgImsModifyAck:
-		public MsgRequest
+		public MsgRequest,
+		public ImsMixin
 	{
 	public:
 		MsgImsModifyAck():
@@ -127,7 +135,8 @@ namespace ivrworx
 
 
 	class MsgImsModifyNack:
-		public MsgRequest
+		public MsgRequest,
+		public ImsMixin
 	{
 	public:
 		MsgImsModifyNack():
@@ -136,135 +145,98 @@ namespace ivrworx
 
 	};
 
-	class MsgStartPlayReq:
-		public MsgRequest
+	class MsgImsPlayReq:
+		public MsgRequest,
+		public ImsMixin
 	{
 	public:
-		MsgStartPlayReq():
-		  MsgRequest(MSG_START_PLAYBACK_REQUEST, NAME(MSG_START_PLAYBACK_REQUEST)),
-			  playback_handle(IW_UNDEFINED),loop(false),send_provisional(false) {};
-
-		  int playback_handle;
+		MsgImsPlayReq():
+		  MsgRequest(MSG_IMS_PLAY_REQUEST, NAME(MSG_IMS_PLAY_REQUEST)),
+			  loop(false){};
 
 		  string file_name;
 
 		  BOOL loop;
 
-		  BOOL send_provisional;
+	};
 
-		  BOOL speak_request;
-
-		  string text_to_speak;
+	class MsgImsPlayAck:
+		public IwMessage,
+		public ImsMixin
+	{
+	public:
+		MsgImsPlayAck():
+		  IwMessage(MSG_IMS_PLAY_ACK, NAME(MSG_IMS_PLAY_ACK)){};
 
 	};
 
-	class MsgStartPlayReqAck:
-		public IwMessage
+	class MsgImsPlayNack:
+		public IwMessage,
+		public ImsMixin
 	{
 	public:
-		MsgStartPlayReqAck():
-		  IwMessage(MSG_START_PLAY_REQ_ACK, NAME(MSG_START_PLAY_REQ_ACK)){};
+		MsgImsPlayNack():
+		  IwMessage(MSG_IMS_PLAY_NACK, NAME(MSG_IMS_PLAY_NACK)){};
 
-	};
-
-	class MsgStartPlayReqNack:
-		public IwMessage
-	{
-	public:
-		MsgStartPlayReqNack():
-		  IwMessage(MSG_IMS_START_PLAY_REQ_NACK, NAME(MSG_IMS_START_PLAY_REQ_NACK)),
-			  playback_handle(IW_UNDEFINED){};
-
-		  int playback_handle;
 	};
 
 	class MsgImsPlayStopped:
-		public IwMessage
+		public IwMessage,
+		public ImsMixin
 	{
 	public:
 		MsgImsPlayStopped():
-		  IwMessage(MSG_IMS_PLAY_STOPPED, NAME(MSG_IMS_PLAY_STOPPED)),
-			  playback_handle(IW_UNDEFINED),
-			  error(API_FAILURE){};
+		  IwMessage(MSG_IMS_PLAY_STOPPED_EVT, NAME(MSG_IMS_PLAY_STOPPED_EVT)){};
 
-		  int playback_handle;
-
-		  ApiErrorCode error;
 	};
 
 	class MsgImsTearDownReq:
-		public MsgRequest
+		public MsgRequest,
+		public ImsMixin
 	{
 	public:
 		MsgImsTearDownReq():
 		  MsgRequest(MSG_IMS_TEARDOWN_REQ, 
 			  NAME(MSG_IMS_TEARDOWN_REQ)){};
 
-		  ImsHandle handle;
-
 	};
 
-	class MsgStopPlaybackReq:
-		public MsgRequest
+	class MsgImsStopPlayReq:
+		public MsgRequest,
+		public ImsMixin
 	{
 
 	public:
-		MsgStopPlaybackReq():
-		  MsgRequest(MSG_STOP_PLAYBACK_REQUEST, 
-			  NAME(MSG_STOP_PLAYBACK_REQUEST)){};
-
-		  ImsHandle handle;
+		MsgImsStopPlayReq():
+		  MsgRequest(MSG_IMS_STOP_PLAY_REQ, 
+			  NAME(MSG_IMS_STOP_PLAY_REQ)){};
 
 	};
 
 
-	class MsgStopPlaybackAck:
-		public MsgRequest
+	class MsgImsStopPlayAck:
+		public MsgRequest,
+		public ImsMixin
 	{
 	public:
-		MsgStopPlaybackAck():
-		  MsgRequest(MSG_STOP_PLAYBACK_REQUEST_ACK, 
-			  NAME(MSG_STOP_PLAYBACK_REQUEST_ACK)){};
+		MsgImsStopPlayAck():
+		  MsgRequest(MSG_IMS_STOP_PLAY_ACK, 
+			  NAME(MSG_IMS_STOP_PLAY_ACK)){};
 
 	};
 
 
-	class MsgStopPlaybackNack:
-		public MsgRequest
+	class MsgImsStopPlayNack:
+		public MsgRequest,
+		public ImsMixin
 	{
 	public:
-		MsgStopPlaybackNack():
-		  MsgRequest(MSG_STOP_PLAYBACK_REQUEST_NACK, 
-			  NAME(MSG_STOP_PLAYBACK_REQUEST_NACK)){};
+		MsgImsStopPlayNack():
+		  MsgRequest(MSG_IMS_STOP_PLAY_NACK, 
+			  NAME(MSG_IMS_STOP_PLAY_NACK)){};
 
 	};
 
-
-	class MsgImsRfc2833DtmfEvt:
-		public IwMessage
-	{
-	public:
-		MsgImsRfc2833DtmfEvt():IwMessage(MSG_IMS_RFC2833DTMF_EVT, 
-			NAME(MSG_IMS_RFC2833DTMF_EVT)){}
-
-		int dtmf_digit;
-
-	};
-
-	class MsgImsSendRfc2833DtmfReq:
-		public IwMessage
-	{
-	public:
-		MsgImsSendRfc2833DtmfReq():IwMessage(MSG_IMS_SEND_RFC2833DTMF_REQ, 
-			NAME(MSG_IMS_SEND_RFC2833DTMF_REQ)){}
-
-		int dtmf_digit;
-
-		ImsHandle handle;
-
-	};
-
-	
 
 }
 

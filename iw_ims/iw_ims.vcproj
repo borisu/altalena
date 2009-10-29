@@ -289,10 +289,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\PortManager.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ProcIms.cpp"
 				>
 			</File>
@@ -348,10 +344,6 @@
 			</File>
 			<File
 				RelativePath=".\ImsSession.h"
-				>
-			</File>
-			<File
-				RelativePath=".\PortManager.h"
 				>
 			</File>
 			<File

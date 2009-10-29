@@ -37,30 +37,25 @@ namespace ivrworx
 
 		virtual ~ImsSession (void);
 
-		virtual ApiErrorCode	Allocate();
+		virtual ApiErrorCode	Allocate(
+			IN const CnxInfo &local_end);
 
 		virtual ApiErrorCode	Allocate(
-			IN CnxInfo remote_end, 
-			IN MediaFormat codec);
+			IN const CnxInfo &local_end, 
+			IN const CnxInfo &remote_end, 
+			IN const MediaFormat &codec);
 
 		virtual ApiErrorCode	ModifyConnection(
-			IN CnxInfo remote_end, 
-			IN MediaFormat codec);
+			IN const CnxInfo &remote_end, 
+			IN const MediaFormat &codec);
 
 		virtual ApiErrorCode	StopPlay();
 
 		virtual ApiErrorCode PlayFile(
 			IN const string &file_name,
 			IN BOOL sync = FALSE,
-			IN BOOL loop = FALSE,
-			IN BOOL provisional = FALSE);
+			IN BOOL loop = FALSE);
 
-		virtual ApiErrorCode WaitForDtmf(
-			OUT int &dtmf, 
-			IN Time timeout);
-
-		virtual ApiErrorCode SendDtmf(char dtmf);
-		
 		virtual void TearDown();
 
 		virtual CnxInfo ImsMediaData() const;
@@ -70,10 +65,6 @@ namespace ivrworx
 		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
 
 		virtual void InterruptWithHangup();
-
-		virtual const string& GetDtmfString();
-
-		virtual void ClearDtmfs();
 
 	private:
 
@@ -85,16 +76,13 @@ namespace ivrworx
 
 		ScopedForking &_forking;
 
-		LpHandlePtr _rfc2833DtmfHandle;
-
 		LpHandlePtr _hangupHandle;
 
+		LpHandlePtr _playStoppedHandle;
+
 		LpHandlePair _imsSessionHandlerPair;
-
-		string _dtmf;
-
-		DtmfMap _dtmfMap;
 	};
+
 
 	typedef shared_ptr<ImsSession> ImsSessionPtr;
 

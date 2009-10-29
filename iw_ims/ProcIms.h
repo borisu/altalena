@@ -55,6 +55,8 @@ namespace ivrworx
 		//
 		IwMessagePtr last_user_request;
 
+		int correlation_id;
+
 		int  port;
 
 		RtpProfile *profile;
@@ -71,9 +73,9 @@ namespace ivrworx
 	struct ImsOverlapped:
 		public OVERLAPPED
 	{
+		ImsOverlapped(): ims_handle_id(IW_UNDEFINED){}
 		ImsHandle ims_handle_id;
-
-		int dtmf;
+		
 	};
 
 	class ProcIms :
@@ -102,8 +104,6 @@ namespace ivrworx
 
 		virtual void StopPlayback(IwMessagePtr msg);
 
-		virtual void SendDtmf(IwMessagePtr msg);
-
 		virtual void TearDown(IwMessagePtr msg);
 
 		virtual ApiErrorCode StartTicking(StreamingCtxPtr ctx);
@@ -114,8 +114,6 @@ namespace ivrworx
 
 		virtual void UponPlaybackStopped(ImsOverlapped* args);
 
-		virtual void UponDtmfEvent(ImsOverlapped* args);
-
 		virtual void TearDownAllSessions();
 
 	private:
@@ -124,10 +122,6 @@ namespace ivrworx
 		void InitCodecs();
 
 		void CleanUpResources();
-
-		CnxInfo _localMedia;
-
-		PortManager _portManager;
 
 		MSTicker *_ticker;
 
@@ -150,6 +144,8 @@ namespace ivrworx
 		IocpInterruptorPtr _iocpPtr;
 
 		OrtpEvQueue *_rtp_q;
+
+		int _correlationCounter;
 
 		HANDLE _rtpWorkerShutdownEvt;
 
