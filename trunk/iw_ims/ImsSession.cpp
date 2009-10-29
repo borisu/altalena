@@ -35,27 +35,10 @@ ImsSession::ImsSession(IN ScopedForking &forking):
 _imsSessionHandle(IW_UNDEFINED),
 _imsSessionHandlerPair(HANDLE_PAIR),
 _forking(forking),
-_rfc2833DtmfHandle(new LpHandle()),
-_hangupHandle(new LpHandle())
+_hangupHandle(new LpHandle()),
+_playStoppedHandle(new LpHandle())
 {
 	FUNCTRACKER;
-
-	_dtmfMap[0] = '0';
-	_dtmfMap[1] = '1';
-	_dtmfMap[2] = '2';
-	_dtmfMap[3] = '3';
-	_dtmfMap[4] = '4';
-	_dtmfMap[5] = '5';
-	_dtmfMap[6] = '6';
-	_dtmfMap[7] = '7';
-	_dtmfMap[8] = '8';
-	_dtmfMap[9] = '9';
-	_dtmfMap[10] = '*';
-	_dtmfMap[11] = '#';
-	_dtmfMap[12] = 'A';
-	_dtmfMap[13] = 'B';
-	_dtmfMap[14] = 'C';
-	_dtmfMap[15] = 'D';
 }
 
 ImsSession::~ImsSession(void)
@@ -81,11 +64,11 @@ ImsSession::StopPlay()
 
 	if (_imsSessionHandle == IW_UNDEFINED)
 	{
-		return API_FAILURE;
+		return API_WRONG_STATE;
 	}
 
-	MsgStopPlaybackReq *msg = new MsgStopPlaybackReq();
-	msg->handle	= _imsSessionHandle;
+	MsgImsStopPlayReq *msg = new MsgImsStopPlayReq();
+	msg->ims_handle	= _imsSessionHandle;
 	
 	ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(IMS_Q,IwMessagePtr(msg));
 	return res;
@@ -95,186 +78,86 @@ ImsSession::StopPlay()
 ApiErrorCode
 ImsSession::PlayFile(IN const string &file_name,
 					 IN BOOL sync,
-					 IN BOOL loop,
-					 IN BOOL provisional)
+					 IN BOOL loop)
 {
 
 	FUNCTRACKER;
 
 	if (_imsSessionHandle == IW_UNDEFINED)
 	{
-		return API_FAILURE;
+		return API_WRONG_STATE;
 	}
 
 	// cannot sync and loop
 	if (sync == TRUE && loop == TRUE)
 	{
-		LogWarn("Cannot play sync and in loop.");
+		LogWarn("ImsSession::PlayFile - Cannot play sync and in loop.");
 		return API_FAILURE;
 	}
 
 	IwMessagePtr response = NULL_MSG;
+	int handle_index = IW_UNDEFINED;
 	
-	DECLARE_NAMED_HANDLE(ims_play_txn);
-	ims_play_txn->HandleName("Ims Play TXN"); // for logging purposes
-	ims_play_txn->Direction(MSG_DIRECTION_INBOUND);
-
-	RegistrationGuard guard(ims_play_txn);
-
 	
-	MsgStartPlayReq *msg = new MsgStartPlayReq();
-	msg->playback_handle	= _imsSessionHandle;
+	MsgImsPlayReq *msg = new MsgImsPlayReq();
+	msg->ims_handle	= _imsSessionHandle;
 	msg->file_name			= file_name;
-	msg->send_provisional	= provisional;
 	msg->loop				= loop;
-	msg->source.handle_id	= ims_play_txn->GetObjectUid();
 	
-	ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(IMS_Q,IwMessagePtr(msg));
-	if (IW_FAILURE(res))
+	
+	ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
+		IMS_Q,
+		IwMessagePtr(msg),
+		response,
+		Seconds(5),
+		"Plat TXN");
+
+	if (IW_FAILURE(res) || response->message_id != MSG_IMS_PLAY_ACK)
 	{
-		LogDebug("Error sending play request to ims, imsh:" << _imsSessionHandle);
+		LogDebug("ImsSession::PlayFile - Error sending play request to ims, imsh:" << _imsSessionHandle);
 		return res;
 	}
 
-	int handle_index = IW_UNDEFINED;
-
-	if (provisional)
-	{
-		res = GetCurrLightWeightProc()->WaitForTxnResponse(
-			list_of(ims_play_txn)(_hangupHandle),
-			handle_index,
-			response, 
-			MilliSeconds(GetCurrLightWeightProc()->TransactionTimeout()));
-
-		if (IW_FAILURE(res))
-		{
-			
-			LogDebug("Error receiving provisional response from ims, imsh:" << _imsSessionHandle);
-			return res;
-		}
-
-		if (handle_index == 1)
-		{
-			LogDebug("Hangup detected imsh:" << _imsSessionHandle);
-			return API_HANGUP;
-		}
-
-		if (response->message_id != MSG_START_PLAY_REQ_ACK)
-		{
-			LogDebug("Play request nacked by ims, imsh:" << _imsSessionHandle);
-			return API_FAILURE;
-		}
-
-	}
-	
 	if (!sync)
 	{
 		return API_SUCCESS;
 	}
 
-	res = GetCurrLightWeightProc()->WaitForTxnResponse(
-			list_of(ims_play_txn)(_hangupHandle),
+	shared_ptr<MsgImsPlayAck> ack = 
+		dynamic_pointer_cast<MsgImsPlayAck>(response);
+
+
+	while  (true)
+	{
+		int handle_index = IW_UNDEFINED;
+		res = GetCurrLightWeightProc()->WaitForTxnResponse(
+			list_of(_playStoppedHandle)(_hangupHandle),
 			handle_index,
 			response, 
 			Seconds(3600));
 
-	if (IW_FAILURE(res))
-	{
-		LogDebug("Error receiving ack response from ims, imsh:" << _imsSessionHandle);
-		return res;
-	}
+		if (handle_index == 1)
+		{
+			return API_HANGUP;
+		}
 
-	if (handle_index == 1)
-	{
-		LogDebug("Hangup detected imsh:" << _imsSessionHandle);
-		return API_HANGUP;
-	}
+		if (IW_FAILURE(res))
+		{
+			return res;
+		}
 
-	if (response->message_id != MSG_IMS_PLAY_STOPPED)
-	{
-		LogDebug("Play request nacked by ims, imsh:" << _imsSessionHandle);
-		return API_FAILURE;
-	}
+		shared_ptr<MsgImsPlayStopped> stopped_evt = 
+			dynamic_pointer_cast<MsgImsPlayStopped>(response);
 
-	return API_SUCCESS;
-}
+		if (stopped_evt->correlation_id == ack->correlation_id)
+		{
+			return API_SUCCESS;
+		}
 
-const string& 
-ImsSession::GetDtmfString()
-{
-	return _dtmf;
+	} 
 }
 
 
-void 
-ImsSession::ClearDtmfs()
-{
-	_dtmf.clear();
-}
-
-ApiErrorCode
-ImsSession::SendDtmf(char dtmf)
-{
-
-	FUNCTRACKER;
-
-	if (_imsSessionHandle == IW_UNDEFINED)
-	{
-		return API_FAILURE;
-	}
-
-
-	MsgImsSendRfc2833DtmfReq *msg = new MsgImsSendRfc2833DtmfReq ();
-	msg->handle		= _imsSessionHandle;
-	msg->dtmf_digit = dtmf;
-
-	ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(IMS_Q,IwMessagePtr(msg));
-
-	return res;
-
-}
-
-ApiErrorCode
-ImsSession::WaitForDtmf(OUT int &dtmf, IN Time timeout)
-{
-	
-	IwMessagePtr ptr = NULL_MSG;
-
-	int handle_index = IW_UNDEFINED;
-	ApiErrorCode res = GetCurrLightWeightProc()->WaitForTxnResponse(
-		list_of(_rfc2833DtmfHandle)(_hangupHandle),
-		handle_index,
-		ptr,
-		timeout);
-
-	if (IW_FAILURE(res))
-	{
-		return res;
-	}
-
-	if (handle_index == 1)
-	{
-		return API_HANGUP;
-	}
-
-	shared_ptr<MsgImsRfc2833DtmfEvt> dtmf_event = 
-		shared_dynamic_cast<MsgImsRfc2833DtmfEvt> (ptr);
-	
-
-	DtmfMap::iterator iter =  _dtmfMap.find(dtmf_event->dtmf_digit);
-	if (iter == _dtmfMap.end())
-	{
-		LogWarn("Unknown dtmf event:" << dtmf);
-		return API_FAILURE;
-	}
-
-	dtmf = iter->second;
-
-	_dtmf = _dtmf + (char)dtmf;
-
-	return API_SUCCESS;
-
-}
 
 void
 ImsSession::UponActiveObjectEvent(IwMessagePtr ptr)
@@ -283,9 +166,9 @@ ImsSession::UponActiveObjectEvent(IwMessagePtr ptr)
 
 	switch (ptr->message_id)
 	{
-	case MSG_IMS_RFC2833DTMF_EVT:
+	case MSG_IMS_PLAY_STOPPED_EVT:
 		{
-			_rfc2833DtmfHandle->Send(ptr);
+			_playStoppedHandle->Send(ptr);
 		}
 	default:
 		{
@@ -297,18 +180,19 @@ ImsSession::UponActiveObjectEvent(IwMessagePtr ptr)
 }
 
 ApiErrorCode
-ImsSession::Allocate()
+ImsSession::Allocate(IN const CnxInfo &local_end)
 {
 	FUNCTRACKER;
 
-	return Allocate(CnxInfo(),MediaFormat()); 
+	return Allocate(local_end,CnxInfo(),MediaFormat()); 
 		
 
 }
 
 ApiErrorCode
-ImsSession::Allocate(IN CnxInfo remote_end, 
-								  IN MediaFormat codec)
+ImsSession::Allocate(IN const CnxInfo &local_end, 
+					 IN const CnxInfo &remote_end, 
+					 IN const MediaFormat &codec)
 {
 	FUNCTRACKER;
 
@@ -319,9 +203,12 @@ ImsSession::Allocate(IN CnxInfo remote_end,
 		return API_FAILURE;
 	}
 
+	_imsMediaData = local_end;
+
 	DECLARE_NAMED_HANDLE_PAIR(session_handler_pair);
 
-	MsgAllocateImsSessionReq *msg = new MsgAllocateImsSessionReq();
+	MsgImsAllocateSessionReq *msg = new MsgImsAllocateSessionReq();
+	msg->local_media_data = local_end;
 	msg->remote_media_data = remote_end;
 	msg->codec = codec;
 	msg->session_handler = session_handler_pair;
@@ -342,14 +229,14 @@ ImsSession::Allocate(IN CnxInfo remote_end,
 
 	switch (response->message_id)
 	{
-	case MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_ACK:
+	case MSG_IMS_ALLOCATE_SESSION_ACK:
 		{
 
 
-			shared_ptr<MsgAllocateImsSessionAck> ack = 
-				shared_polymorphic_cast<MsgAllocateImsSessionAck>(response);
-			_imsSessionHandle	= ack->playback_handle;
-			_imsMediaData		= ack->ims_media_data;
+			shared_ptr<MsgImsAllocateSessionAck> ack = 
+				shared_polymorphic_cast<MsgImsAllocateSessionAck>(response);
+			_imsSessionHandle	= ack->ims_handle;
+			
 
 			StartActiveObjectLwProc(_forking,session_handler_pair,"Ims Session handler");
 
@@ -358,7 +245,7 @@ ImsSession::Allocate(IN CnxInfo remote_end,
 			break;
 
 		}
-	case MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST_NACK:
+	case MSG_IMS_ALLOCATE_SESSION_NACK:
 		{
 			LogDebug("Error allocating Ims session.");
 			res = API_SERVER_FAILURE;
@@ -378,12 +265,12 @@ ImsSession::InterruptWithHangup()
 {
 	FUNCTRACKER;
 
-	_hangupHandle->Send(new MsgStopPlaybackReq());
+	_hangupHandle->Send(new MsgImsTearDownReq());
 }
 
 ApiErrorCode
-ImsSession::ModifyConnection(IN CnxInfo remote_end, 
-								  IN MediaFormat codec)
+ImsSession::ModifyConnection(IN const CnxInfo &remote_end, 
+							 IN const MediaFormat &codec)
 {
 	FUNCTRACKER;
 
@@ -399,7 +286,7 @@ ImsSession::ModifyConnection(IN CnxInfo remote_end,
 	MsgImsModifyReq *msg = new MsgImsModifyReq();
 	msg->remote_media_data = remote_end;
 	msg->codec = codec;
-	msg->playback_handle = _imsSessionHandle;
+	msg->ims_handle = _imsSessionHandle;
 
 	IwMessagePtr response = NULL_MSG;
 	ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
@@ -453,7 +340,7 @@ ImsSession::TearDown()
 	}
 
 	MsgImsTearDownReq *tear_req = new MsgImsTearDownReq();
-	tear_req->handle = _imsSessionHandle;
+	tear_req->ims_handle = _imsSessionHandle;
 
 	// no way back
 	_imsSessionHandle = IW_UNDEFINED;

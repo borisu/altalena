@@ -119,7 +119,8 @@ namespace ivrworx
 		:stream(NULL),
 		profile(NULL),
 		state(IMS_INITIAL),
-		ims_handle(IW_UNDEFINED)
+		ims_handle(IW_UNDEFINED),
+		correlation_id(IW_UNDEFINED)
 	{
 
 	}
@@ -162,33 +163,6 @@ namespace ivrworx
 	}
 
 #define IW_IMS_EOF_EVENT  1
-#define IW_IMS_DTMF_EVENT 2
-
-	static void 
-	on_dtmf_received(RtpSession *s, int dtmf, void * user_data)
-	{
-
-		MSFilter *filter = (MSFilter *) user_data;
-		ImsHandle handle = (ImsHandle) filter->notify_ud;
-
-		ImsOverlapped *olap = new ImsOverlapped();
-		SecureZeroMemory(olap, sizeof(ImsOverlapped));
-		olap->ims_handle_id = handle;
-		olap->dtmf = dtmf;
-
-		BOOL res = ::PostQueuedCompletionStatus(
-			g_iocpHandle,				//A handle to an I/O completion port to which the I/O completion packet is to be posted.
-			0,							//The value to be returned through the lpNumberOfBytesTransferred parameter of the GetQueuedCompletionStatus function.
-			IW_IMS_DTMF_EVENT,			//The value to be returned through the lpCompletionKey parameter of the GetQueuedCompletionStatus function.
-			olap						//The value to be returned through the lpOverlapped parameter of the GetQueuedCompletionStatus function.
-			);
-
-		if (res == FALSE)
-		{
-			LogSysError("::PostQueuedCompletionStatus");
-			throw;
-		}
-	}
 
 	static void 
 	on_file_filter_event(void *userdata , unsigned int id, void *arg)
@@ -202,7 +176,6 @@ namespace ivrworx
 			{
 			
 				ImsOverlapped *olap = new ImsOverlapped();
-				SecureZeroMemory(olap, sizeof(ImsOverlapped));
 				olap->ims_handle_id = handle;
 
 				BOOL res = ::PostQueuedCompletionStatus(
@@ -231,12 +204,11 @@ namespace ivrworx
 	ProcIms::ProcIms(IN LpHandlePair pair, IN Configuration &conf)
 		:LightweightProcess(pair, IMS_Q, "Ims"),
 		_conf(conf),
-		_localMedia(conf.ImsCnxInfo()),
 		_rtp_q(NULL),
-		_portManager(conf.ImsTopPort(),conf.ImsBottomPort()),
 		_rtpWorkerShutdownEvt(NULL),
 		_avProfile(NULL),
-		_ticker(NULL)
+		_ticker(NULL),
+		_correlationCounter(0)
 	{
 		FUNCTRACKER;
 
@@ -244,9 +216,11 @@ namespace ivrworx
 		_inbound->HandleInterruptor(_iocpPtr);
 
 
-		_payloadTypeMap["PCMA"] = &payload_type_pcma8000;
-		_payloadTypeMap["PCMU"] = &payload_type_pcmu8000;
-		_payloadTypeMap["telephone-event"]  = &payload_type_telephone_event;
+		_payloadTypeMap["PCMA"]  = &payload_type_pcma8000;
+		_payloadTypeMap["PCMU"]  = &payload_type_pcmu8000;
+		_payloadTypeMap["SPEEX"] = &payload_type_speex_nb;
+		
+		
 
 	}
 
@@ -465,11 +439,6 @@ namespace ivrworx
 					UponPlaybackStopped((ImsOverlapped*)lpOverlapped);
 					continue;
 				}
-			case IW_IMS_DTMF_EVENT:
-				{
-					UponDtmfEvent((ImsOverlapped*)lpOverlapped);
-					continue;
-				}
 			default:
 				{
 					if (completion_key!=IOCP_UNIQUE_COMPLETION_KEY)
@@ -486,7 +455,7 @@ namespace ivrworx
 
 			switch (ptr->message_id)
 			{
-			case MSG_ALLOCATE_PLAYBACK_SESSION_REQUEST:
+			case MSG_IMS_ALLOCATE_SESSION_REQ:
 				{
 					AllocatePlaybackSession(ptr);
 					break;
@@ -496,12 +465,12 @@ namespace ivrworx
 					ModifySession(ptr);
 					break;
 				}
-			case MSG_START_PLAYBACK_REQUEST:
+			case MSG_IMS_PLAY_REQUEST:
 				{
 					StartPlayback(ptr);
 					break;
 				}
-			case MSG_STOP_PLAYBACK_REQUEST:
+			case MSG_IMS_STOP_PLAY_REQ:
 				{
 					StopPlayback(ptr);
 					break;
@@ -516,11 +485,6 @@ namespace ivrworx
 				{
 					shutdown_flag = TRUE;
 					SendResponse(ptr,new MsgShutdownAck());
-					break;
-				}
-			case MSG_IMS_SEND_RFC2833DTMF_REQ:
-				{
-					SendDtmf(ptr);
 					break;
 				}
 			default:
@@ -551,8 +515,8 @@ namespace ivrworx
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
 
-		shared_ptr<MsgAllocateImsSessionReq> req  =
-			dynamic_pointer_cast<MsgAllocateImsSessionReq> (msg);
+		shared_ptr<MsgImsAllocateSessionReq> req  =
+			dynamic_pointer_cast<MsgImsAllocateSessionReq> (msg);
 
 		//
 		// create new context
@@ -564,35 +528,26 @@ namespace ivrworx
 		//
 		// create ortp stream and initialize it with available port
 		//
-		int local_port = 0;
-		do 
-		{
-			local_port = _portManager.GetNextPortFromPool();
-			if (local_port == IW_UNDEFINED)
-			{
-				break;
-			};
-
-			// creates stream and session
-			ctx->stream = audio_stream_new(local_port, ms_is_ipv6(_localMedia.iptoa()));
-			if (ctx->stream!=NULL)
-			{
-				ctx->port = local_port;
-				break;
-			}
-
-			_portManager.ReturnPortToPool(local_port);
-
-		} while (ctx->stream!=NULL);
-
-		// failed to find available port
-		if (ctx->stream == NULL)
+		int local_port = req->local_media_data.port_ho();
+		if (local_port == IW_UNDEFINED)
 		{
 			LogWarn("Failed to find available port");
 			goto error;
-		}
+		};
 
-		LogDebug("ProcIms::AllocatePlaybackSession - allocated local cnx:" << _localMedia.ipporttos() << ", imsh:" <<  handle);
+		// creates stream and session
+		ctx->stream = audio_stream_new(local_port, ms_is_ipv6(req->local_media_data.iptoa()));
+		if (ctx->stream!=NULL)
+		{
+			ctx->port = local_port;
+	
+		} 
+		else 
+		{
+			LogWarn("Failed to find available port");
+			goto error;
+
+		}
 
 		/********************
 		*
@@ -629,18 +584,16 @@ namespace ivrworx
 		_streamingObjectSet[handle] = ctx;
 		ctx->session_handler	= req->session_handler;
 
-		MsgAllocateImsSessionAck *ack = 
-			new MsgAllocateImsSessionAck();
+		MsgImsAllocateSessionAck *ack = 
+			new MsgImsAllocateSessionAck();
 
-		ack->playback_handle = handle;
-		ack->ims_media_data = CnxInfo(_localMedia.iptoa(),local_port);
-
+		ack->ims_handle = handle;
 		ctx->state = IMS_ALLOCATED;
 		SendResponse(req,ack);
 		return;
 
 error:
-		SendResponse(req,new MsgAllocateImsSessionNack());
+		SendResponse(req,new MsgImsAllocateSessionNack());
 		return;
 	}
 
@@ -803,38 +756,6 @@ error:
 			}
 		}
 
-		/********************
-		*
-		*		DTMF 
-		*
-		*********************/
-		if (ctx->stream->dtmfgen != NULL)
-		{
-			res = ms_filter_unlink(ctx->stream->dtmfgen,0,ctx->stream->soundwrite,0);
-			if (res < 0) 
-			{
-				LogWarn("error:ms_filter_unlink dtmfgen->soundwrite");
-				goto error;
-			}
-			ms_filter_destroy(ctx->stream->dtmfgen);
-			ctx->stream->dtmfgen = NULL;
-		}
-
-		ctx->stream->dtmfgen=ms_filter_new(MS_DTMF_GEN_ID);
-		if (ctx->stream->dtmfgen == NULL)
-		{
-			LogWarn("error:ms_filter_new MS_DTMF_GEN_ID");
-			goto error;
-		}
-
-
-		ctx->stream->dtmfgen->notify_ud = (void*)ctx->ims_handle;
-		res = rtp_session_signal_connect(rtps,"telephone-event",(RtpCallback)on_dtmf_received,(unsigned long)ctx->stream->dtmfgen);
-		if (res < 0) 
-		{
-			LogWarn("error:rtp_session_signal_connect");
-			goto error;
-		}
 
 		/********************
 		*
@@ -1036,11 +957,11 @@ error:
 			dynamic_pointer_cast<MsgImsModifyReq> (msg);
 
 		StreamingCtxsMap::iterator iter = 
-			_streamingObjectSet.find(req->playback_handle);
+			_streamingObjectSet.find(req->ims_handle);
 
 		if (iter == _streamingObjectSet.end())
 		{
-			LogWarn("ProcIms::ModifySession invalid imsh:" << req->playback_handle);
+			LogWarn("ProcIms::ModifySession invalid imsh:" << req->ims_handle);
 			SendResponse(msg, new MsgImsModifyNack());
 			return;
 		}
@@ -1079,7 +1000,7 @@ error:
 			goto error;
 		}
 
-		LogDebug("ProcIms::ModifySession imsh:" << req->playback_handle << 
+		LogDebug("ProcIms::ModifySession imsh:" << req->ims_handle << 
 			", remip:" << remip  << 
 			", port:"  << remport <<
 			", codec(map):" << req->codec.sdp_mapping() << 
@@ -1117,8 +1038,8 @@ error:
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
 
-		shared_ptr<MsgStartPlayReq> req  =
-			dynamic_pointer_cast<MsgStartPlayReq> (msg);
+		shared_ptr<MsgImsPlayReq> req  =
+			dynamic_pointer_cast<MsgImsPlayReq> (msg);
 
 		string filename = req->file_name;
 
@@ -1136,7 +1057,7 @@ error:
 			if (hFind == INVALID_HANDLE_VALUE) 
 			{
 				LogWarn("file:" << filename << " not found.");
-				SendResponse(msg, new MsgStartPlayReqNack());
+				SendResponse(msg, new MsgImsPlayNack());
 				return;
 			}
 			else
@@ -1170,21 +1091,21 @@ error:
 		if (res_len <= 0)
 		{
 			LogSysError("::GetFullPathNameA");
-			SendResponse(msg, new MsgStartPlayReqNack());
+			SendResponse(msg, new MsgImsPlayNack());
 			return;
 		}
 
 		filename = buffer;
-		LogDebug("StartPlayback:: Play file name:" << filename << ", loop:" << req->loop << ", imsh:" << req->playback_handle);
+		LogDebug("StartPlayback:: Play file name:" << filename << ", loop:" << req->loop << ", imsh:" << req->ims_handle);
 
 		StreamingCtxsMap::iterator iter = _streamingObjectSet.end();
 
-		iter = _streamingObjectSet.find(req->playback_handle);
+		iter = _streamingObjectSet.find(req->ims_handle);
 
 		if (iter == _streamingObjectSet.end())
 		{
-			LogWarn("StartPlayback:: Invalid imsh:" << req->playback_handle);
-			SendResponse(msg, new MsgStartPlayReqNack());
+			LogWarn("StartPlayback:: Invalid imsh:" << req->ims_handle);
+			SendResponse(msg, new MsgImsPlayNack());
 			return;
 		}
 
@@ -1197,24 +1118,24 @@ error:
 		res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_CLOSE);
 		if (res < 0)
 		{
-			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_CLOSE imsh:" << req->playback_handle);
-			SendResponse(msg, new MsgStartPlayReqNack());
+			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_CLOSE imsh:" << req->ims_handle);
+			SendResponse(msg, new MsgImsPlayNack());
 			return;
 		}
 
 		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_OPEN,(void*)filename.c_str());
 		if (res < 0)
 		{
-			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_OPEN imsh:" << req->playback_handle);
-			SendResponse(msg, new MsgStartPlayReqNack());
+			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_OPEN imsh:" << req->ims_handle);
+			SendResponse(msg, new MsgImsPlayNack());
 			return;
 		}
 
 		res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_START);
 		if (res < 0)
 		{
-			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_START imsh:" << req->playback_handle);
-			SendResponse(msg, new MsgStartPlayReqNack());
+			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_START imsh:" << req->ims_handle);
+			SendResponse(msg, new MsgImsPlayNack());
 			return;
 		}
 
@@ -1222,16 +1143,16 @@ error:
 		res = ms_filter_call_method(ctx->stream->soundread,MS_FILTER_GET_SAMPLE_RATE, &tmp);
 		if (res < 0)
 		{
-			LogWarn("mserror:ms_filter_call_method MS_FILTER_GET_SAMPLE_RATE imsh:" << req->playback_handle);
-			SendResponse(msg, new MsgStartPlayReqNack());
+			LogWarn("mserror:ms_filter_call_method MS_FILTER_GET_SAMPLE_RATE imsh:" << req->ims_handle);
+			SendResponse(msg, new MsgImsPlayNack());
 			return;
 		};
 
 		res = ms_filter_call_method(ctx->stream->soundwrite,MS_FILTER_SET_SAMPLE_RATE,&tmp);
 		if (res < 0)
 		{
-			LogWarn("mserror:ms_filter_call_method MS_FILTER_SET_SAMPLE_RATE imsh:" << req->playback_handle);
-			SendResponse(msg, new MsgStartPlayReqNack());
+			LogWarn("mserror:ms_filter_call_method MS_FILTER_SET_SAMPLE_RATE imsh:" << req->ims_handle);
+			SendResponse(msg, new MsgImsPlayNack());
 			return;
 		};
 
@@ -1241,8 +1162,8 @@ error:
 		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_LOOP, &loop_param);
 		if (res < 0)
 		{
-			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_LOOP, imsh:" << req->playback_handle);
-			SendResponse(msg, new MsgStartPlayReqNack());
+			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_LOOP, imsh:" << req->ims_handle);
+			SendResponse(msg, new MsgImsPlayNack());
 			return;
 		}
 
@@ -1253,103 +1174,18 @@ error:
 		if (IW_FAILURE(iw_res))
 		{
 			LogWarn("Unable to srart ticking on iwh:" << ctx->ims_handle);
-			SendResponse(msg, new MsgStartPlayReqNack());
+			SendResponse(msg, new MsgImsPlayNack());
 			return;
 		}
 
-		if (req->send_provisional)
-		{
-			IwMessage *rsp = NULL;
-			rsp= new MsgStartPlayReqAck();
-			SendResponse(msg, rsp);
-		}
-
-		ctx->last_user_request = req;
-	}
-
-	void
-	ProcIms::SendDtmf(IwMessagePtr msg)
-	{
-		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
-
-		shared_ptr<MsgImsSendRfc2833DtmfReq> req  =
-			dynamic_pointer_cast<MsgImsSendRfc2833DtmfReq> (msg);
-
-		StreamingCtxsMap::iterator iter = 
-			_streamingObjectSet.find(req->handle);
-
-		if (iter == _streamingObjectSet.end())
-		{
-			LogWarn("Invalid ims:" << req->handle);
-			return;
-		}
-
-		StreamingCtxPtr ctx = iter->second;
-
-		ApiErrorCode iw_res = StartTicking(ctx);
-		if (IW_FAILURE(iw_res))
-		{
-			return;
-		}
-
-		LogDebug("Send dtmf:" << (char)req->dtmf_digit << ", ims:" << req->handle);
-
-		if (ctx->stream->rtpsend)
-		{
-			int res = ms_filter_call_method(ctx->stream->rtpsend,MS_RTP_SEND_SEND_DTMF,&req->dtmf_digit);
-			if (res == -1)
-			{
-				LogWarn("mserror:ms_filter_call_method  MS_RTP_SEND_SEND_DTMF dtmf:" << req->dtmf_digit << ", handle:" << req->handle);
-				return;
-			}
-		} 
-		else
-		{
-			LogWarn("mserror:ms_filter_call_method  MS_RTP_SEND_SEND_DTMF rtpsend is NULL.");
-			return;
-		}
-
-
-		if (ctx->stream->dtmfgen)
-		{
-			int res = ms_filter_call_method(ctx->stream->dtmfgen,MS_DTMF_GEN_PUT,&req->dtmf_digit);
-			if (res == -1)
-			{
-				LogWarn("mserror:ms_filter_call_method  MS_DTMF_GEN_PUT dtmf:" << req->dtmf_digit << ", handle:" << req->handle);
-				return;
-			}
-		}
-		else
-		{
-			LogWarn("mserror:ms_filter_call_method  MS_DTMF_GEN_PUT dtmfgen is NULL.");
-			return;
-		}
-			
-
-	}
-
-
-	void
-	ProcIms::UponDtmfEvent(ImsOverlapped* ovlp)
-	{
-		FUNCTRACKER;
-		auto_ptr<ImsOverlapped> args = auto_ptr<ImsOverlapped>(ovlp);
-		StreamingCtxsMap::iterator iter = _streamingObjectSet.find(ovlp->ims_handle_id);
-		if (iter == _streamingObjectSet.end())
-		{
-			LogWarn("UponDtmfEvent:: Invalid imsh:" << ovlp->ims_handle_id);
-			return;
-		}
-
-		StreamingCtxPtr ctx = iter->second;
-
-		MsgImsRfc2833DtmfEvt *evt = new MsgImsRfc2833DtmfEvt();
-		evt->dtmf_digit = ovlp->dtmf;
-
-		this->SendMessage(ctx->session_handler.inbound, IwMessagePtr(evt));
 		
+		MsgImsPlayAck *rsp = new MsgImsPlayAck();
+		rsp->correlation_id = ++_correlationCounter;
+		ctx->correlation_id = _correlationCounter;
 
+		SendResponse(msg, rsp);
+		
+		ctx->last_user_request = req;
 	}
 
 	void 
@@ -1377,7 +1213,8 @@ error:
 		}
 
 		MsgImsPlayStopped *stopped_msg = new MsgImsPlayStopped();
-		stopped_msg->playback_handle = ovlp->ims_handle_id; 
+		stopped_msg->ims_handle = ovlp->ims_handle_id; 
+		stopped_msg->correlation_id = ctx->correlation_id;
 
 		this->SendResponse(ctx->last_user_request, stopped_msg);
 	}
@@ -1392,20 +1229,20 @@ error:
 			dynamic_pointer_cast<MsgImsTearDownReq> (msg);
 
 		StreamingCtxsMap::iterator iter = 
-			_streamingObjectSet.find(req->handle);
+			_streamingObjectSet.find(req->ims_handle);
 
 		if (iter == _streamingObjectSet.end())
 		{
-			LogWarn("TearDown:: Invalid imsh:" << req->handle);
+			LogWarn("TearDown:: Invalid imsh:" << req->ims_handle);
 			return;
 		}
 
-		LogDebug("TearDown:: imsh:" << req->handle);
+		LogDebug("TearDown:: imsh:" << req->ims_handle);
 
 		StreamingCtxPtr ctx = iter->second;
 		
 		TearDown(ctx);
-		_portManager.ReturnPortToPool(ctx->port);
+		
 		
 		// ctx dtor should release all associated resources
 		_streamingObjectSet.erase(iter);
@@ -1458,26 +1295,26 @@ error:
 		FUNCTRACKER;
 		IX_PROFILE_FUNCTION();
 
-		shared_ptr<MsgStopPlaybackReq> req  =
-		 	dynamic_pointer_cast<MsgStopPlaybackReq> (msg);
+		shared_ptr<MsgImsStopPlayReq> req  =
+		 	dynamic_pointer_cast<MsgImsStopPlayReq> (msg);
 
 		StreamingCtxsMap::iterator iter = 
-			_streamingObjectSet.find(req->handle);
+			_streamingObjectSet.find(req->ims_handle);
 
 		if (iter == _streamingObjectSet.end())
 		{
-			LogWarn("StopPlayback:: Invalid imsh:" << req->handle);
+			LogWarn("StopPlayback:: Invalid imsh:" << req->ims_handle);
 			return;
 		}
 
-		LogDebug("StopPlayback::, imsh:" << req->handle);
+		LogDebug("StopPlayback:: imsh:" << req->ims_handle);
 
 		StreamingCtxPtr ctx = iter->second;
 
 		int res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_STOP);
 		if (res == -1)
 		{
-			LogWarn("mserror:ms_filter_call_method_noarg  MS_FILE_PLAYER_STOP, handle:" << req->handle);
+			LogWarn("mserror:ms_filter_call_method_noarg  MS_FILE_PLAYER_STOP, handle:" << req->ims_handle);
 			return;
 		}
 		
