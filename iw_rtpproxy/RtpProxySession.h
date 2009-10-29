@@ -138,7 +138,7 @@ namespace ivrworx
 
 		virtual ApiErrorCode Bridge(IN const RtpProxySession &dest);
 
-		virtual CnxInfo GetLocalInfo();
+		virtual CnxInfo LocalCnxInfo();
 
 	private:
 
