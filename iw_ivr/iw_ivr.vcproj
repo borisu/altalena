@@ -276,54 +276,6 @@
 	</References>
 	<Files>
 		<Filter
-			Name="scriptapi"
-			>
-			<File
-				RelativePath=".\CallWithRtpManagement.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\CallWithRtpManagement.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IwScriptApi.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IwScriptApi.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="ivrprocs"
-			>
-			<File
-				RelativePath=".\IvrFactory.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IvrFactory.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcIvr.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcIvr.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcScriptRunner.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ProcScriptRunner.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="lua"
 			>
 			<File
@@ -427,6 +379,38 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\CallWithRtpManagement.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\CallWithRtpManagement.h"
+			>
+		</File>
+		<File
+			RelativePath=".\IvrFactory.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\IvrFactory.h"
+			>
+		</File>
+		<File
+			RelativePath=".\ProcIvr.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\ProcIvr.h"
+			>
+		</File>
+		<File
+			RelativePath=".\ProcScriptRunner.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\ProcScriptRunner.h"
+			>
+		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>

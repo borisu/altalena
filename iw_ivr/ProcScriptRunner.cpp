@@ -19,12 +19,14 @@
 
 #include "StdAfx.h"
 #include "ProcScriptRunner.h"
-#include "IwScriptApi.h"
 #include "BridgeMacros.h"
 #include "LoggerBridge.h"
 #include "ConfBridge.h"
 #include "CallBridge.h"
 #include "ls_sqlite3.h"
+
+#define IW_SCRIPT_RUNNER_ID "$OBJECT1$"
+
 
 /*!
  * \brief
@@ -40,6 +42,50 @@
  */
 namespace ivrworx
 {
+	
+
+	class ProcBlockingOperationRunner
+		:public LightweightProcess
+	{
+	public:
+		ProcBlockingOperationRunner(LpHandlePair pair, lua_State *L, int &err):
+		  LightweightProcess(pair,"LongOp runner"),
+		  _L(L),
+		  _err(err)
+		  {
+
+		  };
+
+	protected:
+
+		void real_run()
+		{
+
+			FUNCTRACKER;
+
+			
+			if (lua_isfunction (_L, -1))
+			{
+				_err  = lua_pcall (_L, 0, 0, 0);
+			} 
+			else
+			{
+				LogWarn("ProcBlockingOperationRunner::real_run - wrong param");
+				_err = 1;
+			}
+
+
+		}
+
+	protected:
+
+		lua_State * _L;
+
+		int &_err;
+
+	};
+
+
 	ProcScriptRunner::ProcScriptRunner(
 		IN Configuration &conf,
 		IN const string &script_name,
@@ -54,7 +100,8 @@ namespace ivrworx
 		_stackPair(stack_pair),
 		_scriptName(script_name),
 		_precompiledBuffer(precompiled_buffer),
-		_bufferSize(buffer_size)
+		_bufferSize(buffer_size),
+		_forking(NULL)
 	{
 		FUNCTRACKER;
 	}
@@ -64,6 +111,54 @@ namespace ivrworx
 		FUNCTRACKER;
 
 	}
+
+	int
+	ProcScriptRunner::LuaRun(lua_State * state)
+	{
+		
+	
+		DECLARE_NAMED_HANDLE_PAIR(runner_pair);
+		int err = 0;
+		csp::Run(new ProcBlockingOperationRunner(runner_pair,state,err));
+
+		err ? lua_pushnumber (state, API_FAILURE): lua_pushnumber (state, API_SUCCESS);
+
+		return 1;
+	}
+
+	int
+	ProcScriptRunner::LuaCreateCall(lua_State *state)
+	{
+		FUNCTRACKER;
+
+		lua_pushstring(state, IW_SCRIPT_RUNNER_ID);
+		lua_gettable(state, LUA_REGISTRYINDEX);
+
+		ProcScriptRunner *runner = 
+			(ProcScriptRunner*)lua_touserdata(state,-1);
+
+		lua_pop(state,1);
+
+		if (runner == NULL || runner->_forking == NULL)
+		{
+			LogWarn("ProcScriptRunner::LuaCreateCall - Cannot find object1");
+			return 0;
+		}
+
+		CallWithRtpManagementPtr call_ptr 
+			(new CallWithRtpManagement(runner->_conf, *runner->_forking));
+
+		const MediaFormatsPtrList &codecs_list = runner->_conf.MediaFormats();
+		for (MediaFormatsPtrList::const_iterator iter = codecs_list.begin(); iter != codecs_list.end(); iter++)
+		{
+			call_ptr->EnableMediaFormat(**iter);
+		}
+
+		Luna<CallBridge>::PushObject(state,new CallBridge(call_ptr));
+
+		return 1;
+	}
+
 
 	int
 	ProcScriptRunner::LuaWait(lua_State *state)
@@ -112,18 +207,18 @@ namespace ivrworx
 		try
 		{
 			CLuaVirtualMachine vm;
-			IX_PROFILE_CODE(vm.InitialiseVM());
+			vm.InitialiseVM();
+
 			if (vm.Ok() == false)
 			{
 				LogCrit("Couldn't initialize lua vm");
-				throw;
+				return;
 			}
 
 			CLuaDebugger debugger(vm);
 
 			LuaTable ivrworx_table(vm);
 			ivrworx_table.Create("ivrworx");
-
 			ivrworx_table.AddParam(NAME(API_SUCCESS),API_SUCCESS);
 			ivrworx_table.AddParam(NAME(API_FAILURE),API_FAILURE);
 			ivrworx_table.AddParam(NAME(API_SERVER_FAILURE),API_SERVER_FAILURE);
@@ -134,13 +229,12 @@ namespace ivrworx
 			ivrworx_table.AddParam(NAME(API_UNKNOWN_DESTINATION),API_UNKNOWN_DESTINATION);
 			ivrworx_table.AddParam(NAME(API_UNKNOWN_RESPONSE),API_UNKNOWN_RESPONSE);
 			ivrworx_table.AddParam(NAME(API_FEATURE_DISABLED),API_FEATURE_DISABLED);
-
 			ivrworx_table.AddFunction("sleep",ProcScriptRunner::LuaWait);
-
+			ivrworx_table.AddFunction("run",ProcScriptRunner::LuaRun);
+			ivrworx_table.AddFunction("createcall",ProcScriptRunner::LuaCreateCall);
 
 
 			
-
 			
 			//
 			// ivrworx.LOGGER
@@ -163,15 +257,29 @@ namespace ivrworx
 			{
 				LogWarn("ProcScriptRunner::real_run - cannot register sql library");
 				return;
-			}
+			};
 
+
+
+			//
+			// register this
+			//
+			lua_pushstring(vm, IW_SCRIPT_RUNNER_ID);
+			lua_pushlightuserdata(vm, this);
+			lua_settable(vm, LUA_REGISTRYINDEX);
 
 			START_FORKING_REGION;
-	
+			_forking = &forking;
+
+			//
+			// incoming call case
+			//
 			if (_initialMsg)
 			{
+				
+
 				_stackHandle = _initialMsg->stack_call_handle;
-				CallWithRtpManagementPtr call_session (
+				CallWithRtpManagementPtr call_session(
 					new CallWithRtpManagement(
 					_conf,
 					forking,
@@ -191,33 +299,31 @@ namespace ivrworx
 				//
 				// ivrworx.INCOMING
 				//
-				CallBridge call_bridge(call_session.get());
+				CallBridge call_bridge(call_session);
 				Luna<CallBridge>::RegisterType(vm,TRUE);
 				Luna<CallBridge>::RegisterObject(vm,&call_bridge,ivrworx_table.TableRef(),"INCOMING");
 
 
 				// compile the script if needed
-				IwCallHandlerScript script(forking, _conf,vm,call_session);
-				try 
-				{
-					RunScript(script);
-				}
-				catch (script_hangup_exception)
-				{
-					script.RunOnHangupScript();
-				}
+				IwScript script(vm);
+				RunScript(script);
+				
 
 
 			} 
+			//
+			// super script case
+			//
 			else 
 			{
-				IwScript script(forking,_conf,vm);
+				IwScript script(vm);
 				RunScript(script);
 
 			}
 
 			
 			END_FORKING_REGION
+			_forking = NULL;
 		}
 		catch (std::exception e)
 		{
@@ -233,28 +339,28 @@ namespace ivrworx
 	ProcScriptRunner::HandleOOBMessage(IN IwMessagePtr msg)
 	{
 		// pings
-		if (TRUE == LightweightProcess::HandleOOBMessage(msg))
-		{
-			return TRUE;
-		}
+		return LightweightProcess::HandleOOBMessage(msg);
+	}
 
-		switch (msg->message_id)
-		{
-		case MSG_CALL_HANG_UP_EVT:
-			{
+	
+	IwScript::IwScript(CLuaVirtualMachine &vm): CLuaScript(vm)
+	{
+	};
 
-				LogDebug("Call running scripts:" << _conf.ScriptFile() << "], iwh:" << _stackHandle <<" received hangup event. The script will be terminated.");
-				throw script_hangup_exception();
+	// When the script calls a class method, this is called
+	int 
+	IwScript::ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber) 
+	{
+		return 0;
+	};
 
-			}
-		default:
-			{
-				return FALSE;
-			}
-
-		}
+	// When the script function has returns
+	void 
+	IwScript::HandleReturns (CLuaVirtualMachine& vm, const char *strFunc)
+	{
 
 	}
+	
 
 }
 

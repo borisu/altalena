@@ -91,7 +91,7 @@ namespace ivrworx
 
 		}
 
-		LogDebug("CallWithDirectRtp::AcceptInitialOffer caller connection:" << _callerRtpSession.GetLocalInfo());
+		LogDebug("CallWithDirectRtp::AcceptInitialOffer caller connection:" << _callerRtpSession.LocalCnxInfo());
 
 		if (_rtspEnabled == TRUE)
 		{
@@ -102,14 +102,17 @@ namespace ivrworx
 				return res;
 			}
 
-			res = _rtspSession.Allocate(_rtspRtpSession.GetLocalInfo(),speech_media_format);
+			res = _rtspSession.Allocate(
+				_rtspRtpSession.LocalCnxInfo(),
+				RemoteMedia(),
+				speech_media_format);
 			if (IW_FAILURE(res))
 			{
 				RejectCall();
 				return res;
 			}
 
-			LogDebug("CallWithDirectRtp::AcceptInitialOffer ims connection:" << _rtspRtpSession.GetLocalInfo());
+			LogDebug("CallWithDirectRtp::AcceptInitialOffer ims connection:" << _rtspRtpSession.LocalCnxInfo());
 
 		}
 	
@@ -124,7 +127,7 @@ namespace ivrworx
 
 			}
 
-			res = _mrcpSession.Allocate(_mrcpRtpSession.GetLocalInfo(),speech_media_format);
+			res = _mrcpSession.Allocate(_mrcpRtpSession.LocalCnxInfo(),speech_media_format);
 			if (IW_FAILURE(res))
 			{
 				RejectCall();
@@ -132,13 +135,13 @@ namespace ivrworx
 
 			}
 
-			LogDebug("CallWithDirectRtp::AcceptInitialOffer mrcp connection:" << _mrcpRtpSession.GetLocalInfo());
+			LogDebug("CallWithDirectRtp::AcceptInitialOffer mrcp connection:" << _mrcpRtpSession.LocalCnxInfo());
 		}
 		
 		
 		
 		IX_PROFILE_CODE(res = Call::AcceptInitialOffer(
-			_callerRtpSession.GetLocalInfo(),
+			_callerRtpSession.LocalCnxInfo(),
 			accepted_media_formats,
 			speech_media_format));
 
@@ -147,7 +150,7 @@ namespace ivrworx
 	}
 
 	ApiErrorCode 
-	CallWithRtpManagement::PlayFile(IN const string &file_name, IN BOOL sync, IN BOOL loop)
+	CallWithRtpManagement::PlayFile(IN const string &file_name, IN BOOL loop)
 	{
 		FUNCTRACKER;
 
@@ -168,7 +171,7 @@ namespace ivrworx
 			_rtspRtpSession.Bridge(_callerRtpSession);
 		}
 
-		ApiErrorCode res = _rtspSession.PlayFile(file_name, sync, loop,TRUE);
+		ApiErrorCode res = _rtspSession.PlayFile(file_name, loop,TRUE);
 
 		return res;
 
@@ -246,22 +249,6 @@ namespace ivrworx
 	}
 
 
-	ApiErrorCode 
-	CallWithRtpManagement::SendRfc2833Dtmf(IN char dtmf)
-	{
-		FUNCTRACKER;
-
-		if (_callState != CALL_STATE_CONNECTED)
-		{
-			return API_WRONG_STATE;
-		}
-
-
-		ApiErrorCode res = _rtspSession.SendDtmf(dtmf);
-		return res;
-
-	}
-
 	void 
 	CallWithRtpManagement::UponCallTerminated(IwMessagePtr ptr)
 	{
@@ -280,9 +267,17 @@ namespace ivrworx
 			return API_WRONG_STATE;
 		}
 
-		// allocate dummy session to save bind time for future
 		ApiErrorCode res = API_SUCCESS;
-		IX_PROFILE_CODE(res = _rtspSession.Allocate());
+
+		res = _callerRtpSession.Allocate();
+		if (IW_FAILURE(res))
+		{
+			RejectCall();
+			return res;
+		}
+
+		// allocate dummy session to save bind time for future
+		res = _rtspSession.Allocate(_callerRtpSession.LocalCnxInfo());
 		if (IW_FAILURE(res))
 		{
 			return res;
@@ -295,7 +290,7 @@ namespace ivrworx
 		};
 
 		// allocate dummy session to save bind time for future
-		IX_PROFILE_CODE(res = _rtspSession.ModifyConnection(_remoteMedia ,_acceptedSpeechFormat));
+		res = _rtspSession.ModifyConnection(_remoteMedia ,_acceptedSpeechFormat);
 		if (IW_FAILURE(res))
 		{
 			Call::HangupCall();

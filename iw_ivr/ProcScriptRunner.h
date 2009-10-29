@@ -23,7 +23,7 @@
 #include "LuaScript.h"
 #include "CallWithRtpManagement.h"
 #include "LuaTable.h"
-#include "IwScriptApi.h"
+
 
 /**
 @defgroup scripts Scripts
@@ -135,8 +135,21 @@ Table linein:-
 **/
 namespace ivrworx
 {
-	typedef 
-	shared_ptr<CLuaVirtualMachine> CLuaVirtualMachinePtr;
+
+	class IwScript :
+		public CLuaScript
+	{
+	public:
+		IwScript(CLuaVirtualMachine &vm);
+
+		// When the script calls a class method, this is called
+		virtual int ScriptCalling (CLuaVirtualMachine& vm, int iFunctionNumber);
+		
+		// When the script function has returns
+		virtual void HandleReturns (CLuaVirtualMachine& vm, const char *strFunc);
+
+	};
+	
 
 	/**
 	Main Ivr process implementation
@@ -166,6 +179,10 @@ namespace ivrworx
 
 		static int LuaWait(lua_State *L);
 
+		static int LuaRun(lua_State *L);
+
+		static int LuaCreateCall(lua_State *L);
+
 	private:
 
 		shared_ptr<MsgCallOfferedReq> _initialMsg;
@@ -181,6 +198,8 @@ namespace ivrworx
 		const char *_precompiledBuffer;
 
 		size_t _bufferSize;
+
+		ScopedForking *_forking;
 
 	};
 

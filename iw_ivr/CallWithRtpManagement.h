@@ -48,13 +48,11 @@ namespace ivrworx
 
 		virtual ApiErrorCode Speak(IN const string &mrcp_body, BOOL sync = FALSE );
 
-		virtual ApiErrorCode PlayFile(IN const string &file_name, IN BOOL sync, IN BOOL loop);
+		virtual ApiErrorCode PlayFile(IN const string &file_name, IN BOOL loop = FALSE);
 
 		virtual ApiErrorCode StopPlay();
 
 		virtual ApiErrorCode StopSpeak();
-
-		virtual ApiErrorCode SendRfc2833Dtmf(IN char dtmf);
 
 		virtual ApiErrorCode MakeCall(IN const string &destination_uri);
 
