@@ -428,7 +428,7 @@ ProcRtpProxy::UponModifyReq(IwMessagePtr msg)
 	conn->live_socket->changeDestinationParameters(req->remote_media.inaddr(),
 		req->remote_media.port_ho(),0);
 
-	SendResponse(req, new MsgRtpProxyNack());
+	SendResponse(req, new MsgRtpProxyAck());
 	
 
 }

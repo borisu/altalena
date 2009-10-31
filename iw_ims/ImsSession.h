@@ -66,6 +66,8 @@ namespace ivrworx
 
 		virtual void InterruptWithHangup();
 
+		virtual ImsHandle SessionHandle();
+
 	private:
 
 		ApiErrorCode	SyncStreamFile();

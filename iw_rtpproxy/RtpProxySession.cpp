@@ -81,13 +81,14 @@ namespace ivrworx
 				_handle = ack->rtp_proxy_handle;
 				_conn = ack->local_media;
 
-				LogDebug("RtpProxySession::Allocate allocated conn:" << _handle << " conn:" << _conn.ipporttos());
+				LogDebug("RtpProxySession::Allocate allocated rtpid:" << _handle << " conn:" << _conn.ipporttos());
 				
 				return API_SUCCESS;
 			}
 		
 		default:
 			{
+				LogDebug("RtpProxySession::Allocate failed");
 				return API_FAILURE;
 			}
 		}
@@ -117,6 +118,8 @@ namespace ivrworx
 	ApiErrorCode 
 	RtpProxySession::Modify(const CnxInfo &conn)
 	{
+		LogDebug("RtpProxySession::Modify  rtph:" << _handle << ", ci:" << conn);
+
 		if (_handle == IW_UNDEFINED)
 		{
 			return API_WRONG_STATE;
@@ -127,10 +130,37 @@ namespace ivrworx
 
 		req->rtp_proxy_handle = _handle;
 		req->remote_media  = conn;
-		GetCurrLightWeightProc()->SendMessage(RTP_PROXY_Q,IwMessagePtr(req));
 
-		return API_SUCCESS;
+		IwMessagePtr response = NULL_MSG;
+		GetCurrLightWeightProc()->DoRequestResponseTransaction(
+			RTP_PROXY_Q,
+			IwMessagePtr(req),
+			response,
+			MilliSeconds(GetCurrLightWeightProc()->TransactionTimeout()),
+			"Modify RTP Connection TXN");
 
+		switch (response->message_id)
+		{
+		case MSG_RTP_PROXY_ACK:
+			{
+				shared_ptr<MsgRtpProxyAck> ack 
+					= dynamic_pointer_cast<MsgRtpProxyAck> (response);
+
+				return API_SUCCESS;
+			}
+
+		default:
+			{
+				return API_FAILURE;
+			}
+		};
+
+	}
+
+	RtpProxyHandle 
+	RtpProxySession::RtpHandle()
+	{
+		return _handle;
 	}
 
 	ApiErrorCode 

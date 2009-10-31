@@ -189,6 +189,12 @@ ImsSession::Allocate(IN const CnxInfo &local_end)
 
 }
 
+ImsHandle
+ImsSession::SessionHandle()
+{
+	return _imsSessionHandle;
+}
+
 ApiErrorCode
 ImsSession::Allocate(IN const CnxInfo &local_end, 
 					 IN const CnxInfo &remote_end, 
@@ -196,7 +202,7 @@ ImsSession::Allocate(IN const CnxInfo &local_end,
 {
 	FUNCTRACKER;
 
-	LogDebug("AllocateIMSConnection:: remote:" <<  remote_end.ipporttos()  << ", codec:"  << codec << ", imsh:" << _imsSessionHandle);
+	LogDebug("ImsSession::Allocate - lci:" << local_end.ipporttos() <<", rci:" <<  remote_end.ipporttos()  << ", codec:"  << codec << ", imsh:" << _imsSessionHandle);
 	
 	if (_imsSessionHandle != IW_UNDEFINED)
 	{
@@ -240,7 +246,7 @@ ImsSession::Allocate(IN const CnxInfo &local_end,
 
 			StartActiveObjectLwProc(_forking,session_handler_pair,"Ims Session handler");
 
-			LogDebug("Ims session allocated successfully, ims handle=[" << _imsSessionHandle << "]");
+			LogDebug("Ims session allocated successfully, imsh:" << _imsSessionHandle );
 
 			break;
 
