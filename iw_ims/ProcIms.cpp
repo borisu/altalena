@@ -874,12 +874,12 @@ error:
 			goto error;
 		}
 
-		res = ms_filter_link(ctx->stream->dtmfgen,0,ctx->stream->soundwrite,0);
-		if (res < 0) 
-		{
-			LogWarn("error:ms_filter_link dtmfgen->soundwrite");
-			goto error;
-		}
+// 		res = ms_filter_link(ctx->stream->dtmfgen,0,ctx->stream->soundwrite,0);
+// 		if (res < 0) 
+// 		{
+// 			LogWarn("error:ms_filter_link dtmfgen->soundwrite");
+// 			goto error;
+// 		}
 
 		res = ms_filter_link(ctx->stream->rtprecv,0,ctx->stream->decoder,0);
 		if (res < 0) 
@@ -888,12 +888,12 @@ error:
 			goto error;
 		}
 
-		res = ms_filter_link(ctx->stream->decoder,0,ctx->stream->dtmfgen,0);
-		if (res < 0) 
-		{
-			LogWarn("error:ms_filter_link decoder->dtmfgen");
-			goto error;
-		}
+// 		res = ms_filter_link(ctx->stream->decoder,0,ctx->stream->dtmfgen,0);
+// 		if (res < 0) 
+// 		{
+// 			LogWarn("error:ms_filter_link decoder->dtmfgen");
+// 			goto error;
+// 		}
 
 		return API_SUCCESS;
 
@@ -1115,6 +1115,15 @@ error:
 
 		// close it anyway
 		int res = -1;
+
+		// the session wasn't really created
+		if (ctx->stream == NULL || ctx->stream->soundread == NULL)
+		{
+			LogWarn("session wasn't created imsh:" << req->ims_handle);
+			SendResponse(msg, new MsgImsPlayNack());
+			return;
+		}
+
 		res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_CLOSE);
 		if (res < 0)
 		{
@@ -1216,7 +1225,7 @@ error:
 		stopped_msg->ims_handle = ovlp->ims_handle_id; 
 		stopped_msg->correlation_id = ctx->correlation_id;
 
-		this->SendResponse(ctx->last_user_request, stopped_msg);
+		this->SendMessage(ctx->session_handler.inbound, IwMessagePtr(stopped_msg));
 	}
 
 	void
@@ -1310,6 +1319,12 @@ error:
 		LogDebug("StopPlayback:: imsh:" << req->ims_handle);
 
 		StreamingCtxPtr ctx = iter->second;
+
+		// session was never commutated
+		if (ctx->stream->soundread == NULL)
+		{
+			return;
+		}
 
 		int res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_STOP);
 		if (res == -1)
