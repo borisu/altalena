@@ -1,6 +1,6 @@
 {
 	
-	"sync_log"  : false,
+	"sync_log"  : true,
 	
 	"resip_log" : "TRANSPORT,DBG",
 	

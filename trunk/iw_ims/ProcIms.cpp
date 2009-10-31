@@ -1302,8 +1302,7 @@ error:
 	ProcIms::StopPlayback(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
-
+		
 		shared_ptr<MsgImsStopPlayReq> req  =
 		 	dynamic_pointer_cast<MsgImsStopPlayReq> (msg);
 

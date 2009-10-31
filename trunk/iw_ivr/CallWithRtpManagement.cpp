@@ -278,6 +278,8 @@ namespace ivrworx
 		{
 			return res;
 		}
+		LogDebug("CallWithRtpManagement::MakeCall - caller rtp = rtph:" << _callerRtpSession.RtpHandle() 
+			<< ", lci:" << _callerRtpSession.LocalCnxInfo());
 
 		//
 		// Allocate rtp connection for the media streamer 
@@ -292,7 +294,7 @@ namespace ivrworx
 			{
 				return res;
 			}
-
+			
 			//
 			// streamer session
 			//
@@ -301,6 +303,9 @@ namespace ivrworx
 			{
 				return res;
 			};
+			LogDebug("CallWithRtpManagement::MakeCall - streaming session = imsh:" << _rtspSession.SessionHandle()
+				<< ", rtsph:" << _rtspRtpSession.RtpHandle()
+				<< ", lci:" << _rtspRtpSession.LocalCnxInfo());
 		};
 
 		//
@@ -316,11 +321,19 @@ namespace ivrworx
 		};
 		
 		
-		res = Call::MakeCall(destination_uri,_rtspSession.ImsMediaData());
+		res = Call::MakeCall(destination_uri,_callerRtpSession.LocalCnxInfo());
 		if (IW_FAILURE(res))
 		{
 			return res;
 		};
+
+		LogDebug("CallWithRtpManagement::MakeCall - caller remote rtp = iwh:" <<  _stackCallHandle 
+			<< ", rci:" << RemoteMedia() 
+			<< " codec:" << _acceptedSpeechFormat);
+
+
+		_callerRtpSession.Modify(RemoteMedia());
+
 
 #pragma  TODO("Pooling of mrcp connections")
 
@@ -336,17 +349,19 @@ namespace ivrworx
 				return res;
 			}
 
-			LogDebug("CallWithDirectRtp::AcceptInitialOffer - connection:" << _mrcpRtpSession.LocalCnxInfo());
 		}
 
 		
-		res = _rtspSession.ModifyConnection(_rtspRtpSession.LocalCnxInfo() ,_acceptedSpeechFormat);
-		if (IW_FAILURE(res))
+		if (_rtspEnabled)
 		{
-			Call::HangupCall();
-			return res;
-		};
-
+			res = _rtspSession.ModifyConnection(_rtspRtpSession.LocalCnxInfo() ,_acceptedSpeechFormat);
+			if (IW_FAILURE(res))
+			{
+				Call::HangupCall();
+				return res;
+			};
+		}
+		
 		return API_SUCCESS;
 
 	}

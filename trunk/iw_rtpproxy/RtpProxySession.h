@@ -140,6 +140,8 @@ namespace ivrworx
 
 		virtual CnxInfo LocalCnxInfo();
 
+		virtual RtpProxyHandle RtpHandle();
+
 	private:
 
 		CnxInfo _conn;
