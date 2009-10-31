@@ -250,6 +250,9 @@ namespace ivrworx
 			Luna<ConfBridge>::RegisterType(vm,TRUE);
 			Luna<ConfBridge>::RegisterObject(vm,&conf_bridge,ivrworx_table.TableRef(),"CONF");
 
+			// CallBridge
+			Luna<CallBridge>::RegisterType(vm,TRUE);
+
 			//
 			// register sql library
 			//
@@ -270,6 +273,8 @@ namespace ivrworx
 
 			START_FORKING_REGION;
 			_forking = &forking;
+
+			
 
 			//
 			// incoming call case
@@ -300,7 +305,7 @@ namespace ivrworx
 				// ivrworx.INCOMING
 				//
 				CallBridge call_bridge(call_session);
-				Luna<CallBridge>::RegisterType(vm,TRUE);
+				
 				Luna<CallBridge>::RegisterObject(vm,&call_bridge,ivrworx_table.TableRef(),"INCOMING");
 
 

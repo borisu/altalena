@@ -27,6 +27,7 @@ namespace ivrworx
 	Luna<CallBridge>::RegType CallBridge::methods[] = {
 		method(CallBridge, answer),
 		method(CallBridge, speak),
+		method(CallBridge, speakmrcp),
 		method(CallBridge, cleandtmfbuffer),
 		method(CallBridge, waitfordtmf),
 		method(CallBridge, stopspeak),
@@ -64,7 +65,7 @@ namespace ivrworx
 		LUA_BOOL_PARAM(L,sync,-2);
 		LUA_STRING_PARAM(L,file_to_play,-3);
 
-		ApiErrorCode res = _call->PlayFile(file_to_play,loop);
+		ApiErrorCode res = _call->PlayFile(file_to_play,sync,loop);
 		lua_pushnumber (L, res);
 
 		return 1;
@@ -167,6 +168,22 @@ namespace ivrworx
 	}
 
 	int
+	CallBridge::speakmrcp(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		LUA_BOOL_PARAM(L,sync,-1);
+		LUA_STRING_PARAM(L,mrcp_string,-2);
+
+		LogDebug("CallBridge::speakmrcp  iwh:" << _call->StackCallHandle() << ", speak:" << mrcp_string << ", sync:" << sync);
+		ApiErrorCode res =_call->Speak(mrcp_string,sync);
+
+		lua_pushnumber (L, res);
+		return 1;
+
+	}
+
+	int
 	CallBridge::speak(lua_State *L)
 	{
 		FUNCTRACKER;
@@ -175,7 +192,18 @@ namespace ivrworx
 		LUA_STRING_PARAM(L,mrcp_string,-2);
 
 		LogDebug("CallBridge::speak  iwh:" << _call->StackCallHandle() << ", speak:" << mrcp_string << ", sync:" << sync);
-		ApiErrorCode res =_call->Speak(mrcp_string,sync);
+
+		stringstream mrcp_body;
+		mrcp_body 
+			<< "<?xml version=\"1.0\"?>									" << endl 
+			<< "	<speak>												" << endl
+			<< "		<paragraph>										" << endl
+			<< "			<sentence>" << mrcp_string << "</sentence>	" << endl
+			<< "		</paragraph>									" << endl
+			<< "	</speak>											" << endl;	
+
+
+		ApiErrorCode res =_call->Speak(mrcp_body.str(),sync);
 
 		lua_pushnumber (L, res);
 		return 1;
@@ -206,6 +234,8 @@ namespace ivrworx
 	int
 	CallBridge::waitforhangup(lua_State *L)
 	{
+		FUNCTRACKER;
+
 		_call->WaitTillHangup();
 
 		lua_pushnumber (L, API_SUCCESS);

@@ -150,12 +150,13 @@ namespace ivrworx
 	}
 
 	ApiErrorCode 
-	CallWithRtpManagement::PlayFile(IN const string &file_name, IN BOOL loop)
+	CallWithRtpManagement::PlayFile(IN const string &file_name, IN BOOL sync, IN BOOL loop)
 	{
 		FUNCTRACKER;
 
 		if (!_rtspEnabled)
 		{
+			LogDebug("CallWithRtpManagement::PlayFile - Media streaming disabled for iwh:" << _stackCallHandle )
 			return API_FAILURE;
 		}
 
@@ -171,7 +172,7 @@ namespace ivrworx
 			_rtspRtpSession.Bridge(_callerRtpSession);
 		}
 
-		ApiErrorCode res = _rtspSession.PlayFile(file_name, loop,TRUE);
+		ApiErrorCode res = _rtspSession.PlayFile(file_name, sync, loop);
 
 		return res;
 
@@ -269,19 +270,51 @@ namespace ivrworx
 
 		ApiErrorCode res = API_SUCCESS;
 
+		//
+		// Allocate rtp connection of the caller.
+		//
 		res = _callerRtpSession.Allocate();
 		if (IW_FAILURE(res))
 		{
-			RejectCall();
 			return res;
 		}
 
-		// allocate dummy session to save bind time for future
-		res = _rtspSession.Allocate(_callerRtpSession.LocalCnxInfo());
-		if (IW_FAILURE(res))
+		//
+		// Allocate rtp connection for the media streamer 
+		//
+		if (_rtspEnabled)
 		{
-			return res;
+			//
+			// rtp
+			//
+			res = _rtspRtpSession.Allocate();
+			if (IW_FAILURE(res))
+			{
+				return res;
+			}
+
+			//
+			// streamer session
+			//
+			res = _rtspSession.Allocate(_rtspRtpSession.LocalCnxInfo());
+			if (IW_FAILURE(res))
+			{
+				return res;
+			};
 		};
+
+		//
+		// Allocate rtp connection for speech generator
+		//
+		if (_mrcpEnabled)
+		{
+			res = _mrcpRtpSession.Allocate();
+			if (IW_FAILURE(res))
+			{
+				return res;
+			}
+		};
+		
 		
 		res = Call::MakeCall(destination_uri,_rtspSession.ImsMediaData());
 		if (IW_FAILURE(res))
@@ -289,8 +322,25 @@ namespace ivrworx
 			return res;
 		};
 
-		// allocate dummy session to save bind time for future
-		res = _rtspSession.ModifyConnection(_remoteMedia ,_acceptedSpeechFormat);
+#pragma  TODO("Pooling of mrcp connections")
+
+		//
+		// allocate mrcp session
+		//
+		if (_mrcpEnabled)
+		{
+			res = _mrcpSession.Allocate(_mrcpRtpSession.LocalCnxInfo(),_acceptedSpeechFormat);
+			if (IW_FAILURE(res))
+			{
+				HangupCall();
+				return res;
+			}
+
+			LogDebug("CallWithDirectRtp::AcceptInitialOffer - connection:" << _mrcpRtpSession.LocalCnxInfo());
+		}
+
+		
+		res = _rtspSession.ModifyConnection(_rtspRtpSession.LocalCnxInfo() ,_acceptedSpeechFormat);
 		if (IW_FAILURE(res))
 		{
 			Call::HangupCall();

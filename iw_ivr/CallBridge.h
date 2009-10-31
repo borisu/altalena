@@ -55,6 +55,7 @@ namespace ivrworx
 
 		int answer(lua_State *L);
 		int speak(lua_State *L);
+		int speakmrcp(lua_State *L);
 		int cleandtmfbuffer(lua_State *L);
 		int waitfordtmf(lua_State *L);
 		int stopspeak(lua_State *L);
