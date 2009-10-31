@@ -1,6 +1,6 @@
 {
 	
-	"sync_log"  : true,
+	"sync_log"  : false,
 	
 	"resip_log" : "TRANSPORT,DBG",
 	
@@ -25,12 +25,12 @@
     "from_display_name": "ivrworx",
     
      
-    "mrcp_enabled": false,
+    "mrcp_enabled": true,
     "unimrcp_conf_dir": "./unimrcp",
     "unimrcp_client_profile": "MRCPv2-Default",
     "unimrcp_log_file": "unimrcpclient",
     
-    "rtsp_enabled": false,
+    "rtsp_enabled": true,
     
     
 	"rtp_proxy_base_port" : 8000,
