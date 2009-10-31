@@ -48,7 +48,7 @@ namespace ivrworx
 
 		virtual ApiErrorCode Speak(IN const string &mrcp_body, BOOL sync = FALSE );
 
-		virtual ApiErrorCode PlayFile(IN const string &file_name, IN BOOL loop = FALSE);
+		virtual ApiErrorCode PlayFile(IN const string &file_name, IN BOOL sync = FALSE, IN BOOL loop = FALSE);
 
 		virtual ApiErrorCode StopPlay();
 
