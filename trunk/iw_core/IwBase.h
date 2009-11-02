@@ -163,6 +163,8 @@ namespace ivrworx
 
 		int operator == (const MediaFormat &other) const;
 
+		int operator != (const MediaFormat &other) const;
+
 		static MediaType GetMediaType(const string &name);
 
 	private:

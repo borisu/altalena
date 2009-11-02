@@ -147,12 +147,18 @@ namespace ivrworx
 	}
 
 	int
-		MediaFormat::operator ==(const MediaFormat &other) const
+	MediaFormat::operator ==(const MediaFormat &other) const
 	{
 		return (
 			(other.mapping == this->mapping) &&
 			(other.rate == this->rate) &&
 			(other.name == this->name));
+	}
+
+	int
+	MediaFormat::operator !=(const MediaFormat &other) const
+	{
+		return !(*this == other);
 	}
 
 	const MediaFormat MediaFormat::PCMU("PCMU",8000,0, MediaType_SPEECH);
