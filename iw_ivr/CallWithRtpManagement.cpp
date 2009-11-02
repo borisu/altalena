@@ -332,8 +332,9 @@ namespace ivrworx
 			<< " codec:" << _acceptedSpeechFormat);
 
 
-		_callerRtpSession.Modify(RemoteMedia());
-
+		_callerRtpSession.Modify(RemoteMedia(),_acceptedSpeechFormat);
+		_mrcpRtpSession.Modify(CnxInfo(),_acceptedSpeechFormat);
+		_rtspRtpSession.Modify(CnxInfo(),_acceptedSpeechFormat);
 
 #pragma  TODO("Pooling of mrcp connections")
 

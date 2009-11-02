@@ -66,7 +66,7 @@ sink(NULL)
 ProcRtpProxy::RtpConnection::RtpConnection(const RtpConnection &conn)
 {
 	connection_id	= conn.connection_id;
-	live_socket		= conn.live_socket;
+	live_rtp_socket		= conn.live_rtp_socket;
 }
 
 
@@ -74,10 +74,6 @@ ProcRtpProxy::RtpConnection::~RtpConnection()
 {
 
 }
-
-
-	
-
 
 static void dummyTask(void* clientData) 
 {
@@ -129,19 +125,25 @@ ProcRtpProxy::InitSockets()
 
 	
 	int base_port	 = _conf.GetInt("rtp_proxy_base_port");
+	LogDebug("ProcRtpProxy::InitSockets rtp_proxy_base_port=" << base_port);
+
 	int top_port	 = _conf.GetInt("rtp_proxy_top_port");
+	LogDebug("ProcRtpProxy::InitSockets rtp_proxy_top_port=" << top_port);
+
 	int num_of_conns = _conf.GetInt("rtp_proxy_num_of_connections");
+	LogDebug("ProcRtpProxy::InitSockets rtp_proxy_num_of_connections=" << num_of_conns);
 
 	string rtp_ip = _conf.GetString("rtp_proxy_ip");
+	LogDebug("ProcRtpProxy::InitSockets rtp_proxy_ip=" << rtp_ip);
 
 	const char * input_address_str = rtp_ip.c_str();
 
-
-
-	  
 	_localInAddr = convert_hname_to_addrin(input_address_str);
 	
-	if (base_port < 0 || top_port < base_port || num_of_conns < 1 )
+	if (base_port < 0		 || 
+		top_port < base_port || 
+		num_of_conns < 1	 ||  
+		(top_port - base_port) < 2)
 	{
 		LogCrit("Error in ports configuration");
 		return API_FAILURE;
@@ -150,35 +152,57 @@ ProcRtpProxy::InitSockets()
 	//
 	// Init Connections
 	//
-	int counter = 0;
-	for (int i = 0; i < num_of_conns; i++) 
+	// rtp connection will receive id according to their ports
+	// 
+	//
+	int curr_port = (base_port % 2) ==  0 ? base_port : base_port + 1;
+	for (int i = 0; (i < num_of_conns) && (curr_port < top_port); curr_port+=2) 
 	{
-		if ( i > top_port )
-		{
-			break;
-		}
-
-		int curr_port = base_port + i;
-		Port const inputPort(curr_port);
+		
+		Port const input_rtp_port(curr_port);
+		Port const input_rtcp_port(curr_port + 1);
 
 		unsigned char const inputTTL = 0; 
-		Groupsock * socket = 
-			new Groupsock(*_env, _localInAddr, inputPort, inputTTL);
+
+		Groupsock * rtp_socket = 
+			new Groupsock(*_env, _localInAddr, input_rtp_port, inputTTL);
+
+		if (rtp_socket->socketNum() < 0)
+		{
+			delete rtp_socket;
+			continue;
+		}
+
+		Groupsock * rtcp_socket = 
+			new Groupsock(*_env, _localInAddr, input_rtcp_port , inputTTL);
+
+		if (rtcp_socket->socketNum() < 0)
+		{
+			delete rtp_socket;
+			delete rtcp_socket;
+			continue;
+		}
 
 		RtpConnection *conn = new RtpConnection();
-		conn->connection_id = counter++;
-		conn->live_socket = GroupSockPtr(socket);
-		conn->local_cnx_ino = CnxInfo(_localInAddr,curr_port);
+
+		conn->connection_id	  = curr_port;
+
+		conn->live_rtp_socket  = GroupSockPtr(rtp_socket);
+		conn->live_rtcp_socket = GroupSockPtr(rtcp_socket);
+		conn->local_cnx_ino	   = CnxInfo(_localInAddr,curr_port);
+
+		conn->state = CONNECTION_STATE_AVAILABLE;
 
 		_connectionsMap[conn->connection_id] = RtpConnectionPtr(conn);
+		i++;
 
 		LogDebug("Created source connection id:" << i << " port:" << curr_port);
 
 	};
 
-	if (counter == 0)
+	if (_connectionsMap.size() < num_of_conns)
 	{
-		LogCrit("Cannot open connections");
+		LogCrit("ProcRtpProxy::InitSockets - unable open open num_of_conns=" << num_of_conns << " rtp connections");
 		return API_FAILURE;
 	};
 
@@ -293,13 +317,7 @@ ProcRtpProxy::real_run()
 					LogWarn("Received unknown message " << msg->message_id_str);
 				} // if
 			}// default
-
-			
-
 		}// switch
-
-	
-
 	}// while
 
 exit:
@@ -317,7 +335,7 @@ exit:
 	RtpConnectionsMap::iterator iter = _connectionsMap.begin();
 	while(iter != _connectionsMap.end())
 	{
-		UponUnBridgeReq(iter->second);
+		Unbridge(iter->second);
 	};
 
 	
@@ -351,7 +369,7 @@ ProcRtpProxy::UponAllocateReq(IwMessagePtr msg)
 
 	if (!candidate)
 	{
-		LogWarn("No available rtp resource");
+		LogWarn("ProcRtpProxy::UponAllocateReq - No available rtp resource");
 		SendResponse(req, new MsgRtpProxyNack());
 		return;
 	}
@@ -366,12 +384,12 @@ ProcRtpProxy::UponAllocateReq(IwMessagePtr msg)
 
 	if (req->remote_media.is_ip_valid())
 	{
-		candidate->live_socket->changeDestinationParameters(
+		candidate->live_rtp_socket->changeDestinationParameters(
 			req->remote_media.inaddr(),
 			req->remote_media.port_ho(),225);
 	}
 	
-	LogDebug("ProcRtpProxy::UponAllocateReq allocated conn:" << candidate->connection_id << " local:" << candidate->local_cnx_ino << ", remote:" << req->remote_media.ipporttos());
+	LogDebug("ProcRtpProxy::UponAllocateReq allocated rtph:" << candidate->connection_id << " local:" << candidate->local_cnx_ino << ", remote:" << req->remote_media.ipporttos());
 	SendResponse(req, ack);
 	
 }
@@ -390,7 +408,7 @@ ProcRtpProxy::UponDeallocateReq(IwMessagePtr msg)
 	if (iter == _connectionsMap.end())
 	{
 
-		LogWarn("conn:" << req->rtp_proxy_handle << " not found");
+		LogWarn("rtph:" << req->rtp_proxy_handle << " not found");
 		SendResponse(req, new MsgRtpProxyNack());
 		return;
 
@@ -398,7 +416,27 @@ ProcRtpProxy::UponDeallocateReq(IwMessagePtr msg)
 
 	RtpConnectionPtr conn = iter->second;
 
-	UponUnBridgeReq(conn);
+	Unbridge(conn);
+
+	if (conn->rtcp_instance) 
+	{
+		RTCPInstance::close(conn->rtcp_instance);
+		conn->rtcp_instance = NULL;
+	}
+
+	if (conn->sink) 
+	{
+		Medium::close(conn->sink);
+		conn->sink = NULL;
+	}
+
+	if (conn->source)
+	{
+		Medium::close(conn->source);
+		conn->source = NULL;
+
+	}
+	
 	conn->state = CONNECTION_STATE_AVAILABLE;
 }
 
@@ -416,26 +454,34 @@ ProcRtpProxy::UponModifyReq(IwMessagePtr msg)
 	if (iter == _connectionsMap.end())
 	{
 
-		LogWarn("conn:" << req->rtp_proxy_handle << " not found");
+		LogWarn("rtph:" << req->rtp_proxy_handle << " not found");
 		SendResponse(req, new MsgRtpProxyNack());
 		return;
 
 	}
 
 	RtpConnectionPtr conn = iter->second;
-	conn->remote_cnx_ino = req->remote_media;
 
-	conn->live_socket->changeDestinationParameters(req->remote_media.inaddr(),
-		req->remote_media.port_ho(),0);
+	if (req->media_format.get_media_type() != MediaFormat::MediaType_UNKNOWN)
+	{
+		conn->media_format = req->media_format;
+	}
+	
+
+	if (req->remote_media.is_ip_valid() && req->remote_media.is_port_valid())
+	{
+		conn->remote_cnx_ino = req->remote_media;
+		conn->live_rtp_socket->changeDestinationParameters(req->remote_media.inaddr(),
+			req->remote_media.port_ho(),0);
+	}
 
 	SendResponse(req, new MsgRtpProxyAck());
-	
 
 }
 
 
 ApiErrorCode
-ProcRtpProxy::UponUnBridgeReq(RtpConnectionPtr conn)
+ProcRtpProxy::Unbridge(RtpConnectionPtr conn)
 {
 	FUNCTRACKER;
 
@@ -472,21 +518,11 @@ ProcRtpProxy::UponUnBridgeReq(RtpConnectionPtr conn)
 	source_conn->state = CONNECTION_STATE_ALLOCATED;
 	source_conn->destination_conn = RtpConnectionPtr();
 
-
-
 	dest_conn->sink->stopPlaying();
 	dest_conn->state = CONNECTION_STATE_ALLOCATED;
 	dest_conn->source_conn = RtpConnectionPtr();
 
-	Medium::close(dest_conn->sink);
-	Medium::close(source_conn->source);
-
 	return API_SUCCESS;
-
-	
-
-
-
 
 }
 
@@ -496,79 +532,196 @@ ProcRtpProxy::UponBridgeReq(IwMessagePtr msg)
 {
 	FUNCTRACKER;
 
-	shared_ptr<MsgRtpProxyBridgeReq> req = 
+	shared_ptr<MsgRtpProxyBridgeReq> bridge_req = 
 		dynamic_pointer_cast<MsgRtpProxyBridgeReq>(msg);
 
 
 	// Find source.
 	RtpConnectionsMap::iterator iter = 
-		_connectionsMap.find(req->rtp_proxy_handle);
+		_connectionsMap.find(bridge_req->rtp_proxy_handle);
 	if (iter == _connectionsMap.end())
 	{
 
-		LogWarn("conn:" << req->rtp_proxy_handle << " not found");
-		SendResponse(req, new MsgRtpProxyNack());
+		LogWarn("ProcRtpProxy::UponBridgeReq - rtph:" << bridge_req->rtp_proxy_handle << " not found");
+		SendResponse(bridge_req, new MsgRtpProxyNack());
 		return;
 
 	}
 
 	RtpConnectionPtr source_connection = iter->second;
-	UponUnBridgeReq(source_connection);
+	Unbridge(source_connection);
 	
 
 	// Find destination
-	iter = _connectionsMap.find(req->output_conn);
+	iter = _connectionsMap.find(bridge_req->output_conn);
 	if (iter == _connectionsMap.end())
 	{
 
-		LogWarn("conn:" << req->output_conn << " not found");
-		SendResponse(req, new MsgRtpProxyNack());
+		LogWarn("rtph:" << bridge_req->output_conn << " not found");
+		SendResponse(bridge_req, new MsgRtpProxyNack());
 		return;
 
 	}
 
 	RtpConnectionPtr destination_connection = iter->second;
-	UponUnBridgeReq(destination_connection);
 
-	// Bridge
-	FramedSource* source = 
-		BasicUDPSource::createNew(*_env, source_connection->live_socket.get());
-
-	unsigned const maxPacketSize = 65536; // allow for large UDP packets
-	MediaSink* sink = 
-		BasicUDPSink::createNew(*_env, destination_connection->live_socket.get(), maxPacketSize);
-
-	source_connection->state = CONNECTION_STATE_INPUT;
-	source_connection->source = source;
-	source_connection->destination_conn = destination_connection;
-
-	destination_connection->state = CONNECTION_STATE_OUTPUT;
-	destination_connection->sink = sink;
-	destination_connection->source_conn = source_connection;
-
-	
-	if ( sink->startPlaying(*source, NULL, NULL) == FALSE)
+	if (source_connection->media_format.get_media_type()      == MediaFormat::MediaType_UNKNOWN	|| 
+		destination_connection->media_format.get_media_type() == MediaFormat::MediaType_UNKNOWN ||
+		destination_connection->media_format != source_connection->media_format)
 	{
-		SendResponse(req, new MsgRtpProxyNack());
-		LogWarn("ProcRtpProxy::UponBridgeReq error: startPlaying");
+		LogWarn("ProcRtpProxy::UponBridgeReq - transcoding not supported.");
+		SendResponse(bridge_req, new MsgRtpProxyNack());
 		return;
 	}
 
-	SendResponse(req, new MsgRtpProxyAck());
+	Unbridge(destination_connection);
+
+
+	//
+	// source
+	//
+	SimpleRTPSource *rtp_source		      = source_connection->source;
+	RTCPInstance    *source_rtcp_instance = source_connection->rtcp_instance;
+
+	SimpleRTPSink	*rtp_sink			  = source_connection->sink;
+	RTCPInstance    *sink_rtcp_instance	  = source_connection->rtcp_instance;
+
+	MediaFormat		media_format		  = source_connection->media_format;
+
+	{
+		//
+		// source
+		//
+		if (!rtp_source)
+		{
+			rtp_source = 
+				SimpleRTPSource::createNew(
+				*_env,											// env
+				source_connection->live_rtp_socket.get(),		// RTPgs
+				media_format.sdp_mapping(),			// rtpPayloadFormat
+				media_format.sampling_rate(),		// rtpTimestampFrequency
+				media_format.sdp_name_tos().c_str()	// mimeTypeString
+				);
+
+			if (rtp_source == NULL)
+			{
+				LogWarn("ProcRtpProxy::UponBridgeReq - Cannot create source");
+				goto error;
+			};
+		}
+		
+
+		if (!source_rtcp_instance)
+		{
+			source_rtcp_instance  = 
+				RTCPInstance::createNew(
+				*_env,											// env	
+				source_connection->live_rtcp_socket.get(),		// RTCPgs
+				500,											// totSessionBW
+				(const unsigned char *)"ivrworx",				// cname
+				NULL,											// sink
+				rtp_source										// source
+				);
+			if (source_rtcp_instance == NULL)
+			{
+				LogWarn("ProcRtpProxy::UponBridgeReq - Cannot create source rtcp instance");
+				goto error;
+			};
+		}
+		
+
+		//
+		// sink
+		//
+		if (!rtp_sink)
+		{
+			rtp_sink = 
+				SimpleRTPSink::createNew(
+					*_env,											 // env
+					destination_connection->live_rtcp_socket.get(),  // RTPgs
+					media_format.sdp_mapping(),			 // rtpPayloadFormat
+					media_format.sampling_rate(),		 // rtpTimestampFrequency
+					media_format.sdp_name_tos().c_str(), // sdpMediaTypeString
+					media_format.sdp_name_tos().c_str()  // rtpPayloadFormatName
+					);
+			if (rtp_sink == NULL)
+			{
+				LogWarn("ProcRtpProxy::UponBridgeReq - Cannot create sink instance");
+				goto error;
+			}
+		}
+		
+
+		if (!sink_rtcp_instance)
+		{
+			sink_rtcp_instance  = 
+				RTCPInstance::createNew(
+					*_env,											 // env	
+					destination_connection->live_rtcp_socket.get(),  // RTCPgs
+					500,											 // totSessionBW
+					(const unsigned char *)"ivrworx",				 // cname
+					rtp_sink,										 // sink	
+					NULL											 // source 	
+					);					
+			if (sink_rtcp_instance == NULL)
+			{
+				LogWarn("ProcRtpProxy::UponBridgeReq - Cannot create sink instance");
+				goto error;
+			}
+		}
+
+
+		source_connection->state			= CONNECTION_STATE_INPUT;
+		source_connection->source			= rtp_source;
+		source_connection->destination_conn = destination_connection;
+		source_connection->rtcp_instance	= source_rtcp_instance;
+
+		destination_connection->state			= CONNECTION_STATE_OUTPUT;
+		destination_connection->sink			= rtp_sink;
+		destination_connection->source_conn		= source_connection;
+		destination_connection->rtcp_instance	= sink_rtcp_instance;
+
+
+		if (rtp_sink->startPlaying(*rtp_source, NULL, NULL) == FALSE)
+		{
+			LogWarn("ProcRtpProxy::UponBridgeReq error: startPlaying");
+			goto error;
+		}
+
+		LogDebug(
+			source_connection->remote_cnx_ino << " -> " <<
+			source_connection->local_cnx_ino  << 
+			" (rtph:" << source_connection->connection_id << ") ==> (" <<
+			"rtph:" << destination_connection->connection_id << ") " <<
+			destination_connection->local_cnx_ino << " ->" <<
+			destination_connection->remote_cnx_ino );
+
+	}
+	SendResponse(bridge_req, new MsgRtpProxyAck());
+
+	return;
+
+error:
+
+	if (rtp_source != NULL) Medium::close(rtp_source);
+	if (source_rtcp_instance!= NULL) RTCPInstance::close(source_rtcp_instance);
+
+	if (rtp_sink != NULL) Medium::close(rtp_sink);
+	if (sink_rtcp_instance != NULL) Medium::close(sink_rtcp_instance);
 
 	
-	//_env->taskScheduler().doEventLoop();
+	source_connection->source			= NULL;
+	source_connection->destination_conn = RtpConnectionPtr();
+	source_connection->rtcp_instance	= NULL;
 
 	
+	destination_connection->sink			= NULL;
+	destination_connection->source_conn		= RtpConnectionPtr();
+	destination_connection->rtcp_instance	= NULL;
 
-	LogDebug(
-		source_connection->remote_cnx_ino << " -> " <<
-		source_connection->local_cnx_ino  << 
-		" (rtpid:" << source_connection->connection_id << ") ==> (" <<
-		"rtpid:" << destination_connection->connection_id << ") " <<
-		destination_connection->local_cnx_ino << " ->" <<
-		destination_connection->remote_cnx_ino );
-
+	SendResponse(bridge_req, new MsgRtpProxyNack());
+	return;
+	
 }
 
 ProcRtpProxy::~ProcRtpProxy(void)

@@ -24,17 +24,16 @@ if (call == nil) then
   return;
 end
  
-res = call:makecall("sip:6095@10.0.0.1:5060");
+res = call:makecall("sip:24001@192.168.150.3:5060");
 
-call:play("C:\\dev\\CosmoCom\\Universe_5\\5_1_0\\Install Packs\\Server Components\\Files\\Samples\\VCS\\IVR\\greeting.wav",false,false);
+call:play("C:\\dev\\CosmoCom\\Universe_5\\5_1_0\\Install Packs\\Server Components\\Files\\Samples\\VCS\\IVR\\greeting.wav",true,false);
+call:speak("Welcome to CCU application",true);
+call:play("C:\\dev\\CosmoCom\\Universe_5\\5_1_0\\Install Packs\\Server Components\\Files\\Samples\\VCS\\IVR\\greeting.wav",true,false);
 
-call:speak("124563");
 
-
---call:play("C:\\dev\\CosmoCom\\Universe_5\\5_1_0\\Install Packs\\Server Components\\Files\\Samples\\VCS\\IVR\\greeting.wav",
---false,false);
 
 ivrworx.sleep(3000);
+
 call:stopplay();
 ivrworx.sleep(10000);
 

@@ -116,7 +116,7 @@ namespace ivrworx
 	}
 
 	ApiErrorCode 
-	RtpProxySession::Modify(const CnxInfo &conn)
+	RtpProxySession::Modify(const CnxInfo &conn,const MediaFormat &media_fromat)
 	{
 		LogDebug("RtpProxySession::Modify  rtph:" << _handle << ", ci:" << conn);
 
@@ -129,7 +129,8 @@ namespace ivrworx
 			new MsgRtpProxyModifyReq();
 
 		req->rtp_proxy_handle = _handle;
-		req->remote_media  = conn;
+		req->remote_media	  = conn;
+		req->media_format	  = media_fromat;
 
 		IwMessagePtr response = NULL_MSG;
 		GetCurrLightWeightProc()->DoRequestResponseTransaction(

@@ -63,19 +63,24 @@ namespace ivrworx
 
 			int connection_id;
 
-			GroupSockPtr live_socket;
+			GroupSockPtr live_rtp_socket;
+			GroupSockPtr live_rtcp_socket;
+
+			RTCPInstance *rtcp_instance;
 
 			CONNECTION_STATE state;
 
 			CnxInfo local_cnx_ino;
-
 			CnxInfo remote_cnx_ino;
 
 			RtpConnectionPtr source_conn;
-			FramedSource* source;
-
+			SimpleRTPSource* source;
+			
 			RtpConnectionPtr destination_conn;
-			MediaSink* sink;
+			SimpleRTPSink* sink;
+
+			MediaFormat media_format;
+			
 			
 		};
 
@@ -96,7 +101,7 @@ namespace ivrworx
 
 		virtual void UponBridgeReq(IwMessagePtr msg);
 
-		virtual ApiErrorCode UponUnBridgeReq(RtpConnectionPtr msg);
+		virtual ApiErrorCode Unbridge(RtpConnectionPtr msg);
 
 	private:
 

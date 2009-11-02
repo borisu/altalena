@@ -46,6 +46,7 @@ namespace ivrworx
 		RtpProxyHandle rtp_proxy_handle;
 		CnxInfo local_media;
 		CnxInfo remote_media;
+		MediaFormat media_format;
 	};		
 
 
@@ -134,7 +135,7 @@ namespace ivrworx
 
 		virtual ApiErrorCode Deallocate();
 
-		virtual ApiErrorCode Modify(const CnxInfo &conn);
+		virtual ApiErrorCode Modify(const CnxInfo &conn, const MediaFormat &media_fromat);
 
 		virtual ApiErrorCode Bridge(IN const RtpProxySession &dest);
 
