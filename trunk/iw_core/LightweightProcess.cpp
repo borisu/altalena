@@ -365,7 +365,7 @@ clean:
 			response,
 			timeout);
 
-		LogDebug("LightweightProcess::DoRequestResponseTransaction - res:" << res);
+		LogTrace("LightweightProcess::DoRequestResponseTransaction - res:" << res);
 		return res;
 
 	}
@@ -404,7 +404,7 @@ clean:
 			timout);
 end:
 
-		LogDebug("LightweightProcess::DoRequestResponseTransaction - res:" << res);
+		LogTrace("LightweightProcess::DoRequestResponseTransaction - res:" << res);
 		return res;
 
 	}

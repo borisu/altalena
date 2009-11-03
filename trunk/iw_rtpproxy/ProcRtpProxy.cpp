@@ -58,7 +58,8 @@ ProcRtpProxy::RtpConnection::RtpConnection()
 :connection_id(NULL),
 state(CONNECTION_STATE_AVAILABLE),
 source(NULL),
-sink(NULL)
+sink(NULL),
+rtcp_instance(NULL)
 {
 
 }
@@ -382,7 +383,7 @@ ProcRtpProxy::UponAllocateReq(IwMessagePtr msg)
 	candidate->state = CONNECTION_STATE_ALLOCATED;
 	candidate->remote_cnx_ino = req->remote_media;
 
-	if (req->remote_media.is_ip_valid())
+	if (req->remote_media.is_ip_valid() && req->remote_media.is_port_valid())
 	{
 		candidate->live_rtp_socket->changeDestinationParameters(
 			req->remote_media.inaddr(),
@@ -682,6 +683,7 @@ ProcRtpProxy::UponBridgeReq(IwMessagePtr msg)
 		destination_connection->rtcp_instance	= sink_rtcp_instance;
 
 
+		
 		if (rtp_sink->startPlaying(*rtp_source, NULL, NULL) == FALSE)
 		{
 			LogWarn("ProcRtpProxy::UponBridgeReq error: startPlaying");

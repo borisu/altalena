@@ -214,7 +214,6 @@ ImsSession::Allocate(IN const CnxInfo &local_end,
 	DECLARE_NAMED_HANDLE_PAIR(session_handler_pair);
 
 	MsgImsAllocateSessionReq *msg = new MsgImsAllocateSessionReq();
-	msg->local_media_data = local_end;
 	msg->remote_media_data = remote_end;
 	msg->codec = codec;
 	msg->session_handler = session_handler_pair;
