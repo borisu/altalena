@@ -38,11 +38,11 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		return Allocate(CnxInfo());
+		return Allocate(CnxInfo(), MediaFormat());
 	}
 
 	ApiErrorCode 
-	RtpProxySession::Allocate(const CnxInfo &remote_media)
+	RtpProxySession::Allocate(const CnxInfo &remote_media, const MediaFormat &media_format)
 	{
 		FUNCTRACKER;
 
@@ -55,6 +55,7 @@ namespace ivrworx
 
 		MsgRtpProxyAllocateReq *msg = new MsgRtpProxyAllocateReq();
 		msg->remote_media = remote_media;
+		msg->media_format = media_format;
 		
 
 		IwMessagePtr response = NULL_MSG;

@@ -47,18 +47,12 @@
     "codecs": [
         {
             "name": "PCMU" ,
-            "sdp_mapping": 0,
-            "sampling_rate": 8000
         },
         {
             "name": "PCMA" ,
-            "sdp_mapping": 8,
-            "sampling_rate": 8000
         }, 
         {
             "name": "SPEEX" ,
-            "sdp_mapping": 97,
-            "sampling_rate": 8000
         } 
     ],
     

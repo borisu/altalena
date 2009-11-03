@@ -120,8 +120,10 @@ namespace ivrworx
 	Denotes SDP format (speech codec, dtmf encoding..)
 
 	**/
-	struct MediaFormat
+	class MediaFormat
 	{
+	public:
+
 		enum MediaType
 		{
 			MediaType_UNKNOWN,
@@ -130,14 +132,14 @@ namespace ivrworx
 		};
 
 		MediaFormat();
+		
+		MediaFormat(IN const MediaFormat &codec);
 
 		MediaFormat(
 			IN const string &param_name, 
 			IN int param_sampling_rate,
 			IN int param_sdp_mapping,
 			IN MediaType media_type = MediaType_UNKNOWN);
-
-		MediaFormat(IN const MediaFormat &codec);
 
 		int sampling_rate() const;
 
@@ -152,6 +154,8 @@ namespace ivrworx
 		const string& get_sdp_a() const;
 
 		MediaType get_media_type() const;
+
+		static const MediaFormat UNKNOWN;
 
 		static const MediaFormat PCMA;
 
@@ -168,6 +172,10 @@ namespace ivrworx
 		static MediaType GetMediaType(const string &name);
 
 	private:
+
+		
+
+		
 
 		void init_strings();
 
@@ -253,6 +261,8 @@ namespace ivrworx
 		const char *ipporttoa(char *buffer, int len) const;
 
 		const char *iptoa() const;
+
+		static const CnxInfo UNKNOWN;
 
 	private:
 

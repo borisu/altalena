@@ -292,6 +292,8 @@ namespace ivrworx
 
 		virtual void InterruptWithHangup();
 
+		virtual MrcpHandle SessionHandle();
+
 	private:
 
 		ApiErrorCode	SyncStreamFile();

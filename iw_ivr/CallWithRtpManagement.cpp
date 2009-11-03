@@ -83,7 +83,7 @@ namespace ivrworx
 		};
 
 
-		res = _callerRtpSession.Allocate(_origOffereReq->remote_media);
+		res = _callerRtpSession.Allocate(_origOffereReq->remote_media, _acceptedSpeechFormat);
 		if (IW_FAILURE(res))
 		{
 			RejectCall();
@@ -270,6 +270,8 @@ namespace ivrworx
 
 		ApiErrorCode res = API_SUCCESS;
 
+		LogDebug("CallWithRtpManagement::MakeCall *** allocating caller rtp ***");
+
 		//
 		// Allocate rtp connection of the caller.
 		//
@@ -281,47 +283,16 @@ namespace ivrworx
 		LogDebug("CallWithRtpManagement::MakeCall - caller rtp = rtph:" << _callerRtpSession.RtpHandle() 
 			<< ", lci:" << _callerRtpSession.LocalCnxInfo());
 
-		//
-		// Allocate rtp connection for the media streamer 
-		//
-		if (_rtspEnabled)
+		
+		
+		LogDebug("CallWithRtpManagement::MakeCall *** calling ***");
+		res = Call::MakeCall(destination_uri,_callerRtpSession.LocalCnxInfo());
+		if (IW_FAILURE(res))
 		{
-			//
-			// rtp
-			//
-			res = _rtspRtpSession.Allocate();
-			if (IW_FAILURE(res))
-			{
-				return res;
-			}
-			
-			//
-			// streamer session
-			//
-			res = _rtspSession.Allocate(_rtspRtpSession.LocalCnxInfo());
-			if (IW_FAILURE(res))
-			{
-				return res;
-			};
-			LogDebug("CallWithRtpManagement::MakeCall - streaming session = imsh:" << _rtspSession.SessionHandle()
-				<< ", rtsph:" << _rtspRtpSession.RtpHandle()
-				<< ", lci:" << _rtspRtpSession.LocalCnxInfo());
+			return res;
 		};
 
-		//
-		// Allocate rtp connection for speech generator
-		//
-		if (_mrcpEnabled)
-		{
-			res = _mrcpRtpSession.Allocate();
-			if (IW_FAILURE(res))
-			{
-				return res;
-			}
-		};
-		
-		
-		res = Call::MakeCall(destination_uri,_callerRtpSession.LocalCnxInfo());
+		res = _callerRtpSession.Modify(RemoteMedia(),_acceptedSpeechFormat);
 		if (IW_FAILURE(res))
 		{
 			return res;
@@ -332,36 +303,69 @@ namespace ivrworx
 			<< " codec:" << _acceptedSpeechFormat);
 
 
-		_callerRtpSession.Modify(RemoteMedia(),_acceptedSpeechFormat);
-		_mrcpRtpSession.Modify(CnxInfo(),_acceptedSpeechFormat);
-		_rtspRtpSession.Modify(CnxInfo(),_acceptedSpeechFormat);
+		//
+		// Allocate rtp connection for the media streamer 
+		//
+		if (_rtspEnabled)
+		{
+			//
+			// rtp
+			//
+			LogDebug("CallWithRtpManagement::MakeCall *** allocating streamer rtp and session ***");
+			res = _rtspRtpSession.Allocate();
+			if (IW_FAILURE(res))
+			{
+				return res;
+			}
 
-#pragma  TODO("Pooling of mrcp connections")
+			//
+			// streamer session
+			//
+			res = _rtspSession.Allocate(
+				CnxInfo::UNKNOWN, 
+				_rtspRtpSession.LocalCnxInfo(), 
+				_acceptedSpeechFormat);
+			if (IW_FAILURE(res))
+			{
+				return res;
+			};
+
+			LogDebug("CallWithRtpManagement::MakeCall - streaming info = imsh:" << _rtspSession.SessionHandle()
+				<< ", rtsph:" << _rtspRtpSession.RtpHandle()
+				<< ", lci:" << _rtspRtpSession.LocalCnxInfo());
+		};
+
+
 
 		//
 		// allocate mrcp session
 		//
 		if (_mrcpEnabled)
 		{
-			res = _mrcpSession.Allocate(_mrcpRtpSession.LocalCnxInfo(),_acceptedSpeechFormat);
+			LogDebug("CallWithRtpManagement::MakeCall *** allocating mrcp rtp connection and session ***");
+			res = _mrcpRtpSession.Allocate();
 			if (IW_FAILURE(res))
 			{
-				HangupCall();
 				return res;
 			}
 
-		}
-
-		
-		if (_rtspEnabled)
-		{
-			res = _rtspSession.ModifyConnection(_rtspRtpSession.LocalCnxInfo() ,_acceptedSpeechFormat);
+			res = _mrcpSession.Allocate(_mrcpRtpSession.LocalCnxInfo(),_acceptedSpeechFormat);
 			if (IW_FAILURE(res))
 			{
-				Call::HangupCall();
 				return res;
-			};
+			}
+
+			LogDebug("CallWithRtpManagement::MakeCall - mrco info = mrcph:" << _mrcpSession.SessionHandle()
+				<< ", rtsph:" << _mrcpRtpSession.RtpHandle()
+				<< ", lci:" << _mrcpRtpSession.LocalCnxInfo());
+			
+
 		}
+
+
+		LogDebug("CallWithRtpManagement::MakeCall ims("  <<  _rtspSession.SessionHandle() << ") ---> rtp(" << _rtspRtpSession.RtpHandle() << ") + ");
+		LogDebug("CallWithRtpManagement::MakeCall rtp("  <<  _callerRtpSession.RtpHandle()  << ") ---> caller(" <<  StackCallHandle() << ") " << RemoteMedia());
+		LogDebug("CallWithRtpManagement::MakeCall mrcp(" <<  _mrcpSession.SessionHandle() << ") ---> rtp(" << _mrcpRtpSession.RtpHandle() << ") + ");
 		
 		return API_SUCCESS;
 

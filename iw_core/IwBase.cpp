@@ -161,6 +161,8 @@ namespace ivrworx
 		return !(*this == other);
 	}
 
+	const MediaFormat MediaFormat::UNKNOWN;
+
 	const MediaFormat MediaFormat::PCMU("PCMU",8000,0, MediaType_SPEECH);
 
 	const MediaFormat MediaFormat::PCMA("PCMA",8000,8, MediaType_SPEECH);
@@ -382,6 +384,8 @@ namespace ivrworx
 		return addr;
 
 	}
+
+	const CnxInfo CnxInfo::UNKNOWN;
 
 
 }

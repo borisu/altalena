@@ -26,6 +26,11 @@ using namespace json_spirit;
 namespace ivrworx
 {
 
+	typedef map<string,const MediaFormat *> 
+	ConfFormatsMap;
+
+	static ConfFormatsMap mf_map;
+
 	static bool 
 	same_name(const Pair& pair, const string& name )
 	{
@@ -97,28 +102,29 @@ namespace ivrworx
 		return value_str;
 	}
 
-	MediaFormat *
+	const MediaFormat *
 	read_codec( const Object& obj)
 	{
 		string media_format_name = find_str(obj, "name" );
 
-		MediaFormat::MediaType media_type = MediaFormat::GetMediaType(media_format_name);
-		if ( media_type == MediaFormat::MediaType_UNKNOWN)
+		ConfFormatsMap::iterator iter = 
+			mf_map.find(media_format_name);
+
+		if (iter == mf_map.end())
 		{
-			std::cerr << "Unknown media format " << media_format_name;
-			return NULL;
+			throw exception("Unsupported media format");
 		}
 
-		return new MediaFormat(
-				media_format_name,
-				find_int( obj, "sampling_rate" ),
-				find_int( obj, "sdp_mapping" ),
-				media_type);
+		
+		return ((*iter).second);
 	}
 
 
 	JSONConfiguration::JSONConfiguration(void)
 	{
+		mf_map["PCMU"]  = &MediaFormat::PCMU;
+		mf_map["PCMA"]  = &MediaFormat::PCMA;
+		mf_map["SPEEX"] = &MediaFormat::SPEEX;
 	}
 
 	JSONConfiguration::~JSONConfiguration(void)
@@ -230,7 +236,7 @@ namespace ivrworx
 		Array::const_iterator iter = codecs_array.begin();
 		while(iter != codecs_array.end())
 		{
-			MediaFormat *codec = read_codec(iter->get_obj());
+			const MediaFormat *codec = read_codec(iter->get_obj());
 			if (codec == NULL)
 			{
 				return API_FAILURE;

@@ -59,6 +59,12 @@ MrcpSession::~MrcpSession(void)
 	
 }
 
+MrcpHandle
+MrcpSession::SessionHandle()
+{
+	return _mrcpSessionHandle;
+}
+
 ApiErrorCode
 MrcpSession::StopSpeak()
 {
