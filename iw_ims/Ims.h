@@ -56,8 +56,6 @@ namespace ivrworx
 		  ims_handle(IW_UNDEFINED),
 			  correlation_id(IW_UNDEFINED){}
 
-		CnxInfo local_media_data;
-
 		CnxInfo remote_media_data;
 
 		MediaFormat codec;

@@ -131,7 +131,7 @@ ProcRtpProxy::InitSockets()
 	int top_port	 = _conf.GetInt("rtp_proxy_top_port");
 	LogDebug("ProcRtpProxy::InitSockets rtp_proxy_top_port=" << top_port);
 
-	int num_of_conns = _conf.GetInt("rtp_proxy_num_of_connections");
+	unsigned int num_of_conns = _conf.GetInt("rtp_proxy_num_of_connections");
 	LogDebug("ProcRtpProxy::InitSockets rtp_proxy_num_of_connections=" << num_of_conns);
 
 	string rtp_ip = _conf.GetString("rtp_proxy_ip");
@@ -157,7 +157,7 @@ ProcRtpProxy::InitSockets()
 	// 
 	//
 	int curr_port = (base_port % 2) ==  0 ? base_port : base_port + 1;
-	for (int i = 0; (i < num_of_conns) && (curr_port < top_port); curr_port+=2) 
+	for (unsigned int i = 0; (i < num_of_conns) && (curr_port < top_port); curr_port+=2) 
 	{
 		
 		Port const input_rtp_port(curr_port);
@@ -381,13 +381,25 @@ ProcRtpProxy::UponAllocateReq(IwMessagePtr msg)
 	ack->local_media = candidate->local_cnx_ino;
 
 	candidate->state = CONNECTION_STATE_ALLOCATED;
-	candidate->remote_cnx_ino = req->remote_media;
+	
 
-	if (req->remote_media.is_ip_valid() && req->remote_media.is_port_valid())
+	if (req->remote_media.is_ip_valid() && 
+		req->remote_media.is_port_valid())
 	{
+		candidate->remote_cnx_ino = req->remote_media;
+
 		candidate->live_rtp_socket->changeDestinationParameters(
 			req->remote_media.inaddr(),
 			req->remote_media.port_ho(),225);
+
+		candidate->live_rtcp_socket->changeDestinationParameters(
+			req->remote_media.inaddr(),
+			req->remote_media.port_ho() + 1,225);
+	}
+
+	if (req->media_format != MediaFormat::UNKNOWN)
+	{
+		candidate->media_format = req->media_format; 
 	}
 	
 	LogDebug("ProcRtpProxy::UponAllocateReq allocated rtph:" << candidate->connection_id << " local:" << candidate->local_cnx_ino << ", remote:" << req->remote_media.ipporttos());
@@ -471,9 +483,19 @@ ProcRtpProxy::UponModifyReq(IwMessagePtr msg)
 
 	if (req->remote_media.is_ip_valid() && req->remote_media.is_port_valid())
 	{
+		int port_ho = req->remote_media.port_ho();
+
 		conn->remote_cnx_ino = req->remote_media;
-		conn->live_rtp_socket->changeDestinationParameters(req->remote_media.inaddr(),
-			req->remote_media.port_ho(),0);
+		conn->live_rtp_socket->changeDestinationParameters(
+			req->remote_media.inaddr(),
+			Port(port_ho),
+			255);
+
+		// should be passed in message
+		conn->live_rtcp_socket->changeDestinationParameters(
+			req->remote_media.inaddr(),
+			Port(port_ho + 1),
+			255);
 	}
 
 	SendResponse(req, new MsgRtpProxyAck());
@@ -570,7 +592,10 @@ ProcRtpProxy::UponBridgeReq(IwMessagePtr msg)
 		destination_connection->media_format.get_media_type() == MediaFormat::MediaType_UNKNOWN ||
 		destination_connection->media_format != source_connection->media_format)
 	{
-		LogWarn("ProcRtpProxy::UponBridgeReq - transcoding not supported.");
+		LogWarn("ProcRtpProxy::UponBridgeReq - transcoding not supported src rtph:"
+			<< source_connection->connection_id << "(" << source_connection->media_format << ")" << 
+			 " <-> dst rtph:" << destination_connection->connection_id << "(" << destination_connection->media_format << ")");
+
 		SendResponse(bridge_req, new MsgRtpProxyNack());
 		return;
 	}
@@ -639,7 +664,7 @@ ProcRtpProxy::UponBridgeReq(IwMessagePtr msg)
 			rtp_sink = 
 				SimpleRTPSink::createNew(
 					*_env,											 // env
-					destination_connection->live_rtcp_socket.get(),  // RTPgs
+					destination_connection->live_rtp_socket.get(),  // RTPgs
 					media_format.sdp_mapping(),			 // rtpPayloadFormat
 					media_format.sampling_rate(),		 // rtpTimestampFrequency
 					media_format.sdp_name_tos().c_str(), // sdpMediaTypeString

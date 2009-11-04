@@ -37,12 +37,10 @@ namespace ivrworx
 
 		virtual ~ImsSession (void);
 
-		virtual ApiErrorCode	Allocate(
-			IN const CnxInfo &local_end);
+		virtual ApiErrorCode	Allocate();
 
 		virtual ApiErrorCode	Allocate(
-			IN const CnxInfo &local_end, 
-			IN const CnxInfo &remote_end, 
+			IN const CnxInfo &remote_end,
 			IN const MediaFormat &codec);
 
 		virtual ApiErrorCode	ModifyConnection(
@@ -58,10 +56,6 @@ namespace ivrworx
 
 		virtual void TearDown();
 
-		virtual CnxInfo ImsMediaData() const;
-
-		virtual void ImsMediaData(IN CnxInfo val);
-
 		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
 
 		virtual void InterruptWithHangup();
@@ -73,8 +67,6 @@ namespace ivrworx
 		ApiErrorCode	SyncStreamFile();
 
 		ImsHandle _imsSessionHandle;
-
-		CnxInfo _imsMediaData;
 
 		ScopedForking &_forking;
 

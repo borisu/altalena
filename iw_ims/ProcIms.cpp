@@ -528,15 +528,9 @@ namespace ivrworx
 		//
 		// create ortp stream and initialize it with available port
 		//
-		int local_port = req->local_media_data.port_ho();
-		if (local_port == IW_UNDEFINED)
-		{
-			LogWarn("Failed to find available port");
-			goto error;
-		};
-
-		// creates stream and session
-		ctx->stream = audio_stream_new(local_port, ms_is_ipv6(req->local_media_data.iptoa()));
+		// local port will be allocated dynamically
+		int local_port = 0;
+		ctx->stream = audio_stream_new(local_port, false /*ms_is_ipv6(req->local_media_data.iptoa()*/);
 		if (ctx->stream!=NULL)
 		{
 			ctx->port = local_port;
