@@ -180,11 +180,11 @@ ImsSession::UponActiveObjectEvent(IwMessagePtr ptr)
 }
 
 ApiErrorCode
-ImsSession::Allocate(IN const CnxInfo &local_end)
+ImsSession::Allocate()
 {
 	FUNCTRACKER;
 
-	return Allocate(local_end,CnxInfo(),MediaFormat()); 
+	return Allocate(CnxInfo::UNKNOWN,MediaFormat::UNKNOWN); 
 		
 
 }
@@ -196,20 +196,17 @@ ImsSession::SessionHandle()
 }
 
 ApiErrorCode
-ImsSession::Allocate(IN const CnxInfo &local_end, 
-					 IN const CnxInfo &remote_end, 
+ImsSession::Allocate(IN const CnxInfo &remote_end, 
 					 IN const MediaFormat &codec)
 {
 	FUNCTRACKER;
 
-	LogDebug("ImsSession::Allocate - lci:" << local_end.ipporttos() <<", rci:" <<  remote_end.ipporttos()  << ", codec:"  << codec << ", imsh:" << _imsSessionHandle);
+	LogDebug("ImsSession::Allocate dest ci:" <<  remote_end.ipporttos()  << ", codec:"  << codec << ", imsh:" << _imsSessionHandle);
 	
 	if (_imsSessionHandle != IW_UNDEFINED)
 	{
 		return API_FAILURE;
 	}
-
-	_imsMediaData = local_end;
 
 	DECLARE_NAMED_HANDLE_PAIR(session_handler_pair);
 
@@ -323,17 +320,6 @@ ImsSession::ModifyConnection(IN const CnxInfo &remote_end,
 		}
 	}
 
-}
-
-
-CnxInfo ImsSession::ImsMediaData() const 
-{ 
-	return _imsMediaData; 
-}
-
-void ImsSession::ImsMediaData(IN CnxInfo val) 
-{ 
-	_imsMediaData = val; 
 }
 
 void
