@@ -30,7 +30,7 @@ namespace ivrworx
 
 	RtpProxySession::~RtpProxySession(void)
 	{
-		Deallocate();
+		TearDown();
 	}
 
 	ApiErrorCode 
@@ -97,7 +97,7 @@ namespace ivrworx
 	}
 
 	ApiErrorCode 
-	RtpProxySession::Deallocate()
+	RtpProxySession::TearDown()
 	{
 		FUNCTRACKER;
 
@@ -112,6 +112,8 @@ namespace ivrworx
 		req->rtp_proxy_handle = _handle;
 
 		GetCurrLightWeightProc()->SendMessage(RTP_PROXY_Q,IwMessagePtr(req));
+
+		_handle = IW_UNDEFINED;
 
 		return API_SUCCESS;
 	}

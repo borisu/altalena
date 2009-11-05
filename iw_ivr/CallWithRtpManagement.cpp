@@ -126,7 +126,9 @@ namespace ivrworx
 
 			}
 
-			res = _mrcpSession.Allocate(_mrcpRtpSession.LocalCnxInfo(),speech_media_format);
+			res = _mrcpSession.Allocate(
+				_mrcpRtpSession.LocalCnxInfo(),
+				speech_media_format);
 			if (IW_FAILURE(res))
 			{
 				RejectCall();
@@ -139,10 +141,10 @@ namespace ivrworx
 		
 		
 		
-		IX_PROFILE_CODE(res = Call::AcceptInitialOffer(
+		res = Call::AcceptInitialOffer(
 			_callerRtpSession.LocalCnxInfo(),
 			accepted_media_formats,
-			speech_media_format));
+			speech_media_format);
 
 		return res;
 
@@ -373,6 +375,12 @@ namespace ivrworx
 		FUNCTRACKER;
 
 		_rtspSession.TearDown();
+		_mrcpSession.TearDown();
+		_callerRtpSession.TearDown();
+		_mrcpRtpSession.TearDown();
+		_rtspRtpSession.TearDown();
+
+
 	}
 
 }

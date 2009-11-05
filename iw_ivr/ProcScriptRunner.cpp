@@ -206,6 +206,8 @@ namespace ivrworx
 
 		try
 		{
+			START_FORKING_REGION;
+
 			CLuaVirtualMachine vm;
 			vm.InitialiseVM();
 
@@ -251,7 +253,7 @@ namespace ivrworx
 			Luna<ConfBridge>::RegisterObject(vm,&conf_bridge,ivrworx_table.TableRef(),"CONF");
 
 			// CallBridge
-			Luna<CallBridge>::RegisterType(vm,TRUE);
+			Luna<CallBridge>::RegisterType(vm,FALSE);
 
 			//
 			// register sql library
@@ -271,7 +273,7 @@ namespace ivrworx
 			lua_pushlightuserdata(vm, this);
 			lua_settable(vm, LUA_REGISTRYINDEX);
 
-			START_FORKING_REGION;
+			
 			_forking = &forking;
 
 			

@@ -38,6 +38,7 @@ namespace ivrworx
 		method(CallBridge, dnis),
 		method(CallBridge, makecall),
 		method(CallBridge, blindxfer),
+		method(CallBridge, hangup),
 		{0,0}
 	};
 
@@ -54,12 +55,20 @@ namespace ivrworx
 
 	CallBridge::~CallBridge(void)
 	{
+		_call.reset();
 	}
 
 	int 
 	CallBridge::play(lua_State *L)
 	{
 		FUNCTRACKER;
+
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+		
 
 		LUA_BOOL_PARAM(L,loop,-1);
 		LUA_BOOL_PARAM(L,sync,-2);
@@ -77,7 +86,30 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
 		ApiErrorCode res = _call->StopPlay();
+		lua_pushnumber (L, res);
+
+		return 1;
+	}
+
+	int
+	CallBridge::hangup(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		ApiErrorCode res = _call->HangupCall();
 		lua_pushnumber (L, res);
 
 		return 1;
@@ -87,6 +119,12 @@ namespace ivrworx
 	CallBridge::makecall(lua_State *L)
 	{
 		FUNCTRACKER;
+
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
 
 		LUA_STRING_PARAM(L,dest,-1);
 
@@ -100,6 +138,12 @@ namespace ivrworx
 	CallBridge::blindxfer(lua_State *L)
 	{
 		FUNCTRACKER;
+
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
 
 		LUA_STRING_PARAM(L,dest,-1);
 
@@ -115,6 +159,12 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
 		LogDebug("CallBridge::cleandtmfbuffer iwh:" << _call->StackCallHandle());
 
 		_call->StopSpeak();
@@ -128,6 +178,12 @@ namespace ivrworx
 	CallBridge::cleandtmfbuffer(lua_State *L)
 	{
 		FUNCTRACKER;
+
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
 		
 		LogDebug("CallBridge::cleandtmfbuffer iwh:" << _call->StackCallHandle());
 
@@ -142,6 +198,12 @@ namespace ivrworx
 	CallBridge::waitfordtmf(lua_State *L)
 	{
 		FUNCTRACKER;
+
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
 
 		
 		LUA_INT_PARAM(L,timeout,-1);
@@ -172,6 +234,12 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
 		LUA_BOOL_PARAM(L,sync,-1);
 		LUA_STRING_PARAM(L,mrcp_string,-2);
 
@@ -187,6 +255,12 @@ namespace ivrworx
 	CallBridge::speak(lua_State *L)
 	{
 		FUNCTRACKER;
+
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
 
 		LUA_BOOL_PARAM(L,sync,-1);
 		LUA_STRING_PARAM(L,mrcp_string,-2);
@@ -215,6 +289,12 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
 		lua_pushstring(L,_call->Ani().c_str());
 
 		return 1;
@@ -226,6 +306,12 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
 		lua_pushstring(L,_call->Dnis().c_str());
 
 		return 1;
@@ -236,6 +322,12 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
 		_call->WaitTillHangup();
 
 		lua_pushnumber (L, API_SUCCESS);
@@ -243,14 +335,20 @@ namespace ivrworx
 	}
 
 	int
-	CallBridge::answer(lua_State *state)
+	CallBridge::answer(lua_State *L)
 	{
 		FUNCTRACKER;
+
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
 
 		LogDebug("CallBridge::answer  iwh:" << _call->StackCallHandle());
 
 		ApiErrorCode res = _call->AcceptInitialOffer();
-		lua_pushnumber (state, res);
+		lua_pushnumber (L, res);
 
 		return 1;
 	}

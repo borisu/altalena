@@ -66,6 +66,7 @@ namespace ivrworx
 		int dnis(lua_State *L);
 		int makecall(lua_State *L);
 		int blindxfer(lua_State *L);
+		int hangup(lua_State *L);
 
 		static const char className[];
 		static Luna<CallBridge>::RegType methods[];

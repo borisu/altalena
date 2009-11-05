@@ -285,6 +285,11 @@ namespace ivrworx
 							UponTearDownReq(ptr);
 							break;
 						}
+					case MSG_PROC_SHUTDOWN_REQ:
+						{
+							shutdown_flag = TRUE;
+							break;
+						}
 					default:
 						{
 							BOOL oob_res = HandleOOBMessage(ptr);

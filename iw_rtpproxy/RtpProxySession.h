@@ -133,7 +133,7 @@ namespace ivrworx
 
 		virtual ApiErrorCode Allocate(const CnxInfo &remote_media, const MediaFormat &media_format);
 
-		virtual ApiErrorCode Deallocate();
+		virtual ApiErrorCode TearDown();
 
 		virtual ApiErrorCode Modify(const CnxInfo &conn, const MediaFormat &media_fromat);
 
