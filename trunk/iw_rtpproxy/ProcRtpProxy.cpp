@@ -64,12 +64,6 @@ rtcp_instance(NULL)
 
 }
 
-ProcRtpProxy::RtpConnection::RtpConnection(const RtpConnection &conn)
-{
-	connection_id	= conn.connection_id;
-	live_rtp_socket		= conn.live_rtp_socket;
-}
-
 
 ProcRtpProxy::RtpConnection::~RtpConnection()
 {
@@ -421,14 +415,22 @@ ProcRtpProxy::UponDeallocateReq(IwMessagePtr msg)
 	if (iter == _connectionsMap.end())
 	{
 
-		LogWarn("rtph:" << req->rtp_proxy_handle << " not found");
+		LogWarn("ProcRtpProxy::UponDeallocateReq rtph:" << req->rtp_proxy_handle << " not found");
 		SendResponse(req, new MsgRtpProxyNack());
 		return;
 
 	}
 
 	RtpConnectionPtr conn = iter->second;
+	
+	if (conn->state == CONNECTION_STATE_AVAILABLE)
+	{
+		LogWarn("ProcRtpProxy::UponDeallocateReq rtph:" << req->rtp_proxy_handle << " not allocated");
+		SendResponse(req, new MsgRtpProxyNack());
+		return;
+	}
 
+	// safe side
 	Unbridge(conn);
 
 	if (conn->rtcp_instance) 
@@ -609,8 +611,8 @@ ProcRtpProxy::UponBridgeReq(IwMessagePtr msg)
 	SimpleRTPSource *rtp_source		      = source_connection->source;
 	RTCPInstance    *source_rtcp_instance = source_connection->rtcp_instance;
 
-	SimpleRTPSink	*rtp_sink			  = source_connection->sink;
-	RTCPInstance    *sink_rtcp_instance	  = source_connection->rtcp_instance;
+	SimpleRTPSink	*rtp_sink			  = destination_connection->sink;
+	RTCPInstance    *sink_rtcp_instance	  = destination_connection->rtcp_instance;
 
 	MediaFormat		media_format		  = source_connection->media_format;
 
@@ -734,7 +736,7 @@ error:
 	if (source_rtcp_instance!= NULL) RTCPInstance::close(source_rtcp_instance);
 
 	if (rtp_sink != NULL) Medium::close(rtp_sink);
-	if (sink_rtcp_instance != NULL) Medium::close(sink_rtcp_instance);
+	if (sink_rtcp_instance != NULL) RTCPInstance::close(sink_rtcp_instance);
 
 	
 	source_connection->source			= NULL;

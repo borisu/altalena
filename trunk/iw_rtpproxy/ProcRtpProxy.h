@@ -53,11 +53,10 @@ namespace ivrworx
 		typedef shared_ptr<struct RtpConnection> 
 		RtpConnectionPtr;
 
-		struct RtpConnection
+		struct RtpConnection :
+			public boost::noncopyable
 		{
 			RtpConnection();
-
-			RtpConnection(const RtpConnection &conn);
 
 			~RtpConnection();
 

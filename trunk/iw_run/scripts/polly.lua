@@ -1,4 +1,10 @@
 
+---
+--- Main
+---
+logger:loginfo("*** Welcome to client application ***");
+
+
 logger   = assert(ivrworx.LOGGER)
 conf     = assert(ivrworx.CONF)
 incoming = assert(ivrworx.INCOMING)
@@ -6,7 +12,7 @@ incoming = assert(ivrworx.INCOMING)
 mrcp_goodbye = [[<?xml version="1.0"?>
 <speak>
   <paragraph>
-    <sentence>Thank you for using Polly.</sentence><sentence>And good bye.</sentence>
+    <sentence>Thank you.</sentence><sentence>And good bye.</sentence>
   </paragraph>
 </speak>]]
 
@@ -113,7 +119,7 @@ function getdtmfs(prompt_mrcp, termination_digit, interdigit_timeout, max_digits
 			--
 			-- If timeout play request again
 			--
- 			incoming:speak(prompt_mrcp,false);
+ 			incoming:speakmrcp(prompt_mrcp,false);
  			ivrworx.sleep(1000);
  			retries = retries + 1;
  			
@@ -140,10 +146,6 @@ end
 
 
 
----
---- Main
----
-logger:loginfo("welcome to Polly client");
 
 
 env = assert(luasql.sqlite3());
@@ -157,14 +159,7 @@ assert(incoming:answer() == ivrworx.API_SUCCESS);
 --
 -- Play welcome propmt
 --
-mrcp = [[<?xml version="1.0"?>
-<speak>
-  <paragraph>
-    <sentence> welcome to polly application.</sentence>
-  </paragraph>
-</speak>]]
-
-incoming:speak(mrcp,true);
+incoming:speak("welcome to polly application.",true);
 ivrworx.sleep(1000);
 
 --
