@@ -262,6 +262,14 @@ namespace ivrworx
 	{
 	public:
 
+		// used for optimizations
+		enum MrcpSessionState
+		{
+			MRCP_SESSION_STATE_UNKNOWN,
+			MRCP_SESSION_STATE_NOT_SPEAKING,
+			MRCP_SESSION_STATE_SPEAKING
+		};
+
 		MrcpSession (IN ScopedForking &forking);
 
 		virtual ~MrcpSession (void);
@@ -269,12 +277,12 @@ namespace ivrworx
 		virtual ApiErrorCode	Allocate();
 
 		virtual ApiErrorCode	Allocate(
-			IN CnxInfo remote_end, 
-			IN MediaFormat codec);
+			IN const CnxInfo &remote_end, 
+			IN const MediaFormat &codec);
 
 		virtual ApiErrorCode	ModifySession(
-			IN CnxInfo remote_end, 
-			IN MediaFormat codec);
+			IN const CnxInfo &remote_end, 
+			IN const MediaFormat &codec);
 
 		virtual ApiErrorCode	StopSpeak();
 
@@ -283,10 +291,6 @@ namespace ivrworx
 			IN BOOL sync = TRUE);
 
 		virtual void TearDown();
-
-		virtual CnxInfo MrcpMediaData() const;
-
-		virtual void MrcpMediaData(IN CnxInfo val);
 
 		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
 
@@ -309,6 +313,8 @@ namespace ivrworx
 		LpHandlePtr _playStoppedHandle;
 
 		LpHandlePair _mrcpSessionHandlerPair;
+
+		MrcpSessionState _state;
 
 	};
 

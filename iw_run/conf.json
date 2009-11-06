@@ -2,7 +2,7 @@
 	
 	"sync_log"  : true,
 	
-	"resip_log" : "TRANSPORT,DBG",
+	"resip_log" : "",
 	
 	"debug_level"  : "DBG",
 	"debug_outputs" : "debug,console",
@@ -35,7 +35,7 @@
     
 	"rtp_proxy_base_port" : 8000,
     "rtp_proxy_top_port" : 9000,
-    "rtp_proxy_num_of_connections" : 10,
+    "rtp_proxy_num_of_connections" : 100,
     "rtp_proxy_ip" : "$COMPUTERNAME",
     
     "script_file" : "scripts\\test.lua",
@@ -52,6 +52,8 @@
         {
             "name": "SPEEX" 
         } 
-    ]
+    ],
+    
+    "polly_db" : "voice.db"
     
 }

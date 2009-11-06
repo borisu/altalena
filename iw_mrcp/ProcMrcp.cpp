@@ -11,7 +11,7 @@
 
 
 #define IW_MRCP_CHANNEL_ADD_EVT			5000
-#define IW_MRCP_SESSION_TERMINATE_EVT	5001
+#define IW_MRCP_TERMINATE_RSP			5001
 #define IW_MRCP_MESSAGE_RECEIVE_EVT		5002
 #define IW_MRCP_TERMINATE_EVT			5003
 
@@ -109,7 +109,7 @@ namespace ivrworx
 		olap->status = status;
 		olap->session = session;
 
-		send_overlapped_message(olap,IW_MRCP_SESSION_TERMINATE_EVT);
+		send_overlapped_message(olap,IW_MRCP_TERMINATE_RSP);
 
 		return TRUE;
 	}
@@ -248,14 +248,14 @@ namespace ivrworx
 					onMrcpMessageReceived((MrcpOverlapped*)lpOverlapped);
 					continue;
 				}
-			case IW_MRCP_SESSION_TERMINATE_EVT:
+			case IW_MRCP_TERMINATE_RSP:
 				{
-					onMrcpSessionTerminatedEvt((MrcpOverlapped*)lpOverlapped);
+					onMrcpSessionTerminatedRsp((MrcpOverlapped*)lpOverlapped);
 					continue;
 				}
 			case IW_MRCP_TERMINATE_EVT:
 				{
-					onMrcpTerminatedEvt((MrcpOverlapped*)lpOverlapped);
+					onMrcpSessionTerminatedEvt((MrcpOverlapped*)lpOverlapped);
 					continue;
 				}
 			case IOCP_UNIQUE_COMPLETION_KEY:
@@ -371,6 +371,11 @@ namespace ivrworx
 		}
 
 		MrcpSessionCtxPtr ctx = (*iter).second;
+
+		if (ctx->session)
+		{
+			mrcp_application_session_terminate(ctx->session);
+		}
 
 		FinalizeSessionContext(ctx);
 
@@ -553,25 +558,7 @@ namespace ivrworx
 
 	}
 
-	void 
-	ProcMrcp::UponRtspAllocateSessionReq(
-		IN IwMessagePtr msg)
-	{
-		FUNCTRACKER;
-
-		/* create session */
-		mrcp_session_t *session = 
-			mrcp_application_session_create(_application,"RTSP-Client", NULL);
-
-		mpf_rtp_termination_descriptor_t *rtp_descriptor = 
-			rtp_descriptor_create(session->pool,CnxInfo("10.0.0.2",9000), MediaFormat::PCMA);
-
-
-
-
-
-
-	}
+	
 
 	void
 	ProcMrcp::UponMrcpAllocateSessionReq(IwMessagePtr msg)
@@ -696,7 +683,7 @@ namespace ivrworx
 
 	
 	void
-	ProcMrcp::onMrcpTerminatedEvt(MrcpOverlapped *olap)
+	ProcMrcp::onMrcpSessionTerminatedEvt(MrcpOverlapped *olap)
 	{
 		FUNCTRACKER;
 
@@ -715,23 +702,17 @@ namespace ivrworx
 		if (iter == _mrcpCtxMap.end())
 		{
 			LogWarn("session terminated event on non existent ctx.");
-			//mrcp_application_session_destroy(olap->session);
-	
 		} 
 		else 
 		{
-			MrcpSessionCtxPtr ctx = (*iter).second;
-			ctx->session_handler.inbound->Send(new MsgMrcpTearDownEvt());
-			_mrcpCtxMap.erase(iter);
-			//mrcp_application_session_destroy(ctx->session);
-
+			FinalizeSessionContext((*iter).second);
 		}
 
 	}
 
 
 	void
-	ProcMrcp::onMrcpSessionTerminatedEvt(MrcpOverlapped *olap)
+	ProcMrcp::onMrcpSessionTerminatedRsp(MrcpOverlapped *olap)
 	{
 		FUNCTRACKER;
 
@@ -746,7 +727,7 @@ namespace ivrworx
 
 
 		// if we got here ctx does not exist already
-		//mrcp_application_session_destroy(olap->session);
+		mrcp_application_session_destroy(olap->session);
 		
 		
 	}

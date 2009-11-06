@@ -74,9 +74,6 @@ namespace ivrworx
 		virtual void UponMrcpAllocateSessionReq(
 			IN IwMessagePtr msg);
 
-		virtual void UponRtspAllocateSessionReq(
-			IN IwMessagePtr msg);
-
 		virtual void UponSpeakReq(
 			IN IwMessagePtr msg);
 
@@ -93,10 +90,10 @@ namespace ivrworx
 		virtual void onMrcpMessageReceived(
 			IN MrcpOverlapped *olap);
 
-		virtual void onMrcpSessionTerminatedEvt(
+		virtual void onMrcpSessionTerminatedRsp(
 			IN MrcpOverlapped *olap);
 
-		virtual void onMrcpTerminatedEvt(
+		virtual void onMrcpSessionTerminatedEvt(
 			IN MrcpOverlapped *olap);
 
 	private:

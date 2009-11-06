@@ -33,6 +33,14 @@ namespace ivrworx
 	{
 	public:
 
+		// used for optimizations
+		enum ImsSessionState
+		{
+			IMS_SESSION_STATE_UNKNOWN,
+			IMS_SESSION_STATE_NOT_PLAYING,
+			IMS_SESSION_STATE_PLAYING
+		};
+
 		ImsSession (IN ScopedForking &forking);
 
 		virtual ~ImsSession (void);
@@ -75,6 +83,8 @@ namespace ivrworx
 		LpHandlePtr _playStoppedHandle;
 
 		LpHandlePair _imsSessionHandlerPair;
+
+		ImsSessionState _state;
 	};
 
 

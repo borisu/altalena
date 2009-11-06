@@ -50,19 +50,35 @@ namespace ivrworx
 	static const Array& 
 	find_array( const Object& obj, const string& name )
 	{
-		return find_value( obj, name ).get_array(); 
+		const Value & val = find_value(obj, name );
+		if ( val.type() != array_type)
+		{
+			throw configuration_exception (name + "does not exist or not array type");
+		};
+
+		return val.get_array(); 
 	}
 
 	static int 
 	find_int( const Object& obj, const string& name )
 	{
-		return find_value( obj, name ).get_int();
+		const Value & val = find_value(obj, name );
+		if ( val.type() != int_type)
+		{
+			throw configuration_exception (name + "does not exist or not int type");
+		};
+		return val.get_int();
 	}
 
 	static bool
 	find_bool( const Object& obj, const string& name)
 	{
-		return find_value( obj, name ).get_bool();
+		const Value & val = find_value(obj, name );
+		if ( val.type() != bool_type)
+		{
+			throw configuration_exception (name + "does not exist or not bool type");
+		};
+		return val.get_bool();
 	}
 
 	string
@@ -91,8 +107,14 @@ namespace ivrworx
 	find_str( const Object& obj, const string& name )
 	{
 		
-		string value_str = find_value(obj, name ).get_str();
 		
+		const Value & val = find_value(obj, name );
+		if ( val.type() != str_type)
+		{
+			throw configuration_exception (name + " does not exist or not string type");
+		};
+
+		string value_str = val.get_str();
 		if (value_str.length() > 0 && 
 			 *value_str.begin() == '$')
 		{
@@ -135,6 +157,7 @@ namespace ivrworx
 	JSONConfiguration::GetInt(IN const string &name)
 	{
 
+		
 		Object root_obj(_value.get_obj());
 		return find_int(root_obj, name);
 
@@ -146,7 +169,7 @@ namespace ivrworx
 
 		Object root_obj(_value.get_obj());
 		return find_str(root_obj, name);
-
+				
 	}
 
 	BOOL
