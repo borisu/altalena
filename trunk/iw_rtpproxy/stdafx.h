@@ -55,6 +55,8 @@
 #include "LightweightProcess.h"
 #include "Logger.h"
 
+#include "Message.h"
+
 #pragma warning( pop )
 
 

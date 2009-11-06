@@ -36,7 +36,8 @@ _imsSessionHandle(IW_UNDEFINED),
 _imsSessionHandlerPair(HANDLE_PAIR),
 _forking(forking),
 _hangupHandle(new LpHandle()),
-_playStoppedHandle(new LpHandle())
+_playStoppedHandle(new LpHandle()),
+_state(IMS_SESSION_STATE_NOT_PLAYING)
 {
 	FUNCTRACKER;
 }
@@ -67,6 +68,11 @@ ImsSession::StopPlay()
 		return API_WRONG_STATE;
 	}
 
+	if (_state == IMS_SESSION_STATE_NOT_PLAYING)
+	{
+		return API_SUCCESS;
+	}
+
 	MsgImsStopPlayReq *msg = new MsgImsStopPlayReq();
 	msg->ims_handle	= _imsSessionHandle;
 	
@@ -94,6 +100,8 @@ ImsSession::PlayFile(IN const string &file_name,
 		LogWarn("ImsSession::PlayFile - Cannot play sync and in loop.");
 		return API_FAILURE;
 	}
+
+	_state = IMS_SESSION_STATE_UNKNOWN;
 
 	IwMessagePtr response = NULL_MSG;
 	int handle_index = IW_UNDEFINED;
@@ -151,6 +159,7 @@ ImsSession::PlayFile(IN const string &file_name,
 
 		if (stopped_evt->correlation_id == ack->correlation_id)
 		{
+			_state = IMS_SESSION_STATE_NOT_PLAYING;
 			return API_SUCCESS;
 		}
 
@@ -335,6 +344,7 @@ ImsSession::TearDown()
 
 	// no way back
 	_imsSessionHandle = IW_UNDEFINED;
+	_state = IMS_SESSION_STATE_UNKNOWN;
 
 	ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(IMS_Q,IwMessagePtr(tear_req));
 

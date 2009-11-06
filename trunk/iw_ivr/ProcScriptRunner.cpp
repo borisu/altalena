@@ -306,9 +306,10 @@ namespace ivrworx
 				//
 				// ivrworx.INCOMING
 				//
-				CallBridge call_bridge(call_session);
+				// will be deleted by lua gc
+				CallBridge *call_bridge = new CallBridge(call_session);
 				
-				Luna<CallBridge>::RegisterObject(vm,&call_bridge,ivrworx_table.TableRef(),"INCOMING");
+				Luna<CallBridge>::RegisterObject(vm,call_bridge,ivrworx_table.TableRef(),"INCOMING");
 
 
 				// compile the script if needed

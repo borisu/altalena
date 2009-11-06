@@ -113,7 +113,13 @@ namespace ivrworx
 		critical_exception(const char *);
 	};
 
-	class configuration_exception: 	public exception {};
+	class configuration_exception: 	public exception 
+	{
+	public:
+		configuration_exception();
+		configuration_exception(const char *);
+		configuration_exception(const string &);
+	};
 
 	/**
 

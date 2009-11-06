@@ -36,7 +36,8 @@ _mrcpSessionHandle(IW_UNDEFINED),
 _mrcpSessionHandlerPair(HANDLE_PAIR),
 _forking(forking),
 _hangupHandle(new LpHandle()),
-_playStoppedHandle(new LpHandle())
+_playStoppedHandle(new LpHandle()),
+_state(MRCP_SESSION_STATE_NOT_SPEAKING)
 {
 	FUNCTRACKER;
 
@@ -70,9 +71,16 @@ MrcpSession::StopSpeak()
 {
 	FUNCTRACKER;
 
+	LogDebug("MrcpSession::StopSpeak mrcph:" << _mrcpSessionHandle << ", state:" << _state );
+
 	if (_mrcpSessionHandle == IW_UNDEFINED)
 	{
 		return API_FAILURE;
+	}
+
+	if (_state == MRCP_SESSION_STATE_NOT_SPEAKING)
+	{
+		return API_SUCCESS;
 	}
 
 	MsgMrcpStopSpeakReq *msg = new MsgMrcpStopSpeakReq();
@@ -85,6 +93,13 @@ MrcpSession::StopSpeak()
 		response,
 		Seconds(5),
 		"Stop Speak TXN");
+
+	if (IW_SUCCESS(res))
+	{
+		_state = MRCP_SESSION_STATE_NOT_SPEAKING;
+
+	}
+
 	return res;
 
 }
@@ -98,11 +113,15 @@ MrcpSession::Speak(IN const string &mrcp_xml,
 
 	FUNCTRACKER;
 
+	LogDebug("MrcpSession::Speak mrcph:" << _mrcpSessionHandle << ", mrcp_xml:" << mrcp_xml << ", sync:" << sync);
+
 	if (_mrcpSessionHandle == IW_UNDEFINED)
 	{
 		LogWarn("MrcpSession::Speak session is not allocated.");
 		return API_FAILURE;
 	}
+
+	_state = MRCP_SESSION_STATE_UNKNOWN;
 
 	MsgMrcpSpeakReq *msg = new MsgMrcpSpeakReq();
 	msg->mrcp_handle	= _mrcpSessionHandle;
@@ -156,6 +175,7 @@ MrcpSession::Speak(IN const string &mrcp_xml,
 
 		if (stopped_evt->correlation_id == ack->correlation_id)
 		{
+			_state = MRCP_SESSION_STATE_NOT_SPEAKING;
 			return API_SUCCESS;
 		}
 
@@ -193,12 +213,12 @@ MrcpSession::Allocate()
 }
 
 ApiErrorCode
-MrcpSession::Allocate(IN CnxInfo remote_end, 
-								  IN MediaFormat codec)
+MrcpSession::Allocate(IN const CnxInfo &remote_end, 
+								  IN const MediaFormat &codec)
 {
 	FUNCTRACKER;
 
-	LogDebug("MrcpSession::Allocate remote:" <<  remote_end.ipporttos()  << ", codec:"  << codec << ", mrcph:" << _mrcpSessionHandle);
+	LogDebug("MrcpSession::Allocate rci:" <<  remote_end.ipporttos()  << ", mf:"  << codec << ", mrcph:" << _mrcpSessionHandle);
 	
 	if (_mrcpSessionHandle != IW_UNDEFINED)
 	{
@@ -268,8 +288,8 @@ MrcpSession::InterruptWithHangup()
 }
 
 ApiErrorCode
-MrcpSession::ModifySession(IN CnxInfo remote_end, 
-								  IN MediaFormat codec)
+MrcpSession::ModifySession(IN const CnxInfo &remote_end, 
+								  IN const MediaFormat &codec)
 {
 	FUNCTRACKER;
 
@@ -320,16 +340,6 @@ MrcpSession::ModifySession(IN CnxInfo remote_end,
 }
 
 
-CnxInfo MrcpSession::MrcpMediaData() const 
-{ 
-	return _mrcpMediaData; 
-}
-
-void MrcpSession::MrcpMediaData(IN CnxInfo val) 
-{ 
-	_mrcpMediaData = val; 
-}
-
 void
 MrcpSession::TearDown()
 {
@@ -337,6 +347,8 @@ MrcpSession::TearDown()
 	{
 		return;
 	}
+
+	_state = MRCP_SESSION_STATE_UNKNOWN;
 
 	MsgMrcpTearDownReq *tear_req = new MsgMrcpTearDownReq();
 	tear_req->mrcp_handle = _mrcpSessionHandle;

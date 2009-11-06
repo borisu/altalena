@@ -39,6 +39,23 @@ namespace ivrworx
 	{
 		
 	}
+
+	configuration_exception::configuration_exception()
+	{
+
+	}
+
+	configuration_exception::configuration_exception(const char *what):
+	std::exception(what)
+	{
+
+	}
+
+	configuration_exception::configuration_exception(const string &what):
+	std::exception(what.c_str())
+	{
+
+	}
 	
 
 

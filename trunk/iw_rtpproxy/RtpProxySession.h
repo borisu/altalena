@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "IwUtils.h"
-#include "Message.h"
+
 
 #define RTP_PROXY_Q 10
 
@@ -149,6 +148,7 @@ namespace ivrworx
 
 		RtpProxyHandle _handle;
 
+		RtpProxyHandle _bridgedHandle;
 
 	};
 

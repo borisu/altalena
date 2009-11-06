@@ -24,7 +24,8 @@
 namespace ivrworx
 {
 	RtpProxySession::RtpProxySession(void):
-	_handle(IW_UNDEFINED)
+	_handle(IW_UNDEFINED),
+	_bridgedHandle(IW_UNDEFINED)
 	{
 	}
 
@@ -114,14 +115,15 @@ namespace ivrworx
 		GetCurrLightWeightProc()->SendMessage(RTP_PROXY_Q,IwMessagePtr(req));
 
 		_handle = IW_UNDEFINED;
-
+		_bridgedHandle = IW_UNDEFINED;
+		
 		return API_SUCCESS;
 	}
 
 	ApiErrorCode 
 	RtpProxySession::Modify(const CnxInfo &conn,const MediaFormat &media_fromat)
 	{
-		LogDebug("RtpProxySession::Modify  rtph:" << _handle << ", ci:" << conn);
+		LogDebug("RtpProxySession::Modify  rtph:" << _handle << ", ci:" << conn << ", format:" << media_fromat);
 
 		if (_handle == IW_UNDEFINED)
 		{
@@ -172,12 +174,20 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		LogDebug("Bridge src:" << _handle << ", dst:" << dest._handle);
+		LogDebug("RtpProxySession::Bridge src:" << _handle << ", dst:" << dest._handle);
 
 		if (_handle == IW_UNDEFINED)
 		{
 			return API_WRONG_STATE;
 		}
+
+		// don't bridge twice optimization
+		if (_bridgedHandle == dest._handle)
+		{
+			return API_SUCCESS;
+		}
+
+		_bridgedHandle = IW_UNDEFINED;
 
 		DECLARE_NAMED_HANDLE_PAIR(session_handler_pair);
 
@@ -206,6 +216,8 @@ namespace ivrworx
 			{
 				shared_ptr<MsgRtpProxyAck> ack 
 					= dynamic_pointer_cast<MsgRtpProxyAck> (response);
+
+				_bridgedHandle = dest._handle;
 
 				return API_SUCCESS;
 			}

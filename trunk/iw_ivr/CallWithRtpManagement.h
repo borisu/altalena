@@ -24,12 +24,7 @@ namespace ivrworx
 	class CallWithRtpManagement :
 		public Call
 	{
-		enum BRIDGE_STATE
-		{
-			BRIDGE_STATE_NONE,
-			BRIDGE_STATE_IMS,
-			BRIDGE_STATE_MRCP
-		};
+		
 
 	public:
 
@@ -82,7 +77,7 @@ namespace ivrworx
 
 	
 		shared_ptr<MsgCallOfferedReq> _origOffereReq;
-		BRIDGE_STATE _bridgeState;
+		
 
 	};
 
