@@ -64,6 +64,19 @@ namespace ivrworx
 		int waitforhangup(lua_State *L);
 		int ani(lua_State *L);
 		int dnis(lua_State *L);
+
+		/**
+		
+			Calls SIP destination. 
+
+			\code
+			call = ivrworx.createcall();
+			call:makecall("sip:6095@192.168.150.3:5060");
+			\endcode
+
+			@return ApiErrorCode
+
+		**/
 		int makecall(lua_State *L);
 		int blindxfer(lua_State *L);
 		int hangup(lua_State *L);

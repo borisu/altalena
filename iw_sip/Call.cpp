@@ -45,6 +45,7 @@ _callState(CALL_STATE_UNKNOWN)
 	StartActiveObjectLwProc(forking,_handlerPair,"Call Session Handler");
 
 	_stackCallHandle = GenerateSipHandle();
+	
 
 }
 
@@ -91,7 +92,7 @@ Call::EnableMediaFormat(IN const MediaFormat& media_format)
 {
 	FUNCTRACKER;
 
-	LogDebug("Media format:" << media_format << ", enabled for iwh:" << _stackCallHandle );
+	LogDebug("Call::EnableMediaFormat - Media format:" << media_format << ", enabled for iwh:" << _stackCallHandle );
 
 	_supportedMediaFormatsMap.insert(
 		MediaFormatMapPair(media_format.sdp_mapping(), media_format));
@@ -310,7 +311,7 @@ Call::RejectCall()
 {
 	FUNCTRACKER;
 
-	LogDebug("RejectCall:: iwh:" << _stackCallHandle );
+	LogDebug("Call::RejectCall iwh:" << _stackCallHandle );
 
 	MsgCallOfferedNack *msg = new MsgCallOfferedNack();
 	msg->stack_call_handle = _stackCallHandle;
@@ -484,11 +485,12 @@ Call::BlindXfer(IN const string &destination_uri)
 
 ApiErrorCode
 Call::MakeCall(IN const string &destination_uri, 
-			   IN const CnxInfo &local_media)
+			   IN const CnxInfo &local_media,
+			   IN csp::Time ring_timeout)
 {
 	FUNCTRACKER;
 
-	LogDebug("Call::MakeCall dst:" << destination_uri <<", local cnx:" << local_media);
+	LogDebug("Call::MakeCall dst:" << destination_uri <<", lci:" << local_media);
 
 	if (_callState != CALL_STATE_UNKNOWN)
 	{
@@ -513,7 +515,7 @@ Call::MakeCall(IN const string &destination_uri,
 		SIP_STACK_Q,
 		IwMessagePtr(msg),
 		response,
-		Seconds(60),
+		ring_timeout,
 		"Make Call TXN");
 
 
@@ -569,7 +571,7 @@ Call::MakeCall(IN const string &destination_uri,
 
 	if (IW_FAILURE(res))
 	{
-		RejectCall();
+		HangupCall();
 		CALL_RESET_STATE(CALL_STATE_UNKNOWN);
 		return API_SERVER_FAILURE;
 	};
@@ -591,6 +593,9 @@ Call::MakeCall(IN const string &destination_uri,
 		CALL_RESET_STATE(CALL_STATE_UNKNOWN);
 		return API_SERVER_FAILURE;
 	};
+
+	_dnis = destination_uri;
+	_ani  = make_call_ok->ani;
 		
 	CALL_RESET_STATE(CALL_STATE_CONNECTED);
 

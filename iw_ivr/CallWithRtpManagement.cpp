@@ -31,10 +31,12 @@ namespace ivrworx
 		_mrcpEnabled(FALSE),
 		_rtspEnabled(FALSE),
 		_rtspSession(forking),
-		_mrcpSession(forking)
+		_mrcpSession(forking),
+		_ringTimeout(Seconds(60))
 	{
 		_mrcpEnabled = _conf.GetBool("mrcp_enabled");
 		_rtspEnabled = _conf.GetBool("rtsp_enabled");
+		_ringTimeout = Seconds(_conf.GetInt("ring_timeout"));
 		
 	}
 
@@ -48,10 +50,12 @@ namespace ivrworx
 		_rtspEnabled(FALSE),
 		_origOffereReq(offered_msg),
 		_rtspSession(forking),
-		_mrcpSession(forking)
+		_mrcpSession(forking),
+		_ringTimeout(Seconds(60))
 	{
 		_mrcpEnabled = _conf.GetBool("mrcp_enabled");
 		_rtspEnabled = _conf.GetBool("rtsp_enabled");
+		_ringTimeout = Seconds(_conf.GetInt("ring_timeout"));
 		
 		RemoteMedia(offered_msg->remote_media);
 	}
@@ -318,7 +322,7 @@ namespace ivrworx
 		
 		
 		LogDebug("CallWithRtpManagement::MakeCall *** calling ***");
-		res = Call::MakeCall(destination_uri,_callerRtpSession.LocalCnxInfo());
+		res = Call::MakeCall(destination_uri,_callerRtpSession.LocalCnxInfo(),_ringTimeout);
 		if (IW_FAILURE(res))
 		{
 			return res;

@@ -21,6 +21,8 @@
     "sip_refresh_mode" : "prefer_none",
     "sip_default_session_time" : 180,
     
+    "ring_timeout" : 20, 
+    
     "from_id" : "ivrworx",
     "from_display_name": "ivrworx",
     

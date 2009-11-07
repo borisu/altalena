@@ -937,6 +937,15 @@ error:
 	void
 	ProcMrcp::Destroy(void)
 	{
+		
+		_mrcpCtxMap.clear();
+
+		if (_mrcpClient) 
+		{
+			mrcp_client_shutdown(_mrcpClient);
+			mrcp_client_destroy(_mrcpClient);
+		}
+		
 		/* destroy singleton logger */
 		if (_logInititiated == TRUE) 
 		{
