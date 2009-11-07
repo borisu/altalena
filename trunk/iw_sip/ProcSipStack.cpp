@@ -188,7 +188,7 @@ namespace ivrworx
 	ProcSipStack::~ProcSipStack(void)
 	{
 		FUNCTRACKER;
-		ShutDown();
+		
 	}
 
 
@@ -324,7 +324,7 @@ namespace ivrworx
 	}
 
 	void
-	ProcSipStack::ShutDown()
+	ProcSipStack::ShutdownStack()
 	{
 		FUNCTRACKER;
 
@@ -343,11 +343,9 @@ namespace ivrworx
 	}
 
 	void
-	ProcSipStack::ShutDown(IwMessagePtr req)
+	ProcSipStack::UponShutDownReq(IwMessagePtr req)
 	{
 		FUNCTRACKER;
-
-		ShutDown();
 
 	}
 
@@ -373,6 +371,8 @@ namespace ivrworx
 	ProcSipStack::UponMakeCallReq(IwMessagePtr req)
 	{
 		FUNCTRACKER;
+
+		throw exception();
 
 		_dumUac.UponMakeCallReq(req);
 	}
@@ -412,7 +412,7 @@ namespace ivrworx
 				}
 			case MSG_PROC_SHUTDOWN_REQ:
 				{
-					ShutDown(msg);
+					UponShutDownReq(msg);
 					shutdown = true;
 					SendResponse(msg, new MsgShutdownAck());
 					break;
@@ -466,7 +466,7 @@ namespace ivrworx
 		ApiErrorCode res = Init();
 		if (IW_FAILURE(res))
 		{
-			LogCrit("Cannot start sip stack res:" << res);
+			LogCrit("ProcSipStack::real_run - Cannot start sip stack res:" << res);
 			return;
 		}
 
@@ -475,18 +475,20 @@ namespace ivrworx
 		BOOL shutdown_flag = FALSE;
 		while (shutdown_flag == FALSE)
 		{
-			// ***
-			// IX_PROFILE_CHECK_INTERVAL(11000);
-			// ***
+			try
+			{
+				// ***
+				// IX_PROFILE_CHECK_INTERVAL(11000);
+				// ***
 
-			// taken from DumThread
-			std::auto_ptr<Message> msg(_dumMngr.mFifo.getNext(60000));  // Only need to wake up to see if we are shutdown
-			if (msg.get())
-			{
-				_dumMngr.internalProcess(msg);
-			} 
-			else
-			{
+				// taken from DumThread
+				std::auto_ptr<Message> msg(_dumMngr.mFifo.getNext(60000));  // Only need to wake up to see if we are shutdown
+				if (msg.get())
+				{
+					_dumMngr.internalProcess(msg);
+					continue;
+				} 
+
 				if (InboundPending())
 				{
 					shutdown_flag = ProcessApplicationMessages();
@@ -499,8 +501,21 @@ namespace ivrworx
 				{
 					LogInfo("Sip keep alive.");
 				}
-			}
+			} 
+			catch (exception &e)
+			{
+				LogWarn("ProcSipStack::real_run exeption in stack e:" << e.what());
+				break;
+			} // try-catch
+		} // while
+
+		for (IwHandlesMap::iterator iter = _iwHandlesMap.begin(); iter != _iwHandlesMap.end() ; ++iter)
+		{
+			FinalizeContext((*iter).second);
 		}
+
+		ShutdownStack();
+
 	}
 
 	void 
@@ -577,6 +592,27 @@ namespace ivrworx
 	}
 
 	void 
+	ProcSipStack::FinalizeContext(SipDialogContextPtr ctx_ptr)
+	{
+		FUNCTRACKER;
+		
+		IwStackHandle ixhandle = ctx_ptr->stack_handle;
+		ctx_ptr->call_handler_inbound->Send(new MsgCallHangupEvt());
+
+		
+		_iwHandlesMap.erase(ctx_ptr->stack_handle);
+
+		if (ctx_ptr->uas_invite_handle.isValid())
+		{
+			_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
+		}
+		if (ctx_ptr->uac_invite_handle.isValid())
+		{
+			_resipHandlesMap.erase(ctx_ptr->uac_invite_handle->getAppDialog());
+		}
+	}
+
+	void 
 	ProcSipStack::onTerminated(
 		IN InviteSessionHandle is, 
 		IN InviteSessionHandler::TerminatedReason reason, 
@@ -584,28 +620,14 @@ namespace ivrworx
 	{
 		
 		FUNCTRACKER;
+
 		// this logic is not UAS/UAC specific
-		
-		IwStackHandle ixhandle = IW_UNDEFINED;
+		LogDebug("ProcSipStack::onTerminated rsh:" << is.getId());
+	
 		ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
 		if (iter != _resipHandlesMap.end())
 		{
-			// early termination
-			SipDialogContextPtr ctx_ptr = (*iter).second;
-			ixhandle = ctx_ptr->stack_handle;
-			ctx_ptr->call_handler_inbound->Send(new MsgCallHangupEvt());
-
-			LogDebug("onTerminated:: " << LogHandleState(ctx_ptr,is));
-			_iwHandlesMap.erase(ctx_ptr->stack_handle);
-
-			if (ctx_ptr->uas_invite_handle.isValid())
-			{
-				_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
-			}
-			if (ctx_ptr->uac_invite_handle.isValid())
-			{
-				_resipHandlesMap.erase(ctx_ptr->uac_invite_handle->getAppDialog());
-			}
+			FinalizeContext((*iter).second);
 		} 
 	}
 

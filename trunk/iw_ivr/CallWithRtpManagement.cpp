@@ -289,6 +289,7 @@ namespace ivrworx
 	CallWithRtpManagement::UponCallTerminated(IwMessagePtr ptr)
 	{
 		_rtspSession.InterruptWithHangup();
+		_mrcpSession.InterruptWithHangup();
 
 		Call::UponCallTerminated(ptr);
 	}
