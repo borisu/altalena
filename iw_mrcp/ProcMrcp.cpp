@@ -288,6 +288,7 @@ namespace ivrworx
 					case MSG_PROC_SHUTDOWN_REQ:
 						{
 							shutdown_flag = TRUE;
+							SendResponse(ptr, new MsgShutdownAck());
 							break;
 						}
 					default:
@@ -304,11 +305,13 @@ namespace ivrworx
 			default:
 				{
 					
+					shutdown_flag = TRUE;
 					LogCrit("Unknown overlapped structure received");
-					Destroy();
 				} // default
 			}// case
 		}// while
+
+		Destroy();
 
 	}
 
@@ -943,7 +946,7 @@ error:
 		if (_mrcpClient) 
 		{
 			mrcp_client_shutdown(_mrcpClient);
-			mrcp_client_destroy(_mrcpClient);
+			_mrcpClient = NULL;
 		}
 		
 		/* destroy singleton logger */
@@ -966,7 +969,7 @@ error:
 	
 	ProcMrcp::~ProcMrcp(void)
 	{
-		Destroy();
+		FUNCTRACKER;
 	}
 
 }

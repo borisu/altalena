@@ -35,12 +35,7 @@ namespace ivrworx
 
 	Configuration::~Configuration(void)
 	{
-		while (!_mediaFormatPtrsList.empty())
-		{
-			const MediaFormat *ptr = _mediaFormatPtrsList.front();
-			_mediaFormatPtrsList.pop_front();
-			delete const_cast<MediaFormat *> (ptr);
-		}
+		
 	}
 
 	bool

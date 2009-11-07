@@ -120,7 +120,7 @@ namespace ivrworx
 
 		virtual void UponHangupCallReq(IN IwMessagePtr req);
 
-		virtual void ShutDown(IN IwMessagePtr req);
+		virtual void UponShutDownReq(IN IwMessagePtr req);
 
 		virtual void UponCallOfferedAck(IN IwMessagePtr req);
 
@@ -167,7 +167,9 @@ namespace ivrworx
 			IN InviteSessionHandle, 
 			IN const SipMessage& msg);
 	
-		virtual void ShutDown();
+		virtual void ShutdownStack();
+
+		virtual void FinalizeContext(SipDialogContextPtr ctx);
 
 	protected:
 

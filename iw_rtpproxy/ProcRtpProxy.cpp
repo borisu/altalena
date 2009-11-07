@@ -230,9 +230,7 @@ ProcRtpProxy::real_run()
 		return;
 	}
 
-	
-	
-	
+
 	// will be deleted in thread
 	ThreadParams *params 
 		= new ThreadParams();
@@ -305,6 +303,12 @@ ProcRtpProxy::real_run()
 				UponDeallocateReq(msg);
 				break; 
 			}; 
+		case MSG_PROC_SHUTDOWN_REQ:
+			{ 
+				shutdown_flag = TRUE;
+				SendResponse(msg,new MsgShutdownAck());
+				break; 
+			}; 
 		default:
 			{
 				if (HandleOOBMessage(msg) == FALSE)
@@ -327,8 +331,10 @@ exit:
 		}
 	}
 
-	RtpConnectionsMap::iterator iter = _connectionsMap.begin();
-	while(iter != _connectionsMap.end())
+	
+	for (RtpConnectionsMap::iterator iter = _connectionsMap.begin();
+		iter != _connectionsMap.end();
+		++iter)
 	{
 		Unbridge(iter->second);
 	};
