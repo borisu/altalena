@@ -77,7 +77,8 @@ namespace ivrworx
 
 	
 		shared_ptr<MsgCallOfferedReq> _origOffereReq;
-		
+
+		csp::Time _ringTimeout;
 
 	};
 
