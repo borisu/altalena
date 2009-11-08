@@ -255,6 +255,11 @@ namespace ivrworx
 
 			if (_conf.EnableSessionTimer())
 			{
+// 				auto_ptr<KeepAliveManager> keepAlive(new resip::KeepAliveManager());
+// 				_dumMngr.setKeepAliveManager(keepAlive); 
+// 				_dumMngr.getMasterProfile()->setKeepAliveTimeForDatagram(30);
+// 				_dumMngr.getMasterProfile()->setKeepAliveTimeForStream(30);
+
 				_dumMngr.getMasterProfile()->addSupportedOptionTag(Token(Symbols::Timer));
 
 				_confSessionTimerModeMap["prefer_uac"]	  = Profile::PreferUACRefreshes;
@@ -301,6 +306,23 @@ namespace ivrworx
 			LogWarn("Error while starting sip stack - " << e.getMessage().c_str());
 			return API_FAILURE;
 		}
+
+	}
+
+	void 
+	ProcSipStack::onSessionExpired(IN InviteSessionHandle is)
+	{
+		FUNCTRACKER;
+
+		LogWarn("ProcSipStack::onSessionExpired - rsh:" << is.getId());
+		ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
+		if (iter != _resipHandlesMap.end())
+		{
+			SipDialogContextPtr ctx = (*iter).second;
+			LogDebug("ProcSipStack::onSessionExpired rsh:" << is.getId() << ", iwh:" << ctx->stack_handle);
+			FinalizeContext(ctx);
+		} 
+
 
 	}
 
@@ -371,8 +393,6 @@ namespace ivrworx
 	ProcSipStack::UponMakeCallReq(IwMessagePtr req)
 	{
 		FUNCTRACKER;
-
-		throw exception();
 
 		_dumUac.UponMakeCallReq(req);
 	}
@@ -627,7 +647,9 @@ namespace ivrworx
 		ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
 		if (iter != _resipHandlesMap.end())
 		{
-			FinalizeContext((*iter).second);
+			SipDialogContextPtr ctx = (*iter).second;
+			LogDebug("ProcSipStack::onTerminated rsh:" << is.getId() << ", iwh:" << ctx->stack_handle);
+			FinalizeContext(ctx);
 		} 
 	}
 

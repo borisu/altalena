@@ -161,6 +161,8 @@ assert(incoming:answer() == ivrworx.API_SUCCESS);
 -- Play welcome propmt
 --
 incoming:play(greeting,true,false);
+incoming:waitforhangup();
+
 incoming:speak("welcome to polly application.",true);
 ivrworx.sleep(10000);
 incoming:speak("welcome to polly application.",true);

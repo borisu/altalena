@@ -63,12 +63,12 @@ namespace ivrworx
 		IwHandlesMap::iterator iter = _refIwHandlesMap.find(ack->stack_call_handle);
 		if (iter == _refIwHandlesMap.end())
 		{
-			LogWarn("UponCallOfferedNack:: iwh:" << ack->stack_call_handle<< " not found. Has caller disconnected already?");
+			LogWarn("UASDialogUsageManager::UponCallOfferedNack -  iwh:" << ack->stack_call_handle<< " not found. Has caller disconnected already?");
 			return;
 		}
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
-		LogDebug("UponCallOfferedNack:: " << LogHandleState(ctx_ptr, ctx_ptr->invite_handle));
+		LogDebug("UASDialogUsageManager::UponCallOfferedNack -  " << LogHandleState(ctx_ptr, ctx_ptr->invite_handle));
 
 		CleanUpCall(ctx_ptr);
 
@@ -88,18 +88,18 @@ namespace ivrworx
 		IwHandlesMap::iterator iter = _refIwHandlesMap.find(ack->stack_call_handle);
 		if (iter == _refIwHandlesMap.end())
 		{
-			LogWarn("UponCallOfferedAck:: iwh:" << ack->stack_call_handle<< " not found. Has caller disconnected already?");
+			LogWarn("UASDialogUsageManager::UponCallOfferedAck -  iwh:" << ack->stack_call_handle<< " not found. Has caller disconnected already?");
 			return;
 		}
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
 		if (ack->accepted_codecs.empty())
 		{
-			LogWarn("UponCallOfferedAck:: No accepted codec found " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
+			LogWarn("UASDialogUsageManager::UponCallOfferedAck -  No accepted codec found " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 			HangupCall(ctx_ptr);
 		}
 
-		LogDebug("UponCallOfferedAck:: " << LogHandleState(ctx_ptr, ctx_ptr->invite_handle));
+		LogDebug("UASDialogUsageManager::UponCallOfferedAck -  " << LogHandleState(ctx_ptr, ctx_ptr->invite_handle));
 
 		SdpContents sdp;
 
@@ -164,7 +164,7 @@ namespace ivrworx
 		_resipHandlesMap[sis->getAppDialog()]= ctx_ptr;
 		_refIwHandlesMap[ctx_ptr->stack_handle]= ctx_ptr;
 
-		LogDebug("onNewSession:: " << LogHandleState(ctx_ptr,ctx_ptr->uas_invite_handle));
+		LogDebug("UASDialogUsageManager::onNewSession - " << LogHandleState(ctx_ptr,ctx_ptr->uas_invite_handle));
 
 	}
 
@@ -187,14 +187,14 @@ namespace ivrworx
 		ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(is->getAppDialog());
 		if (ctx_iter == _resipHandlesMap.end())
 		{
-			LogCrit("onOffer:: without created context, rsh:" << is.getId());
+			LogCrit("UASDialogUsageManager::onOffer - without created context, rsh:" << is.getId());
 			throw;
 		}
 
 		SipDialogContextPtr ctx_ptr = (*ctx_iter).second;
 		ctx_ptr->invite_handle = is;
 
-		LogDebug("onOffer::" << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
+		LogDebug("UASDialogUsageManager::onOffer - " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 
 		const SdpContents::Session &s = sdp.session();
 		const Data &addr_data = s.connection().getAddress();
@@ -205,7 +205,7 @@ namespace ivrworx
 		if (is->isAccepted() && 
 			(sdp.session().origin().getVersion() == s.origin().getVersion()))
 		{
-			LogWarn("onOffer:: Session timer keep-alive " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
+			LogDebug("UASDialogUsageManager::onOffer - Session timer keep-alive " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
  			is->provideAnswer(is->getLocalSdp());
 			return;
 		}
@@ -213,7 +213,7 @@ namespace ivrworx
 		
 		if (s.media().empty())
 		{
-			LogWarn("onOffer:: Empty medias list " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
+			LogWarn("UASDialogUsageManager::onOffer - Empty medias list " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 			HangupCall(ctx_ptr);
 			return;
 		}
@@ -232,7 +232,7 @@ namespace ivrworx
 
 		if (iter == s.media().end())
 		{
-			LogWarn("onOffer:: Not found audio connection " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
+			LogWarn("UASDialogUsageManager::onOffer - Not found audio connection " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 			HangupCall(ctx_ptr);
 			return;
 		}
@@ -250,7 +250,7 @@ namespace ivrworx
 			medium.exists("sendonly") || 
 			medium.exists("inactive"))
 		{
-			LogWarn("onOffer:: In-dialog offer is not supported, rejecting offer" << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
+			LogWarn("UASDialogUsageManager::onOffer - In-dialog offer is not supported, rejecting offer" << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 			is->reject(488);
 			return;
 		}
