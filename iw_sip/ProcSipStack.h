@@ -166,6 +166,9 @@ namespace ivrworx
 		virtual void onInfo(
 			IN InviteSessionHandle, 
 			IN const SipMessage& msg);
+
+		virtual void onSessionExpired(
+			IN InviteSessionHandle is);
 	
 		virtual void ShutdownStack();
 

@@ -18,7 +18,7 @@
     "super_mode":   "sync",
     
     "sip_session_timer_enabled" : true,
-    "sip_refresh_mode" : "prefer_none",
+    "sip_refresh_mode" : "prefer_remote",
     "sip_default_session_time" : 180,
     
     "ring_timeout" : 20, 
@@ -27,7 +27,7 @@
     "from_display_name": "ivrworx",
     
      
-    "mrcp_enabled": true,
+    "mrcp_enabled": false,
     "unimrcp_conf_dir": "./unimrcp",
     "unimrcp_client_profile": "MRCPv2-Default",
     "unimrcp_log_file": "unimrcpclient",
