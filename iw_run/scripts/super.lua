@@ -15,32 +15,33 @@ conf = assert(ivrworx.CONF)
 logger:loginfo("super *** Welcome!");
 
 
+call1 = CallBridge:new()
+call1 = nil;
+collectgarbage("collect");
+
 
 
 --
 -- Make the call and blind transfer it to another destination
 --
-call = ivrworx.createcall();
-if (call == nil) then
- ivrworx.loginf("Error making call res:" .. res)
-  return;
-end
+
 
 
 greeting = "C:\\dev\\CosmoCom\\Universe_5\\5_1_0\\Install Packs\\Server Components\\Files\\Samples\\VCS\\IVR\\greeting.wav"
-assert( call:makecall("sip:24001@192.168.150.3:5060")	== ivrworx.API_SUCCESS);
-logger:loginfo("ani:"..call:ani()..", dnis:" .. call:dnis());
-call:waitforhangup();
 
-if (true) then
- return;
-end
+call = ivrworx.createcall();
+assert(call:makecall("sip:6001@192.168.100.67:5060")	    == ivrworx.API_SUCCESS);
+assert(call:speak("Welcome to CCU application" ,true)== ivrworx.API_SUCCESS);
 
+play_phrase.spell_number(call,"123");
 
 
-assert( call:play(greeting ,true,false)					== ivrworx.API_SUCCESS);
-assert( call:speak("Welcome to CCU application",true)	== ivrworx.API_SUCCESS);
-assert( call:blindxfer("sip:24001@192.168.100.67:5060")	== ivrworx.API_SUCCESS); 
+
+
+
+
+--assert( call:speak("Welcome to CCU application",true)	== ivrworx.API_SUCCESS);
+--assert( call:blindxfer("sip:6001@192.168.100.67:5060")	== ivrworx.API_SUCCESS); 
 
 
 

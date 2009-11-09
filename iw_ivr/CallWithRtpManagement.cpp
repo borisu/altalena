@@ -67,7 +67,7 @@ namespace ivrworx
 
 		if (_callState != CALL_STATE_INITIAL_OFFERED)
 		{
-			LogDebug("CallWithRtpManagement::AcceptInitialOffer -  wrong call state:" << _callState << ", iwh:" << _stackCallHandle);
+			LogWarn("CallWithRtpManagement::AcceptInitialOffer -  wrong call state:" << _callState << ", iwh:" << _stackCallHandle);
 			return API_WRONG_STATE;
 		}
 		

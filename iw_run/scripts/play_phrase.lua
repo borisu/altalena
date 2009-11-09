@@ -141,13 +141,13 @@ local two_digits_sounds = {
 
 local function play_zero(handle)
 
-	return ivrworx.play(handle,numbers_path.."\\0.wav",true,false);
+	return handle:play(numbers_path.."\\0.wav",true,false);
 	
 end
 
 local function play_minus(handle)
 
-	return ivrworx.play(handle,numbers_path.."\\minus.wav",true,false);
+	return handle:play(numbers_path.."\\minus.wav",true,false);
 	
 end
 
@@ -160,58 +160,74 @@ end
 
 local function play_hundreds(handle,i)
 
+	
+	
 	if (i == 0 or i > 10) then return 0; end;
 	
-	return ivrworx.play(handle,numbers_path.."\\"..hundreds_sounds[i*100],true,false);
+	
+	return handle:play(numbers_path.."\\"..hundreds_sounds[i*100],true,false);
 	
 end
 
 
 local function play_two_digits(handle,i)
 
+	
 	if (i == 0) then return 0; end;
 		
-	return ivrworx.play(handle,numbers_path.."\\"..two_digits_sounds[i],true,false);
+	return handle:play(numbers_path.."\\"..two_digits_sounds[i],true,false);
 
 end
 
 local function play_three_digits(handle, i, radix)
 
-	if ( i==0 ) then return 0; end;
+	
+	
+	if ( i==0 or i > 999) then return 0; end;
 		
-		local last_two_digits =  i % 100;
-		local hundreds = i - last_two_digits;
+	local last_two_digits =  i % 100;
+	local hundreds = (i - last_two_digits)/100;
+	
+	
+	if (hundreds ~= 0)
+	then
+		res = play_hundreds(handle,hundreds);
+		if (res ~= 0) then return res; end
+		 
+		res = play_and(handle);
+		if (res ~= 0) then return res; end
+	end
 
-		if (hundreds ~= 0)
-  		then
-			res = play_hundreds(handle,hundreds);
-			if (res ~= 0) then return res; end
-			 
-			res = play_and(handle);
-			if (res ~= 0) then return res; end
-  		end
-
-		res = play_two_digits(handle,last_two_digits);
+	res = play_two_digits(handle,last_two_digits);
+	if (res ~= 0) then return res; end
+	
+	if (radix ~= nil and radix ~= "" ) then 
+	
+		res = handle:play(numbers_path.."\\"..radix,true,false);
 		if (res ~= 0) then return res; end
 		
-		if (radix ~= nil and radix ~= "" ) then 
-		
-			res = ivrworx.play(handle,numbers_path.."\\"..radix,true,false);
-			if (res ~= 0) then return res; end
-			
-		end
+	end
 end
 
 
-function play_number(handle,i) 
+local function play_number(handle,i) 
+
+	--
+	-- Disabled Not working currently
+	--
 
 	local num_to_play  = math.abs(i);
 	
-	if (conf["sounds_dir"] == nil) then 
+	conf = assert(ivrworx.CONF);
+	
+	if (conf:getstring("sounds_dir") == nil) then 
 		numbers_path = "basic_words\\numbers";
 	else
-		numbers_path = conf["sounds_dir"].."\\basic_words\\numbers";
+		numbers_path = conf:getstring("sounds_dir").."\\basic_words\\numbers";
 	end
+	
+	logger = assert(ivrworx.LOGGER);
+	
 	
 
 	if  (i == 0) 
@@ -261,7 +277,7 @@ function play_number(handle,i)
 	thousands_num = tonumber(string.sub(num_str,5,7));
 	if (thousands_num >=1 and thousands_num <= 10) then 
 	
-		res = ivrworx.play(handle,numbers_path.."\\"..thousands_sounds[thousands_num],true,false);
+		res = handle:play(numbers_path.."\\"..thousands_sounds[thousands_num],true,false);
 		if (res ~= 0) then return res; end;
 		
 	else
@@ -274,6 +290,7 @@ function play_number(handle,i)
 	--
 	-- play remainder		
 	-- 
+	
 	return play_three_digits(handle,tonumber(string.sub(num_str,8,10)));
 		
 
@@ -302,14 +319,16 @@ function isalphanumeric(s)
 end
 
 
-function spell(handle, str)
+function spell_number(handle, str)
 
 	if (str == nil) then return -1; end;
 	
-	if (conf["sounds_dir"] == nil) then 
+	conf = assert(ivrworx.CONF);
+	
+	if (conf:getstring("sounds_dir") == nil) then 
 		letters_path = "basic_words\\alphabet";
 	else
-		letters_path = conf["sounds_dir"].."\\basic_words\\alphabet";
+		letters_path = conf:getstring("sounds_dir").."\\basic_words\\alphabet";
 	end
 	
 	local num_len = string.len(str);
@@ -322,7 +341,7 @@ function spell(handle, str)
 	    	play_number(handle,tonumber(symbol))
 	    else
 			if (isalphanumeric(symbol)) then
-				ivrworx.play(handle,letters_path.."\\"..symbol..".wav",true,false);
+				handle:play(letters_path.."\\"..symbol..".wav",true,false);
 			end
 		end
 	    

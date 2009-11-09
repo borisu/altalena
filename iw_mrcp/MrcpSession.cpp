@@ -113,7 +113,7 @@ MrcpSession::Speak(IN const string &mrcp_xml,
 
 	FUNCTRACKER;
 
-	LogDebug("MrcpSession::Speak mrcph:" << _mrcpSessionHandle << ", mrcp_xml:" << mrcp_xml << ", sync:" << sync);
+	LogDebug("MrcpSession::Speak mrcph:" << _mrcpSessionHandle << ", sync:" << sync << ", mrcp_xml:" << mrcp_xml );
 
 	if (_mrcpSessionHandle == IW_UNDEFINED)
 	{

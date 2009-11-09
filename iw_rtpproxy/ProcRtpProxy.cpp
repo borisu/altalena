@@ -439,8 +439,13 @@ ProcRtpProxy::UponDeallocateReq(IwMessagePtr msg)
 	// safe side
 	Unbridge(conn);
 
+
+
 	if (conn->rtcp_instance) 
 	{
+		// regretfully I found that this crashed under load conditions
+		// seems like Sleep solves the problem at least partially
+		::Sleep(10);
 		RTCPInstance::close(conn->rtcp_instance);
 		conn->rtcp_instance = NULL;
 	}

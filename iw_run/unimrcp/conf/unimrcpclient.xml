@@ -10,7 +10,7 @@
         <!-- <param name="client-ext-ip" value="auto"/> -->
         <param name="client-port" value="8062"/>
         <!--<param name="server-ip" value="auto"/>-->
-        <param name="server-ip" value="10.0.0.1"/>
+        <param name="server-ip" value="192.168.100.44"/>
         <param name="server-port" value="8060"/>
         <!-- <param name="force-destination" value="1"/> -->
         <!-- <param name="sip-transport" value="tcp"/> -->
