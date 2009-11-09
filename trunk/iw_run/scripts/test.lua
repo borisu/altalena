@@ -4,6 +4,12 @@ incoming = assert(ivrworx.INCOMING)
 
 greeting = "C:\\dev\\CosmoCom\\Universe_5\\5_1_0\\Install Packs\\Server Components\\Files\\Samples\\VCS\\IVR\\greeting.wav"
 
+
+
+
+
+
+
 ---
 --- Main
 ---
@@ -160,16 +166,12 @@ assert(incoming:answer() == ivrworx.API_SUCCESS);
 --
 -- Play welcome propmt
 --
-incoming:play(greeting,true,false);
+assert(incoming:play(greeting,true,false));
+assert(incoming:speak("welcome to CCU application.",true));
 incoming:waitforhangup();
-
-incoming:speak("welcome to polly application.",true);
-ivrworx.sleep(10000);
-incoming:speak("welcome to polly application.",true);
-ivrworx.sleep(10000);
-incoming:speak("welcome to polly application.",true);
-ivrworx.sleep(10000);
-
+if true then 
+	return
+end
 
 --
 -- Gather user number

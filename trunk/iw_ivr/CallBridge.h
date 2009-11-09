@@ -39,7 +39,6 @@
 #include "Luna.h"
 #include "CallWithRtpManagement.h"
 
-#pragma once
 
 namespace ivrworx
 {

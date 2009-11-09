@@ -327,7 +327,7 @@ Call::HangupCall()
 	
 	FUNCTRACKER;
 
-	LogDebug("HagupCall:: iwh:" << _stackCallHandle);
+	LogDebug("Call::HangupCall iwh:" << _stackCallHandle);
 
 	if (_stackCallHandle == IW_UNDEFINED || 
 		_callState == CALL_STATE_UNKNOWN || 
@@ -354,7 +354,7 @@ Call::AcceptInitialOffer( IN const CnxInfo &local_connection,
 	
 	FUNCTRACKER;
 	
-	LogDebug("AcceptInitialOffer:: iwh:" << _stackCallHandle);
+	LogDebug("Call::AcceptInitialOffer iwh:" << _stackCallHandle);
 
 	if (_callState != CALL_STATE_INITIAL_OFFERED)
 	{
@@ -419,7 +419,7 @@ Call::WaitTillHangup()
 {
 	FUNCTRACKER;
 
-	LogDebug("WaitTillHangup:: iwh:" << _stackCallHandle);
+	LogDebug("Call::WaitTillHangup iwh:" << _stackCallHandle);
 
 	ApiErrorCode res = API_TIMEOUT;
 	IwMessagePtr response;
@@ -435,7 +435,7 @@ Call::BlindXfer(IN const string &destination_uri)
 {
 	FUNCTRACKER;
 
-	LogDebug("BlindXfer:: iwh:" << _stackCallHandle << " dest:" << destination_uri);
+	LogDebug("Call::BlindXfer iwh:" << _stackCallHandle << " dest:" << destination_uri);
 
 	if (_stackCallHandle == IW_UNDEFINED)
 	{
