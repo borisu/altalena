@@ -17,7 +17,9 @@ Indicates whether logging infrastructure works in synchronous or asynchronous mo
 
 _*resip_log*_
 
-ivrworx uses resiprocate sip stack. resip_log indicates the debugging level of facilities for respirocate sip stack. Valid subsystems: - APP,CONTENTS,DNS,DUM,NONE,PRESENCE,SDP,SIP,TRANSPORT,STATS. The values of log level are the same that used  
+_type: string_
+
+ivrworx uses [www.resiprocate.org resiprocate] sip stack. resip'_'log indicates the debugging level of facilities for respirocate sip stack. Valid subsystems: - APP,CONTENTS,DNS,DUM,NONE,PRESENCE,SDP,SIP,TRANSPORT,STATS. The values of log level are the same that used  
 
 {{{
 "resip_log" : "SIP|DBG,TRANDSPORT|INF"
@@ -26,24 +28,33 @@ ivrworx uses resiprocate sip stack. resip_log indicates the debugging level of f
 ----
 
 _*debug_outputs*_
-	
+
+_type: string_
 
 The list of logging messages terminators
 
 Currently supported:-
 
 - console - console output
-- debug - windows debug output (use DebugViewer.exe)
-- syslog - syslog daemon
+- debug - windows debug output. Use [http://technet.microsoft.com/en-us/sysinternals/bb896647.aspx Debug View forWindows)
+- syslog - syslog daemon. There are many clients. You may use [http://www.kiwisyslog.com/products/ kiwi logging server] which is free.
 
 {{{
-"debug_outputs" : "console,debug",
+"debug_outputs" : "console,debug"
 }}}
 	
 ----
 _*debug_level*_
 
+type : string
+
 Logging level of ivrworx. Valid values: OFF|CRT|WRN|DBG|TRC
+
+OFF - no logging 
+CRT - Critical
+WRN - Warning
+DBG - Debug (messages)
+TRC - Trace (every call to function is logged)
 
 "debug_level"  : "DBG"
 ----
