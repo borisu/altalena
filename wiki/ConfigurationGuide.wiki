@@ -93,7 +93,6 @@ _*precompile"*_
 
 Indicates whether lua ivr script should be pre-compiled on boot. This improves efficiency of starting up the script but disables user to hot swap the script.
     
-example:
 {{{
 "precompile" : false
 }}}
@@ -138,16 +137,27 @@ if sip session timer is enabled ivrworx will timer support into SIP renegotiatio
 
 ----
 
-    "sip_default_session_time" : 180,
+_*sip_default_session_time*_
+
+Sip default session time
+
+{{{
+"sip_default_session_time" : 180
+}}}
+
 ----
+
+_*ring_timeout*_
     
-ring timeout in outgoing calls    
+Ring timeout in outgoing calls    
 
 {{{
 "ring_timeout" : 20, 
 }}}
     
 ----
+
+_*from_id*_
 
 ANI of the ivrworx application. It will appear in "From:" SIP header.
 
@@ -156,6 +166,8 @@ ANI of the ivrworx application. It will appear in "From:" SIP header.
 }}}
 
 ----
+
+_*from_display_name*_
 
 Caller id of the ivrworx application. It will appear in "From:" SIP header.
     
@@ -194,13 +206,16 @@ name of unimrcp log file.
 }}}
 
 ----
-    
+
+If rtsp is enabled then ivrworx will open a session in built-in streamer server.
 
 {{{
 "rtsp_enabled": true
 }}}
 
 ----
+
+start port of rtp proxy range. Used for connection media legs of the call.
 
 {{{
 "rtp_proxy_base_port" : 8000
