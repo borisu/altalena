@@ -1,5 +1,5 @@
 == ivrworx Configuration ==
-ivrworx is configured by configuration file in JSON format, which can be supplied as a first argument to ivrworx run. Any key value which starts with '$' will be replaced with from corresponding environment variable.
+ivrworx is configured by configuration file in JSON format, which can be supplied as a first argument to ivrworx run. If this argument isn't supplied ivrworx will look for conf.json in root directory. Any key value which starts with '$' sign will be replaced with corresponding environment variable value. *All configuration values should be present*.
 
 == Configuration Parameters ==
 
@@ -7,17 +7,17 @@ _*sync_log*_
 
 _type:boolean_
 
+Indicates whether logging infrastructure works in synchronous or asynchronous mode. When working in synchronous mode the calls to logging outputs are made in the context of the calling thread. In asynchronous mode logging messages are sent to special logging thread. It improves the efficiency of logging, however synchronous mode preserves the order between messages more correctly and is better for debugging purposes.
+
 {{{	
 "sync_log"  : true
 }}}
-
-Indicates whether logging infrastructure works in synchronous or asynchronous mode. When working in synchronous mode the calls to log outputs are made in the context of the calling thread. In asynchronous mode  logging message is sent to special logging thread it improves the efficiency of logging however synchronous mode preserves the order between messages more strictly and is better for debugging purposes.
 
 ----
 
 _*resip_log*_
 
-Indicates the debugging level of facilities for respirocate sip stack. Valid subsystems: - APP,CONTENTS,DNS,DUM,NONE,PRESENCE,SDP,SIP,TRANSPORT,STATS
+ivrworx uses resiprocate sip stack. resip_log indicates the debugging level of facilities for respirocate sip stack. Valid subsystems: - APP,CONTENTS,DNS,DUM,NONE,PRESENCE,SDP,SIP,TRANSPORT,STATS. The values of log level are the same that used  
 
 {{{
 "resip_log" : "SIP|DBG,TRANDSPORT|INF"
