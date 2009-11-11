@@ -4,8 +4,9 @@ _*sync_log*_
 
 Indicates whether logging infrastructure works in synchronous or asynchronous mode. When working in synchronous mode the calls to log outputs are made in the context of the calling thread. In asynchronous mode  logging message is sent to special logging thread it improves the efficiency of logging however synchronous mode preserves the order between messages more strictly and is better for debugging purposes.
 
-type : boolean
-example :
+type:boolean
+
+example:
 {{{	
 "sync_log"  : true,
 }}}
