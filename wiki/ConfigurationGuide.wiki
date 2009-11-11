@@ -19,7 +19,7 @@ _*resip_log*_
 
 _type: string_
 
-ivrworx uses [www.resiprocate.org resiprocate] sip stack. resip'_'log indicates the debugging level of facilities for respirocate sip stack. Valid subsystems: - APP,CONTENTS,DNS,DUM,NONE,PRESENCE,SDP,SIP,TRANSPORT,STATS. The values of log level are the same that used  
+ivrworx uses [http://www.resiprocate.org resiprocate] sip stack. resip\_log indicates the debugging level of facilities for respirocate sip stack. Valid subsystems: - APP,CONTENTS,DNS,DUM,NONE,PRESENCE,SDP,SIP,TRANSPORT,STATS. The values of log level are the same that used for configuring ivrworx debug level. 
 
 {{{
 "resip_log" : "SIP|DBG,TRANDSPORT|INF"
@@ -31,13 +31,13 @@ _*debug_outputs*_
 
 _type: string_
 
-The list of logging messages terminators
+The list of logging messages terminators.
 
 Currently supported:-
 
-- console - console output
-- debug - windows debug output. Use [http://technet.microsoft.com/en-us/sysinternals/bb896647.aspx Debug View forWindows)
-- syslog - syslog daemon. There are many clients. You may use [http://www.kiwisyslog.com/products/ kiwi logging server] which is free.
+* console - console output
+* debug - windows debug output. Use [http://technet.microsoft.com/en-us/sysinternals/bb896647.aspx Debug View for Windows]
+* syslog - syslog daemon. There are many clients. You may use [http://www.kiwisyslog.com/products/ kiwi logging server] which is free.
 
 {{{
 "debug_outputs" : "console,debug"
@@ -48,15 +48,17 @@ _*debug_level*_
 
 _type : string_
 
-Logging level of ivrworx. Valid values: OFF|CRT|WRN|DBG|TRC
+Logging level of ivrworx. Valid values: OFF,CRT,WRN,DBG,TRC
 
-OFF - no logging 
-CRT - Critical
-WRN - Warning
-DBG - Debug (messages)
-TRC - Trace (every call to function is logged)
+* OFF - No logging 
+* CRT - Critical
+* WRN - Warning
+* DBG - Debug (messages and parameters info)
+* TRC - Trace (every call to function is logged)
 
+{{{
 "debug_level"  : "DBG"
+}}}
 
 ----
 
@@ -64,7 +66,7 @@ _*syslogd_host*_
 
 _type : string_
 
-ip address of syslog  daemon server. (?) can be resolved
+Ip address of syslog  daemon server.
 
 {{{
 "syslogd_host" : "127.0.0.1"
@@ -76,7 +78,7 @@ _*syslogd_port*_
 
 _type : number_
 
-syslog daemon   port 
+Syslog daemon port 
 
 {{{
 "syslogd_port" : 515
@@ -88,7 +90,7 @@ _*ivr_sip_host*_
 
 _type : string_
 
-ivr sip host name to bind 
+Ivrworx sip host name to bind on.
   
 {{{
 "ivr_sip_host": "$COMPUTERNAME"
@@ -100,7 +102,7 @@ _*ivr_sip_port*_
 
 _type : number_
 
-sip port to bind on
+Ivrworx sip port to bind on.
 
 example:
 {{{
@@ -111,7 +113,7 @@ example:
 
 _*precompile*_
 
-Indicates whether lua ivr script should be pre-compiled when ivrworx starts up. This improves efficiency of starting up the script but disables user to hot swap the script.
+Indicates whether lua ivr script should be pre-compiled when ivrworx starts up. This improves efficiency of starting up the script but disables user to hot swap the script. If precompiled is disabled the script is compiled every time new call is placed into the system.
 
 _type : boolean_
     
@@ -123,13 +125,12 @@ _type : boolean_
 
 _*super_script*_
 
-
 _type : string_
 
-location of the lua super script. Relative path are taken relatively to ivrworx root installation directory.
+Indicatates location of the lua super script. Relative path are taken relatively to ivrworx root installation directory.
 
 {{{
-"super_script": "scripts\\super.lua",
+"super_script": "scripts\\super.lua"
 }}}
 
 ----
@@ -138,9 +139,11 @@ _*super_mode*_
 
 _type : string_
 
-Super script may run in sync in async mode. While running in sync mode ivr will not accept any incoming call before super script is finished. Async mode means the that incoming calls may be accepted without waiting for super script to finish. 
+Super script may run in sync in async mode. While running in sync mode ivr will not accept any incoming call before super script is finished. Async mode means that incoming calls may be accepted without waiting for super script to finish. 
 
-valid values : sync, async
+valid values : 
+* sync
+* async
 
 {{{
 "super_mode":   "sync"
@@ -152,7 +155,7 @@ _*sip_session_timer_enabled*_
 
 _type : boolean_
 
-if sip session timer is enabled ivrworx will put timer support into SIP renegotiation.
+if sip session timer is enabled ivrworx will indicate session refreshment support in SIP negotiation.
 
 {{{
 "sip_session_timer_enabled" : true
@@ -166,7 +169,13 @@ _type : string_
 
 Indicates the preference for sip session refresher.
 
-valid values: prefer_local, prefer_remote, prefer_uas, prefer_uac, prefer_none
+valid values: 
+
+* prefer_local
+* prefer_remote
+* prefer_uas
+* prefer_uac
+* prefer_none
 
 {{{
     "sip_refresh_mode" : "prefer_local"
@@ -178,7 +187,7 @@ _*sip_default_session_time*_
 
 _type : number_
 
-Sip default session refreshment time.
+Sip default session refreshment time. Used only if session refresh is enabled.
 
 {{{
 "sip_default_session_time" : 180
@@ -190,7 +199,7 @@ _*ring_timeout*_
 
 _type : number_
     
-Ring timeout in outgoing calls.    
+Ring timeout in outgoing calls. For more info see makecall api.   
 
 {{{
 "ring_timeout" : 20
@@ -224,7 +233,7 @@ Caller id of the ivrworx application. It will appear in "From:" SIP header.
 
 _*mrcp_enabled*_
 
-ivrworx using [http://www.unimrcp.org/ unimrcp]framework to connect to MRCP service providers. If MRCP integration is enabled. ivrworx will try to establish MRCP connection for every incoming call to have TTS service readily available. Enable it if you want to use speak or speakmrcp api.
+Ivrworx is using [http://www.unimrcp.org/ unimrcp] framework to connect to MRCP service providers. If MRCP integration is enabled, ivrworx will try to establish MRCP connection for every incoming call to have TTS service readily available. Enable it if you want to use speak or speakmrcp api.
 
 _type : boolean_
 
@@ -272,7 +281,7 @@ _type : string_
 
 _*rtsp_enabled*_
 
-If rtsp is enabled then for every call ivrworx will open a session to built-in streamer server, to have streaming resource readily available. Enable it if you want to use play ivrworx api.
+If rtsp is enabled then for every call ivrworx will open a session to built-in streamer server, in order to have streaming resource readily available. Enable it if you want to use play ivrworx api.
 
 _type : boolean_
 
@@ -286,7 +295,7 @@ _*rtp_proxy_base_port*_
 
 _type : number_
 
-bottom port of rtp proxy range. Used for connection media legs of the call.
+bottom port of rtp proxy range. Used for establishing rtp connection to media participants call.
 
 {{{
 "rtp_proxy_base_port" : 8000
@@ -298,7 +307,7 @@ _*rtp_proxy_top_port*_
 
 _type : number_
 
-top port of rtp proxy range. Used for connection media legs of the call.
+top port of rtp proxy range. 
 
 {{{
 "rtp_proxy_top_port" : 9000
@@ -310,7 +319,7 @@ _*rtp_proxy_num_of_connections*_
 
 _type : number_
 
-Number of connections that should be pooled. For example if you want to support 300 calls with rtps and mrcp enabled you will need 900 connections.
+Number of connections that should be pooled. For example if you want to support 300 calls with rtps and mrcp enabled you will need 900 connections (every call will need rtp connection to streamer and rtps plus caller's connection).
 
 {{{
 "rtp_proxy_num_of_connections" : 100
@@ -322,21 +331,27 @@ _*rtp_proxy_ip*_
 
 _type : string_
 
-host name for rtp proxy to bind on.
+Host name for rtp proxy to bind on.
 
 {{{
 "rtp_proxy_ip" : "$COMPUTERNAME"
 }}}
 
 ----
+
+_*script_file*_
     
-Path to lua script file that should be run upon incoming call.
+Path to lua script file that should be run upon each incoming call.
+
+_type : string_
 
 {{{
 "script_file" : "scripts\\test.lua",
 }}}
 
 ----
+
+_*codecs*_
 
 The list of supported codecs. Currently it includes PCMU,PCMA and SPEEX only.
 
