@@ -2,17 +2,47 @@ ivrworx is configured by configuration file in JSON format which can be supplied
 
 _*sync_log*_
 
+_type:boolean_
+
+{{{	
+"sync_log"  : true
+}}}
+
 Indicates whether logging infrastructure works in synchronous or asynchronous mode. When working in synchronous mode the calls to log outputs are made in the context of the calling thread. In asynchronous mode  logging message is sent to special logging thread it improves the efficiency of logging however synchronous mode preserves the order between messages more strictly and is better for debugging purposes.
 
-type:boolean
+----
 
-example:
-{{{	
-"sync_log"  : true,
+_*resip_log*_
+
+_type:comma delimited of pair of values delimited with pipeline character_
+
+Indicates the debugging level of facilities for respirocate sip stack. Valid subsystems: - APP,CONTENTS,DNS,DUM,NONE,PRESENCE,SDP,SIP,TRANSPORT,STATS
+
+{{{
+"resip_log" : "SIP|DBG,TRANDSPORT|INF",
+}}}
+
+
+----
+
+_*debug_outputs*_
+	
+_type:comma delimited string_
+
+The list of logging messages terminators
+
+Currently supported:-
+
+- console - console output
+- debug - windows debug output (use DebugViewer.exe)
+- syslog - syslog daemon
+
+{{{
+"debug_outputs" : "console,debug",
 }}}
 	
-"resip_log" : "",
-	
+----
+
 "debug_level"  : "DBG",
 "debug_outputs" : "debug,console",
 "syslogd_host" : "127.0.0.1",
