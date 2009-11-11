@@ -1,5 +1,5 @@
-== ivrworx Configuration ==
-ivrworx is configured by configuration file in JSON format, which can be supplied as a first argument to ivrworx run. If this argument isn't supplied ivrworx will look for conf.json in root directory. Any key value which starts with '$' sign will be replaced with corresponding environment variable value. *All configuration values should be present*.
+== Ivrworx Configuration ==
+Ivrworx is using configuration file in [http://json.org/ JSON] format. The file should be supplied as a first argument to iw\_run.exe. If this argument is empty, ivrworx will look for "conf.json" in root installation directory. Any value of string type, which starts with '$' sign will be replaced with corresponding environment variable value. *All configuration values should be present*.
 
 == Configuration Parameters ==
 
@@ -7,7 +7,7 @@ _*sync_log*_
 
 _type:boolean_
 
-Indicates whether logging infrastructure works in synchronous or asynchronous mode. When working in synchronous mode the calls to logging outputs are made in the context of the calling thread. In asynchronous mode logging messages are sent to special logging thread. It improves the efficiency of logging, however synchronous mode preserves the order between messages more correctly and is better for debugging purposes.
+Indicates whether logging infrastructure works in synchronous or asynchronous mode. When working in synchronous mode, the calls to logging outputs are being made in the context of the calling thread. This includes sending messages to network in case of 'syslog' or writing to console in case of 'console'. In asynchronous mode, logging messages are sent to special logging thread which does the actual I/O. It improves the efficiency of logging, however synchronous mode preserves the order between messages more correctly and is better for debugging purposes.
 
 {{{	
 "sync_log"  : true
@@ -19,10 +19,24 @@ _*resip_log*_
 
 _type: string_
 
-ivrworx uses [http://www.resiprocate.org resiprocate] sip stack. resip\_log indicates the debugging level of facilities for respirocate sip stack. Valid subsystems: - APP,CONTENTS,DNS,DUM,NONE,PRESENCE,SDP,SIP,TRANSPORT,STATS. The values of log level are the same that used for configuring ivrworx debug level. 
+Ivrworx is using [http://www.resiprocate.org resiprocate] sip stack. resip\_log indicates the debugging level of respirocate sip stack sunsystems. 
+
+Valid subsystems: 
+* APP
+* CONTENTS
+* DNS
+* DUM
+* NONE
+* PRESENCE
+* SDP
+* SIP
+* TRANSPORT
+* STATS. 
+
+The values of log level are the same that used for configuring ivrworx debug level. See debug_level for more examples.
 
 {{{
-"resip_log" : "SIP|DBG,TRANDSPORT|INF"
+"resip_log" : "SIP|DBG,TRANSPORT|INF"
 }}}
 
 ----
@@ -35,12 +49,12 @@ The list of logging messages terminators.
 
 Currently supported:-
 
-* console - console output
-* debug - windows debug output. Use [http://technet.microsoft.com/en-us/sysinternals/bb896647.aspx Debug View for Windows]
-* syslog - syslog daemon. There are many clients. You may use [http://www.kiwisyslog.com/products/ kiwi logging server] which is free.
+* console - console output.
+* debug - windows debug output. Use [http://technet.microsoft.com/en-us/sysinternals/bb896647.aspx Debug View for Windows].
+* syslog - syslog daemon. There are many syslogd servers available for download. You may use [http://www.kiwisyslog.com/products/ kiwi logging server] which is free.
 
 {{{
-"debug_outputs" : "console,debug"
+"debug_outputs" : "console,debug,syslog"
 }}}
 	
 ----
@@ -48,7 +62,9 @@ _*debug_level*_
 
 _type : string_
 
-Logging level of ivrworx. Valid values: OFF,CRT,WRN,DBG,TRC
+Logging level of ivrworx. 
+
+Valid values: 
 
 * OFF - No logging 
 * CRT - Critical
@@ -66,7 +82,7 @@ _*syslogd_host*_
 
 _type : string_
 
-Ip address of syslog  daemon server.
+Ip address of syslog daemon server. Used if syslog logging terminator is enabled.
 
 {{{
 "syslogd_host" : "127.0.0.1"
@@ -78,7 +94,7 @@ _*syslogd_port*_
 
 _type : number_
 
-Syslog daemon port 
+Syslog daemon port. Used if syslog logging terminator is enabled.
 
 {{{
 "syslogd_port" : 515
@@ -113,7 +129,7 @@ example:
 
 _*precompile*_
 
-Indicates whether lua ivr script should be pre-compiled when ivrworx starts up. This improves efficiency of starting up the script but disables user to hot swap the script. If precompiled is disabled the script is compiled every time new call is placed into the system.
+Indicates whether lua ivr script should be pre-compiled when ivrworx starts up. This improves efficiency of starting up the script but disables user to hot swap the script without restarting the application. If pre-compile option is disabled, the script is compiled every time new call is placed into the system.
 
 _type : boolean_
     
@@ -127,7 +143,7 @@ _*super_script*_
 
 _type : string_
 
-Indicatates location of the lua super script. Relative path are taken relatively to ivrworx root installation directory.
+Indicates the location of the lua super script. Relative path are taken relatively to ivrworx root installation directory.
 
 {{{
 "super_script": "scripts\\super.lua"
@@ -139,7 +155,7 @@ _*super_mode*_
 
 _type : string_
 
-Super script may run in sync in async mode. While running in sync mode ivr will not accept any incoming call before super script is finished. Async mode means that incoming calls may be accepted without waiting for super script to finish. 
+Super script may run in sync and async mode. While running in sync mode, ivr will not accept any incoming calls, before super script is finished. Async mode means that incoming calls may be accepted without waiting for super script to finish. 
 
 valid values : 
 * sync
@@ -155,7 +171,7 @@ _*sip_session_timer_enabled*_
 
 _type : boolean_
 
-if sip session timer is enabled ivrworx will indicate session refreshment support in SIP negotiation.
+If sip session timer is enabled ivrworx will indicate session refresh support in SIP negotiation, e.g. it will place "timer" into SIP Supported: header. See [http://tools.ietf.org/html/draft-ietf-sip-session-timer-15 RFC] for more info.
 
 {{{
 "sip_session_timer_enabled" : true
@@ -187,7 +203,7 @@ _*sip_default_session_time*_
 
 _type : number_
 
-Sip default session refreshment time. Used only if session refresh is enabled.
+Sip default session refreshment time. Used only if session refresh is enabled. 
 
 {{{
 "sip_default_session_time" : 180
@@ -247,7 +263,7 @@ _*unimrcp_conf_dir*_
 
 _type : string_
 
-The directory which includes unimrcp XML configuration file. More info [http://code.google.com/p/unimrcp/wiki/ConfigurationGuide here].Relative path are taken relatively to ivrworx root installation directory.
+The directory which contains unimrcp XML configuration file. More info [http://code.google.com/p/unimrcp/wiki/ConfigurationGuide here]. Relative paths are taken relatively to ivrworx root installation directory.
 
 {{{
 "unimrcp_conf_dir": "./unimrcp"
@@ -259,7 +275,7 @@ _*unimrcp_client_profile*_
 
 _type : string_
 
-profile to use in unimrcp XML configuration file. 
+Indicates profile name to use in unimrcp XML configuration file. 
 
 {{{
 "unimrcp_client_profile": "MRCPv2-Default"
@@ -269,7 +285,7 @@ profile to use in unimrcp XML configuration file.
 
 _*unimrcp_log_file*_
 
-name of unimrcp log file.
+Name of unimrcp log file.
 
 _type : string_
 
@@ -281,7 +297,7 @@ _type : string_
 
 _*rtsp_enabled*_
 
-If rtsp is enabled then for every call ivrworx will open a session to built-in streamer server, in order to have streaming resource readily available. Enable it if you want to use play ivrworx api.
+If rtsp is enabled then for every call ,ivrworx will open a session to built-in streamer server, in order to have streaming resource readily available. Enable it, if you want to use play ivrworx api.
 
 _type : boolean_
 
@@ -295,7 +311,7 @@ _*rtp_proxy_base_port*_
 
 _type : number_
 
-bottom port of rtp proxy range. Used for establishing rtp connection to media participants call.
+Indicates bottom port of rtp proxy range. Used for establishing rtp connection to media participants in each call.
 
 {{{
 "rtp_proxy_base_port" : 8000
@@ -307,7 +323,7 @@ _*rtp_proxy_top_port*_
 
 _type : number_
 
-top port of rtp proxy range. 
+Indicates top port of rtp proxy range. 
 
 {{{
 "rtp_proxy_top_port" : 9000
