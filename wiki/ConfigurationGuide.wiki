@@ -74,7 +74,7 @@ ivr sip host name to bind
 "ivr_sip_host": "$COMPUTERNAME"
 }}}
 
----
+----
 
 _*ivr_sip_port*_
 
@@ -85,7 +85,7 @@ example:
 "ivr_sip_port": 5060
 }}}
 
----
+----
 
 _*precompile"*_
 
@@ -106,7 +106,7 @@ location of the lua super script. Relative path are taken relatively to ivrworx 
 "super_script": "scripts\\super.lua",
 }}}
 
----
+----
 
 _*super_mode*_
 
@@ -115,20 +115,64 @@ Super mode may run in sync in async mode. While running in sync mode ivr will no
 {{{
 "super_mode":   "sync"
 }}}
-    
-    "sip_session_timer_enabled" : true,
+
+----
+
+_*sip_session_timer_enabled*_
+
+if sip session timer is enabled ivrworx will timer support into SIP renegotiation.
+
+{{{
+"sip_session_timer_enabled" : true,
+}}}
+
+----
+
+if sip session timer is enabled ivrworx will timer support into SIP renegotiation.
+
+{{{
     "sip_refresh_mode" : "prefer_local",
+}}}
+
+----
+
     "sip_default_session_time" : 180,
+----
     
-    "ring_timeout" : 20, 
+ring timeout in outgoing calls    
+
+{{{
+"ring_timeout" : 20, 
+}}}
     
-    "from_id" : "ivrworx",
-    "from_display_name": "ivrworx",
+----
+
+ANI of the ivrworx application. It will appear in "From:" SIP header.
+
+{{{
+"from_id" : "ivrworx",
+}}}
+
+----
+
+Caller id of the ivrworx application. It will appear in "From:" SIP header.
     
-     
-    "mrcp_enabled": true,
+{{{
+"from_display_name": "ivrworx"
+}}}
+    
+---
+
+If MRCP integration is enabled. ivrworx will try to establish MRCP connection for every incoming call to have TTS service readily available.
+
+{{{
+"mrcp_enabled": true
+}}}
+
     "unimrcp_conf_dir": "./unimrcp",
+
     "unimrcp_client_profile": "MRCPv2-Default",
+
     "unimrcp_log_file": "unimrcpclient",
     
     "rtsp_enabled": true,
@@ -155,6 +199,5 @@ Super mode may run in sync in async mode. While running in sync mode ivr will no
         } 
     ],
     
-    "polly_db" : "voice.db"
-    
+   
 }
