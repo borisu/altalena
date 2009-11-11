@@ -215,7 +215,7 @@ If rtsp is enabled then ivrworx will open a session in built-in streamer server.
 
 ----
 
-start port of rtp proxy range. Used for connection media legs of the call.
+top port of rtp proxy range. Used for connection media legs of the call.
 
 {{{
 "rtp_proxy_base_port" : 8000
@@ -223,21 +223,37 @@ start port of rtp proxy range. Used for connection media legs of the call.
 
 ----
 
+bottom port of rtp proxy range. Used for connection media legs of the call.
+
 {{{
 "rtp_proxy_top_port" : 9000
 }}}
+
+----
+
+Number of connections that should be pooled. For example if you want to support 300 calls with rtps and mrcp enabled you will need 900 connections.
 
 {{{
 "rtp_proxy_num_of_connections" : 100
 }}}
 
+----
+
+host name for rtp proxy to bind on.
+
 {{{
 "rtp_proxy_ip" : "$COMPUTERNAME"
 }}}
+
+----
     
+Path to lua script file that should be run upon incoming call.
+
 {{{
 "script_file" : "scripts\\test.lua",
 }}}
+
+----
 
 The list of supported codecs. Currently it includes PCMU,PCMA and SPEEX only.
 
