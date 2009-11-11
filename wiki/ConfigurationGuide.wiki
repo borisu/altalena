@@ -1,0 +1,68 @@
+ivrworx is configured by configuration file in JSON format which can be supplied as a first argument to ivrworx run.
+
+_*sync_log*_
+
+Indicates whether logging infrastructure works in synchronous or asynchronous mode. When working in synchronous mode the calls to log outputs are made in the context of the calling thread. In asynchronous mode  logging message is sent to special logging thread it improves the efficiency of logging however synchronous mode preserves the order between messages more strictly and is better for debugging purposes.
+
+type : boolean
+example :
+{{{	
+"sync_log"  : true,
+}}}
+	
+"resip_log" : "",
+	
+"debug_level"  : "DBG",
+"debug_outputs" : "debug,console",
+"syslogd_host" : "127.0.0.1",
+"syslogd_port" : 515,
+    
+  "ivr_sip_host": "$COMPUTERNAME",
+    "ivr_sip_port": 5060,
+    
+    "precompile" : false,
+    "super_script": "scripts\\super.lua",
+    "super_mode":   "sync",
+    
+    "sip_session_timer_enabled" : true,
+    "sip_refresh_mode" : "prefer_local",
+    "sip_default_session_time" : 180,
+    
+    "ring_timeout" : 20, 
+    
+    "from_id" : "ivrworx",
+    "from_display_name": "ivrworx",
+    
+     
+    "mrcp_enabled": true,
+    "unimrcp_conf_dir": "./unimrcp",
+    "unimrcp_client_profile": "MRCPv2-Default",
+    "unimrcp_log_file": "unimrcpclient",
+    
+    "rtsp_enabled": true,
+    
+    
+	"rtp_proxy_base_port" : 8000,
+    "rtp_proxy_top_port" : 9000,
+    "rtp_proxy_num_of_connections" : 100,
+    "rtp_proxy_ip" : "$COMPUTERNAME",
+    
+    "script_file" : "scripts\\test.lua",
+    
+    "sounds_dir" : "sounds",
+    
+    "codecs": [
+        {
+            "name": "PCMU" 
+        },
+        {
+            "name": "PCMA" 
+        }, 
+        {
+            "name": "SPEEX" 
+        } 
+    ],
+    
+    "polly_db" : "voice.db"
+    
+}
