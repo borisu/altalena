@@ -1,4 +1,4 @@
-ivrworx is configured by configuration file in JSON format which can be supplied as a first argument to ivrworx run.
+ivrworx is configured by configuration file in JSON format which can be supplied as a first argument to ivrworx run. Any key value which starts with '$' will be resolved from corresponding environment variable value.
 
 _*sync_log*_
 
@@ -14,12 +14,10 @@ Indicates whether logging infrastructure works in synchronous or asynchronous mo
 
 _*resip_log*_
 
-_type:comma delimited of pair of values delimited with pipeline character_
-
 Indicates the debugging level of facilities for respirocate sip stack. Valid subsystems: - APP,CONTENTS,DNS,DUM,NONE,PRESENCE,SDP,SIP,TRANSPORT,STATS
 
 {{{
-"resip_log" : "SIP|DBG,TRANDSPORT|INF",
+"resip_log" : "SIP|DBG,TRANDSPORT|INF"
 }}}
 
 
@@ -27,7 +25,6 @@ Indicates the debugging level of facilities for respirocate sip stack. Valid sub
 
 _*debug_outputs*_
 	
-_type:comma delimited string_
 
 The list of logging messages terminators
 
@@ -42,18 +39,82 @@ Currently supported:-
 }}}
 	
 ----
+_*debug_level*_
 
-"debug_level"  : "DBG",
-"debug_outputs" : "debug,console",
-"syslogd_host" : "127.0.0.1",
-"syslogd_port" : 515,
+Logging level of ivrworx. Valid values: OFF|CRT|WRN|DBG|TRC
+
+"debug_level"  : "DBG"
+----
+
+_*syslogd_host*_
+
+ip address of syslogd server (?) can be resolved
+
+{{{
+"syslogd_host" : "127.0.0.1"
+}}}
+
+----
+
+_*syslogd_port*_
+
+syslod port 
+
+{{{
+"syslogd_port" : 515
+}}}
+
+----
+
+_*ivr_sip_host*_
+
+ivr sip host name to bind 
+  
+{{{
+"ivr_sip_host": "$COMPUTERNAME"
+}}}
+
+---
+
+_*ivr_sip_port*_
+
+sip port to bind on
+
+example:
+{{{
+"ivr_sip_port": 5060
+}}}
+
+---
+
+_*precompile"*_
+
+Indicates whether lua ivr script should be pre-compiled on boot. This improves efficiency of starting up the script but disables user to hot swap the script.
     
-  "ivr_sip_host": "$COMPUTERNAME",
-    "ivr_sip_port": 5060,
-    
-    "precompile" : false,
-    "super_script": "scripts\\super.lua",
-    "super_mode":   "sync",
+example:
+{{{
+"precompile" : false
+}}}
+
+----
+
+_*super_script*_
+
+location of the lua super script. Relative path are taken relatively to ivrworx root installation directory
+
+{{{
+"super_script": "scripts\\super.lua",
+}}}
+
+---
+
+_*super_mode*_
+
+Super mode may run in sync in async mode. While running in sync mode ivr will not accept any incoming call. Async mode means the that incoming calls will be accepted in parallel. 
+
+{{{
+"super_mode":   "sync"
+}}}
     
     "sip_session_timer_enabled" : true,
     "sip_refresh_mode" : "prefer_local",
