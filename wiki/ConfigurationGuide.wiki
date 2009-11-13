@@ -1,5 +1,5 @@
 == Ivrworx Configuration ==
-Ivrworx is using configuration file in [http://json.org/ JSON] format. The file should be supplied as a first argument to iw\_run.exe. If this argument is empty, ivrworx will look for "conf.json" in root installation directory. Any value of string type, which starts with '$' sign will be replaced with corresponding environment variable value. *All configuration values should be present*.
+Ivrworx is using configuration file in [http://json.org/ JSON] format. The file should be supplied as a first argument to `iw_run.exe`. If this argument is empty, ivrworx will look for "conf.json" in root installation directory. Any value of string type, which starts with '$' sign will be replaced with corresponding environment variable value. *All configuration values should be present*.
 
 == Configuration Parameters ==
 
