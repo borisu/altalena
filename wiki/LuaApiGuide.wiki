@@ -135,7 +135,7 @@ call:cleandtmfbuffer();
 
 call:waitfordtmf(timeout);
 
-Waits timeout or returns DTMF digit which is placed in current DTMF buffer
+Waits timeout or returns DTMF digit which is placed in current DTMF buffer. Returns result code and DTMF digit in string format.
 
 {{{
 
@@ -147,15 +147,119 @@ end
 
 }}}
 
----
+----
 
-_*blindxfer*_
+_*call:blindxfer(dest)*_
 
-Blind transfer to sip destination
+Blind transfer of established call to sip destination.
 
 {{{
 
+call:blindxfer("sip:1234@example.com");
+
+}}}
+----
+
+== Simple Streaming API ==
+
+_*call:play(file,sync,loop)*_
+
+Streams _file_ to remote party. File have to be in WAV PCM encoding. No file format checks are performed.
+
+sync - play will exit when stream is finshed
+loop - will play the file in loops (cannot be used with sync).
+
+{{{
+
+call:play("c:\\Welcome.wav",true,false);
+logger:loginfo("Streaming has finished...");
 
 }}}
 
+----
 
+_*call:stopplay()*_
+
+Stops streaming.
+
+{{{
+
+--
+-- Sleep one second, then stop streaming.
+--
+call:play("c:\\Welcome.wav",false,false);
+ivrworx.sleep(1000);
+call:stopplay();
+
+}}}
+
+== MRCP API ==
+
+_*call:speakmrcp(mrcp, sync)*_
+
+Send TTS reqeuest the body of request is _speakmrcp_ parameter.
+
+sync - if sync is true the function will return only after "speaking" is over.
+
+{{{
+
+mrcp_goodbye = [[<?xml version="1.0"?>
+<speak>
+  <paragraph>
+    <sentence>Thank you.</sentence><sentence>And good bye.</sentence>
+  </paragraph>
+</speak>]]
+
+incoming:speak(mrcp_goodbye,true);
+}}}
+
+----
+
+_*call:speak(tts, sync)*_
+
+build simple TTS xml and send to MRCP server
+
+{{{
+
+call:speak("Welcome!",true);
+
+}}}
+
+----
+
+_*call:stopspeak()*_
+
+Stops current "speaking"
+
+{{{
+
+call:speak("Welcome!",false
+ivrworx.sleep(1000);
+call:stopspeak();
+
+}}}
+
+----
+
+== Utils API ==
+
+_*sleep(timeout)*_
+
+Non blocking sleep. Param is passed in milliseconds
+
+{{{
+ivrworx.sleep(1000);
+}}}
+
+== SQL API ==
+
+Lua SQLite driver was ported to make non fiber blocking calls. The api is similar. The libraries are loaded automatically into vm at start up time (no require is needed).
+
+{{{
+env = assert(luasql.sqlite3());
+conn_string = assert(conf:getstring("polly_db"));
+con = assert(env:connect(conn_string));
+
+logger:loginfo("db:"..conn_string.." open");
+
+}}} 
