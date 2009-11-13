@@ -1,10 +1,18 @@
- * Logging API
- * Call Control API
- * MRCP API
- * Simple streaming APi
- * Utils API
- * SQL Api
+= LUA API =
 
+ * Ivrworx Result Code
+
+ * Logging
+
+ * Call Control
+
+ * MRCP 
+
+ * Simple Streaming
+
+ * Utils 
+
+ * SQLite
 
 == Ivrworx Result Code ==
 
@@ -22,13 +30,16 @@ Most of the ivrworx functions return integer result code. For programmers conven
 || ivrworx.API_UNKNOWN_RESPONSE|| Received unknown response for request. ||
 || ivrworx.API_FEATURE_DISABLED|| The feature is disabled in configuration. ||
 
-== Logging API ==
+==Logging==
 
 Ivrworx logger is a singleton object which is accessible via ivrworx table.
 
 _*logger:loginfo()*_
+
 _*logger:logwarn()*_
+
 _*logger:logcrit()*_
+
 _*logger:logdebug()*_
 
 {{{
@@ -40,50 +51,51 @@ logger.loginfo("CRT message");
 logger.loginfo("DBG message");
 }}}
 
-== Call Control API ==
+==Call Control==
 
-Call objects are created by calling _createcall_ function.
+Call objects are created by calling _ivrworx:createcall_ function.
 
 {{{
+
 call = ivrworx.createcall();
+
 }}}
 
-For incoming IVR calls there's built-in _ivrworx.INCOMING_ object which designates the incoming call.
+For incoming IVR calls there's a built-in _ivrworx.INCOMING_ object which designates the incoming call.
+
 {{{
+
 incoming = assert(ivrworx.INCOMING);
+
 }}}
 
 ----
 
-_*call:makecall()*_
+_*call:makecall(dest)*_
 
 Makes call to sip destination.
 
 {{{
 
 call = ivrworx.createcall();
-assert(call:makecall("sip:1234@example.com:5060") == ivrworx.API_SUCCESS);
-
-
+res = call:makecall("sip:1234@example.com:5060");
 
 }}}
 
 
 ----
 
-
 _*call:answer()*_
 
 
-Answers incoming call, e.g. codecs are negotiated and 200 OK is sent to UAC. Returns result code.
+Answers incoming call, e.g. codecs are negotiated and 200 OK is sent to UAC. Returns result code. 
 
 
 {{{
-incoming =ivrworx.INCOMING;
-assert(incoming);
+ 
+incoming = assert(ivrworx.INCOMING);
+res = incoming:answer();
 
-res =call:answer();
-assert (res == ivrworx.API_SUCCESS)
 }}}
 
 ----
@@ -93,8 +105,9 @@ _*call:hangup()*_
 Hangs up the call.
 
 {{{
+
 res = call:hangup();
-assert (res == ivrworx.API_SUCCESS)
+
 }}}
 
 ---
@@ -104,38 +117,45 @@ _*call:waitforhangup()*_
 Waits till remote party hangs up.
 
 {{{
+
 res = call:waitforhangup();
-assert (res == ivrworx.API_SUCCESS)
+
 }}}
 
 ----
 
 _*call:ani()*_
+
 _*call:dnis()*_
 
 Returns ANI and DNIS of the call.
 
 {{{
+
 ani = call:ani();
 dnis = call:dnis();
 
 ivrworx.loginfo("ANI="..ani..", DNIS="..dnis);
+
 }}}
+
 ----
 
-_*cleandtmfbuffer*_
+_*call:cleandtmfbuffer*_
 
-Cleans dtmf digits buffer.
+Cleans dtmf digits' buffer.
 
 {{{
+
 call:cleandtmfbuffer();
+
 }}}
 
 ----
 
-call:waitfordtmf(timeout);
+_*call:waitfordtmf(timeout)_
 
-Waits timeout or returns DTMF digit which is placed in current DTMF buffer. Returns result code and DTMF digit in string format.
+Waits timeout or returns DTMF digit (SIP INFO) which is placed in current DTMF buffer. Returns result code and DTMF digit in string format (nil in case of timeout).
 
 {{{
 
@@ -155,23 +175,29 @@ Blind transfer of established call to sip destination.
 
 {{{
 
-call:blindxfer("sip:1234@example.com");
+call = ivrworx.createcall();
+res = call:makecall("sip:1234@example.com:5060");
+
+if (res == ivrworx.API_SUCCESS) then
+ res = call:blindxfer("sip:1234@example.com");
+end
 
 }}}
 ----
 
-== Simple Streaming API ==
+==Simple Streaming API==
 
 _*call:play(file,sync,loop)*_
 
-Streams _file_ to remote party. File have to be in WAV PCM encoding. No file format checks are performed.
+Streams _file_ to remote party. File has to be in WAV format PCM encoding. No file format checks are performed.
 
-sync - play will exit when stream is finshed
-loop - will play the file in loops (cannot be used with sync).
+sync - play will exit when stream is finished, or immediately otherwise.
+
+loop - will play the file in loops (cannot be used with sync equal true).
 
 {{{
 
-call:play("c:\\Welcome.wav",true,false);
+res = call:play("c:\\Welcome.wav",true,false);
 logger:loginfo("Streaming has finished...");
 
 }}}
@@ -187,19 +213,20 @@ Stops streaming.
 --
 -- Sleep one second, then stop streaming.
 --
+
 call:play("c:\\Welcome.wav",false,false);
 ivrworx.sleep(1000);
 call:stopplay();
 
 }}}
 
-== MRCP API ==
+==MRCP==
 
 _*call:speakmrcp(mrcp, sync)*_
 
-Send TTS reqeuest the body of request is _speakmrcp_ parameter.
+Sends TTS request to MRCP server. The body of request is _speakmrcp_ parameter.
 
-sync - if sync is true the function will return only after "speaking" is over.
+sync - if sync is true the function will return only after "speaking" is over, or immediately otherwise
 
 {{{
 
@@ -210,14 +237,17 @@ mrcp_goodbye = [[<?xml version="1.0"?>
   </paragraph>
 </speak>]]
 
-incoming:speak(mrcp_goodbye,true);
+res = incoming:speak(mrcp_goodbye,true);
+
 }}}
 
 ----
 
 _*call:speak(tts, sync)*_
 
-build simple TTS xml and send to MRCP server
+build simple TTS xml and sends it to MRCP server.
+
+sync - if sync is true the function will return only after "speaking" is over, or immediately otherwise
 
 {{{
 
@@ -233,27 +263,30 @@ Stops current "speaking"
 
 {{{
 
+--
+-- Sleep one second, then stop speaking.
+--
+
 call:speak("Welcome!",false
 ivrworx.sleep(1000);
 call:stopspeak();
 
 }}}
 
-----
+==Utils==
 
-== Utils API ==
+_*ivrworx.sleep(timeout)*_
 
-_*sleep(timeout)*_
-
-Non blocking sleep. Param is passed in milliseconds
+Fiber non blocking sleep. Param is passed in milliseconds
 
 {{{
 ivrworx.sleep(1000);
 }}}
 
-== SQL API ==
+==SQLite==
 
-Lua SQLite driver was ported to make non fiber blocking calls. The api is similar. The libraries are loaded automatically into vm at start up time (no require is needed).
+
+Lua [http://www.keplerproject.org/luasql/manual.html#drivers SQLite driver] from [http://www.keplerproject.org/luasql/ kepler] project. Was ported to ivrworx in order to provide non blocking fiber API. The API hasn't changed. The libraries are loaded automatically into lua vm at start up time (no _require_ keyword is needed).
 
 {{{
 env = assert(luasql.sqlite3());
