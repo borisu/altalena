@@ -21,30 +21,10 @@
 
 using namespace std;
 
-/**
-
-@defgroup configuration Configuration
-
-<B>ivrworx</B> currently uses json configuration file. For notes regarding the 
-valid values see ivrworx::Configuration doc, and comments in json file that comes
-with installation package.
-
-**/
 
 namespace ivrworx
 {
 
-	/**
-	*	
-	*	Configuration of ivrworx.
-	*
-	*	This is abstract class representing configuration of ivrworx.
-	*	It does neither read values nor supplies default configuration 
-	*	values.Every concrete class that implements the reading from 
-	*	specific data source should inherit from this class. The class 
-	*	is thread safe.
-	*
-	*/
 	class Configuration
 		:public boost::noncopyable
 	{
@@ -54,208 +34,74 @@ namespace ivrworx
 
 		virtual ~Configuration(void);
 
-		/**
-		*
-		*	You may use precompile options to load files more efficiently. However you 
-		*	won't be able to update the script files while ivrworx is running (working 
-		*   to improve it).
-		*
-		*	@return Name of the super script.
-		**/
+		
 		virtual bool Precompile();
 
-		/**
-		*
-		*	Name of the super script. Super script is the script that runs on system startup.
-		*
-		*	@return Name of the super script.
-		**/
+		
 		virtual string SuperScript();
 
-		/**
-		*
-		*	Mode of super script.
-		*
-		*	- sync	- IVR is started after super script is over
-		*
-		*	 Any other value would indicate that script is running in parallel with scripts
-		*   accepting the incoming calls
-		*
-		*	@return Name of the super script.
-		**/
+		
 		virtual string SuperMode();
 
-		/**
-		*
-		*	The connection info of SIP stack.
-		*
-		*	@return The connection info of SIP stack.
-		**/
+		
 		virtual CnxInfo IvrCnxInfo();
 
-		/**
-		*
-		*	Adds 'timer' to the list of supported headers.
-		*
-		*	@return 'true' if timer is supported.
-		**/
+		
 		virtual bool EnableSessionTimer();
 
-		/**
-		*	The connection refresh mode
-		*
-		*	Currently supported:-
-		*	- none			- Set to none if you don't want session timer be supported.
-		*	- prefer_uas	- Set to prefer_uas if you prefer that the UAS (for the session - callee) performs the refreshes.
-		*	- prefer_uac	- Set to prefer_uac if you prefer that the UAC (for the session - caller) performs the refreshes.
-		*	- prefer_local	- Set to prefer_local if you prefer that the local UA performs the refreshes. 
-		*	- prefer_remote	- Set to prefer_remote if you prefer that the remote UA performs the refreshes.
-		*
-		*   @return refresh mode
-		*/
+		
 		virtual string SipRefreshMode();
 
-		/**
-		*	Session timer expiration in seconds. Must be greater than 90
-		*
-		*	@return The connection info of IMS thread.
-		**/
+		
 		virtual int	 SipDefaultSessionTime();
 		
 
-		/**
-		*
-		*	Name of the lua file to run on each call.
-		*
-		*	@return Name of the lua file to run on each call.
-		**/
+		
 		virtual string ScriptFile();
 
-		/**
-		*	Name of the lua file to run on each call. The script may be relative to 
-		*	ivrworx installation directory.
-		*
-		*	@return pathname to script.
-		**/
+
 		virtual string SoundsPath();
 
-		/**
-		*	Adds supported media format.
-		*
-		*	@param media_format Supported media format 
-		**/
+
 		virtual void AddMediaFormat(IN const MediaFormat& media_format);
 
-		/**
-		*	Adds supported media format.
-		*
-		*	@param codec Supported media format 
-		**/
+		
 		virtual void AddMediaFormat(IN const MediaFormat* codec);
 
-		/**
-		*	Supported media formats list.
-		*
-		*	@return Supported media formats list.
-		**/
+		
 		virtual const MediaFormatsPtrList& MediaFormats();
 
-		/**
-		*	This string will appear as a username in outgoing SIP calls.
-		*
-		*	@return User name.
-		**/
+		
 		virtual string From();
 
-		/**
-		*	This string will appear as a display name of the user in outgoing 
-		*	SIP calls.
-		*
-		*	@return Display name.
-		**/
+		
 		virtual string FromDisplay();
 
-		/**
-		*	Syslogd host.
-		*
-		*	@return Syslogd hostname.
-		**/
+		
 		virtual string SyslogHost();
 
-		/**
-		*	Syslogd port.
-		*
-		*	@return Syslogd port.
-		**/
+		
 		virtual int SyslogPort();
 
-		/**
-		*	String that represent debug level for ivrworx infrastructure.
-		*	Valid values: OFF|CRT|WRN|DBG|TRC
-		*
-		*	@return Syslogd port.
-		**/
+		
 		virtual string DebugLevel();
 
-		/**
-		*	Comma separated values of log output facilities.
-		*
-		*	Currently supported:-
-		*	- console - console output
-		*	- debug - windows debug output
-		*	- syslog - syslog daemon
-		*
-		*	Example: syslog,console
-		*
-		*	@return Comma separated values of log output facilities.
-		**/
+		
 		virtual string DebugOutputs();
 
-		/**
-		*	Vertical bar "|" separated string of pairs representing the 
-		*	debug level of resiprocate SIP stack subsystems.
-		*
-		*	pair syntax : SUBSYSTEM,DEBUG LEVEL
-		*	Resiprocate log syntax: pair1|pair2|...
-		*
-		*	Valid subsystems: - APP,CONTENTS,DNS,DUM,NONE,PRESENCE,SDP,SIP,TRANSPORT,STATS
-		*	Valid log values: the same as ivrworx
-		*
-		*	@return resip log levels
-		**/
+		
 		virtual string ResipLog();
 
-		/**
-		*   By default ivrworx logging infrastructure will spawn a special threading for outputting
-		*	logging messages. This is more robust and efficient, however it is not always convenient
-		*	while debugging multi threaded applications as order of messages is more prone to be changed,
-		*	and when crash happens some important logging messages may be still stuck in queue and not printed.
-		*
-		*	Setting sync_log to true will cause logging message to be printed in the same thread. this is
-		*   less efficient as it mandates using locking and making long operation inside working threads.
-		*   Not to mention that simply using edit mode in cmd console windows may stuck the whole application 
-		*
-		*	@return sync log value
-		*
-		*/
+		
 		virtual bool SyncLog();
 
-		/**
-		* Gets integer value of configuration file
-		*
-		*/
+		
 		virtual int GetInt(const string &name) = 0;
 
-		/**
-		* Gets string value of configuration file
-		*
-		*/
+		
 		virtual string GetString(const string &name) = 0;
 
-		/**
-		* Gets bool value of configuration file
-		*
-		*/
+		
 		virtual BOOL GetBool(const string &name) = 0;
 
 	protected:
