@@ -1,16 +1,81 @@
-
  * Logging API
- * Call API
+ * Call Control API
+ * MRCP API
+ * Simple streaming APi
  * Utils API
+ * SQL Api
 
 
-= Call Api =
+== Ivrworx Result Code ==
+
+Most of the ivrworx functions return integer result code. For programmers convenience, the result constants are stored inside ivrworx table.
+
+|| Constant key|| Meaning ||
+|| ivrworx.API_SUCCESS|| Success. ||
+|| ivrworx.API_FAILURE|| General failure.||
+|| ivrworx.API_SERVER_FAILURE|| (not used)||
+|| ivrworx.API_TIMEOUT|| Transaction timeout. ||
+|| ivrworx.API_WRONG_PARAMETER|| Wrong parameter is passed to function. ||
+|| ivrworx.API_WRONG_STATE|| The object upon which the function is called is in wrong state.||
+|| ivrworx.API_HANGUP|| Remote party hanged up. ||
+|| ivrworx.API_UNKNOWN_DESTINATION|| (internal) Destination process for message has died. ||
+|| ivrworx.API_UNKNOWN_RESPONSE|| Received unknown response for request. ||
+|| ivrworx.API_FEATURE_DISABLED|| The feature is disabled in configuration. ||
+
+== Logging API ==
+
+Ivrworx logger is a singleton object which is accessible via ivrworx table.
+
+_*logger:loginfo()*_
+_*logger:logwarn()*_
+_*logger:logcrit()*_
+_*logger:logdebug()*_
+
+{{{
+logger = assert(ivrworx.LOGGER);
+
+logger.loginfo("INF message");
+logger.loginfo("WRN message");
+logger.loginfo("CRT message");
+logger.loginfo("DBG message");
+}}}
+
+== Call Control API ==
+
+Call objects are created by calling _createcall_ function.
+
+{{{
+call = ivrworx.createcall();
+}}}
+
+For incoming IVR calls there's built-in _ivrworx.INCOMING_ object which designates the incoming call.
+{{{
+incoming = assert(ivrworx.INCOMING);
+}}}
+
+----
+
+_*call:makecall()*_
+
+Makes call to sip destination.
+
+{{{
+
+call = ivrworx.createcall();
+assert(call:makecall("sip:1234@example.com:5060") == ivrworx.API_SUCCESS);
+
+
+
+}}}
+
+
+----
+
 
 _*call:answer()*_
 
 
-Answers incoming call, e.g. codecs are negotiated and 200 OK is sent to UAC.
-
+Answers incoming call, e.g. codecs are negotiated and 200 OK is sent to UAC. Returns result code.
 
 
 {{{
@@ -25,12 +90,72 @@ assert (res == ivrworx.API_SUCCESS)
 
 _*call:hangup()*_
 
-Hangs up the call
+Hangs up the call.
 
 {{{
 res = call:hangup();
 assert (res == ivrworx.API_SUCCESS)
 }}}
 
+---
+
+_*call:waitforhangup()*_
+
+Waits till remote party hangs up.
+
+{{{
+res = call:waitforhangup();
+assert (res == ivrworx.API_SUCCESS)
+}}}
+
+----
+
+_*call:ani()*_
+_*call:dnis()*_
+
+Returns ANI and DNIS of the call.
+
+{{{
+ani = call:ani();
+dnis = call:dnis();
+
+ivrworx.loginfo("ANI="..ani..", DNIS="..dnis);
+}}}
+----
+
+_*cleandtmfbuffer*_
+
+Cleans dtmf digits buffer.
+
+{{{
+call:cleandtmfbuffer();
+}}}
+
+----
+
+call:waitfordtmf(timeout);
+
+Waits timeout or returns DTMF digit which is placed in current DTMF buffer
+
+{{{
+
+res,curr_dtmf = incoming:waitfordtmf(interdigit_timeout);
+
+if (res == ivrworx.API_SUCCESS) then
+  logger:loginfo("Received DTMF="...curr_dtmf);
+end
+
+}}}
 
 ---
+
+_*blindxfer*_
+
+Blind transfer to sip destination
+
+{{{
+
+
+}}}
+
+
