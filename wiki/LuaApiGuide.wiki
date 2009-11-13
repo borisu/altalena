@@ -18,7 +18,7 @@
 
 Most of the ivrworx functions return integer result code. For programmers convenience, the result constants are stored inside ivrworx table.
 
-|| Constant key|| Meaning ||
+|| *Constant Key* || *Description* ||
 || ivrworx.API_SUCCESS|| Success. ||
 || ivrworx.API_FAILURE|| General failure.||
 || ivrworx.API_SERVER_FAILURE|| (not used)||
@@ -53,7 +53,7 @@ logger.loginfo("DBG message");
 
 ==Call Control==
 
-Call objects are created by calling _ivrworx:createcall_ function.
+Call objects are created by calling _ivrworx:createcall()_ function.
 
 {{{
 
@@ -110,7 +110,7 @@ res = call:hangup();
 
 }}}
 
----
+----
 
 _*call:waitforhangup()*_
 
@@ -155,7 +155,7 @@ call:cleandtmfbuffer();
 
 _*call:waitfordtmf(timeout)_
 
-Waits timeout or returns DTMF digit (SIP INFO) which is placed in current DTMF buffer. Returns result code and DTMF digit in string format (nil in case of timeout).
+Waits for _timeout_ to expire or returns DTMF digit (SIP INFO) which is placed in current DTMF buffer. Returns result code and DTMF digit in string format (nil in case of timeout).
 
 {{{
 
@@ -179,17 +179,18 @@ call = ivrworx.createcall();
 res = call:makecall("sip:1234@example.com:5060");
 
 if (res == ivrworx.API_SUCCESS) then
- res = call:blindxfer("sip:1234@example.com");
+ res = call:blindxfer("sip:4567@example.com");
 end
 
 }}}
+
 ----
 
 ==Simple Streaming API==
 
 _*call:play(file,sync,loop)*_
 
-Streams _file_ to remote party. File has to be in WAV format PCM encoding. No file format checks are performed.
+Streams _file_ to remote party. The file has to be in WAV format and PCM encoding. No file format checks are performed.
 
 sync - play will exit when stream is finished, or immediately otherwise.
 
@@ -245,9 +246,9 @@ res = incoming:speak(mrcp_goodbye,true);
 
 _*call:speak(tts, sync)*_
 
-build simple TTS xml and sends it to MRCP server.
+Sends simple TTS request and sends it to MRCP server.
 
-sync - if sync is true the function will return only after "speaking" is over, or immediately otherwise
+sync - if sync is true the function will return only after "speaking" is over, or immediately otherwise.
 
 {{{
 
@@ -267,7 +268,7 @@ Stops current "speaking"
 -- Sleep one second, then stop speaking.
 --
 
-call:speak("Welcome!",false
+call:speak("Welcome!",false)
 ivrworx.sleep(1000);
 call:stopspeak();
 
@@ -277,7 +278,7 @@ call:stopspeak();
 
 _*ivrworx.sleep(timeout)*_
 
-Fiber non blocking sleep. Param is passed in milliseconds
+Fiber non blocking sleep. Timeout parameter is passed in milliseconds
 
 {{{
 ivrworx.sleep(1000);
@@ -286,7 +287,7 @@ ivrworx.sleep(1000);
 ==SQLite==
 
 
-Lua [http://www.keplerproject.org/luasql/manual.html#drivers SQLite driver] from [http://www.keplerproject.org/luasql/ kepler] project. Was ported to ivrworx in order to provide non blocking fiber API. The API hasn't changed. The libraries are loaded automatically into lua vm at start up time (no _require_ keyword is needed).
+Lua [http://www.keplerproject.org/luasql/manual.html#drivers SQLite driver] from [http://www.keplerproject.org/luasql/ kepler] project, was ported to ivrworx in order to provide non blocking fiber API. The API hasn't changed. The libraries are loaded automatically into lua vm at start up time (no _require_ keyword is needed).
 
 {{{
 env = assert(luasql.sqlite3());
