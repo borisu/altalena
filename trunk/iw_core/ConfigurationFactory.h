@@ -44,16 +44,6 @@ namespace ivrworx
 
 		virtual ~ConfigurationFactory(void);
 
-		/**
-		*
-		*	Creates @ref configuration from Json file.
-		*
-		*	@param	filename Path to the file.
-		*	@param	err_code The result of operation.
-		*
-		*	@return	Smart pointer to configuration object.
-		*
-		*/
 		static ConfigurationPtr CreateJsonConfiguration(const string &filename, ApiErrorCode &err_code);
 
 	};

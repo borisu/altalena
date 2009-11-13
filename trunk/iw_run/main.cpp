@@ -207,51 +207,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		return -1;
 	}
 
-// 	
-// 	struct addrinfo *res0 = NULL;
-// 	char *addr = "127.0.0.1";
-// 
-// 	int port =0;
-// 	char *sport = 0;
-// 
-// 	DWORD dwRetval = ::getaddrinfo(addr,sport, NULL, &res0);
-// 	if ( dwRetval != 0 ) {
-// 		printf("getaddrinfo failed with error: %d\n", dwRetval);
-// 		WSACleanup();
-// 	}
-// 
-// 	int optval = 1;
-// 	
-// 
-// 	for (struct addrinfo *res = res0; res; res = res->ai_next) 
-// 	{
-// 		SOCKET sock = socket(res->ai_family, res->ai_socktype, 0);
-// 		if (sock==-1)
-// 		{
-// 			continue;
-// 		}
-// 			
-// 		DWORD err = setsockopt (sock, SOL_SOCKET, SO_REUSEADDR,
-// 			(char *)&optval, sizeof (optval));
-// 		if (err < 0)
-// 		{
-// 			printf("Fail to set rtp address reusable: %d.", ::WSAGetLastError());
-// 		}
-// 		
-// 		
-// 		err = ::bind (sock, res->ai_addr, res->ai_addrlen);
-// 		if (err != 0){
-// 			printf("Fail to bind rtp socket to (addr=%s port=%i) : %d.", addr,port, ::WSAGetLastError());
-// 			::closesocket(sock);
-// 			sock=-1;
-// 			continue;
-// 		}
-// 	}
-// 
-// 	return 1;
 
-
-	
 	ApiErrorCode err_code = API_SUCCESS;
 	ConfigurationPtr conf = 
 		ConfigurationFactory::CreateJsonConfiguration(WStringToString(conf_file),err_code);
