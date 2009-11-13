@@ -1,12 +1,36 @@
+
+ * Logging API
+ * Call API
+ * Utils API
+
+
 = Call Api =
 
 _*call:answer()*_
 
-{{{
---
--- Answer incoming call
---
-incoming =ivrworx.INCOMING
 
-call:answer()
-}}
+Answers incoming call, e.g. codecs are negotiated and 200 OK is sent to UAC.
+
+
+
+{{{
+incoming =ivrworx.INCOMING;
+assert(incoming);
+
+res =call:answer();
+assert (res == ivrworx.API_SUCCESS)
+}}}
+
+----
+
+_*call:hangup()*_
+
+Hangs up the call
+
+{{{
+res = call:hangup();
+assert (res == ivrworx.API_SUCCESS)
+}}}
+
+
+---
