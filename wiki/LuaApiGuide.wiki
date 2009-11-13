@@ -1,0 +1,12 @@
+= Call Api =
+
+_*call:answer()*_
+
+{{{
+--
+-- Answer incoming call
+--
+incoming =ivrworx.INCOMING
+
+call:answer()
+}}
