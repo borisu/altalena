@@ -36,7 +36,14 @@ are either included into subversion tree completely or by means of subversion ex
 {{{
 cppcsp.h(167) : warning C4005: '_WIN32_WINNT' : macro redefinition
 }}} 
-   Please enclose _WIN32_WINNT within #ifdef macro
+   Please enclose _WIN32_WINNT macro definition in cppcsp.h file within #ifdef macro
+
+{{{
+#ifndef _WIN32_WINNT
+ #define _WIN32_WINNT 0x0403
+#endif
+}}}
+
  # iw_run should be a start up project
 
 = Start = 
