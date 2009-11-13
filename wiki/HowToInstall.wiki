@@ -31,7 +31,9 @@ are either included into subversion tree completely or by means of subversion ex
  # Unzip the mediastreamer2 library. Important! You should unzip it exactly in the same directory where it is located. ("Extract here" on most zip tools)
  # Copy <root project>\mediastreamer2.def to <root project>\C:\altalena\altalena\mediastreamer2-antisip-4.3.3-rc2\mediastreamer2\build\win32native\mediastreamer2.def. Change "Export Library Dependencies" linker option in libmsilb, mediastreamer2, ortp projects to "No".
  # Open <root project>\solutions\altalena_all\altalena_all.sln.
- # To exculde warning {{{
+ # To exculde the following warning from compilation output:
+
+{{{
 cppcsp.h(167) : warning C4005: '_WIN32_WINNT' : macro redefinition
 }}} 
    Please enclose _WIN32_WINNT within #ifdef macro
