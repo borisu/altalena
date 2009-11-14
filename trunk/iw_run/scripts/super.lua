@@ -6,7 +6,7 @@
 logger = assert(ivrworx.LOGGER)
 conf   = assert(ivrworx.CONF)
 
-logger:loginfo("super *** Welcome! ***");
+logger:loginfo("*** Welcome to super example ! Please change the script to suite your environment! ***");
 
 --
 -- Example application
