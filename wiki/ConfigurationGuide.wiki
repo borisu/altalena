@@ -264,7 +264,7 @@ _*unimrcp_conf_dir*_
 
 _type : string_
 
-The directory which contains unimrcp XML configuration file. More info [http://code.google.com/p/unimrcp/wiki/ConfigurationGuide here]. Relative paths are taken relatively to ivrworx root installation directory.
+The directory which contains unimrcp XML configuration file. More info [http://code.google.com/p/unimrcp/wiki/ConfigurationGuide here]. Default xml file  is installed in './unimrcp/conf directory'. Relative paths are taken relatively to ivrworx root installation directory.
 
 {{{
 "unimrcp_conf_dir": "./unimrcp"
