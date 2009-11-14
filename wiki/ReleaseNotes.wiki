@@ -1,5 +1,20 @@
 #summary Release Notes
 
+= ivrworx 1.1.RC1-dbg =
+----
+=== What's new in this version ===
+
+ * Completely rewritten API
+
+ * RTP RFC 2833 support temporarily dropped in favor of SIP INFO method
+
+ * MRCP integration support
+
+
+
+= ivrworx 1.0.5-alpha-dbg =
+----
+
 = ivrworx 1.0.6-alpha-dbg =
 ----
 === What's new in this version ===
