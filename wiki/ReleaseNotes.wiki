@@ -11,15 +11,12 @@
  * MRCP integration support
 
 
-
-= ivrworx 1.0.5-alpha-dbg =
-----
-
 = ivrworx 1.0.6-alpha-dbg =
 ----
 === What's new in this version ===
 
  * Sqlite non blocking connectivity is added base and lua sql
+
 
 = ivrworx 1.0.5-alpha-dbg =
 ----
