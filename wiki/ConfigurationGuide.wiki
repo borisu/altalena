@@ -216,7 +216,7 @@ _*ring_timeout*_
 
 _type : number_
 
-Ring timeout in outgoing calls. For more info see makecall api.   
+Ring timeout in outgoing calls. For more info see 'makecall' api.   
 
 {{{
 "ring_timeout" : 20
@@ -250,7 +250,7 @@ Caller id of the ivrworx application. It will appear in "From:" SIP header.
 
 _*mrcp_enabled*_
 
-Ivrworx is using [http://www.unimrcp.org/ unimrcp] framework to connect to MRCP service providers. If MRCP integration is enabled, ivrworx will try to establish MRCP connection for every incoming call to have TTS service readily available. Enable it if you want to use speak or speakmrcp api.
+Ivrworx is using [http://www.unimrcp.org/ unimrcp] framework to connect to MRCP service providers. If MRCP integration is enabled, ivrworx will try to establish MRCP connection for every incoming call to have TTS service readily available. Enable it if you want to use speak or 'speakmrcp' api.
 
 _type : boolean_
 
@@ -264,7 +264,7 @@ _*unimrcp_conf_dir*_
 
 _type : string_
 
-The directory which contains unimrcp XML configuration file. More info [http://code.google.com/p/unimrcp/wiki/ConfigurationGuide here]. Default xml file  is installed in './unimrcp/conf directory'. Relative paths are taken relatively to ivrworx root installation directory.
+The directory which contains unimrcp XML configuration file. More info [http://code.google.com/p/unimrcp/wiki/ConfigurationGuide here]. Default xml file  is installed in './unimrcp/conf' directory. Relative paths are taken relatively to ivrworx root installation directory.
 
 {{{
 "unimrcp_conf_dir": "./unimrcp"
@@ -298,7 +298,7 @@ _type : string_
 
 _*rtsp_enabled*_
 
-If rtsp is enabled then for every call ,ivrworx will open a session to built-in streamer server, in order to have streaming resource readily available. Enable it, if you want to use play ivrworx api.
+If rtsp is enabled then for every call ,ivrworx will open a session to built-in streamer server, in order to have streaming resource readily available. Enable it, if you want to use 'play' ivrworx api.
 
 _type : boolean_
 
