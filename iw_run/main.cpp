@@ -189,7 +189,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		cerr << "Usage: ivrworx.exe [configuration_file]" << std::endl;
 		cerr << "\tStarts lightweight IVR application." << std::endl;
-		cerr << "Trying default conf.json file...";
+		cerr << "Trying default conf.json file..." << std::endl;
 
 		conf_file = L"conf.json";
 

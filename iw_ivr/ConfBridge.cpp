@@ -74,6 +74,34 @@ namespace ivrworx
 	}
 
 	int 
+	ConfBridge::getboolean(lua_State *L)
+	{
+		if (lua_isstring(L, -1) != 1 )
+		{
+			LogWarn("ConfBridge::getstring wrong param.");
+			return 0;
+		}
+
+		size_t string_length = 0;
+		const char *log_string = lua_tolstring(L, -1, &string_length);
+
+		BOOL value = FALSE;
+		try
+		{
+			value = _conf->GetBool(log_string);
+		}
+		catch (exception* e)
+		{
+			LogWarn("ConfBridge::getboolean e:" << e->what());
+		}
+
+		lua_pushboolean(L, value);
+		return 1;
+
+
+	}
+
+	int 
 	ConfBridge::getint(lua_State *L)
 	{
 		if (lua_isstring(L, -1) != 1 )

@@ -1,14 +1,9 @@
+-- 
+-- ivrworx test application
+--
 logger   = assert(ivrworx.LOGGER)
 conf     = assert(ivrworx.CONF)
 incoming = assert(ivrworx.INCOMING)
-
-greeting = "C:\\dev\\CosmoCom\\Universe_5\\5_1_0\\Install Packs\\Server Components\\Files\\Samples\\VCS\\IVR\\greeting.wav"
-
-
-
-
-
-
 
 ---
 --- Main
@@ -152,26 +147,12 @@ function getdtmfs(prompt_mrcp, termination_digit, interdigit_timeout, max_digits
 end
 
 
-
-
-
-env = assert(luasql.sqlite3());
-conn_string = assert(conf:getstring("polly_db"));
-con = assert(env:connect(conn_string));
-
-logger:loginfo("db:"..conn_string.." open");
-
 assert(incoming:answer() == ivrworx.API_SUCCESS);
 
 --
 -- Play welcome propmt
 --
-assert(incoming:play(greeting,true,false));
-assert(incoming:speak("welcome to CCU application.",true));
-incoming:waitforhangup();
-if true then 
-	return
-end
+assert(incoming:speak([["welcome to <say-as interpret-as="characters">IVR</say-as>works application."]],true));
 
 --
 -- Gather user number

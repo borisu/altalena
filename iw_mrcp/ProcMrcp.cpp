@@ -173,11 +173,12 @@ namespace ivrworx
 
 	
 	ProcMrcp::ProcMrcp(LpHandlePair pair, Configuration &conf):
-	LightweightProcess(pair,MRCP_Q,"ProcMrcpClient"),
+	LightweightProcess(pair,MRCP_Q,"ProcMrcp"),
 	_conf(conf),
 	_application(NULL),
 	_pool(NULL),
-	_logInititiated(FALSE)
+	_logInititiated(FALSE),
+	_mrcpClient(NULL)
 	{
 		FUNCTRACKER;
 
