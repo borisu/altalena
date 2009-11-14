@@ -57,6 +57,8 @@ logger.loginfo("DBG message");
 
 Configuration object is a singleton accessed by _ivrworx.CONF_
 
+----
+
 _*conf:getboolean()*_
 
 _*conf:getstring()*_
