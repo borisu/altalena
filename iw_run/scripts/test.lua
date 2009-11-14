@@ -8,7 +8,7 @@ incoming = assert(ivrworx.INCOMING)
 ---
 --- Main
 ---
-logger:loginfo("*** Welcome to client application ***");
+logger:loginfo("*** Welcome to client example application! Please change the script to suite your environment!  ***");
 
 
 mrcp_goodbye = [[<?xml version="1.0"?>
