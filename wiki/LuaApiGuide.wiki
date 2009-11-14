@@ -53,6 +53,23 @@ logger.loginfo("CRT message");
 logger.loginfo("DBG message");
 }}}
 
+==Configuration==
+
+Configuration object is a singleton accessed by _ivrworx.CONF_
+
+_*conf:getboolean()*_
+
+_*conf:getstring()*_
+
+_*conf:getnumber()*_
+
+{{{
+
+conf         = assert(ivrworx.CONF);
+rtsp_enabled = conf:getboolean("rtsp_enabled")
+
+}}}
+
 ==Call Control==
 
 Call objects are created by calling _ivrworx:createcall()_ function.
