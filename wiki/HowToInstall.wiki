@@ -22,6 +22,7 @@ Other project dependencies:-
  # [http://www.codeproject.com/KB/recipes/JSON_Spirit.aspx json spirit]
  # [http://www.linphone.org/index.php/eng/code_review/mediastreamer2 mediastreamer2]
  # [http://www.live555.com/ live555]
+ # [http://www.keplerproject.org Lua SQL - Kepler Project]
 
 are either included into subversion tree completely or by means of subversion externals.
 
