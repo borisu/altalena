@@ -4,7 +4,7 @@
 	
 	"resip_log" : "",
 	
-	"debug_level"  : "DBG",
+	"debug_level"  : "INF",
 	"debug_outputs" : "debug,console",
 	
 	"syslogd_host" : "127.0.0.1",
@@ -35,7 +35,7 @@
     "rtsp_enabled": true,
     
     
-	"rtp_proxy_base_port" : 8000,
+    "rtp_proxy_base_port" : 8000,
     "rtp_proxy_top_port" : 9000,
     "rtp_proxy_num_of_connections" : 100,
     "rtp_proxy_ip" : "$COMPUTERNAME",
@@ -54,7 +54,5 @@
         {
             "name": "SPEEX" 
         } 
-    ],
-    
- 
+    ]
 }

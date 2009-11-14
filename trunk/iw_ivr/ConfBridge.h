@@ -33,6 +33,7 @@ namespace ivrworx
 
 		int getstring(lua_State *L);
 		int getint(lua_State *L);
+		int getboolean(lua_State *L);
 
 		static const char className[];
 		static Luna<ConfBridge>::RegType methods[];

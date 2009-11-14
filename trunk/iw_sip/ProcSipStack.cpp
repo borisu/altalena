@@ -660,7 +660,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		LogInfo("ProcSipStack::onInfo rsh:" << is.getId());
+		LogDebug("ProcSipStack::onInfo rsh:" << is.getId());
 
 		IwStackHandle ixhandle = IW_UNDEFINED;
 		ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());

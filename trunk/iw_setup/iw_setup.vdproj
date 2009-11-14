@@ -15,8 +15,8 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_113D4F5C3EEB437C8F1BD7EB2F3CC338"
-        "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
+        "MsmKey" = "8:_03E98D51F6A84FFCBA8FF6137921BB21"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -45,7 +45,25 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_2DAEF1CDC3C44A86A2637B4DC1A6DFAC"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_344E95D490F7401D9C39AFB88E2F75AE"
+        "OwnerKey" = "8:_3EAC17D2A2DD4CBCA110896B995BCD09"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_345B34B354574D63AB904B1C43353B6A"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_38FE64DE4BAD463883A87FE68541FACD"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -53,6 +71,12 @@
         {
         "MsmKey" = "8:_3C3CE0C555C648E1B29D02CECF56AA87"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_3EAC17D2A2DD4CBCA110896B995BCD09"
+        "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -159,12 +183,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_F6C717EB116E43AF9F56515F1653293B"
-        "OwnerKey" = "8:_113D4F5C3EEB437C8F1BD7EB2F3CC338"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_FFCC567B8A33CAF199F8DF533DEDB6AF"
         "OwnerKey" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
         "MsmSig" = "8:_UNDEFINED"
@@ -177,7 +195,7 @@
         "DisplayName" = "8:Debug"
         "IsDebugOnly" = "11:TRUE"
         "IsReleaseOnly" = "11:FALSE"
-        "OutputFilename" = "8:Debug\\ivrworx-alpha-1.0.6-dbg.msi"
+        "OutputFilename" = "8:Debug\\ivrworx-1.1.RC1.dbg.msi"
         "PackageFilesAs" = "3:2"
         "PackageFileSize" = "3:-2147483648"
         "CabType" = "3:1"
@@ -191,15 +209,15 @@
             {
             "Enabled" = "11:TRUE"
             "PromptEnabled" = "11:TRUE"
-            "PrerequisitesLocation" = "2:1"
+            "PrerequisitesLocation" = "2:2"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
                 "Items"
                 {
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Net.Framework.2.0"
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Visual.C++.8.0.x86"
                     {
-                    "Name" = "8:Microsoft .NET Framework 2.0"
-                    "ProductCode" = "8:Microsoft.Net.Framework.2.0"
+                    "Name" = "8:Visual C++ Runtime Libraries (x86)"
+                    "ProductCode" = "8:Microsoft.Visual.C++.8.0.x86"
                     }
                 }
             }
@@ -288,6 +306,26 @@
         }
         "File"
         {
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_03E98D51F6A84FFCBA8FF6137921BB21"
+            {
+            "SourcePath" = "8:..\\iw_run\\unimrcp\\conf\\unimrcpclient.xml"
+            "TargetName" = "8:unimrcpclient.xml"
+            "Tag" = "8:"
+            "Folder" = "8:_889D562EF6ED44F99F24EAA3B32FA8EF"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1B026A4D69624D2983BF005B5E562C1F"
             {
             "SourcePath" = "8:..\\iw_run\\sounds\\test\\enter-ext-of-person.wav"
@@ -368,12 +406,52 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2DAEF1CDC3C44A86A2637B4DC1A6DFAC"
+            {
+            "SourcePath" = "8:..\\unimrcp-deps\\libs\\sofia-sip\\win32\\pthread\\pthreadVC2.dll"
+            "TargetName" = "8:pthreadVC2.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_4297B6AD822A4AA893980396FC470571"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_345B34B354574D63AB904B1C43353B6A"
             {
             "SourcePath" = "8:..\\iw_run\\scripts\\super.lua"
             "TargetName" = "8:super.lua"
             "Tag" = "8:"
             "Folder" = "8:_D4664D1729B44852B779918AAD224757"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_38FE64DE4BAD463883A87FE68541FACD"
+            {
+            "SourcePath" = "8:..\\iw_run\\conversation.ico"
+            "TargetName" = "8:conversation.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_4297B6AD822A4AA893980396FC470571"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -784,6 +862,28 @@
                     "Property" = "8:_DF51BFC3CF4C43DFBB56652D3689295B"
                         "Folders"
                         {
+                            "{9EF0B969-E518-4E46-987F-47570745A589}:_889D562EF6ED44F99F24EAA3B32FA8EF"
+                            {
+                            "Name" = "8:conf"
+                            "AlwaysCreate" = "11:FALSE"
+                            "Condition" = "8:"
+                            "Transitive" = "11:FALSE"
+                            "Property" = "8:_82043B2BC69F431A9F5DEBBF914F4A3C"
+                                "Folders"
+                                {
+                                }
+                            }
+                            "{9EF0B969-E518-4E46-987F-47570745A589}:_EF00F2B056484817A087D0BD0755ACB5"
+                            {
+                            "Name" = "8:log"
+                            "AlwaysCreate" = "11:TRUE"
+                            "Condition" = "8:"
+                            "Transitive" = "11:FALSE"
+                            "Property" = "8:_653296ED61FD4CC2B91F1604758FD659"
+                                "Folders"
+                                {
+                                }
+                            }
                         }
                     }
                     "{9EF0B969-E518-4E46-987F-47570745A589}:_AFB33A5E9A954EE29C1B60FBDAB14EBE"
@@ -846,23 +946,23 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:ivrworx"
-        "ProductCode" = "8:{E7EBAE7D-4983-4770-A3AD-1599836B4501}"
-        "PackageCode" = "8:{BDF13820-C2BF-4E80-8123-5D912D135743}"
+        "ProductName" = "8:ivrworx-1.1.RC1"
+        "ProductCode" = "8:{33C246D7-3ECE-4B3F-A14A-7EB9E1208ED2}"
+        "PackageCode" = "8:{A58FF285-8C17-4B00-8343-6CFE1759AB0E}"
         "UpgradeCode" = "8:{F16F682B-850C-47C3-A02B-110A9C926B76}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
         "DetectNewerInstalledVersion" = "11:FALSE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.0"
+        "ProductVersion" = "8:1.1.1"
         "Manufacturer" = "8:ivrworx"
         "ARPHELPTELEPHONE" = "8:"
-        "ARPHELPLINK" = "8:"
+        "ARPHELPLINK" = "8:http://groups.google.com/group/ivrworx"
         "Title" = "8:ivrworx"
         "Subject" = "8:"
         "ARPCONTACT" = "8:Boris Ouretskey"
         "Keywords" = "8:"
-        "ARPCOMMENTS" = "8:"
+        "ARPCOMMENTS" = "8:Lightweight SIP IVR Solution"
         "ARPURLINFOABOUT" = "8:"
         "ARPPRODUCTICON" = "8:"
         "ARPIconIndex" = "3:0"
@@ -967,6 +1067,20 @@
         }
         "Shortcut"
         {
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_AAE189A0EC5B4C37B3DE3296CDB706FD"
+            {
+            "Name" = "8:ivrworx"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_C5CA6E9F16A64CE199B7CF67EEF4E251"
+            "Folder" = "8:_3D203C8A717B44648210EE9C99B592F2"
+            "WorkingFolder" = "8:_4297B6AD822A4AA893980396FC470571"
+            "Icon" = "8:"
+            "Feature" = "8:"
+            }
         }
         "UserInterface"
         {
@@ -1363,11 +1477,11 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_113D4F5C3EEB437C8F1BD7EB2F3CC338"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_344E95D490F7401D9C39AFB88E2F75AE"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:Microsoft_VC80_DebugCRT_x86.msm"
+            "SourcePath" = "8:policy_8_0_microsoft_vc80_debugcrt_x86.msm"
                 "Properties"
                 {
                 }
@@ -1377,11 +1491,11 @@
             "Feature" = "8:"
             "IsolateTo" = "8:"
             }
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_F6C717EB116E43AF9F56515F1653293B"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_3EAC17D2A2DD4CBCA110896B995BCD09"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:policy_8_0_microsoft_vc80_debugcrt_x86.msm"
+            "SourcePath" = "8:Microsoft_VC80_DebugCRT_x86.msm"
                 "Properties"
                 {
                 }
