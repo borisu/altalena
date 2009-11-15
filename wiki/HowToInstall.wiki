@@ -64,7 +64,7 @@ http://www.prettythingsflying.com/images/tree.gif
 {{{
 cppcsp.h(167) : warning C4005: '_WIN32_WINNT' : macro redefinition
 }}} 
-   Please enclose _WIN32_WINNT macro definition in cppcsp.h file within #ifdef macro
+   Please enclose '_WIN32_WINNT' macro definition in 'cppcsp.h' file within '#ifdef' 
 
 {{{
 #ifndef _WIN32_WINNT
