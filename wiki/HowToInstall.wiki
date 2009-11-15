@@ -8,7 +8,7 @@ Please report any problem to [mailto:borisusun@gmail.com borisusun], if you are 
 
 Be advised that currently it can be built in debug configuration only.
 
-*I know that currently setting up an development environment requires a lot of effort.As a rule any suggestion on how to simplify building process will be warmly accepted*
+*I know that currently setting up an development environment requires a lot of effort. the main reason for that is a lot of dependencies that every open source project brings with it :(. Any suggestion on how to simplify building process will be warmly accepted*
 
 = Dependencies =
 
