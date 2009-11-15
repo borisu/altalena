@@ -37,9 +37,9 @@ are either included into subversion tree completely or by means of subversion ex
 
  * Add <project root>\kentcsp\kentcsp\src to include library in IDE options tab. After all defintions library and include optins should look something like this.
 
-http://picasaweb.google.com/lh/photo/-EdOzx8saNhUPw1Evd3LRA?feat=directlink
+http://www.prettythingsflying.com/images/includes.gif
 
-http://picasaweb.google.com/lh/photo/CDz-qpniBMiExY8QTjSTKA?feat=directlink
+http://www.prettythingsflying.com/images/library.gif
 
  * Unzip the mediastreamer2 archive. Important! You should unzip it exactly in the same directory where it is located. ("Extract here" on most zip tools)
 
