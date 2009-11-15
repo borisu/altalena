@@ -35,7 +35,11 @@ are either included into subversion tree completely or by means of subversion ex
 
  * Checkout altalena code in <project root>\altalena- see instructions [http://code.google.com/p/altalena/source/checkout here]. Write to administrator if you want to become a member of development team.
 
- * Add <project root>\kentcsp\kentcsp\src to include library in IDE options tab
+ * Add <project root>\kentcsp\kentcsp\src to include library in IDE options tab. After all defintions library and include optins should look something like this.
+
+[http://picasaweb.google.com/lh/photo/-EdOzx8saNhUPw1Evd3LRA?feat=directlink]
+
+[http://picasaweb.google.com/lh/photo/CDz-qpniBMiExY8QTjSTKA?feat=directlink]
 
  * Unzip the mediastreamer2 archive. Important! You should unzip it exactly in the same directory where it is located. ("Extract here" on most zip tools)
 
