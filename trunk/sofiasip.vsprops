@@ -16,5 +16,5 @@
 	<UserMacro
 		Name="SofiaDir"
 		Value="$(SolutionDir)..\..\unimrcp-deps\libs\sofia-sip"
-	/>
+	/> 
 </VisualStudioPropertySheet>
