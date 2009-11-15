@@ -336,7 +336,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{AC4356E8
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unimrcpserver", "..\..\unimrcp\platforms\unimrcp-server\unimrcpserver.vcproj", "{592CF22D-3F8F-4A77-A174-130D77B7623B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unimrcpserver", "..\..\unimrcp\unimrcp\platforms\unimrcp-server\unimrcpserver.vcproj", "{592CF22D-3F8F-4A77-A174-130D77B7623B}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -345,13 +345,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unimrcpserver", "..\..\unim
 		{C98AF157-352E-4737-BD30-A24E2647F5AE} = {C98AF157-352E-4737-BD30-A24E2647F5AE}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aprtoolkit", "..\..\unimrcp\libs\apr-toolkit\aprtoolkit.vcproj", "{13DEECA0-BDD4-4744-A1A2-8EB0A44DF3D2}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aprtoolkit", "..\..\unimrcp\unimrcp\libs\apr-toolkit\aprtoolkit.vcproj", "{13DEECA0-BDD4-4744-A1A2-8EB0A44DF3D2}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mpf", "..\..\unimrcp\libs\mpf\mpf.vcproj", "{B5A00BFA-6083-4FAE-A097-71642D6473B5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mpf", "..\..\unimrcp\unimrcp\libs\mpf\mpf.vcproj", "{B5A00BFA-6083-4FAE-A097-71642D6473B5}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -360,13 +360,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mpf", "..\..\unimrcp\libs\m
 		{13DEECA0-BDD4-4744-A1A2-8EB0A44DF3D2} = {13DEECA0-BDD4-4744-A1A2-8EB0A44DF3D2}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcp", "..\..\unimrcp\libs\mrcp\mrcp.vcproj", "{1C320193-46A6-4B34-9C56-8AB584FC1B56}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcp", "..\..\unimrcp\unimrcp\libs\mrcp\mrcp.vcproj", "{1C320193-46A6-4B34-9C56-8AB584FC1B56}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpsignaling", "..\..\unimrcp\libs\mrcp-signaling\mrcpsignaling.vcproj", "{12A49562-BAB9-43A3-A21D-15B60BBB4C31}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpsignaling", "..\..\unimrcp\unimrcp\libs\mrcp-signaling\mrcpsignaling.vcproj", "{12A49562-BAB9-43A3-A21D-15B60BBB4C31}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -376,7 +376,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpsignaling", "..\..\unim
 		{B5A00BFA-6083-4FAE-A097-71642D6473B5} = {B5A00BFA-6083-4FAE-A097-71642D6473B5}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpserver", "..\..\unimrcp\libs\mrcp-server\mrcpserver.vcproj", "{18B1F35A-10F8-4287-9B37-2D10501B0B38}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpserver", "..\..\unimrcp\unimrcp\libs\mrcp-server\mrcpserver.vcproj", "{18B1F35A-10F8-4287-9B37-2D10501B0B38}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -386,7 +386,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpserver", "..\..\unimrcp
 		{12A49562-BAB9-43A3-A21D-15B60BBB4C31} = {12A49562-BAB9-43A3-A21D-15B60BBB4C31}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libunimrcpserver", "..\..\unimrcp\platforms\libunimrcp-server\libunimrcpserver.vcproj", "{C98AF157-352E-4737-BD30-A24E2647F5AE}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libunimrcpserver", "..\..\unimrcp\unimrcp\platforms\libunimrcp-server\libunimrcpserver.vcproj", "{C98AF157-352E-4737-BD30-A24E2647F5AE}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -397,7 +397,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libunimrcpserver", "..\..\u
 		{DEB01ACB-D65F-4A62-AED9-58C1054499E9} = {DEB01ACB-D65F-4A62-AED9-58C1054499E9}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpsofiasip", "..\..\unimrcp\modules\mrcp-sofiasip\mrcpsofiasip.vcproj", "{746F3632-5BB2-4570-9453-31D6D58A7D8E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpsofiasip", "..\..\unimrcp\unimrcp\modules\mrcp-sofiasip\mrcpsofiasip.vcproj", "{746F3632-5BB2-4570-9453-31D6D58A7D8E}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -407,7 +407,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpsofiasip", "..\..\unimr
 		{12A49562-BAB9-43A3-A21D-15B60BBB4C31} = {12A49562-BAB9-43A3-A21D-15B60BBB4C31}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpclient", "..\..\unimrcp\libs\mrcp-client\mrcpclient.vcproj", "{72782932-37CC-46AE-8C7F-9A7B1A6EE108}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpclient", "..\..\unimrcp\unimrcp\libs\mrcp-client\mrcpclient.vcproj", "{72782932-37CC-46AE-8C7F-9A7B1A6EE108}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -416,7 +416,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpclient", "..\..\unimrcp
 		{12A49562-BAB9-43A3-A21D-15B60BBB4C31} = {12A49562-BAB9-43A3-A21D-15B60BBB4C31}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libunimrcpclient", "..\..\unimrcp\platforms\libunimrcp-client\libunimrcpclient.vcproj", "{EE157390-1E85-416C-946E-620E32C9AD33}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libunimrcpclient", "..\..\unimrcp\unimrcp\platforms\libunimrcp-client\libunimrcpclient.vcproj", "{EE157390-1E85-416C-946E-620E32C9AD33}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -427,7 +427,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libunimrcpclient", "..\..\u
 		{DEB01ACB-D65F-4A62-AED9-58C1054499E9} = {DEB01ACB-D65F-4A62-AED9-58C1054499E9}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unimrcpclient", "..\..\unimrcp\platforms\unimrcp-client\unimrcpclient.vcproj", "{57FAF32E-49FD-491F-895D-132D0D5EFE0A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unimrcpclient", "..\..\unimrcp\unimrcp\platforms\unimrcp-client\unimrcpclient.vcproj", "{57FAF32E-49FD-491F-895D-132D0D5EFE0A}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -436,7 +436,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unimrcpclient", "..\..\unim
 		{EE157390-1E85-416C-946E-620E32C9AD33} = {EE157390-1E85-416C-946E-620E32C9AD33}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpv2transport", "..\..\unimrcp\libs\mrcpv2-transport\mrcpv2transport.vcproj", "{A9EDAC04-6A5F-4BA7-BC0D-CCE7B255B6EA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpv2transport", "..\..\unimrcp\unimrcp\libs\mrcpv2-transport\mrcpv2transport.vcproj", "{A9EDAC04-6A5F-4BA7-BC0D-CCE7B255B6EA}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -445,7 +445,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpv2transport", "..\..\un
 		{1C320193-46A6-4B34-9C56-8AB584FC1B56} = {1C320193-46A6-4B34-9C56-8AB584FC1B56}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpengine", "..\..\unimrcp\libs\mrcp-engine\mrcpengine.vcproj", "{843425BE-9A9A-44F4-A4E3-4B57D6ABD53C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpengine", "..\..\unimrcp\unimrcp\libs\mrcp-engine\mrcpengine.vcproj", "{843425BE-9A9A-44F4-A4E3-4B57D6ABD53C}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -455,7 +455,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpengine", "..\..\unimrcp
 		{B5A00BFA-6083-4FAE-A097-71642D6473B5} = {B5A00BFA-6083-4FAE-A097-71642D6473B5}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demosynth", "..\..\unimrcp\plugins\demo-synth\demosynth.vcproj", "{92BFA534-C419-4EB2-AAA3-510653F38F08}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demosynth", "..\..\unimrcp\unimrcp\plugins\demo-synth\demosynth.vcproj", "{92BFA534-C419-4EB2-AAA3-510653F38F08}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -464,7 +464,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demosynth", "..\..\unimrcp\
 		{843425BE-9A9A-44F4-A4E3-4B57D6ABD53C} = {843425BE-9A9A-44F4-A4E3-4B57D6ABD53C}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demorecog", "..\..\unimrcp\plugins\demo-recog\demorecog.vcproj", "{B495B6D9-AF84-479D-B30A-313C16EF8BFD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demorecog", "..\..\unimrcp\unimrcp\plugins\demo-recog\demorecog.vcproj", "{B495B6D9-AF84-479D-B30A-313C16EF8BFD}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -473,7 +473,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demorecog", "..\..\unimrcp\
 		{843425BE-9A9A-44F4-A4E3-4B57D6ABD53C} = {843425BE-9A9A-44F4-A4E3-4B57D6ABD53C}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "strtablegen", "..\..\unimrcp\tests\strtablegen\strtablegen.vcproj", "{79EF9F1D-E211-4ED1-91D2-FC935AB3A872}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "strtablegen", "..\..\unimrcp\unimrcp\tests\strtablegen\strtablegen.vcproj", "{79EF9F1D-E211-4ED1-91D2-FC935AB3A872}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -482,7 +482,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "strtablegen", "..\..\unimrc
 		{13DEECA0-BDD4-4744-A1A2-8EB0A44DF3D2} = {13DEECA0-BDD4-4744-A1A2-8EB0A44DF3D2}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "apttest", "..\..\unimrcp\tests\apttest\apttest.vcproj", "{429C907B-97D1-4B2D-9B0E-A14A5BFDAD15}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "apttest", "..\..\unimrcp\unimrcp\tests\apttest\apttest.vcproj", "{429C907B-97D1-4B2D-9B0E-A14A5BFDAD15}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -491,7 +491,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "apttest", "..\..\unimrcp\te
 		{13DEECA0-BDD4-4744-A1A2-8EB0A44DF3D2} = {13DEECA0-BDD4-4744-A1A2-8EB0A44DF3D2}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mpftest", "..\..\unimrcp\tests\mpftest\mpftest.vcproj", "{DCF01B1C-5268-44F3-9130-D647FABFB663}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mpftest", "..\..\unimrcp\unimrcp\tests\mpftest\mpftest.vcproj", "{DCF01B1C-5268-44F3-9130-D647FABFB663}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -500,7 +500,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mpftest", "..\..\unimrcp\te
 		{B5A00BFA-6083-4FAE-A097-71642D6473B5} = {B5A00BFA-6083-4FAE-A097-71642D6473B5}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcptest", "..\..\unimrcp\tests\mrcptest\mrcptest.vcproj", "{3CA97077-6210-4362-998A-D15A35EEAA08}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcptest", "..\..\unimrcp\unimrcp\tests\mrcptest\mrcptest.vcproj", "{3CA97077-6210-4362-998A-D15A35EEAA08}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -509,7 +509,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcptest", "..\..\unimrcp\t
 		{1C320193-46A6-4B34-9C56-8AB584FC1B56} = {1C320193-46A6-4B34-9C56-8AB584FC1B56}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpcepstral", "..\..\unimrcp\plugins\mrcp-cepstral\mrcpcepstral.vcproj", "{729EF28E-38C9-40DE-A138-87785F021411}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpcepstral", "..\..\unimrcp\unimrcp\plugins\mrcp-cepstral\mrcpcepstral.vcproj", "{729EF28E-38C9-40DE-A138-87785F021411}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -524,7 +524,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{62083CC3
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unirtsp", "..\..\unimrcp\libs\uni-rtsp\unirtsp.vcproj", "{504B3154-7A4F-459D-9877-B951021C3F1F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unirtsp", "..\..\unimrcp\unimrcp\libs\uni-rtsp\unirtsp.vcproj", "{504B3154-7A4F-459D-9877-B951021C3F1F}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -533,7 +533,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unirtsp", "..\..\unimrcp\li
 		{13DEECA0-BDD4-4744-A1A2-8EB0A44DF3D2} = {13DEECA0-BDD4-4744-A1A2-8EB0A44DF3D2}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rtsptest", "..\..\unimrcp\tests\rtsptest\rtsptest.vcproj", "{17A33F3F-BAF5-403F-8EF4-FECDA7D9A335}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rtsptest", "..\..\unimrcp\unimrcp\tests\rtsptest\rtsptest.vcproj", "{17A33F3F-BAF5-403F-8EF4-FECDA7D9A335}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -542,7 +542,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rtsptest", "..\..\unimrcp\t
 		{504B3154-7A4F-459D-9877-B951021C3F1F} = {504B3154-7A4F-459D-9877-B951021C3F1F}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpunirtsp", "..\..\unimrcp\modules\mrcp-unirtsp\mrcpunirtsp.vcproj", "{DEB01ACB-D65F-4A62-AED9-58C1054499E9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpunirtsp", "..\..\unimrcp\unimrcp\modules\mrcp-unirtsp\mrcpunirtsp.vcproj", "{DEB01ACB-D65F-4A62-AED9-58C1054499E9}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -552,13 +552,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpunirtsp", "..\..\unimrc
 		{12A49562-BAB9-43A3-A21D-15B60BBB4C31} = {12A49562-BAB9-43A3-A21D-15B60BBB4C31}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "prepare", "..\..\unimrcp\build\tools\prepare.vcproj", "{01D63BF5-7798-4746-852A-4B45229BB735}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "prepare", "..\..\unimrcp\unimrcp\build\tools\prepare.vcproj", "{01D63BF5-7798-4746-852A-4B45229BB735}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unimrcpservice", "..\..\unimrcp\build\tools\unimrcpservice.vcproj", "{4714EF49-BFD5-4B22-95F7-95A07F1EAC25}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unimrcpservice", "..\..\unimrcp\unimrcp\build\tools\unimrcpservice.vcproj", "{4714EF49-BFD5-4B22-95F7-95A07F1EAC25}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -567,7 +567,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unimrcpservice", "..\..\uni
 		{13DEECA0-BDD4-4744-A1A2-8EB0A44DF3D2} = {13DEECA0-BDD4-4744-A1A2-8EB0A44DF3D2}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcppocketsphinx", "..\..\unimrcp\plugins\mrcp-pocketsphinx\mrcppocketsphinx.vcproj", "{3C614AE8-B611-4D43-A9AF-1CAA440A9F69}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcppocketsphinx", "..\..\unimrcp\unimrcp\plugins\mrcp-pocketsphinx\mrcppocketsphinx.vcproj", "{3C614AE8-B611-4D43-A9AF-1CAA440A9F69}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -576,7 +576,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcppocketsphinx", "..\..\u
 		{843425BE-9A9A-44F4-A4E3-4B57D6ABD53C} = {843425BE-9A9A-44F4-A4E3-4B57D6ABD53C}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpflite", "..\..\unimrcp\plugins\mrcp-flite\mrcpflite.vcproj", "{56F6FB96-2BC7-4CAE-A8BF-6A0FAEC90556}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpflite", "..\..\unimrcp\unimrcp\plugins\mrcp-flite\mrcpflite.vcproj", "{56F6FB96-2BC7-4CAE-A8BF-6A0FAEC90556}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
@@ -585,7 +585,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mrcpflite", "..\..\unimrcp\
 		{843425BE-9A9A-44F4-A4E3-4B57D6ABD53C} = {843425BE-9A9A-44F4-A4E3-4B57D6ABD53C}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "preparesphinx", "..\..\unimrcp\build\tools\preparesphinx.vcproj", "{71D62A04-8EF6-4C6B-AC12-0C15A875E53A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "preparesphinx", "..\..\unimrcp\unimrcp\build\tools\preparesphinx.vcproj", "{71D62A04-8EF6-4C6B-AC12-0C15A875E53A}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
