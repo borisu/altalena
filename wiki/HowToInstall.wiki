@@ -4,9 +4,11 @@
 
 The project was compiled and tested on Windows XP SP2 and Vista machines. Though the OS and IDE is proprietary, the project itself uses only open source third party libraries.
 
-Please report any problem to borisusun@gmail.com, if you are experiencing problems compiling the project on other windows version, or you are interested to port it to a different platform.
+Please report any problem to [mailto:borisusun@gmail.com borisusun], if you are experiencing problems compiling the project on other windows version, or you are interested to port it to a different platform.
 
 Be advised that currently it can be built in debug configuration only.
+
+*I know that currently setting up an development environment requires a lot of effort.As a rule any suggestion on how to simplify building process will be warmly accepted*
 
 = Dependencies =
 
@@ -15,7 +17,7 @@ The library depends on
  # [http://www.boostpro.com/boost_1_34_1_setup.exe boost 1.34.1] - Pre-built libraries are available to download. Download it and update your IDE include and library options.
  # [http://www.microsoft.com/downloads/details.aspx?FamilyID=77960733-06e9-47ba-914a-844575031b81&displaylang=en&Hash=CcIBpQJsJa1DOXc2imj%2bmIpBqkTgxLUszkebWkoLZxD7K5rpGv%2brjs0G6OSqxRApDNx2XdMe43273oj%2fW2PtQw%3d%3d Microsoft® DirectX® 9.0 SDK] and its  [http://www.microsoft.com/downloads/details.aspx?FamilyID=8af0afa9-1383-44b4-bc8b-7d6315212323&displaylang=en&Hash=p2iTo8GEjAa7FfiDPjtSprxBZdgjczobuXQ65S28bJfndIx0RvfEZ9WhLP7Lut7a36MERsdyq3P5r1gbr6VkXA%3d%3d Extras]- mediastreamer2 needs this to compile. .Download it and update your IDE include and library options.
 
-These are pretty big dependencies well over 100Mb in complete installation each. Obviously I couldn't include them into subversion tree. As a rule any suggestion on how to simplify building process will be warmly accepted
+These are pretty big dependencies well over 100Mb in complete installation each. Obviously I couldn't include them into subversion tree. 
 
 Other project dependencies:-
  # [http://www.cs.kent.ac.uk/projects/ofa/c++csp/doc/installation.html C++CSP]
