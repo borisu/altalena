@@ -74,9 +74,9 @@ cppcsp.h(167) : warning C4005: '_WIN32_WINNT' : macro redefinition
 
  # build 'iw_run' project 
 
-= Start = 
+=Start= 
 
- Configuration file is located in <project root>\iw_run\conf.json. Test script is located in <project root>\altalena\iw_run\scripts\test.lua. Inspect the files and change them accordingly to your environment.
+ Configuration file is located in '<project root>\iw_run\conf.json'. Test script is located in '<project root>\altalena\iw_run\scripts\test.lua'. Inspect the files and change them accordingly to your environment.
 
 Enjoy
 
