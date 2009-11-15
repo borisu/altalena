@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\iw_core;&quot;..\unimrcp\libs\uni-rtsp\include&quot;;&quot;..\unimrcp-deps\libs\apr\include&quot;;&quot;..\unimrcp-deps\libs\apr-util\include&quot;;&quot;..\unimrcp\libs\apr-toolkit\include&quot;;&quot;..\unimrcp\libs\mrcpv2-transport\include&quot;;..\unimrcp\libs\mrcp\message\include;..\unimrcp\libs\mrcp\resources\include;..\unimrcp\libs\mpf\include;&quot;..\unimrcp\libs\mrcp-client\include&quot;;&quot;..\unimrcp\libs\mrcp-signaling\include&quot;;..\unimrcp\libs\mrcp\include;&quot;..\unimrcp\platforms\unimrcp-client\include\&quot;;&quot;..\unimrcp\platforms\libunimrcp-client\include\&quot;"
+				AdditionalIncludeDirectories="..\iw_core;&quot;..\unimrcp\unimrcp\libs\uni-rtsp\include&quot;;&quot;..\unimrcp-deps\libs\apr\include&quot;;&quot;..\unimrcp-deps\libs\apr-util\include&quot;;&quot;..\unimrcp\unimrcp\libs\apr-toolkit\include&quot;;&quot;..\unimrcp\unimrcp\libs\mrcpv2-transport\include&quot;;..\unimrcp\unimrcp\libs\mrcp\message\include;..\unimrcp\unimrcp\libs\mrcp\resources\include;..\unimrcp\unimrcp\libs\mpf\include;&quot;..\unimrcp\unimrcp\libs\mrcp-client\include&quot;;&quot;..\unimrcp\unimrcp\libs\mrcp-signaling\include&quot;;..\unimrcp\unimrcp\libs\mrcp\include;&quot;..\unimrcp\unimrcp\platforms\unimrcp-client\include\&quot;;&quot;..\unimrcp\unimrcp\platforms\libunimrcp-client\include\&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;MRCP_STATIC_LIB;APT_STATIC_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
