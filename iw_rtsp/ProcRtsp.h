@@ -10,6 +10,8 @@ namespace ivrworx
 	typedef shared_ptr<RtspCtx> 
 	RtspCtxPtr;
 
+	typedef int
+	RtspHandle;
 
 	class ProcRtsp :
 		public LightweightProcess
@@ -20,11 +22,15 @@ namespace ivrworx
 
 		void real_run();
 
-		void AllocateSession(IwMessagePtr msg);
+		void SetupSession(IwMessagePtr msg);
 
 		void Play(IwMessagePtr msg);
 
+		void Pause(IwMessagePtr msg);
+
 		void Teardown(IwMessagePtr msg);
+
+		void Teardown();
 
 		virtual ~ProcRtsp(void);
 
@@ -35,6 +41,18 @@ namespace ivrworx
 		TaskScheduler *_scheduler;
 
 		BasicUsageEnvironment *_env;
+
+		RTSPClient *_rtspClient;
+
+		MediaSession *_session;
+
+		string _rtspHost;
+
+		int _rtspPort;
+
+		string _controlPath;
+
+		RtspHandle _rtspHandle;
 
 	};
 

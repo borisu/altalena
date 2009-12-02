@@ -4,11 +4,24 @@
 
 namespace ivrworx
 {
+	
+	int GenerateNewRtsph()
+	{
+		static long rtsph_counter = 0;
+
+		return ::InterlockedExchangeAdd(&rtsph_counter,1);
+	}
+	
 	ProcRtsp::ProcRtsp(Configuration &conf,LpHandlePair pair):
 	LightweightProcess(pair,"ProcRtsp"),
-	_conf(conf)
+	_conf(conf),
+	_rtspClient(NULL),
+	_rtspPort(IW_UNDEFINED),
+	_session(NULL)
 	{
-
+		// currently it is thread per client so we generate the 
+		// handle only once
+		_rtspHandle = GenerateNewRtsph();
 	}
 
 	ProcRtsp::~ProcRtsp(void)
@@ -24,7 +37,65 @@ namespace ivrworx
 		_scheduler	=	BasicTaskScheduler::createNew();
 		_env  =	BasicUsageEnvironment::createNew(*_scheduler);
 
-		AllocateSession(IwMessagePtr());
+		_rtspHost  = _conf.GetString("rtsp_host");
+		_rtspPort  = _conf.GetInt("rtsp_port");
+
+		LogDebug("ProcRtsp::real_run - rtsp host:" << _rtspHost << ", rtp port:" << _rtspPort);
+
+		I_AM_READY;
+
+		BOOL shutdown_flag = FALSE;
+		while(shutdown_flag == FALSE)
+		{
+
+			ApiErrorCode res = API_SUCCESS;
+			IwMessagePtr msg = _inbound->Wait(Seconds(180), res);
+
+			if (res == API_TIMEOUT)
+			{
+				LogDebug("ProcRtsp::real_run - Keep Alive rtsph:")
+				continue;
+			}
+
+			switch (msg->message_id)
+			{
+			case MSG_RTSP_SETUP_SESSION_REQ:
+				{
+					SetupSession(msg);
+					break;
+				}
+			case MSG_RTSP_PLAY_REQ:
+				{
+					Play(msg);
+					break;
+				}
+			case MSG_RTSP_PAUSE_REQ:
+				{
+					Pause(msg);
+					break;
+				}
+			case MSG_RTSP_TEARDOWN_REQ:
+				{
+					Teardown(msg);
+					break;
+				}
+			case MSG_PROC_SHUTDOWN_REQ:
+				{
+					shutdown_flag = TRUE;
+					SendResponse(msg,new MsgShutdownAck());
+					break;
+				}
+			default:
+				{
+					BOOL res = HandleOOBMessage(msg);
+					if (res == FALSE)
+					{
+						LogWarn("ProcRtsp::real_run received unknown message id:" << msg->message_id_str);
+					}
+				} // default
+			} // switch
+		} // while
+
 
 	}
 
@@ -188,6 +259,7 @@ namespace ivrworx
 					<< " exceeds maximum " << maxDelayTime
 					<< "; will not do a delayed shutdown");
 			} else {
+
 				timerIsBeingUsed = True;
 				double absScale = scale > 0 ? scale : -scale; // ASSERT: scale != 0
 				secondsToDelay = duration/absScale + durationSlop;
@@ -213,40 +285,60 @@ namespace ivrworx
 // 		checkInterPacketGaps(NULL);
 	}
 
+	void 
+	ProcRtsp::Teardown()
+	{
+		FUNCTRACKER;
+
+		if (_rtspClient)
+		{
+			if (_session)
+			{
+				_rtspClient->teardownMediaSession(*_session);
+				MediaSession::close(_session);
+				_session = NULL;
+			}
+
+			Medium::close(_rtspClient);
+			_rtspClient = NULL;
+		}
+
+		
+	}
 
 
 
 	void 
-	ProcRtsp::AllocateSession(IwMessagePtr msg)
+	ProcRtsp::SetupSession(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 
-// 		shared_ptr<MsgRtspAllocateSessionReq>
-// 			req = dynamic_pointer_cast<MsgRtspAllocateSessionReq>(msg);
+ 		shared_ptr<MsgRtspSetupSessionReq>
+ 			req = dynamic_pointer_cast<MsgRtspSetupSessionReq>(msg);
 
-		RTSPClient* ourClient = 
+		// safe side
+		Teardown();
+
+		_rtspClient = 
 			createClient(*_env,1,"RtspClient");
 
-		char *url = "rtsp://spongebob/please-hold.wav";
-
-		int desiredPortNum = 1234;
-
+		
 		char* sdpDescription
 			= getSDPDescriptionFromURL(
-			ourClient, 
-			url, 
+			_rtspClient, 
+			req->request_url.c_str(), 
 			NULL, // username, 
 			NULL, // password,
 			NULL, // proxyServerName, 
-			desiredPortNum, // proxyServerPortNum,
-			554);
-
-		
+			0,	  // proxyServerPortNum,
+			_rtspPort);
+	
 
 		if (sdpDescription == NULL) 
 		{
-			LogWarn("Failed to get a SDP description from URL \"" << url
+			LogWarn("ProcRtsp::SetupSession - Failed to get a SDP description from URL \"" << req->request_url
 				<< "\": " << *_env->getResultMsg());
+			SendResponse(msg, new MsgRtspSetupSessionNack());
 			return;
 		}
 
@@ -256,50 +348,115 @@ namespace ivrworx
 
 		delete[] sdpDescription;
 		if (session == NULL) {
-			LogWarn("Failed to create a MediaSession object from the SDP description: " << *_env->getResultMsg());
-			throw;
+			LogWarn("ProcRtsp::SetupSession - Failed to create a MediaSession object from the SDP description: " << *_env->getResultMsg());
+			SendResponse(msg, new MsgRtspSetupSessionNack());
+			return;
 		} else if (!session->hasSubsessions()) {
-			LogWarn("This session has no media subsessions (i.e., \"m=\" lines)");
-			throw;
+			LogWarn("ProcRtsp::SetupSession - This session has no media subsessions (i.e., \"m=\" lines)");
+			SendResponse(msg, new MsgRtspSetupSessionNack());
+			return;
 		}
 
 		char *singleMedium="audio";
 
 		// Then, setup the "RTPSource"s for the session:
 		MediaSubsessionIterator iter(*session);
-		MediaSubsession *subsession;
-		Boolean madeProgress = False;
-		char const* singleMediumToTest = singleMedium;//singleMedium;
-		while ((subsession = iter.next()) != NULL) {
-			// If we've asked to receive only a single medium, then check this now:
-			if (singleMediumToTest != NULL) {
-				if (strcmp(subsession->mediumName(), singleMediumToTest) != 0) {
-					LogWarn ("Ignoring \"" << subsession->mediumName()
-						<< "/" << subsession->codecName()
-						<< "\" subsession, because we've asked to receive a single " << singleMedium
-						<< " session only");
-					continue;
-				} else {
-					// Receive this subsession only
-					singleMediumToTest = "xxxxx";
-					// this hack ensures that we get only 1 subsession of this type
-				}
-			}
+		MediaSubsession *curr_subsession = NULL;
+		MediaSubsession *subsession_candidate = NULL;
 
-			if (desiredPortNum != 0) {
-				subsession->setClientPortNum(desiredPortNum);
-				desiredPortNum += 2;
+		// find if there is an appropriate codec
+		while ((curr_subsession = iter.next()) != NULL) 
+		{
+			if (strcmp(curr_subsession->mediumName(),"audio") == 0 &&
+				req->media_format.sdp_name_tos() == curr_subsession->codecName() )
+			{
+				_controlPath = curr_subsession->controlPath();
+				subsession_candidate = curr_subsession;
+				break;
 			}
+		} // while
 
+		if (curr_subsession == NULL)
+		{
+			LogWarn("ProcRtsp::SetupSession - This session has no media subsessions with needed codec" << req->media_format.sdp_name_tos());
+			SendResponse(msg, new MsgRtspSetupSessionNack());
+			return;
 		}
 
-		setupStreams(ourClient,session,False,_env);
+		
+		// setting port will indicate that this session is in use
+		subsession_candidate->setClientPortNum(req->local_cnx_info.port_ho());
+		Boolean res = setupStreams(_rtspClient,session,False,_env);
+		if (res == False)
+		{
+			LogWarn("ProcRtsp::SetupSession - Error setting up session");
+			SendResponse(msg, new MsgRtspSetupSessionNack());
+		}
 
-		startPlayingStreams(ourClient,session,_env);
+		_session = session;
+		MsgRtspSetupSessionAck *ack = new MsgRtspSetupSessionAck();
+		ack->rtsp_handle = _rtspHandle;
 
-		int x;
-		cin >> x;
+		SendResponse(msg, ack);
 
+
+	}
+
+
+	void 
+	ProcRtsp::Play(IwMessagePtr msg)
+	{
+		FUNCTRACKER;
+
+		if (!_rtspClient || 
+			!_session)
+		{
+			SendResponse(msg, new MsgRtspPlayNack());
+			return;
+		}
+
+		Boolean res = startPlayingStreams(_rtspClient,_session,_env);
+		if (res == TRUE)
+		{
+			SendResponse(msg,new MsgRtspPlayAck());
+		}
+		else
+		{
+			SendResponse(msg,new MsgRtspPlayNack());
+		}
+		
+	}
+
+	void 
+	ProcRtsp::Teardown(IwMessagePtr msg)
+	{
+		FUNCTRACKER;
+
+		Teardown();
+
+	}
+
+	void 
+	ProcRtsp::Pause(IwMessagePtr msg)
+	{
+		FUNCTRACKER;
+
+		if (!_rtspClient || 
+			!_session)
+		{
+			SendResponse(msg, new MsgRtspPauseNack());
+			return;
+		}
+
+		Boolean res = _rtspClient->pauseMediaSession(*_session);
+		if (res == TRUE)
+		{
+			SendResponse(msg,new MsgRtspPlayAck());
+		}
+		else
+		{
+			SendResponse(msg,new MsgRtspPauseNack());
+		}
 
 	}
 
