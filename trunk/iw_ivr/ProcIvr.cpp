@@ -265,7 +265,7 @@ ProcIvr::ProcessStackMessage(IN IwMessagePtr ptr, IN ScopedForking &forking)
 			// still waiting for super to finish
 			if (_waitingForSuperCompletion == TRUE)
 			{
-				LogDebug("Receive CallOfferedMsg while super script is running in sync mode. Rejecting the call iwh:" << call_offered->stack_call_handle);
+				LogWarn("Receive CallOfferedMsg while super script is running in sync mode. Rejecting the call iwh:" << call_offered->stack_call_handle);
 				SendResponse(ptr, new MsgCallOfferedNack());
 				return FALSE;
 			}

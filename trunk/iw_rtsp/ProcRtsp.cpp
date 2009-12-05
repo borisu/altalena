@@ -1,3 +1,22 @@
+/*
+*	The Altalena Project File
+*	Copyright (C) 2009  Boris Ouretskey
+*
+*	This library is free software; you can redistribute it and/or
+*	modify it under the terms of the GNU Lesser General Public
+*	License as published by the Free Software Foundation; either
+*	version 2.1 of the License, or (at your option) any later version.
+*
+*	This library is distributed in the hope that it will be useful,
+*	but WITHOUT ANY WARRANTY; without even the implied warranty of
+*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+*	Lesser General Public License for more details.
+*
+*	You should have received a copy of the GNU Lesser General Public
+*	License along with this library; if not, write to the Free Software
+*	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
 #include "StdAfx.h"
 #include "ProcRtsp.h"
 #include "RtspSession.h"
@@ -16,7 +35,6 @@ namespace ivrworx
 	LightweightProcess(pair,"ProcRtsp"),
 	_conf(conf),
 	_rtspClient(NULL),
-	_rtspPort(IW_UNDEFINED),
 	_session(NULL)
 	{
 		// currently it is thread per client so we generate the 
@@ -35,12 +53,7 @@ namespace ivrworx
 		FUNCTRACKER;
 
 		_scheduler	=	BasicTaskScheduler::createNew();
-		_env  =	BasicUsageEnvironment::createNew(*_scheduler);
-
-		_rtspHost  = _conf.GetString("rtsp_host");
-		_rtspPort  = _conf.GetInt("rtsp_port");
-
-		LogDebug("ProcRtsp::real_run - rtsp host:" << _rtspHost << ", rtp port:" << _rtspPort);
+		_env  =	IwUsageEnvironment::createNew(*_scheduler);
 
 		I_AM_READY;
 
@@ -331,13 +344,13 @@ namespace ivrworx
 			NULL, // password,
 			NULL, // proxyServerName, 
 			0,	  // proxyServerPortNum,
-			_rtspPort);
+			554);
 	
 
 		if (sdpDescription == NULL) 
 		{
 			LogWarn("ProcRtsp::SetupSession - Failed to get a SDP description from URL \"" << req->request_url
-				<< "\": " << *_env->getResultMsg());
+				<< " live555 msg:" << *_env->getResultMsg());
 			SendResponse(msg, new MsgRtspSetupSessionNack());
 			return;
 		}
@@ -370,7 +383,7 @@ namespace ivrworx
 			if (strcmp(curr_subsession->mediumName(),"audio") == 0 &&
 				req->media_format.sdp_name_tos() == curr_subsession->codecName() )
 			{
-				_controlPath = curr_subsession->controlPath();
+				LogDebug("ProcRtsp::SetupSession - chosen :" << curr_subsession->controlPath());
 				subsession_candidate = curr_subsession;
 				break;
 			}
@@ -378,7 +391,7 @@ namespace ivrworx
 
 		if (curr_subsession == NULL)
 		{
-			LogWarn("ProcRtsp::SetupSession - This session has no media subsessions with needed codec" << req->media_format.sdp_name_tos());
+			LogWarn("ProcRtsp::SetupSession - This session has no media subsessions with needed codec:" << req->media_format.sdp_name_tos());
 			SendResponse(msg, new MsgRtspSetupSessionNack());
 			return;
 		}
@@ -408,6 +421,9 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
+		shared_ptr<MsgRtspPlayReq>
+			req = dynamic_pointer_cast<MsgRtspPlayReq>(msg);
+
 		if (!_rtspClient || 
 			!_session)
 		{
@@ -415,7 +431,7 @@ namespace ivrworx
 			return;
 		}
 
-		Boolean res = startPlayingStreams(_rtspClient,_session,_env);
+		Boolean res = startPlayingStreams(_rtspClient,_session,_env,req->duration,-1.0,req->start_time,req->scale);
 		if (res == TRUE)
 		{
 			SendResponse(msg,new MsgRtspPlayAck());
@@ -451,7 +467,7 @@ namespace ivrworx
 		Boolean res = _rtspClient->pauseMediaSession(*_session);
 		if (res == TRUE)
 		{
-			SendResponse(msg,new MsgRtspPlayAck());
+			SendResponse(msg,new MsgRtspPauseAck());
 		}
 		else
 		{

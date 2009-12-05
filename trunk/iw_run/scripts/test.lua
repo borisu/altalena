@@ -150,6 +150,16 @@ end
 assert(incoming:answer() == ivrworx.API_SUCCESS);
 
 --
+-- This will only wait for 5 secs and exit
+--
+if (true) then
+ logger:loginfo("*** This script only waits for 5 secs and exit ***");
+ ivrworx.sleep(5000)
+ logger:loginfo("*** Good bye from client script !!! ***");
+ return
+end
+
+--
 -- Play welcome propmt
 --
 assert(incoming:speak([["welcome to <say-as interpret-as="characters">IVR</say-as>works application."]],true));
@@ -188,3 +198,4 @@ if (not validate_res(res) or dtmf_buffer == "" or dtmf_buffer == nil) then
 end
 
 
+--]]

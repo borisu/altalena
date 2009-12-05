@@ -380,6 +380,8 @@ namespace ivrworx
 		virtual const string& Dnis();
 		virtual const string& Ani();
 
+		virtual const MediaFormat& AcceptedSpeechCodec();
+
 
 		CnxInfo RemoteMedia() const;
 		void RemoteMedia(CnxInfo &val);
