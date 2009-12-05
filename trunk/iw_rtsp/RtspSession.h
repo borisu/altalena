@@ -181,6 +181,8 @@ namespace ivrworx
 
 		virtual ApiErrorCode TearDown();
 
+		virtual RtspHandle SessionHandle();
+
 	private:
 
 		RtspHandle _rtspHandle;

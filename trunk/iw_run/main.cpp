@@ -64,6 +64,18 @@ namespace ivrworx
 		{
 			START_FORKING_REGION;
 
+			RtspSession s(forking,_conf);
+			s.Init();
+			s.Setup("rtsp://spongebob/please-hold.wav",MediaFormat::PCMA);
+			s.Play();
+			::Sleep(3000);
+			s.TearDown();
+
+			char x;
+			cin >> x;
+			return;
+
+
 			FactoryPtrList factories_list = 
 				list_of
 				(ProcFactoryPtr(new RtpProxyFactory()))
@@ -226,6 +238,11 @@ int _tmain(int argc, _TCHAR* argv[])
 	START_FORKING_REGION;
 
 	DECLARE_NAMED_HANDLE_PAIR(starter_pair);
+
+	DECLARE_NAMED_HANDLE_PAIR(rtsp_pair);
+	
+
+	
 	FORK(new ProcSystemStarter(starter_pair, *conf));
 	END_FORKING_REGION;
 

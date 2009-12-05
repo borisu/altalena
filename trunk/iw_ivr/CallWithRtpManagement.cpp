@@ -29,12 +29,14 @@ namespace ivrworx
 		:Call(forking),
 		_conf(conf),
 		_mrcpEnabled(FALSE),
-		_rtspEnabled(FALSE),
-		_rtspSession(forking),
+		_imsEnabled(FALSE),
+		_imsSession(forking),
 		_mrcpSession(forking),
+		_rtspSession(forking,conf),
 		_ringTimeout(Seconds(60))
 	{
 		_mrcpEnabled = _conf.GetBool("mrcp_enabled");
+		_imsEnabled  = _conf.GetBool("ims_enabled");
 		_rtspEnabled = _conf.GetBool("rtsp_enabled");
 		_ringTimeout = Seconds(_conf.GetInt("ring_timeout"));
 		
@@ -47,15 +49,17 @@ namespace ivrworx
 		:Call(forking,offered_msg),
 		_conf(conf),
 		_mrcpEnabled(FALSE),
-		_rtspEnabled(FALSE),
+		_imsEnabled(FALSE),
 		_origOffereReq(offered_msg),
-		_rtspSession(forking),
+		_imsSession(forking),
 		_mrcpSession(forking),
+		_rtspSession(forking,conf),
 		_ringTimeout(Seconds(60))
 	{
 		_mrcpEnabled = _conf.GetBool("mrcp_enabled");
-		_rtspEnabled = _conf.GetBool("rtsp_enabled");
+		_imsEnabled = _conf.GetBool("ims_enabled");
 		_ringTimeout = Seconds(_conf.GetInt("ring_timeout"));
+		_rtspEnabled = _conf.GetBool("rtsp_enabled");
 		
 		RemoteMedia(offered_msg->remote_media);
 	}
@@ -97,15 +101,32 @@ namespace ivrworx
 		LogDebug("CallWithRtpManagement::AcceptInitialOffer - caller rtp = rtph:" << _callerRtpSession.RtpHandle() 
 			<< ", lci:" << _callerRtpSession.LocalCnxInfo());
 
-		
 
-		if (_rtspEnabled == TRUE)
+		//
+		// Allocate rtsp connection
+		//
+		if (_rtspEnabled)
+		{
+			//
+			// rtp
+			//
+			LogDebug("CallWithRtpManagement::AcceptInitialOffer - *** allocating rtsp session ***");
+			res = _rtspRtpSession.Allocate(CnxInfo::UNKNOWN,_acceptedSpeechFormat);
+			if (IW_FAILURE(res))
+			{
+				return res;
+			}
+		}
+
+	
+
+		if (_imsEnabled == TRUE)
 		{
 			//
 			// rtp
 			//
 			LogDebug("CallWithRtpManagement::AcceptInitialOffer - *** allocating streamer rtp and session ***");
-			res = _rtspRtpSession.Allocate(CnxInfo::UNKNOWN,speech_media_format);
+			res = _imsRtpSession.Allocate(CnxInfo::UNKNOWN,speech_media_format);
 			if (IW_FAILURE(res))
 			{
 				RejectCall();
@@ -115,8 +136,8 @@ namespace ivrworx
 			//
 			// streamer session
 			//
-			res = _rtspSession.Allocate(
-				_rtspRtpSession.LocalCnxInfo(),
+			res = _imsSession.Allocate(
+				_imsRtpSession.LocalCnxInfo(),
 				speech_media_format);
 			if (IW_FAILURE(res))
 			{
@@ -124,8 +145,8 @@ namespace ivrworx
 				return res;
 			}
 
-			LogDebug("CallWithRtpManagement::AcceptInitialOffer - streaming info = imsh:" << _rtspSession.SessionHandle()
-				<< ", associated rtsph:" << _rtspRtpSession.RtpHandle());
+			LogDebug("CallWithRtpManagement::AcceptInitialOffer - streaming info = imsh:" << _imsSession.SessionHandle()
+				<< ", associated imsh:" << _imsRtpSession.RtpHandle());
 
 		}
 	
@@ -155,7 +176,7 @@ namespace ivrworx
 			}
 
 			LogDebug("CallWithRtpManagement::AcceptInitialOffer - mrcp info = mrcph:" << _mrcpSession.SessionHandle()
-				<< ", associated rtsph:" << _mrcpRtpSession.RtpHandle());
+				<< ", associated imsh:" << _mrcpRtpSession.RtpHandle());
 		}
 		
 		
@@ -168,9 +189,10 @@ namespace ivrworx
 
 		if (IW_SUCCESS(res))
 		{
-			LogDebug("CallWithRtpManagement::AcceptInitialOffer - ims("  <<  _rtspSession.SessionHandle() << ")---> rtp(" << _rtspRtpSession.RtpHandle() << ") + ");
+			LogDebug("CallWithRtpManagement::AcceptInitialOffer - ims("  <<  _imsSession.SessionHandle() << ")---> rtp(" << _imsRtpSession.RtpHandle() << ") + ");
 			LogDebug("CallWithRtpManagement::AcceptInitialOffer - rtp("  <<  _callerRtpSession.RtpHandle()  << ")---> caller(" <<  StackCallHandle() << ") " << RemoteMedia());
 			LogDebug("CallWithRtpManagement::AcceptInitialOffer - mrcp(" <<  _mrcpSession.SessionHandle() << ")---> rtp(" << _mrcpRtpSession.RtpHandle() << ") + ");
+			LogDebug("CallWithRtpManagement::AcceptInitialOffer - rtsp(" <<  _rtspSession.SessionHandle() << ")---> rtp(" << _rtspRtpSession.RtpHandle() << ") + ");
 		}
 		
 
@@ -183,7 +205,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		if (!_rtspEnabled)
+		if (!_imsEnabled)
 		{
 			LogDebug("CallWithRtpManagement::PlayFile - Media streaming disabled for iwh:" << _stackCallHandle )
 			return API_FAILURE;
@@ -195,9 +217,9 @@ namespace ivrworx
 
 		}
 
-		_rtspSession.StopPlay();
+		_imsSession.StopPlay();
 		
-		ApiErrorCode res = _rtspRtpSession.Bridge(_callerRtpSession);
+		ApiErrorCode res = _imsRtpSession.Bridge(_callerRtpSession);
 		if (IW_FAILURE(res))
 		{
 			return res;
@@ -205,7 +227,7 @@ namespace ivrworx
 	
 		
 
-		res = _rtspSession.PlayFile(file_name, sync, loop);
+		res = _imsSession.PlayFile(file_name, sync, loop);
 
 		return res;
 
@@ -219,8 +241,6 @@ namespace ivrworx
 		{
 			return API_FEATURE_DISABLED;
 		}
-
-		
 
 		if (_callState != CALL_STATE_CONNECTED)
 		{
@@ -267,7 +287,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		if (!_rtspEnabled)
+		if (!_imsEnabled)
 		{
 			return API_FEATURE_DISABLED;
 		}
@@ -277,7 +297,7 @@ namespace ivrworx
 			return API_WRONG_STATE;
 		}
 
-		ApiErrorCode res =  _rtspSession.StopPlay();
+		ApiErrorCode res =  _imsSession.StopPlay();
 
 		return res;
 
@@ -288,7 +308,7 @@ namespace ivrworx
 	void 
 	CallWithRtpManagement::UponCallTerminated(IwMessagePtr ptr)
 	{
-		_rtspSession.InterruptWithHangup();
+		_imsSession.InterruptWithHangup();
 		_mrcpSession.InterruptWithHangup();
 
 		Call::UponCallTerminated(ptr);
@@ -339,17 +359,34 @@ namespace ivrworx
 			<< ", rci:" << RemoteMedia() 
 			<< " codec:" << _acceptedSpeechFormat);
 
-
 		//
-		// Allocate rtsp session
+		// Allocate rtsp connection
 		//
 		if (_rtspEnabled)
 		{
 			//
 			// rtp
 			//
-			LogDebug("CallWithRtpManagement::MakeCall *** allocating streamer rtp and session ***");
+			LogDebug("CallWithRtpManagement::MakeCall *** allocating rtsp session ***");
 			res = _rtspRtpSession.Allocate(CnxInfo::UNKNOWN,_acceptedSpeechFormat);
+			if (IW_FAILURE(res))
+			{
+				return res;
+			}
+		}
+
+
+
+		//
+		// Allocate ims session
+		//
+		if (_imsEnabled)
+		{
+			//
+			// rtp
+			//
+			LogDebug("CallWithRtpManagement::MakeCall *** allocating streamer rtp and session ***");
+			res = _imsRtpSession.Allocate(CnxInfo::UNKNOWN,_acceptedSpeechFormat);
 			if (IW_FAILURE(res))
 			{
 				return res;
@@ -358,16 +395,16 @@ namespace ivrworx
 			//
 			// streamer session
 			//
-			res = _rtspSession.Allocate(
-				_rtspRtpSession.LocalCnxInfo(), 
+			res = _imsSession.Allocate(
+				_imsRtpSession.LocalCnxInfo(), 
 				_acceptedSpeechFormat);
 			if (IW_FAILURE(res))
 			{
 				return res;
 			};
 
-			LogDebug("CallWithRtpManagement::MakeCall - streaming info = imsh:" << _rtspSession.SessionHandle()
-				<< ", associated rtsph:" << _rtspRtpSession.RtpHandle());
+			LogDebug("CallWithRtpManagement::MakeCall - streaming info = imsh:" << _imsSession.SessionHandle()
+				<< ", associated imsh:" << _imsRtpSession.RtpHandle());
 		};
 
 
@@ -391,17 +428,99 @@ namespace ivrworx
 			}
 
 			LogDebug("CallWithRtpManagement::MakeCall - mrcp info = mrcph:" << _mrcpSession.SessionHandle()
-				<< ", associated rtsph:" << _mrcpRtpSession.RtpHandle());
+				<< ", associated imsh:" << _mrcpRtpSession.RtpHandle());
 			
 
 		}
 
 
-		LogDebug("CallWithRtpManagement::MakeCall ims("  <<  _rtspSession.SessionHandle() << ")---> rtp(" << _rtspRtpSession.RtpHandle() << ") + ");
-		LogDebug("CallWithRtpManagement::MakeCall rtp("  <<  _callerRtpSession.RtpHandle()  << ")---> caller(" <<  StackCallHandle() << ") " << RemoteMedia());
-		LogDebug("CallWithRtpManagement::MakeCall mrcp(" <<  _mrcpSession.SessionHandle() << ")---> rtp(" << _mrcpRtpSession.RtpHandle() << ") + ");
+		LogDebug("CallWithRtpManagement::MakeCall - ims("  <<  _imsSession.SessionHandle() << ")---> rtp(" << _imsRtpSession.RtpHandle() << ") + ");
+		LogDebug("CallWithRtpManagement::MakeCall - rtp("  <<  _callerRtpSession.RtpHandle()  << ")---> caller(" <<  StackCallHandle() << ") " << RemoteMedia());
+		LogDebug("CallWithRtpManagement::MakeCall - mrcp(" <<  _mrcpSession.SessionHandle() << ")---> rtp(" << _mrcpRtpSession.RtpHandle() << ") + ");
+		LogDebug("CallWithRtpManagement::MakeCall - rtsp(" <<  _rtspSession.SessionHandle() << ")---> rtp(" << _rtspRtpSession.RtpHandle() << ") + ");
 		
 		return API_SUCCESS;
+
+	}
+
+	ApiErrorCode
+	CallWithRtpManagement::RtspSetup(IN const string &rtsp_url)
+	{
+		if (!_rtspEnabled)
+		{
+			return API_FEATURE_DISABLED;
+		}
+
+		if (_acceptedSpeechFormat == MediaFormat::UNKNOWN)
+		{
+			return API_WRONG_STATE;
+		}
+
+		LogDebug("CallWithRtpManagement::RtspSetup - rtsp_url:" << rtsp_url << ", media format:" << _acceptedSpeechFormat);
+
+		ApiErrorCode res = _rtspSession.Setup(rtsp_url,_acceptedSpeechFormat);
+		return res;
+
+	}
+
+	ApiErrorCode
+	CallWithRtpManagement::RtspPlay(IN double start_time /* = 0.0 */, IN double end_time /* = 0.0 */, IN float scale /* = 1.0f */)
+	{
+		if (!_rtspEnabled)
+		{
+			return API_FEATURE_DISABLED;
+		}
+
+		if (_acceptedSpeechFormat == MediaFormat::UNKNOWN)
+		{
+			return API_WRONG_STATE;
+		}
+
+		LogDebug("CallWithRtpManagement::RtspPlay - start_time:" << start_time << ", end_time:" << end_time << ", scale:" << scale);
+
+		ApiErrorCode res = _rtspSession.Play(start_time,end_time,scale);
+		return res;
+
+	}
+
+
+	ApiErrorCode
+	CallWithRtpManagement::RtspPause()
+	{
+		if (!_rtspEnabled)
+		{
+			return API_FEATURE_DISABLED;
+		}
+
+		if (_acceptedSpeechFormat == MediaFormat::UNKNOWN)
+		{
+			return API_WRONG_STATE;
+		}
+
+		LogDebug("CallWithRtpManagement::RtspPause");
+
+		ApiErrorCode res = _rtspSession.Pause();
+		return res;
+
+	}
+
+	ApiErrorCode
+	CallWithRtpManagement::RtspTearDown()
+	{
+		if (!_rtspEnabled)
+		{
+			return API_FEATURE_DISABLED;
+		}
+
+		if (_acceptedSpeechFormat == MediaFormat::UNKNOWN)
+		{
+			return API_WRONG_STATE;
+		}
+
+		LogDebug("CallWithRtpManagement::RtspTearDown");
+
+		ApiErrorCode res = _rtspSession.TearDown();
+		return res;
 
 	}
 
@@ -409,12 +528,20 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_rtspSession.TearDown();
+		//
+		// destroy rtp connections
+		//
+		_imsSession.TearDown();
 		_mrcpSession.TearDown();
+		_rtspSession.TearDown();
 		_callerRtpSession.TearDown();
-		_mrcpRtpSession.TearDown();
-		_rtspRtpSession.TearDown();
 
+		//
+		// destroy sessions themselves
+		//
+		_mrcpRtpSession.TearDown();
+		_imsRtpSession.TearDown();
+		_rtspSession.TearDown();
 
 	}
 

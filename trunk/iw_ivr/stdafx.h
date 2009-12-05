@@ -39,6 +39,7 @@
 #include "SqliteSession.h"
 #include "RtpProxySession.h"
 #include "MrcpSession.h"
+#include "RtspSession.h"
 
 
 extern "C"

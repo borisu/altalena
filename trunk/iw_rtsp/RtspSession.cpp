@@ -24,6 +24,13 @@ namespace ivrworx
 		}
 	}
 
+	RtspHandle
+	RtspSession::SessionHandle()
+	{
+		return _rtspHandle;
+	}
+
+
 	ApiErrorCode
 	RtspSession::Init()
 	{

@@ -4,7 +4,7 @@
 	
 	"resip_log" : "",
 	
-	"debug_level"  : "INF",
+	"debug_level"  : "DBG",
 	"debug_outputs" : "debug,console",
 	
 	"syslogd_host" : "127.0.0.1",
@@ -32,8 +32,11 @@
     "unimrcp_client_profile": "MRCPv2-Default",
     "unimrcp_log_file": "unimrcpclient",
     
-    "rtsp_enabled": true,
     
+    "ims_enabled": true, 
+   
+    "rtsp_enabled": true,
+   
     
     "rtp_proxy_base_port" : 6000,
     "rtp_proxy_top_port" : 7000,

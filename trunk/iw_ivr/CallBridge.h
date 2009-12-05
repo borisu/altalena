@@ -63,22 +63,18 @@ namespace ivrworx
 		int waitforhangup(lua_State *L);
 		int ani(lua_State *L);
 		int dnis(lua_State *L);
+		int mediaformat(lua_State *L);
 
-		/**
 		
-			Calls SIP destination. 
-
-			\code
-			call = ivrworx.createcall();
-			call:makecall("sip:6095@192.168.150.3:5060");
-			\endcode
-
-			@return ApiErrorCode
-
-		**/
 		int makecall(lua_State *L);
 		int blindxfer(lua_State *L);
 		int hangup(lua_State *L);
+
+		int rtspsetup(lua_State *L);
+		int rtspplay(lua_State *L);
+		int rtsppause(lua_State *L);
+		int rtspteardown(lua_State *L);
+
 
 		static const char className[];
 		static Luna<CallBridge>::RegType methods[];

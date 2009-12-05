@@ -31,7 +31,7 @@
 
 namespace ivrworx
 {
-	
+
 	enum CONNECTION_STATE
 	{
 		CONNECTION_STATE_AVAILABLE,
@@ -112,12 +112,13 @@ namespace ivrworx
 		
 		typedef std::map<int,RtpConnectionPtr> 
 		RtpConnectionsMap;
-
 		RtpConnectionsMap _connectionsMap;
 
 		in_addr _localInAddr;
 
+		char _stopChar;
 
+		friend void processIwMessagesTask(void* clientData);
 
 	};
 

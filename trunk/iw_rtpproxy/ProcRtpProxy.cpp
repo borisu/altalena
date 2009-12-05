@@ -19,40 +19,30 @@
 #include "StdAfx.h"
 #include "ProcRtpProxy.h"
 
+#define RTP_PROXY_POLL_TIME 10
+
 namespace ivrworx
 {
-	static in_addr convert_hname_to_addrin(const char *name)
+
+static in_addr 
+convert_hname_to_addrin(const char *name)
+{
+	hostent *phe = ::gethostbyname(name);
+	if (phe == NULL)
 	{
-		hostent *phe = ::gethostbyname(name);
-		if (phe == NULL)
-		{
-			DWORD last_error = ::GetLastError();
-			cerr << "::gethostbyname returned error for host:" << name << ", le:" << last_error;
-			throw configuration_exception();
-		}
-
-
-		// take only first result
-		struct in_addr addr;
-		addr.s_addr = *(u_long *) phe->h_addr;
-
-		return addr;
-
+		DWORD last_error = ::GetLastError();
+		cerr << "::gethostbyname returned error for host:" << name << ", le:" << last_error;
+		throw configuration_exception();
 	}
 
-struct ThreadParams
-{
-	ThreadParams():
-	env(NULL),stop(NULL),thread_terminated_evt(NULL){};
 
-	BasicUsageEnvironment *env;
+	// take only first result
+	struct in_addr addr;
+	addr.s_addr = *(u_long *) phe->h_addr;
 
-	// used to stop the loop
-	char *stop;
+	return addr;
+}
 
-	// signaled when worker thread is over
-	HANDLE thread_terminated_evt;
-};
 
 ProcRtpProxy::RtpConnection::RtpConnection()
 :connection_id(NULL),
@@ -64,54 +54,83 @@ rtcp_instance(NULL)
 
 }
 
-
 ProcRtpProxy::RtpConnection::~RtpConnection()
 {
 
 }
 
-static void dummyTask(void* clientData) 
+void processIwMessagesTask(void* clientData) 
 {
-	BasicUsageEnvironment *env = (BasicUsageEnvironment *)clientData;
-	env->taskScheduler().scheduleDelayedTask(100000,
-		(TaskFunc*)dummyTask, env);
+	ProcRtpProxy *proxy = (ProcRtpProxy *)clientData;
 
-}
-
-DWORD WINAPI ScheduleThread(LPVOID lpParameter)
-{
-	
-	ThreadParams *params = (ThreadParams *)lpParameter;
-
-	do 
+	if (proxy->InboundPending())
 	{
-		dummyTask(params->env);
-		params->env->taskScheduler().doEventLoop(params->stop);
-		 
-	} while (*params->stop != 'S');
 
-	
+		ApiErrorCode res = API_SUCCESS;
+		IwMessagePtr msg = proxy->GetInboundMessage(Seconds(0),res);
+		if (!msg)
+		{
+			goto reschedule;
+		}
 
-	::SetEvent(params->thread_terminated_evt);
+		switch (msg->message_id)
+		{
+		case MSG_RTP_PROXY_ALLOCATE_REQ:
+			{ 
+				proxy->UponAllocateReq(msg);
+				break ;
+			}; 
+		case MSG_RTP_PROXY_BRIDGE_REQ:
+			{ 
+				proxy->UponBridgeReq(msg);
+				break ;
+			}; 
+		case MSG_RTP_PROXY_MODIFY_REQ:
+			{ 
+				proxy->UponModifyReq(msg);
+				break; 
+			}; 
+		case MSG_RTP_PROXY_DEALLOCATE_REQ:
+			{ 
+				proxy->UponDeallocateReq(msg);
+				break; 
+			}; 
+		case MSG_PROC_SHUTDOWN_REQ:
+			{ 
+				proxy->_stopChar = 'S';
+				proxy->SendResponse(msg,new MsgShutdownAck());
+				return;
+				break; 
+			}; 
+		default:
+			{
+				if (proxy->HandleOOBMessage(msg) == FALSE)
+				{
+					LogWarn("Received unknown message " << msg->message_id_str);
+				} // if
+			}// default
+		}// switch
+	}// while
 
-	delete params;
+reschedule:
 
-	return 0;
+	// iw messages are polled once in 5 ms
+	proxy->_env->taskScheduler().scheduleDelayedTask(RTP_PROXY_POLL_TIME,
+		(TaskFunc*)processIwMessagesTask,proxy);
+
 }
+
 
 ProcRtpProxy::ProcRtpProxy(LpHandlePair pair, Configuration &conf):
 LightweightProcess(pair,RTP_PROXY_Q,"ProcRtpProxy"),
 _conf(conf),
 _env(NULL),
-_scheduler(NULL)
+_scheduler(NULL),
+_stopChar('\0')
 {
 
 	
 }
-
-
-
-
 
 ApiErrorCode 
 ProcRtpProxy::InitSockets()
@@ -230,106 +249,13 @@ ProcRtpProxy::real_run()
 		return;
 	}
 
-
-	// will be deleted in thread
-	ThreadParams *params 
-		= new ThreadParams();
-
-	char stop = NULL;
-
-	params->env = _env;
-	params->stop = &stop;
-
-	HANDLE thread_terminated_evt = 
-		::CreateEvent(NULL,TRUE,FALSE,NULL);
-
-	if (thread_terminated_evt == NULL)
-	{
-		LogSysError("::CreateEvent");
-		return;
-	}
-
-	params->thread_terminated_evt = thread_terminated_evt;
-
-	
-	DWORD thread_id = 0;
-	HANDLE thread_handle = ::CreateThread( 
-		NULL,                   // default security attributes
-		0,                      // use default stack size  
-		ScheduleThread,         // thread function name
-		params,				    // argument to thread function 
-		0,                      // use default creation flags 
-		&thread_id);			// returns the thread identifier 
-
-	if (thread_handle == NULL)
-	{
-		LogSysError("::CreateThread");
-		goto exit;
-	}
-
 	I_AM_READY;
 
-	BOOL shutdown_flag = FALSE;
-	while (shutdown_flag == FALSE)
-	{
+	
+	_env->taskScheduler().scheduleDelayedTask(RTP_PROXY_POLL_TIME,
+		(TaskFunc*)processIwMessagesTask,this);
 
-		ApiErrorCode res = API_SUCCESS;
-		IwMessagePtr msg = GetInboundMessage(Seconds(60),res);
-		if (res == API_TIMEOUT)
-		{
-			LogInfo("Rtp Relay Keep Alive");
-			continue;
-		}
-
-		switch (msg->message_id)
-		{
-		case MSG_RTP_PROXY_ALLOCATE_REQ:
-			{ 
-				UponAllocateReq(msg);
-				break ;
-			}; 
-		case MSG_RTP_PROXY_BRIDGE_REQ:
-			{ 
-				UponBridgeReq(msg);
-				break ;
-			}; 
-		case MSG_RTP_PROXY_MODIFY_REQ:
-			{ 
-				UponModifyReq(msg);
-				break; 
-			}; 
-		case MSG_RTP_PROXY_DEALLOCATE_REQ:
-			{ 
-				UponDeallocateReq(msg);
-				break; 
-			}; 
-		case MSG_PROC_SHUTDOWN_REQ:
-			{ 
-				shutdown_flag = TRUE;
-				SendResponse(msg,new MsgShutdownAck());
-				break; 
-			}; 
-		default:
-			{
-				if (HandleOOBMessage(msg) == FALSE)
-				{
-					LogWarn("Received unknown message " << msg->message_id_str);
-				} // if
-			}// default
-		}// switch
-	}// while
-
-exit:
-	if (thread_handle)
-	{
-		stop = 'S';
-		DWORD res = ::WaitForSingleObject(thread_handle,INFINITE);
-		if (res != WAIT_OBJECT_0)
-		{
-			LogSysError("::WaitForSingleObject");
-			return;
-		}
-	}
+	_env->taskScheduler().doEventLoop(&_stopChar);
 
 	
 	for (RtpConnectionsMap::iterator iter = _connectionsMap.begin();
@@ -340,7 +266,6 @@ exit:
 	};
 
 	
-	if (thread_terminated_evt)	::CloseHandle(thread_terminated_evt);
 	if (_env) _env->reclaim();
 	if (_scheduler) delete _scheduler;
 
