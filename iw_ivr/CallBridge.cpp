@@ -36,6 +36,7 @@ namespace ivrworx
 		method(CallBridge, waitforhangup),
 		method(CallBridge, ani),
 		method(CallBridge, dnis),
+		method(CallBridge, mediaformat),
 		method(CallBridge, makecall),
 		method(CallBridge, blindxfer),
 		method(CallBridge, hangup),
@@ -306,6 +307,23 @@ namespace ivrworx
 	}
 
 	int
+	CallBridge::mediaformat(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		lua_pushstring(L,_call->AcceptedSpeechCodec().sdp_name_tos().c_str());
+
+		return 1;
+
+	}
+
+	int
 	CallBridge::dnis(lua_State *L)
 	{
 		FUNCTRACKER;
@@ -390,12 +408,12 @@ namespace ivrworx
 		}
 
 		LUA_DOUBLE_PARAM(L,start_time,-3);
-		LUA_DOUBLE_PARAM(L,end_time,-2);
+		LUA_DOUBLE_PARAM(L,duration,-2);
 		LUA_DOUBLE_PARAM(L,scale,-2);
 
-		LogDebug("CallBridge::rtspplay iwh:" << _call->StackCallHandle() << "start:" << start_time << ", end:" << end_time << ", scale:" << scale );
+		LogDebug("CallBridge::rtspplay iwh:" << _call->StackCallHandle() << "start:" << start_time << ", end:" << duration << ", scale:" << scale );
 
-		ApiErrorCode res = _call->RtspPlay(start_time,end_time,scale);
+		ApiErrorCode res = _call->RtspPlay(start_time,duration,scale);
 		lua_pushnumber (L, res);
 
 		return 1;

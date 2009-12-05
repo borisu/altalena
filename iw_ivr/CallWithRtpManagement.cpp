@@ -107,13 +107,22 @@ namespace ivrworx
 		//
 		if (_rtspEnabled)
 		{
+			LogDebug("CallWithRtpManagement::AcceptInitialOffer - *** allocating rtsp session ***");
+
+			res = _rtspSession.Init();
+			if (IW_FAILURE(res))
+			{
+				RejectCall();
+				return res;
+			}
+			
 			//
 			// rtp
 			//
-			LogDebug("CallWithRtpManagement::AcceptInitialOffer - *** allocating rtsp session ***");
-			res = _rtspRtpSession.Allocate(CnxInfo::UNKNOWN,_acceptedSpeechFormat);
+			res = _rtspRtpSession.Allocate(CnxInfo::UNKNOWN,speech_media_format);
 			if (IW_FAILURE(res))
 			{
+				RejectCall();
 				return res;
 			}
 		}
@@ -310,6 +319,7 @@ namespace ivrworx
 	{
 		_imsSession.InterruptWithHangup();
 		_mrcpSession.InterruptWithHangup();
+		_rtspSession.TearDown();
 
 		Call::UponCallTerminated(ptr);
 	}
@@ -364,10 +374,17 @@ namespace ivrworx
 		//
 		if (_rtspEnabled)
 		{
+			
+			LogDebug("CallWithRtpManagement::MakeCall *** allocating rtsp session ***");
+			res = _rtspSession.Init();
+			if (IW_FAILURE(res))
+			{
+				return res;
+			}
+
 			//
 			// rtp
 			//
-			LogDebug("CallWithRtpManagement::MakeCall *** allocating rtsp session ***");
 			res = _rtspRtpSession.Allocate(CnxInfo::UNKNOWN,_acceptedSpeechFormat);
 			if (IW_FAILURE(res))
 			{
@@ -458,13 +475,13 @@ namespace ivrworx
 
 		LogDebug("CallWithRtpManagement::RtspSetup - rtsp_url:" << rtsp_url << ", media format:" << _acceptedSpeechFormat);
 
-		ApiErrorCode res = _rtspSession.Setup(rtsp_url,_acceptedSpeechFormat);
+		ApiErrorCode res = _rtspSession.Setup(rtsp_url,_acceptedSpeechFormat, _rtspRtpSession.LocalCnxInfo());
 		return res;
 
 	}
 
 	ApiErrorCode
-	CallWithRtpManagement::RtspPlay(IN double start_time /* = 0.0 */, IN double end_time /* = 0.0 */, IN float scale /* = 1.0f */)
+	CallWithRtpManagement::RtspPlay(IN double start_time /* = 0.0 */, IN double duration /* = 0.0 */, IN float scale /* = 1.0f */)
 	{
 		if (!_rtspEnabled)
 		{
@@ -476,9 +493,22 @@ namespace ivrworx
 			return API_WRONG_STATE;
 		}
 
-		LogDebug("CallWithRtpManagement::RtspPlay - start_time:" << start_time << ", end_time:" << end_time << ", scale:" << scale);
+		
+		if (_callState != CALL_STATE_CONNECTED)
+		{
+			return API_WRONG_STATE;
 
-		ApiErrorCode res = _rtspSession.Play(start_time,end_time,scale);
+		}
+
+		ApiErrorCode res = _rtspRtpSession.Bridge(_callerRtpSession);
+		if (IW_FAILURE(res))
+		{
+			return res;
+		}
+
+
+		LogDebug("CallWithRtpManagement::RtspPlay - start_time:" << start_time << ", end_time:" << duration << ", scale:" << scale);
+		res = _rtspSession.Play(start_time,duration,scale);
 		return res;
 
 	}

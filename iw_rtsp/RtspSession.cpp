@@ -1,3 +1,22 @@
+/*
+*	The Altalena Project File
+*	Copyright (C) 2009  Boris Ouretskey
+*
+*	This library is free software; you can redistribute it and/or
+*	modify it under the terms of the GNU Lesser General Public
+*	License as published by the Free Software Foundation; either
+*	version 2.1 of the License, or (at your option) any later version.
+*
+*	This library is distributed in the hope that it will be useful,
+*	but WITHOUT ANY WARRANTY; without even the implied warranty of
+*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+*	Lesser General Public License for more details.
+*
+*	You should have received a copy of the GNU Lesser General Public
+*	License along with this library; if not, write to the Free Software
+*	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
 #include "StdAfx.h"
 #include "RtspSession.h"
 #include "ProcRtsp.h"
@@ -36,6 +55,11 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
+		if (_rtspProcPair.inbound)
+		{
+			return API_SUCCESS;
+		}
+
 		// due to limitation of live555 (synchronous) 
 		// we currently open thread per session, sad but true
 		DECLARE_NAMED_HANDLE_PAIR(rtsp_proc_pair);
@@ -49,7 +73,7 @@ namespace ivrworx
 	}
 
 	ApiErrorCode 
-	RtspSession::Setup(IN const string &rtsp_url, IN const MediaFormat &format)
+	RtspSession::Setup(IN const string &rtsp_url, IN const MediaFormat &format, IN const CnxInfo &local_info)
 	{
 
 		FUNCTRACKER;
@@ -59,13 +83,14 @@ namespace ivrworx
 		MsgRtspSetupSessionReq *msg = new MsgRtspSetupSessionReq();
 		msg->request_url = rtsp_url;
 		msg->media_format = format;
+		msg->local_cnx_info = local_info;
 
 		IwMessagePtr response = NULL_MSG;
 		ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
 			_rtspProcPair.inbound,
 			IwMessagePtr(msg),
 			response,
-			MilliSeconds(GetCurrLightWeightProc()->TransactionTimeout()),
+			Seconds(10),
 			"RTSP Setup TXN");
 
 		if (res != API_SUCCESS)
@@ -107,9 +132,9 @@ namespace ivrworx
 	}
 
 	ApiErrorCode 
-	RtspSession::Play(double start_time /* = 0.0 */, double end_time /* = 0.0  */, double scale /* = 1.0 */)
+	RtspSession::Play(double start_time /* = 0.0 */, double duration /* = 0.0  */, double scale /* = 1.0 */)
 	{
-		LogDebug("RtspSession::Play - start_time:" << start_time  << ", end_time:"  << end_time << ", scale: scale" << ", rtsh:" <<  _rtspHandle);
+		LogDebug("RtspSession::Play - start_time:" << start_time  << ", duration:"  << duration << ", scale: scale" << ", rtsh:" <<  _rtspHandle);
 
 		if (_rtspHandle == IW_UNDEFINED)
 		{
@@ -118,7 +143,7 @@ namespace ivrworx
 
 		MsgRtspPlayReq *msg = new MsgRtspPlayReq();
 		msg->start_time = start_time;
-		msg->end_time = end_time;
+		msg->duration = duration;
 		msg->scale = scale;
 
 		IwMessagePtr response = NULL_MSG;
@@ -214,6 +239,8 @@ namespace ivrworx
 		{
 			return API_FAILURE;
 		}
+
+		_rtspHandle = IW_UNDEFINED;
 
 		GetCurrLightWeightProc()->SendMessage(_rtspProcPair.inbound, 
 			IwMessagePtr(new MsgRtspTearDownReq()));

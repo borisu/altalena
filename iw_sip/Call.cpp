@@ -80,6 +80,12 @@ Call::Ani()
 	return _ani;
 }
 
+const MediaFormat& 
+Call::AcceptedSpeechCodec()
+{
+	return _acceptedSpeechFormat;
+}
+
 void
 Call::ResetState(CallState state, const char *state_str)
 {

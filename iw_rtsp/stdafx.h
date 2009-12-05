@@ -22,3 +22,5 @@
 #include "LightweightProcess.h"
 #include "Logger.h"
 #include "Message.h"
+
+#include "IwUsageEnvironment.h"

@@ -1,3 +1,22 @@
+/*
+*	The Altalena Project File
+*	Copyright (C) 2009  Boris Ouretskey
+*
+*	This library is free software; you can redistribute it and/or
+*	modify it under the terms of the GNU Lesser General Public
+*	License as published by the Free Software Foundation; either
+*	version 2.1 of the License, or (at your option) any later version.
+*
+*	This library is distributed in the hope that it will be useful,
+*	but WITHOUT ANY WARRANTY; without even the implied warranty of
+*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+*	Lesser General Public License for more details.
+*
+*	You should have received a copy of the GNU Lesser General Public
+*	License along with this library; if not, write to the Free Software
+*	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
 #pragma once
 
 #define RTSP_Q 23
@@ -30,7 +49,7 @@ namespace ivrworx
 		RtsMixin():
 		  rtsp_handle(IW_UNDEFINED),
 		  start_time(0.0),
-		  end_time(0.0),
+		  duration(0.0),
 		  scale(1.0)
 		{
 
@@ -44,7 +63,7 @@ namespace ivrworx
 
 		double start_time;
 
-		double end_time;
+		double duration;
 
 		float scale;
 
@@ -173,9 +192,9 @@ namespace ivrworx
 
 		virtual ApiErrorCode Init();
 
-		virtual ApiErrorCode Setup(IN const string &rtsp_url, IN const MediaFormat &format);
+		virtual ApiErrorCode Setup(IN const string &rtsp_url, IN const MediaFormat &format, IN const CnxInfo &local_info);
 
-		virtual ApiErrorCode Play(double start_time = 0.0, double end_time = 0.0 , double scale = 1.0);
+		virtual ApiErrorCode Play(double start_time = 0.0, double duration = 0.0 , double scale = 1.0);
 
 		virtual ApiErrorCode Pause();
 

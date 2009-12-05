@@ -1,10 +1,10 @@
 {
 	
-	"sync_log"  : true,
+	"sync_log"  : false,
 	
 	"resip_log" : "",
 	
-	"debug_level"  : "DBG",
+	"debug_level"  : "INF",
 	"debug_outputs" : "debug,console",
 	
 	"syslogd_host" : "127.0.0.1",
@@ -27,7 +27,7 @@
     "from_display_name": "ivrworx",
     
      
-    "mrcp_enabled": true,
+    "mrcp_enabled": false,
     "unimrcp_conf_dir": "./unimrcp",
     "unimrcp_client_profile": "MRCPv2-Default",
     "unimrcp_log_file": "unimrcpclient",
@@ -35,7 +35,7 @@
     
     "ims_enabled": true, 
    
-    "rtsp_enabled": true,
+    "rtsp_enabled": false,
    
     
     "rtp_proxy_base_port" : 6000,

@@ -53,11 +53,13 @@ namespace ivrworx
 
 		virtual ApiErrorCode RtspSetup(IN const string &rtsp_url);
 
-		virtual ApiErrorCode RtspPlay(IN double start_time = 0.0, IN double end_time = 0.0, IN float scale = 1.0f);
+		virtual ApiErrorCode RtspPlay(IN double start_time = 0.0, IN double duration = 0.0, IN float scale = 1.0f);
 
 		virtual ApiErrorCode RtspPause();
 
 		virtual ApiErrorCode RtspTearDown();
+
+		
 
 	protected:
 

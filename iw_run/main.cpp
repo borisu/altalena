@@ -64,18 +64,6 @@ namespace ivrworx
 		{
 			START_FORKING_REGION;
 
-			RtspSession s(forking,_conf);
-			s.Init();
-			s.Setup("rtsp://spongebob/please-hold.wav",MediaFormat::PCMA);
-			s.Play();
-			::Sleep(3000);
-			s.TearDown();
-
-			char x;
-			cin >> x;
-			return;
-
-
 			FactoryPtrList factories_list = 
 				list_of
 				(ProcFactoryPtr(new RtpProxyFactory()))
