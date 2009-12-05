@@ -248,6 +248,19 @@ Caller id of the ivrworx application. It will appear in "From:" SIP header.
     
 ----
 
+_*rtsp_enabled*_
+
+enables RTSP functionality for the call.
+
+_type : boolean_
+
+{{{
+"rtsp_enabled": true
+}}}
+
+
+----
+
 _*mrcp_enabled*_
 
 Ivrworx is using [http://www.unimrcp.org/ unimrcp] framework to connect to MRCP service providers. If MRCP integration is enabled, ivrworx will try to establish MRCP connection for every incoming call to have TTS service readily available. Enable it if you want to use speak or 'speakmrcp' api.
