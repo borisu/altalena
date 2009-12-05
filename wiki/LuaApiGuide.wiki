@@ -147,6 +147,19 @@ res = call:waitforhangup();
 
 ----
 
+_*call:mediaformat()*_
+
+Returns name of the speech codec chosen for the call
+
+{{{
+
+codec  = call:mediaformat();
+ivrworx.loginfo("codec="..codec  );
+
+}}}
+
+----
+
 _*call:ani()*_
 
 _*call:dnis()*_
