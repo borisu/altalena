@@ -248,6 +248,19 @@ Caller id of the ivrworx application. It will appear in "From:" SIP header.
     
 ----
 
+_*ims_enabled*_
+
+enables built-in streaming functionality for the call.If ims is enabled then for every call ,ivrworx will open a session to built-in streamer server, in order to have streaming resource readily available. Enable it, if you want to use 'play' ivrworx api.
+
+_type : boolean_
+
+{{{
+"ims_enabled": true
+}}}
+
+
+----
+
 _*rtsp_enabled*_
 
 enables RTSP functionality for the call.
