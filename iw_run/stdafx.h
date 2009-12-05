@@ -41,6 +41,8 @@
 #include "LocalProcessRegistrar.h"
 #include "ProcHandleWaiter.h"
 #include "ActiveObject.h"
+#include "RtspFactory.h"
+#include "RtspSession.h"
 #include "ImsFactory.h"
 #include "IvrFactory.h"
 #include "SqlFactory.h"

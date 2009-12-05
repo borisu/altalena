@@ -29,6 +29,10 @@
 	{ lua_pushnumber (L, API_WRONG_PARAMETER); return 1;}  \
 	lua_Integer N = lua_tointeger(L, I);	
 
+#define LUA_DOUBLE_PARAM(L,N,I) if (lua_isnumber(L, I) != 1 ) \
+	{ lua_pushnumber (L, API_WRONG_PARAMETER); return 1;}  \
+	lua_Number N = lua_tonumber(L, I);
+
 #define LUA_BOOL_PARAM(L,N,I) if (lua_isboolean(L, I) != 1 ) \
 	{ lua_pushnumber (L, API_WRONG_PARAMETER); return 1;}  \
 	BOOL N = lua_toboolean(L, I);	

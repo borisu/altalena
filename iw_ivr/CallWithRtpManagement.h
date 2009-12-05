@@ -51,6 +51,14 @@ namespace ivrworx
 
 		virtual ApiErrorCode MakeCall(IN const string &destination_uri);
 
+		virtual ApiErrorCode RtspSetup(IN const string &rtsp_url);
+
+		virtual ApiErrorCode RtspPlay(IN double start_time = 0.0, IN double end_time = 0.0, IN float scale = 1.0f);
+
+		virtual ApiErrorCode RtspPause();
+
+		virtual ApiErrorCode RtspTearDown();
+
 	protected:
 
 		virtual void UponCallTerminated(IwMessagePtr ptr);
@@ -61,19 +69,27 @@ namespace ivrworx
 
 		RtpProxySession _callerRtpSession;
 
-		//
+		// 
 		// rtsp
 		//
 		BOOL			_rtspEnabled;
-		ImsSession		_rtspSession;
+		RtspSession		_rtspSession;
 		RtpProxySession _rtspRtpSession;
+
+
+		//
+		// ims
+		//
+		BOOL			_imsEnabled;
+		ImsSession		_imsSession;
+		RtpProxySession _imsRtpSession;
 
 		//
 		// mrcp
 		//
 		BOOL			_mrcpEnabled;
-		RtpProxySession _mrcpRtpSession;
 		MrcpSession		_mrcpSession;
+		RtpProxySession _mrcpRtpSession;
 
 	
 		shared_ptr<MsgCallOfferedReq> _origOffereReq;

@@ -39,6 +39,10 @@ namespace ivrworx
 		method(CallBridge, makecall),
 		method(CallBridge, blindxfer),
 		method(CallBridge, hangup),
+		method(CallBridge, rtspsetup),
+		method(CallBridge, rtspplay),
+		method(CallBridge, rtsppause),
+		method(CallBridge, rtspteardown),
 		{0,0}
 	};
 
@@ -351,6 +355,91 @@ namespace ivrworx
 		lua_pushnumber (L, res);
 
 		return 1;
+	}
+
+	int
+	CallBridge::rtspsetup(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		LUA_STRING_PARAM(L,rtsp_url,-1);
+		LogDebug("CallBridge::rtspsetup iwh:" << _call->StackCallHandle() << "rtsp url:" << rtsp_url);
+
+		ApiErrorCode res = _call->RtspSetup(rtsp_url);
+		lua_pushnumber (L, res);
+
+		return 1;
+
+	}
+
+	int
+	CallBridge::rtspplay(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		LUA_DOUBLE_PARAM(L,start_time,-3);
+		LUA_DOUBLE_PARAM(L,end_time,-2);
+		LUA_DOUBLE_PARAM(L,scale,-2);
+
+		LogDebug("CallBridge::rtspplay iwh:" << _call->StackCallHandle() << "start:" << start_time << ", end:" << end_time << ", scale:" << scale );
+
+		ApiErrorCode res = _call->RtspPlay(start_time,end_time,scale);
+		lua_pushnumber (L, res);
+
+		return 1;
+
+	}
+
+	int
+	CallBridge::rtsppause(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		LogDebug("CallBridge::rtsppause iwh:" << _call->StackCallHandle() );
+
+		ApiErrorCode res = _call->RtspPause();
+		lua_pushnumber (L, res);
+
+		return 1;
+
+	}
+
+	int
+	CallBridge::rtspteardown(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		LogDebug("CallBridge::rtspteardown iwh:" << _call->StackCallHandle() );
+
+		ApiErrorCode res = _call->RtspTearDown();
+		lua_pushnumber (L, res);
+
+		return 1;
+
 	}
 
 
