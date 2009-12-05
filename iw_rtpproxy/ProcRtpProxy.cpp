@@ -18,6 +18,7 @@
 */
 #include "StdAfx.h"
 #include "ProcRtpProxy.h"
+#include "IwUsageEnvironment.h"
 
 #define RTP_PROXY_POLL_TIME 10
 
@@ -233,7 +234,7 @@ ProcRtpProxy::real_run()
 
 	
 	_scheduler	=	BasicTaskScheduler::createNew();
-	_env  =	BasicUsageEnvironment::createNew(*_scheduler);
+	_env  =	IwUsageEnvironment::createNew(*_scheduler);
 	
 	try
 	{
@@ -327,7 +328,7 @@ ProcRtpProxy::UponAllocateReq(IwMessagePtr msg)
 		candidate->media_format = req->media_format; 
 	}
 	
-	LogDebug("ProcRtpProxy::UponAllocateReq allocated rtph:" << candidate->connection_id << " local:" << candidate->local_cnx_ino << ", remote:" << req->remote_media.ipporttos());
+	LogDebug("ProcRtpProxy::UponAllocateReq allocated rtph:" << candidate->connection_id << " local:" << candidate->local_cnx_ino << ", remote:" << req->remote_media.ipporttos() << ", media format:" << req->media_format.sdp_name_tos());
 	SendResponse(req, ack);
 	
 }
@@ -368,9 +369,6 @@ ProcRtpProxy::UponDeallocateReq(IwMessagePtr msg)
 
 	if (conn->rtcp_instance) 
 	{
-		// regretfully I found that this crashed under load conditions
-		// seems like Sleep solves the problem at least partially
-		::Sleep(10);
 		RTCPInstance::close(conn->rtcp_instance);
 		conn->rtcp_instance = NULL;
 	}
