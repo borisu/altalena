@@ -181,12 +181,6 @@ namespace ivrworx
 			return API_WRONG_STATE;
 		}
 
-		// don't bridge twice optimization
-		if (_bridgedHandle == dest._handle)
-		{
-			return API_SUCCESS;
-		}
-
 		_bridgedHandle = IW_UNDEFINED;
 
 		DECLARE_NAMED_HANDLE_PAIR(session_handler_pair);
