@@ -12,6 +12,8 @@
 
  * Simple Streaming
 
+ * RTSP streaming
+
  * Utils 
 
  * SQLite
@@ -241,6 +243,66 @@ ivrworx.sleep(1000);
 call:stopplay();
 
 }}}
+
+==RTSP Streaming API==
+
+_*call:rtspsetup(rtsp_url)*_
+
+Sends firstly DESCRIBE rtsp request. DESCRIBE request is inspected for subsession that corresponds
+to codec chosen for current call. If such codec is found SETUP rtsp request is sent.
+
+{{{
+
+res = call:rtspsetup("rtsp://10.0.0.2/grace.wav");
+assert(res == ivrworx.API_SUCCESS);
+
+}}}
+
+----
+
+_*call:rtspplay(start,duration,scale)*_
+
+Sends rtsp PLAY request that was set up with _*call:rtspsetup(rtsp_url)*_.
+
+start - start time
+
+duration - duration
+
+scale - scale
+
+
+{{{
+
+res = call:rtspplay(0,0,1);
+assert(res == ivrworx.API_SUCCESS);
+
+}}}
+
+----
+
+_*call:rtsppause()*_
+
+Sends rtsp PAUSE request.
+
+{{{
+
+res = call:rtsppause();
+assert(res == ivrworx.API_SUCCESS);
+
+}}}
+
+----
+
+_*call:rtspteardown()*_
+
+Tears down rtsp session
+{{{
+
+res = call:rtspteardown();
+assert(res == ivrworx.API_SUCCESS);
+
+}}}
+
 
 ==MRCP==
 
