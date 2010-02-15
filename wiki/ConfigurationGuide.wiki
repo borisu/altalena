@@ -36,7 +36,7 @@ Valid subsystems:
 The values of log level are the same that used for configuring ivrworx debug level. See debug_level for more examples.
 
 {{{
-"resip_log" : "SIP|DBG,TRANSPORT|INF"
+"resip_log" : "SIP,DBG|TRANSPORT,INF"
 }}}
 
 ----
