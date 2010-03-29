@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "iw_sip", "iw_sip.vcproj", "{2FCEFE58-70F8-4D68-8F39-8AD958596C42}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "iw_sql", "..\iw_sql\iw_sql.vcproj", "{8CA2317C-A9D2-4602-BB16-780ECA678181}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug Lib|Win32 = Debug Lib|Win32
+		Debug Profile|Win32 = Debug Profile|Win32
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2FCEFE58-70F8-4D68-8F39-8AD958596C42}.Debug Lib|Win32.ActiveCfg = Debug Lib|Win32
+		{2FCEFE58-70F8-4D68-8F39-8AD958596C42}.Debug Lib|Win32.Build.0 = Debug Lib|Win32
+		{2FCEFE58-70F8-4D68-8F39-8AD958596C42}.Debug Profile|Win32.ActiveCfg = Debug Profile|Win32
+		{2FCEFE58-70F8-4D68-8F39-8AD958596C42}.Debug Profile|Win32.Build.0 = Debug Profile|Win32
+		{2FCEFE58-70F8-4D68-8F39-8AD958596C42}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2FCEFE58-70F8-4D68-8F39-8AD958596C42}.Debug|Win32.Build.0 = Debug|Win32
+		{2FCEFE58-70F8-4D68-8F39-8AD958596C42}.Release|Win32.ActiveCfg = Release|Win32
+		{2FCEFE58-70F8-4D68-8F39-8AD958596C42}.Release|Win32.Build.0 = Release|Win32
+		{8CA2317C-A9D2-4602-BB16-780ECA678181}.Debug Lib|Win32.ActiveCfg = Debug Lib|Win32
+		{8CA2317C-A9D2-4602-BB16-780ECA678181}.Debug Lib|Win32.Build.0 = Debug Lib|Win32
+		{8CA2317C-A9D2-4602-BB16-780ECA678181}.Debug Profile|Win32.ActiveCfg = Debug Profile|Win32
+		{8CA2317C-A9D2-4602-BB16-780ECA678181}.Debug Profile|Win32.Build.0 = Debug Profile|Win32
+		{8CA2317C-A9D2-4602-BB16-780ECA678181}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8CA2317C-A9D2-4602-BB16-780ECA678181}.Debug|Win32.Build.0 = Debug|Win32
+		{8CA2317C-A9D2-4602-BB16-780ECA678181}.Release|Win32.ActiveCfg = Release|Win32
+		{8CA2317C-A9D2-4602-BB16-780ECA678181}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
