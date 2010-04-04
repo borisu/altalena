@@ -283,33 +283,40 @@ namespace ivrworx
 	void
 	ProcIms::InitCodecs()
 	{
-		for (MediaFormatsPtrList::const_iterator conf_iter = _conf.MediaFormats().begin(); conf_iter != _conf.MediaFormats().end(); conf_iter++)
+		
+		ListOfAny codecs_list;
+		 _conf.GetArray("codec", codecs_list);
+
+		for (ListOfAny::iterator conf_iter = codecs_list.begin(); 
+			conf_iter != codecs_list.end(); 
+			conf_iter++)
 		{
 			
-			const MediaFormat *media_format = *(conf_iter);
+			string conf_codec_name =  any_cast<string>(*conf_iter);
+			MediaFormat media_format = MediaFormat::GetMediaFormat(conf_codec_name);
 
-			PayloadTypeMap::iterator ms_map_iter = _payloadTypeMap.find(media_format->sdp_name_tos());
+			PayloadTypeMap::iterator ms_map_iter = _payloadTypeMap.find(media_format.sdp_name_tos());
 			if (ms_map_iter == _payloadTypeMap.end())
 			{
-				LogWarn("ProcIms::InitCodecs media format not supported :" << *media_format);
+				LogWarn("ProcIms::InitCodecs media format not supported :" << media_format);
 				continue;
 			}
 
-			if (_payloadIndexMap.find(media_format->sdp_name_tos()) != _payloadIndexMap.end())
+			if (_payloadIndexMap.find(media_format.sdp_name_tos()) != _payloadIndexMap.end())
 			{
-				LogWarn("ProcIms::InitCodecs media format appeared twice (not registering):" << *media_format);
+				LogWarn("ProcIms::InitCodecs media format appeared twice (not registering):" << media_format);
 				continue;
 			}
 
 			rtp_profile_set_payload(
 				_avProfile,
-				media_format->sdp_mapping(),
+				media_format.sdp_mapping(),
 				(*ms_map_iter).second
 				);
 
-			_payloadIndexMap[media_format->sdp_name_tos()] = media_format->sdp_mapping();
+			_payloadIndexMap[media_format.sdp_name_tos()] = media_format.sdp_mapping();
 
-			LogDebug("Ims added media format :" << *media_format);
+			LogDebug("Ims added media format :" << media_format);
 		}
 
 	}
@@ -1046,7 +1053,7 @@ error:
 		if (hFind == INVALID_HANDLE_VALUE) 
 		{
 			// relative path?
-			filename = _conf.SoundsPath()+ "\\" + req->file_name;
+			filename = _conf.GetString("sounds_dir")+ "\\" + req->file_name;
 			hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);
 			if (hFind == INVALID_HANDLE_VALUE) 
 			{

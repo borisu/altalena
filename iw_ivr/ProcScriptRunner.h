@@ -41,6 +41,78 @@ namespace ivrworx
 		virtual void HandleReturns (CLuaVirtualMachine& vm, const char *strFunc);
 
 	};
+
+
+	enum IvrEvents
+	{
+		MSG_IVR_START_SCRIPT_REQ = MSG_USER_DEFINED,
+	};
+
+	enum ParamType
+	{
+		PT_UNKNOWN,
+		PT_INTEGER,
+		PT_STRING,
+		PT_BOOL,
+		PT_CALL,
+		PT_LIGHTUSERDATA
+	};
+
+	struct ProcParam 
+	{
+		ParamType param_type; 
+
+		ProcParam():
+		param_type(PT_UNKNOWN),
+			ud_value(NULL)
+		{
+
+		}
+
+		ProcParam(const ProcParam &p)
+		{
+			int_value    = p.int_value;
+			string_value = p.string_value;
+			call_value	 = p.call_value;
+			bool_value	 = p.bool_value;
+			ud_value	 = p.ud_value;
+
+		}
+
+		/* couldn't use union because of copy c'tor */
+		int int_value;
+
+		BOOL bool_value;
+
+		void *ud_value;
+
+		string string_value;
+
+		CallWithRtpManagementPtr call_value;
+
+	};
+
+
+	typedef map<int,ProcParam>  
+	ProcParamMap;
+
+	typedef shared_ptr<ProcParamMap>
+	ProcParamMapPtr;
+
+
+	class MsgIvrStartScriptReq : 
+		public MsgRequest
+	{
+	public:
+		MsgIvrStartScriptReq():
+		  MsgRequest(MSG_IVR_START_SCRIPT_REQ, 
+			  NAME(MSG_IVR_START_SCRIPT_REQ)){};
+
+		  string script_name;
+
+		  ProcParamMapPtr params_map;
+
+	};
 	
 
 	/**
@@ -48,7 +120,6 @@ namespace ivrworx
 	**/
 	class ProcScriptRunner
 		: public LightweightProcess
-
 	{
 	public:
 
@@ -59,6 +130,14 @@ namespace ivrworx
 			IN size_t buffer_size,
 			IN shared_ptr<MsgCallOfferedReq> msg, 
 			IN LpHandlePair stack_pair, 
+			IN LpHandlePair ivr_pair, 
+			IN LpHandlePair pair);
+
+		ProcScriptRunner(
+			IN Configuration &conf,
+			IN shared_ptr<MsgIvrStartScriptReq> req,
+			IN LpHandlePair stack_pair, 
+			IN LpHandlePair ivr_pair, 
 			IN LpHandlePair pair);
 
 		~ProcScriptRunner();
@@ -71,15 +150,23 @@ namespace ivrworx
 
 		static int LuaWait(lua_State *L);
 
-		static int LuaRun(lua_State *L);
+		static int LuaRunLongOperation(lua_State *L);
 
 		static int LuaCreateCall(lua_State *L);
+
+		static int LuaSpawn(lua_State *L);
+
+		static int LuaFork(lua_State *L);
 
 	private:
 
 		shared_ptr<MsgCallOfferedReq> _initialMsg;
 
+		shared_ptr<MsgIvrStartScriptReq> _startScriptReq;
+
 		LpHandlePair _stackPair;
+
+		LpHandlePair _spawnPair;
 
 		Configuration &_conf;
 
@@ -92,6 +179,8 @@ namespace ivrworx
 		size_t _bufferSize;
 
 		ScopedForking *_forking;
+
+		ProcParamMap _procMap;
 
 	};
 

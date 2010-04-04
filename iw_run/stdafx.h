@@ -48,4 +48,5 @@
 #include "SqlFactory.h"
 #include "MrcpFactory.h"
 #include "RtpProxyFactory.h"
+#include "OpalFactory.h"
 

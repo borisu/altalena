@@ -19,66 +19,19 @@
 
 #pragma once
 
-
-using namespace std;
-
 namespace ivrworx
 {
-	
-
-	class ProcIvr :
-		public LightweightProcess
+	class OpalFactory : 
+		public IProcFactory
 	{
-
 	public:
+		OpalFactory(void);
 
-		ProcIvr(IN LpHandlePair pair, IN Configuration &conf);
-
-		virtual void real_run();
-
-		virtual ~ProcIvr(void);
-
-	protected:
-
-		BOOL ProcessStackMessage(
-			IN IwMessagePtr event,
-			IN ScopedForking &forking
-			);
-
-		BOOL ProcessInboundMessage(
-			IN IwMessagePtr event,
-			IN ScopedForking &forking
-			);
-
-		BOOL ProcessSpawnMessage(
-			IN IwMessagePtr event, 
-			IN LpHandlePair spawn_pair, 
-			IN ScopedForking &forking);
-
-		void StartScript(
-			IN IwMessagePtr msg);
-
-	private:
-
-		LpHandlePair _stackPair;
-
-		CnxInfo _sipStackData;
-
-		Configuration &_conf;
-
-		char *_precompiledBuffer_Super;
-		size_t _superSize;
-
-		char *_precompiledBuffer;
-		size_t _scriptSize;
-
-		BOOL _waitingForSuperCompletion;
-
+		virtual LightweightProcess *Create(LpHandlePair pair, Configuration &conf);
+		
+		virtual ~OpalFactory(void);
 	};
 
+
 }
-
-
-
-
 

@@ -13,6 +13,12 @@
     "ivr_sip_host": "$COMPUTERNAME",
     "ivr_sip_port": 5060,
     
+    "registrar_host"     : "$COMPUTERNAME",
+    "registrar_port"     : 5060,
+    "registrar_username" : "ivrworx",
+    "registrar_username" : "1234",
+    
+    
     "precompile" : false,
     "super_script": "scripts\\super.lua",
     "super_mode":   "sync",

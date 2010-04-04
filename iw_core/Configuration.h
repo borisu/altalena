@@ -17,14 +17,26 @@
 */
 
 #pragma once
-#include "IwBase.h"
-
 using namespace std;
+
 
 
 namespace ivrworx
 {
+	class configuration_exception: 	public exception 
+	{
+	public:
+		configuration_exception();
+		configuration_exception(const char *);
+		configuration_exception(const string &);
+	};
 
+	typedef
+	std::list<boost::any> ListOfAny;
+
+	// Configuration class follows basic JSON semantics
+	// though it may be implemented as XML or Db or any
+	// other mechanism
 	class Configuration
 		:public boost::noncopyable
 	{
@@ -34,120 +46,16 @@ namespace ivrworx
 
 		virtual ~Configuration(void);
 
+		virtual int GetInt(IN const string &name) = 0;
+
+		virtual string GetString(IN const string &name) = 0;
+
+		virtual BOOL GetBool(IN const string &name) = 0;
+
+		virtual BOOL HasOption(IN const string &name) = 0;
+
+		virtual void GetArray(IN const string &key, OUT ListOfAny &out_list) = 0;
 		
-		virtual bool Precompile();
-
-		
-		virtual string SuperScript();
-
-		
-		virtual string SuperMode();
-
-		
-		virtual CnxInfo IvrCnxInfo();
-
-		
-		virtual bool EnableSessionTimer();
-
-		
-		virtual string SipRefreshMode();
-
-		
-		virtual int	 SipDefaultSessionTime();
-		
-
-		
-		virtual string ScriptFile();
-
-
-		virtual string SoundsPath();
-
-
-		virtual void AddMediaFormat(IN const MediaFormat& media_format);
-
-		
-		virtual void AddMediaFormat(IN const MediaFormat* codec);
-
-		
-		virtual const MediaFormatsPtrList& MediaFormats();
-
-		
-		virtual string From();
-
-		
-		virtual string FromDisplay();
-
-		
-		virtual string SyslogHost();
-
-		
-		virtual int SyslogPort();
-
-		
-		virtual string DebugLevel();
-
-		
-		virtual string DebugOutputs();
-
-		
-		virtual string ResipLog();
-
-		
-		virtual bool SyncLog();
-
-		
-		virtual int GetInt(const string &name) = 0;
-
-		
-		virtual string GetString(const string &name) = 0;
-
-		
-		virtual BOOL GetBool(const string &name) = 0;
-
-	protected:
-
-		mutex _mutex;
-
-		bool _precomile;
-
-		CnxInfo _ivrCnxInfo;
-
-		string _scriptFile;
-
-		MediaFormatsPtrList _mediaFormatPtrsList;
-
-		string _from;
-
-		string _fromDisplay;
-
-		string _soundsPath;
-
-		int _imsTopPort;
-
-		int _imsBottomPort;
-
-		string _sysloghost;
-
-		int _syslogport;
-
-		string _debugLevel;
-
-		string _debugOutputs;
-
-		string _resipLog;
-
-		string _sipRefreshMode;
-
-		int _sipDefaultSessionTime;
-
-		bool _enableSessionTimer;
-
-		string _superScript;
-
-		string _superMode;
-
-		bool _syncLog;
-
 	};
 
 }

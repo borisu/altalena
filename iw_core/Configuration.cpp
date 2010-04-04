@@ -18,15 +18,29 @@
 */
 
 
+
 #include "StdAfx.h"
 #include "Configuration.h"
-#include "Logger.h"
 
-using namespace boost;
 
 namespace ivrworx
 {
+	configuration_exception::configuration_exception()
+	{
 
+	}
+
+	configuration_exception::configuration_exception(const char *what):
+	std::exception(what)
+	{
+
+	}
+
+	configuration_exception::configuration_exception(const string &what):
+	std::exception(what.c_str())
+	{
+
+	}
 
 	Configuration::Configuration(void)
 	{
@@ -36,187 +50,6 @@ namespace ivrworx
 	Configuration::~Configuration(void)
 	{
 		
-	}
-
-	bool
-	Configuration::Precompile()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _precomile;
-
-	}
-
-	string
-	Configuration::SuperScript()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _superScript;
-
-	}
-
-	string
-	Configuration::SuperMode()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _superMode;
-
-	}
-
-
-	CnxInfo
-	Configuration::IvrCnxInfo()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _ivrCnxInfo;
-
-	}
-
-	string
-	Configuration::ScriptFile()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return  _scriptFile;
-	}
-
-	void
-	Configuration::AddMediaFormat(IN const MediaFormat& codec)
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		_mediaFormatPtrsList.push_front(new MediaFormat(codec));
-
-	}
-
-
-	void
-	Configuration::AddMediaFormat(IN const MediaFormat* codec)
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		_mediaFormatPtrsList.push_front(codec);
-
-	}
-
-
-	const MediaFormatsPtrList& 
-	Configuration::MediaFormats()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _mediaFormatPtrsList;
-
-	}
-
-	string 
-	Configuration::From()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _from;
-
-	}
-
-	string 
-	Configuration::SoundsPath()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _soundsPath;
-
-	}
-
-	string 
-	Configuration::FromDisplay()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _fromDisplay;
-
-	}
-
-	string 
-	Configuration::SyslogHost()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _sysloghost;
-
-	}
-
-	int
-	Configuration::SyslogPort()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _syslogport;
-
-	}
-
-	string
-	Configuration::DebugLevel()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _debugLevel;
-
-	}
-
-	string
-	Configuration::DebugOutputs()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _debugOutputs;
-
-	}
-
-	string
-	Configuration::ResipLog()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _resipLog;
-
-	}
-
-	string
-	Configuration::SipRefreshMode()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _sipRefreshMode;
-
-	}
-
-	
-	int
-	Configuration::SipDefaultSessionTime()
-	{
-		mutex::scoped_lock lock(_mutex);
-
-		return _sipDefaultSessionTime;
-
-	}
-
-	bool
-	Configuration::EnableSessionTimer()
-	{
-		mutex::scoped_lock lock(_mutex);
-		return _enableSessionTimer;
-
-	}
-
-	bool
-	Configuration::SyncLog()
-	{
-		mutex::scoped_lock lock(_mutex);
-		return _syncLog;
-
 	}
 
 

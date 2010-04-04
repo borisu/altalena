@@ -129,14 +129,14 @@ namespace ivrworx
 	{
 		mutex::scoped_lock scoped_lock(g_loggerMutex);
 
-		SetLogLevelFromString(conf.DebugLevel());
-		SetLogMaskFromString(conf.DebugOutputs());
+		SetLogLevelFromString(conf.GetString("debug_level"));
+		SetLogMaskFromString(conf.GetString("debug_outputs"));
 
-		g_LogSyncMode = conf.SyncLog();
+		g_LogSyncMode = conf.GetBool("sync_log");
 
-		openlog(conf.SyslogHost().c_str(),conf.SyslogPort(),"ivrworx",0,LOG_USER );
+		openlog(conf.GetString("syslogd_host").c_str(),conf.GetInt("syslogd_port"),"ivrworx",0,LOG_USER );
 
-		if (conf.SyncLog())
+		if (conf.GetBool("sync_log"))
 		{
 			return TRUE;
 		}

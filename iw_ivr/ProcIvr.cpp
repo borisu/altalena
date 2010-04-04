@@ -37,13 +37,15 @@ namespace ivrworx
 ProcIvr::ProcIvr(IN LpHandlePair pair, IN Configuration &conf)
 :LightweightProcess(pair,IVR_Q,	"Ivr"),
 _conf(conf),
-_sipStackData(conf.IvrCnxInfo()),
 _precompiledBuffer(NULL),
 _superSize(0),
 _precompiledBuffer_Super(NULL),
 _scriptSize(0),
 _waitingForSuperCompletion(FALSE)
 {
+	_sipStackData = CnxInfo(
+		convert_hname_to_addrin(_conf.GetString("ivr_sip_host").c_str()),
+		_conf.GetInt("ivr_sip_port"));
 }
 
 
@@ -62,14 +64,16 @@ ProcIvr::real_run()
 	
 	IwMessagePtr event;
 
+	string super_script = _conf.GetString("super_script");
+
 	//
 	// Precompile files
 	//
-	if (_conf.Precompile())
+	if (_conf.GetBool("precompile"))
 	{
 
 		ApiErrorCode res = 
-			LuaUtils::Precompile(_conf.ScriptFile(),&_precompiledBuffer, &_scriptSize);
+			LuaUtils::Precompile(_conf.GetString("script_file"),&_precompiledBuffer, &_scriptSize);
 
 		if (IW_FAILURE(res))
 		{
@@ -77,10 +81,10 @@ ProcIvr::real_run()
 			throw critical_exception("Cannot precompile script");
 		}
 
-		if (_conf.SuperScript().empty() != false)
+		if (super_script.empty() != false)
 		{
 			res = 
-				LuaUtils::Precompile(_conf.SuperScript(),&_precompiledBuffer_Super, &_superSize);
+				LuaUtils::Precompile(super_script,&_precompiledBuffer_Super, &_superSize);
 			if (IW_FAILURE(res))
 			{
 				LogCrit("ProcIvr::real_run - Cannot precompile super script file res:" << res);
@@ -112,23 +116,25 @@ ProcIvr::real_run()
 	// Run super script
 	//
 	DECLARE_NAMED_HANDLE_PAIR(super_script_handle);
+	DECLARE_NAMED_HANDLE_PAIR(spawn_handle);
 
-	if (!_conf.SuperScript().empty())
+	if (!super_script.empty())
 	{
 		AddShutdownListener(super_script_handle,_inbound);
 
 		ProcScriptRunner *super_script_proc = 
 			new ProcScriptRunner(
 			_conf,								// configuration
-			_conf.SuperScript(),				// script name
+			super_script,						// script name
 			_precompiledBuffer_Super,			// precompiled buffer
 			_superSize,							// size of precompiled buffer
 			shared_ptr<MsgCallOfferedReq>(),	// initial incoming message
 			_stackPair,							// handle to stack
+			_pair,								// handle used to send "spawn" messages
 			super_script_handle					// handle created by stack for events
 			);
 
-		if (_conf.SuperMode() == "sync")
+		if (_conf.GetString("super_mode") == "sync")
 		{
 			_waitingForSuperCompletion = TRUE;
 		} ;
@@ -136,9 +142,15 @@ ProcIvr::real_run()
 		FORK_IN_THIS_THREAD(super_script_proc);
 
 	}
+
+	if (_conf.GetBool("ivr_enabled") == FALSE)
+	{
+		LogInfo("ivr_enabled:false... exiting");
+		return;
+	}
 	
 
-	HandlesVector list = list_of(stack_pair.outbound)(_inbound);
+	HandlesVector list = list_of(stack_pair.outbound)(_inbound)(spawn_handle.outbound);
 
 	//
 	// Message Loop
@@ -197,6 +209,11 @@ ProcIvr::real_run()
 				}
 				break;
 			}
+		case 2:
+			{
+				ProcessSpawnMessage(event, spawn_handle, forking);
+				break;
+			}
 		default:
 			{
 				LogCrit("Unknown handle signaled");
@@ -215,6 +232,46 @@ ProcIvr::real_run()
 		SendResponse(event,new MsgShutdownAck());
 	}
 
+
+}
+
+BOOL 
+ProcIvr::ProcessSpawnMessage(IN IwMessagePtr event, IN LpHandlePair spawn_pair, IN ScopedForking &forking)
+{
+   FUNCTRACKER;
+
+   shared_ptr<MsgIvrStartScriptReq> req = 
+	   dynamic_pointer_cast<MsgIvrStartScriptReq> (event);
+
+	switch (event->message_id)
+	{
+	case MSG_IVR_START_SCRIPT_REQ:
+		{
+			DECLARE_NAMED_HANDLE_PAIR(script_runner_handle);
+
+			FORK_IN_THIS_THREAD(
+				new ProcScriptRunner(
+				_conf,					// configuration
+				req,					// script name
+				_stackPair,				// handle to stack
+				spawn_pair,				// on this handle "spawn" requests will be recieved
+				script_runner_handle	// handle created by stack for events
+				));
+
+			return FALSE;
+		}
+	default:
+		{
+			BOOL oob_res = HandleOOBMessage(event);
+			if (oob_res = FALSE)
+			{
+				LogCrit("ProcIvr::ProcessSpawnMessage - Unknown message received id=[" << event->message_id_str << "]");
+				throw;
+			}
+		}
+	}
+
+	return FALSE;
 
 }
 
@@ -275,18 +332,20 @@ ProcIvr::ProcessStackMessage(IN IwMessagePtr ptr, IN ScopedForking &forking)
 
 			FORK_IN_THIS_THREAD(
 					new ProcScriptRunner(
-						_conf,					// configuration
-						_conf.ScriptFile(),		// script name
-						_precompiledBuffer,		// precompiled buffer
-						_scriptSize,			// size of precompiled buffer
-						call_offered,			// initial incoming message
-						_stackPair,				// handle to stack
-						script_runner_handle	// handle created by stack for events
+						_conf,							// configuration
+						_conf.GetString("script_file"),	// script name
+						_precompiledBuffer,				// precompiled buffer
+						_scriptSize,					// size of precompiled buffer
+						call_offered,					// initial incoming message
+						_stackPair,						// handle to stack
+						_pair,							// handle used to send "spawn" messages
+						script_runner_handle			// handle created by stack for events
 				));
 
 			return FALSE;
 
 		}
+	
 	case MSG_PROC_SHUTDOWN_EVT:
 		{
 			LogWarn("Detected Sip process shutdown. Exiting.");
