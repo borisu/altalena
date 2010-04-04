@@ -33,7 +33,9 @@ are either included into subversion tree completely or by means of subversion ex
 
 = Setup =
 
- * Checkout altalena code in '<project root>\altalena' - see instructions [http://code.google.com/p/altalena/source/checkout here]. Write to administrator if you want to become a member of development team. (!) *Trunk version is unstable and used for intermediate check ins. Use it if you want to join development team. Otherwise it is advised to use one of the stable branches for check outs.*
+ * Checkout altalena code in '<project root>\altalena' - see instructions [http://code.google.com/p/altalena/source/checkout here]. Write to administrator if you want to become a member of development team. 
+
+(!) *Trunk version is unstable and used for intermediate check ins. Use it if you want to join development team. Otherwise it is advised to use one of the stable branches for check outs.*
 
  * Add ;<project root>\kentcsp\kentcsp\src' to include library in IDE options tab. After all definitions, library and include IDE options should look something like this.
 
