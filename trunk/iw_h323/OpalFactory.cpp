@@ -17,38 +17,25 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#pragma once
-#include "Configuration.h"
-#include "IwBase.h"
-
-using namespace boost;
+#include "StdAfx.h"
+#include "OpalFactory.h"
+#include "ProcOpalH323.h"
 
 namespace ivrworx
 {
-
-	typedef 
-	shared_ptr<Configuration> ConfigurationPtr;
-
-	/**
-	*
-	*	Configuration Factory.
-	*
-	*	This class is used to hide @ref configuration data source dependencies from including files.
-	*	Every new configuration should supply factory class so using files will not have to include 
-	*	dependent headers.
-	*	
-	*
-	**/
-	class ConfigurationFactory
+	OpalFactory::OpalFactory(void)
 	{
-	public:
+	}
 
-		ConfigurationFactory(void);
+	OpalFactory::~OpalFactory(void)
+	{
+	}
 
-		virtual ~ConfigurationFactory(void);
-
-		static ConfigurationPtr CreateJsonConfiguration(const string &filename, ApiErrorCode &err_code);
-
-	};
+	LightweightProcess *
+	OpalFactory::Create(LpHandlePair pair, Configuration &conf)
+	{
+		return new ProcOpalH323(conf,pair);
+	}
 
 }
+

@@ -45,38 +45,40 @@
          <!----------------------->
          <!-- LEFT MAIN CONTENT -->
          <!----------------------->
-    <div id="master-body">
-        <table id="master-table">
-            <tr>
-                <td valign="top">
-                    <img src="images/parrot.jpg"/>
-                </td>
-                <td valign="top">
-                    <!--CONTENT-->
-                    <div id="master-content">
-                        <div id="navcontainer">
-                            <ul id="nav">
-                                <li id="nav-1"><a href="Default.aspx">Home</a></li>
-                                <li id="nav-2"><a href="RegisterWizard.aspx">Register</a></li>
-                                <li id="nav-3"><a href="Contact.aspx">Contact</a></li>
-                            </ul>
+        <div id="master-body">
+            <table id="master-table">
+                <tr>
+                    <td valign="top">
+                        <img src="images/parrot.jpg"/>
+                    </td>
+                    <td valign="top">
+                        <!--CONTENT-->
+                        <div id="master-content">
+                            <div id="navcontainer">
+                                <ul id="nav">
+                                    <asp:LoginView ID="LoginView1" runat="server">
+                                     <AnonymousTemplate>
+                                      <li id="nav-1"><a href="Default.aspx">Home</a></li>
+                                      <li id="nav-2"><a href="RegisterWizard.aspx">Register</a></li>
+                                      <li id="nav-3"><a href="Contact.aspx">Contact</a></li>
+                                     </AnonymousTemplate>
+                                     <LoggedInTemplate>
+                                      <li id="nav-1"><a href="Default.aspx">Home</a></li>
+                                      <li id="nav-2"><a href="Preferences.aspx">Preferences</a></li>
+                                      <li id="nav-3"><a href="Contact.aspx">Contact</a></li>
+                                     </LoggedInTemplate>
+                                    </asp:LoginView>
+                                </ul>
+                            </div>
+                            <div id="master-content-bottom">
+                                <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+                                </asp:ContentPlaceHolder>
+                            </div>
                         </div>
-                        <div id="master-content-bottom">
-                            <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
-                            </asp:ContentPlaceHolder>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
-         
-         
-       
-          
-         
-         
-         
+                    </td>
+                </tr>
+            </table>
+        </div>
          
          <!-- FOOTER -->
          <div id="footer">

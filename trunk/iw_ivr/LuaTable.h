@@ -37,6 +37,8 @@ namespace ivrworx
 
 		void AddFunction(IN const string &key,  IN const lua_CFunction func);
 
+		//void AddTable(IN const string &key, IN const lua_CTa);
+
 		int TableRef();
 			  
 		virtual ~LuaTable (void);

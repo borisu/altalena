@@ -24,6 +24,7 @@
 #include "ConfBridge.h"
 #include "CallBridge.h"
 #include "ls_sqlite3.h"
+#include "LuaRestoreStack.h"
 
 #define IW_SCRIPT_RUNNER_ID "$OBJECT1$"
 
@@ -43,7 +44,6 @@
 namespace ivrworx
 {
 	
-
 	class ProcBlockingOperationRunner
 		:public LightweightProcess
 	{
@@ -85,6 +85,20 @@ namespace ivrworx
 
 	};
 
+	ProcScriptRunner* 
+	GetScriptRunner(lua_State *state)
+	{
+		CLuaRestoreStack stack_guard(state);
+
+		lua_pushstring(state, IW_SCRIPT_RUNNER_ID);
+		lua_gettable(state, LUA_REGISTRYINDEX);
+
+		ProcScriptRunner *runner = 
+			(ProcScriptRunner*)lua_touserdata(state,-1);
+
+		return runner;
+	}
+
 
 	ProcScriptRunner::ProcScriptRunner(
 		IN Configuration &conf,
@@ -93,6 +107,7 @@ namespace ivrworx
 		IN size_t buffer_size,
 		IN shared_ptr<MsgCallOfferedReq> msg, 
 		IN LpHandlePair stack_pair, 
+		IN LpHandlePair spawn_pair,
 		IN LpHandlePair pair)
 		:LightweightProcess(pair,"IvrScript"),
 		_conf(conf),
@@ -101,9 +116,27 @@ namespace ivrworx
 		_scriptName(script_name),
 		_precompiledBuffer(precompiled_buffer),
 		_bufferSize(buffer_size),
-		_forking(NULL)
+		_forking(NULL),
+		_spawnPair(spawn_pair)
 	{
 		FUNCTRACKER;
+	}
+
+
+	ProcScriptRunner::ProcScriptRunner(
+		IN Configuration &conf,
+		IN shared_ptr<MsgIvrStartScriptReq> req,
+		IN LpHandlePair stack_pair, 
+		IN LpHandlePair spawn_pair,
+		IN LpHandlePair pair)
+		:LightweightProcess(pair,"IvrScript"),
+		_conf(conf),
+		_startScriptReq(req),
+		_stackPair(stack_pair),
+		_spawnPair(spawn_pair),
+		_forking(NULL)
+	{
+
 	}
 
 	ProcScriptRunner::~ProcScriptRunner()
@@ -113,7 +146,7 @@ namespace ivrworx
 	}
 
 	int
-	ProcScriptRunner::LuaRun(lua_State * state)
+	ProcScriptRunner::LuaRunLongOperation(lua_State * state)
 	{
 		
 	
@@ -127,17 +160,173 @@ namespace ivrworx
 	}
 
 	int
+	ProcScriptRunner::LuaSpawn(lua_State *L)
+	{
+		FUNCTRACKER;
+		
+		ApiErrorCode result = API_WRONG_PARAMETER;
+
+		if (lua_isstring(L, -2) != 1 ) 
+		{ 
+			lua_pushnumber (L, result); 
+			return 1;
+		};
+
+		string filename = 
+			lua_tostring(L,-2);
+
+		
+		shared_ptr<ProcParamMap> map_ptr(new ProcParamMap());
+
+		/* table is in the stack at index 't' */
+		lua_pushnil(L);  /* first key */
+		while (lua_next(L, -2) != 0) {
+
+			ProcParam p;
+			long index = IW_UNDEFINED;
+
+			// key
+			switch (lua_type(L,-2))
+			{
+			case LUA_TNUMBER:
+				{
+					lua_Number number = lua_tonumber(L,-2);
+					lua_number2int(index, number);
+					break;
+				}
+			case LUA_TBOOLEAN:
+			case LUA_TSTRING:
+			case LUA_TLIGHTUSERDATA:
+			case LUA_TTABLE:
+			case LUA_TFUNCTION: 
+			case LUA_TUSERDATA: 
+			case LUA_TTHREAD:
+			default:
+				{
+					LogWarn("ProcScriptRunner::LuaSpawn - Unsupported key type - " << lua_type(L, -2));
+					/* removes 'value'*/
+					lua_pop(L, 1);
+					goto exit;
+
+				}
+			}
+
+			// value
+			switch (lua_type(L,-1))
+			{
+			case LUA_TNUMBER:
+				{
+					lua_Number number = lua_tonumber(L,-1);
+					int value = IW_UNDEFINED;
+					lua_number2int(value, number);
+
+					p.param_type = PT_INTEGER;
+					p.int_value = value;
+					
+
+					break;
+				}
+			case LUA_TBOOLEAN:
+				{
+					int value = lua_toboolean(L,-1);
+
+					p.param_type = PT_BOOL;
+					p.bool_value = value;
+					
+					break;
+				}
+			case LUA_TSTRING:
+				{
+
+					const char *value = lua_tostring(L,-1);
+					p.param_type = PT_STRING;
+					p.string_value = value;
+
+					break;
+
+				}
+			case LUA_TLIGHTUSERDATA:
+				{
+					void *value = lua_touserdata(L,-1);
+					p.param_type = PT_LIGHTUSERDATA;
+					p.ud_value = value;
+
+					break;
+
+				}
+			case LUA_TTABLE:
+			case LUA_TFUNCTION: 
+			case LUA_TUSERDATA: 
+			case LUA_TTHREAD:
+			default:
+				{
+					LogWarn("ProcScriptRunner::LuaSpawn - Unsupported value type - " << lua_type(L, -2));
+					/* removes 'value'*/
+					lua_pop(L, 1);
+					goto exit;
+				}
+			};
+
+			(*map_ptr)[index] = p;
+
+			/* removes 'value'; keeps 'key' for next iteration */
+			lua_pop(L, 1);
+
+			MsgIvrStartScriptReq *req = new MsgIvrStartScriptReq();
+			req->script_name = filename;
+			req->params_map = map_ptr;
+
+			ProcScriptRunner *runner = 
+				GetScriptRunner(L);
+
+
+			if (runner == NULL || runner->_forking == NULL)
+			{
+				LogWarn("ProcScriptRunner::LuaSpawn - Cannot find object1");
+				return 0;
+			}
+
+			result = runner->_spawnPair.outbound->Send(req);
+
+		}
+
+
+exit:
+		lua_pop(L, 1); // pop the key
+		lua_pushnumber (L, result); 
+		return 1;
+		
+	}
+
+	void enable_configured_media_formats(Configuration &conf, CallWithRtpManagementPtr call_ptr)
+	{
+		ListOfAny codecs_list;
+		conf.GetArray("codecs",codecs_list);
+
+		for (ListOfAny::iterator conf_iter = codecs_list.begin(); 
+			conf_iter != codecs_list.end(); 
+			conf_iter++)
+		{
+
+			string conf_codec_name =  any_cast<string>(*conf_iter);
+			MediaFormat media_format = MediaFormat::GetMediaFormat(conf_codec_name);
+
+
+			call_ptr->EnableMediaFormat(media_format);
+		}
+
+	}
+
+	
+
+	int
 	ProcScriptRunner::LuaCreateCall(lua_State *state)
 	{
 		FUNCTRACKER;
 
-		lua_pushstring(state, IW_SCRIPT_RUNNER_ID);
-		lua_gettable(state, LUA_REGISTRYINDEX);
-
+		
 		ProcScriptRunner *runner = 
-			(ProcScriptRunner*)lua_touserdata(state,-1);
-
-		lua_pop(state,1);
+			GetScriptRunner(state);
 
 		if (runner == NULL || runner->_forking == NULL)
 		{
@@ -148,12 +337,9 @@ namespace ivrworx
 		CallWithRtpManagementPtr call_ptr 
 			(new CallWithRtpManagement(runner->_conf, *runner->_forking));
 
-		const MediaFormatsPtrList &codecs_list = runner->_conf.MediaFormats();
-		for (MediaFormatsPtrList::const_iterator iter = codecs_list.begin(); iter != codecs_list.end(); iter++)
-		{
-			call_ptr->EnableMediaFormat(**iter);
-		}
+		enable_configured_media_formats(runner->_conf,call_ptr);
 
+		
 		Luna<CallBridge>::PushObject(state,new CallBridge(call_ptr));
 
 		return 1;
@@ -232,8 +418,9 @@ namespace ivrworx
 			ivrworx_table.AddParam(NAME(API_UNKNOWN_RESPONSE),API_UNKNOWN_RESPONSE);
 			ivrworx_table.AddParam(NAME(API_FEATURE_DISABLED),API_FEATURE_DISABLED);
 			ivrworx_table.AddFunction("sleep",ProcScriptRunner::LuaWait);
-			ivrworx_table.AddFunction("run",ProcScriptRunner::LuaRun);
+			ivrworx_table.AddFunction("run",ProcScriptRunner::LuaRunLongOperation);
 			ivrworx_table.AddFunction("createcall",ProcScriptRunner::LuaCreateCall);
+			ivrworx_table.AddFunction("spawn",ProcScriptRunner::LuaSpawn);
 
 
 			
@@ -276,7 +463,6 @@ namespace ivrworx
 			
 			_forking = &forking;
 
-			
 
 			//
 			// incoming call case
@@ -286,25 +472,19 @@ namespace ivrworx
 				
 
 				_stackHandle = _initialMsg->stack_call_handle;
-				CallWithRtpManagementPtr call_session(
+				CallWithRtpManagementPtr call_ptr(
 					new CallWithRtpManagement(
 					_conf,
 					forking,
 					_initialMsg));
 
-
-				const MediaFormatsPtrList &codecs_list = _conf.MediaFormats();
-				for (MediaFormatsPtrList::const_iterator iter = codecs_list.begin(); iter != codecs_list.end(); iter++)
-				{
-					call_session->EnableMediaFormat(**iter);
-				}
-
+				enable_configured_media_formats(_conf,call_ptr);
 
 				//
 				// ivrworx.INCOMING
 				//
 				// will be deleted by lua gc
-				CallBridge *call_bridge = new CallBridge(call_session);
+				CallBridge *call_bridge = new CallBridge(call_ptr);
 				
 				Luna<CallBridge>::RegisterObject(vm,call_bridge,ivrworx_table.TableRef(),"INCOMING");
 
@@ -316,6 +496,10 @@ namespace ivrworx
 
 
 			} 
+			else if (_startScriptReq)
+			{
+
+			}
 			//
 			// super script case
 			//
@@ -332,10 +516,10 @@ namespace ivrworx
 		}
 		catch (std::exception e)
 		{
-			LogWarn("Exception while running script:" << _conf.ScriptFile() <<", e:" << e.what() << ", iwh:" << iwh);
+			LogWarn("Exception while running script:" << _scriptName <<", e:" << e.what() << ", iwh:" << iwh);
 		}
 
-		LogDebug("script:" << _conf.ScriptFile() << ", iwh:" << iwh << " completed.") ;
+		LogDebug("script:" << _scriptName << ", iwh:" << iwh << " completed.") ;
 		
 	}
 

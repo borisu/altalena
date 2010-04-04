@@ -185,12 +185,17 @@ namespace ivrworx
 			string str_buffer(1024,'\0');
 			
 
-			for (MediaFormatsPtrList::const_iterator iter = _conf.MediaFormats().begin(); 
-				iter != _conf.MediaFormats().end(); 
-				iter ++)	
+			ListOfAny codecs_list;
+			_conf.GetArray("codecs",codecs_list);
+
+			for (ListOfAny::iterator conf_iter = codecs_list.begin(); 
+				conf_iter != codecs_list.end(); 
+				conf_iter++)
 			{
 
-				const MediaFormat &media_format = *(*iter);
+				string conf_codec_name =  any_cast<string>(*conf_iter);
+				MediaFormat media_format = MediaFormat::GetMediaFormat(conf_codec_name);
+			
 				if (MediaFormat::GetMediaType(media_format.sdp_name_tos()) == MediaFormat::MediaType_DTMF)
 				{
 					dtmf_format = &media_format;

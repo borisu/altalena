@@ -187,7 +187,7 @@ namespace ivrworx
 		Configuration &_conf;
 
 		typedef map<string,Profile::SessionTimerMode> 
-			ConfSessionTimerModeMap;
+		ConfSessionTimerModeMap;
 
 		ConfSessionTimerModeMap _confSessionTimerModeMap;
 

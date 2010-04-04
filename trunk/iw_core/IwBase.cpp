@@ -20,6 +20,7 @@
 #include "stdafx.h"
 #include "IwBase.h"
 #include "Profiler.h"
+#include "Configuration.h"
 
 
 using namespace std;
@@ -28,6 +29,26 @@ using namespace csp;
 namespace ivrworx
 {
 
+// 	mf_map["PCMU"]  = &MediaFormat::PCMU;
+// 	mf_map["PCMA"]  = &MediaFormat::PCMA;
+// 	mf_map["SPEEX"] = &MediaFormat::SPEEX;
+
+// 	const MediaFormat *
+// 		read_codec( const Object& obj)
+// 	{
+// 		string media_format_name = find_str(obj, "name" );
+// 
+// 		ConfFormatsMap::iterator iter = 
+// 			mf_map.find(media_format_name);
+// 
+// 		if (iter == mf_map.end())
+// 		{
+// 			throw exception("Unsupported media format");
+// 		}
+// 
+// 
+// 		return ((*iter).second);
+// 	}
 	
 	critical_exception::critical_exception()
 	{
@@ -40,24 +61,12 @@ namespace ivrworx
 		
 	}
 
-	configuration_exception::configuration_exception()
-	{
+	class MediaFormat;
 
-	}
+	typedef map<string,MediaFormat> 
+	ConfFormatsMap;
 
-	configuration_exception::configuration_exception(const char *what):
-	std::exception(what)
-	{
-
-	}
-
-	configuration_exception::configuration_exception(const string &what):
-	std::exception(what.c_str())
-	{
-
-	}
-	
-
+	static ConfFormatsMap mf_map;
 
 	MediaFormat::MediaFormat()
 		:name("INVALID"),
@@ -188,26 +197,32 @@ namespace ivrworx
 
 	const MediaFormat MediaFormat::DTMF_RFC2833("telephone-event", 8000, 101, MediaType_DTMF);
 
-	MediaFormat::MediaType  MediaFormat::GetMediaType(const string &media_name)
+	MediaFormat::MediaType  
+	MediaFormat::GetMediaType(const string &media_name)
 	{
-		if (media_name == "PCMA")
+		return GetMediaFormat(media_name).get_media_type();
+
+	}
+
+	MediaFormat 
+	MediaFormat::GetMediaFormat(const string &name)
+	{
+		if (mf_map.empty())
 		{
-			return MediaFormat::MediaType_SPEECH;
-		}
-		if (media_name == "PCMU")
-		{
-			return MediaFormat::MediaType_SPEECH;
-		}
-		if (media_name == "SPEEX")
-		{
-			return MediaFormat::MediaType_SPEECH;
-		}
-		if (media_name == "telephone-event")
-		{
-			return MediaFormat::MediaType_DTMF;
+			mf_map["PCMA"]  =  MediaFormat::PCMA;
+			mf_map["PCMU"]  =  MediaFormat::PCMU;
+			mf_map["SPEEX"] =  MediaFormat::SPEEX;
+			mf_map["telephone-event"] = MediaFormat::DTMF_RFC2833;
 		}
 
-		return MediaFormat::MediaType_UNKNOWN;
+
+		ConfFormatsMap::iterator iter = mf_map.find(name);
+		if (iter == mf_map.end())
+		{
+			return MediaFormat::UNKNOWN;
+		}
+
+		return iter->second;
 
 	}
 

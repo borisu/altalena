@@ -150,7 +150,7 @@ namespace ivrworx
 		
 
 		resip_conf_separator sep("|");
-		const string &resip_conf = _conf.ResipLog();
+		const string &resip_conf = _conf.GetString("resip_log");
 
 		resip_conf_tokenizer tokens(resip_conf, sep);
 
@@ -178,10 +178,7 @@ namespace ivrworx
 					break;
 				}
 			}
-
 		}
-
-
 	}
 
 
@@ -204,8 +201,14 @@ namespace ivrworx
 			//
 			// Prepare SIP stack
 			//
-			CnxInfo ipAddr = _conf.IvrCnxInfo();
+			const string ivr_host_str = _conf.GetString("ivr_sip_host");
+			const int ivr_ip_int	= _conf.GetInt("ivr_sip_port" );
 
+
+			CnxInfo ipAddr(
+				convert_hname_to_addrin(ivr_host_str.c_str()),
+				ivr_ip_int);
+		
 			_stack.addTransport(
 				UDP,
 				ipAddr.port_ho(),
@@ -215,7 +218,6 @@ namespace ivrworx
 				Data::Empty, // only used for TLS based stuff 
 				Data::Empty,
 				SecurityTypes::TLSv1 );
-
 
 
 			_stack.addTransport(
@@ -236,7 +238,7 @@ namespace ivrworx
 			_inbound->HandleInterruptor(_dumInt);
 
 
-			string uasUri = "sip:" + _conf.From() + "@" + ipAddr.ipporttos();
+			string uasUri = "sip:" + _conf.GetString("from_id") + "@" + ipAddr.ipporttos();
 			NameAddr uasAor	(uasUri.c_str());
 
 
@@ -253,7 +255,7 @@ namespace ivrworx
 			_dumMngr.getMasterProfile()->addSupportedMimeType(INFO,Mime("application","dtmf-relay"));
 
 
-			if (_conf.EnableSessionTimer())
+			if (_conf.GetBool("sip_session_timer_enabled"))
 			{
 // 				auto_ptr<KeepAliveManager> keepAlive(new resip::KeepAliveManager());
 // 				_dumMngr.setKeepAliveManager(keepAlive); 
@@ -267,7 +269,7 @@ namespace ivrworx
 				_confSessionTimerModeMap["prefer_local"]  = Profile::PreferLocalRefreshes;
 				_confSessionTimerModeMap["prefer_remote"] = Profile::PreferRemoteRefreshes;
 
-				ConfSessionTimerModeMap::iterator  i = _confSessionTimerModeMap.find(_conf.SipRefreshMode());
+				ConfSessionTimerModeMap::iterator  i = _confSessionTimerModeMap.find(_conf.GetString("sip_refresh_mode"));
 				if (i == _confSessionTimerModeMap.end())
 				{
 					LogInfo("Setting refresh mode to 'none'");
@@ -276,7 +278,12 @@ namespace ivrworx
 				{
 					LogInfo("Setting refresh mode to " << i->first);
 					_dumMngr.getMasterProfile()->setDefaultSessionTimerMode(i->second);
-					_dumMngr.getMasterProfile()->setDefaultSessionTime(_conf.SipDefaultSessionTime());
+
+					int sip_default_session_time = _conf.GetInt("sip_default_session_time");
+					sip_default_session_time = sip_default_session_time < 90 ? 90 : sip_default_session_time;
+					LogWarn("sip_default_session_time:" << sip_default_session_time);
+
+					_dumMngr.getMasterProfile()->setDefaultSessionTime(sip_default_session_time);
 
 				}
 

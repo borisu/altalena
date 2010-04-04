@@ -20,6 +20,7 @@
 #pragma once
 
 #include "Configuration.h"
+#include "IwBase.h"
 
 using namespace std;
 using namespace json_spirit;
@@ -27,7 +28,6 @@ using namespace json_spirit;
 namespace ivrworx
 {
 
-	
 	class JSONConfiguration :
 		public Configuration
 	{
@@ -39,19 +39,23 @@ namespace ivrworx
 		
 		ApiErrorCode InitFromFile(IN const string &filename);
 
-		ApiErrorCode InitFromString(IN const string &is);
-
 		virtual int GetInt(const string &name);
 
 		virtual string GetString(const string &name);
 
 		virtual BOOL GetBool(const string &name);
 
+		virtual BOOL HasOption(const string &name);
+
+		virtual void GetArray(IN const string &name, OUT list<any> &out_list);
+
+	protected:
+
+		const Object& FindObject(IN const string &name, IN const Object &parent_object, OUT string &leaf_name);
+
 	private:
 
-		ApiErrorCode InitDb();
-
-		Value _value;
+		Value _rootValue;
 	};
 
 }

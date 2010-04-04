@@ -26,11 +26,6 @@ using namespace json_spirit;
 namespace ivrworx
 {
 
-	typedef map<string,const MediaFormat *> 
-	ConfFormatsMap;
-
-	static ConfFormatsMap mf_map;
-
 	static bool 
 	same_name(const Pair& pair, const string& name )
 	{
@@ -53,7 +48,7 @@ namespace ivrworx
 		const Value & val = find_value(obj, name );
 		if ( val.type() != array_type)
 		{
-			throw configuration_exception (name + "does not exist or not array type");
+			throw configuration_exception (name + " does not exist or not array type");
 		};
 
 		return val.get_array(); 
@@ -65,7 +60,7 @@ namespace ivrworx
 		const Value & val = find_value(obj, name );
 		if ( val.type() != int_type)
 		{
-			throw configuration_exception (name + "does not exist or not int type");
+			throw configuration_exception (name + " does not exist or not int type");
 		};
 		return val.get_int();
 	}
@@ -76,7 +71,7 @@ namespace ivrworx
 		const Value & val = find_value(obj, name );
 		if ( val.type() != bool_type)
 		{
-			throw configuration_exception (name + "does not exist or not bool type");
+			throw configuration_exception (name + " does not exist or not bool type");
 		};
 		return val.get_bool();
 	}
@@ -124,51 +119,56 @@ namespace ivrworx
 		return value_str;
 	}
 
-	const MediaFormat *
-	read_codec( const Object& obj)
-	{
-		string media_format_name = find_str(obj, "name" );
-
-		ConfFormatsMap::iterator iter = 
-			mf_map.find(media_format_name);
-
-		if (iter == mf_map.end())
-		{
-			throw exception("Unsupported media format");
-		}
-
-		
-		return ((*iter).second);
-	}
-
-
 	JSONConfiguration::JSONConfiguration(void)
 	{
-		mf_map["PCMU"]  = &MediaFormat::PCMU;
-		mf_map["PCMA"]  = &MediaFormat::PCMA;
-		mf_map["SPEEX"] = &MediaFormat::SPEEX;
+		
 	}
 
 	JSONConfiguration::~JSONConfiguration(void)
 	{
 	}
 
+	
+
+	const Object&
+	JSONConfiguration::FindObject(IN const string &name, const Object &parent_object, OUT string &leaf_name)
+	{
+		size_t found = name.find_first_of("/");
+		if (found == string::npos)
+		{
+			return parent_object;
+			leaf_name = name;
+		}
+
+		string array_name =  
+			name.substr (found); 
+		string remainder 
+			= name.substr(found + 1, name.length());
+
+		const Value& val = 
+			find_value(parent_object,array_name);
+
+		return FindObject(remainder,val.get_obj(),leaf_name);
+
+	}
+
 	int
 	JSONConfiguration::GetInt(IN const string &name)
 	{
+		string leaf_name = name;
+		const Object &obj = FindObject(name,_rootValue.get_obj(),leaf_name);
 
-		
-		Object root_obj(_value.get_obj());
-		return find_int(root_obj, name);
-
+		return find_int(obj,leaf_name);
 	}
 
 	string
 	JSONConfiguration::GetString(IN const string &name)
 	{
 
-		Object root_obj(_value.get_obj());
-		return find_str(root_obj, name);
+		string leaf_name = name;
+		const Object &obj = FindObject(name,_rootValue.get_obj(),leaf_name);
+
+		return find_str(obj, leaf_name);
 				
 	}
 
@@ -176,124 +176,193 @@ namespace ivrworx
 	JSONConfiguration::GetBool(IN const string &name)
 	{
 
-		Object root_obj(_value.get_obj());
-		return find_bool(root_obj, name);
+		string leaf_name = name;
+		const Object &obj = FindObject(name,_rootValue.get_obj(),leaf_name);
+
+		return find_bool(obj, leaf_name);
 
 	}
+
+	BOOL 
+	JSONConfiguration::HasOption(const string &name)
+	{
+		string leaf_name = name;
+		const Object &obj = FindObject(name,_rootValue.get_obj(),leaf_name);
+
+		try
+		{
+			find_value(obj, leaf_name);
+			return true;
+		}
+		catch (exception e)
+		{
+			return false;
+		}
+		
+	}
+
+	void 
+	JSONConfiguration::GetArray(IN const string &name, OUT list<any> &out_list)
+	{
+		string leaf_name = name;
+		const Object &obj = FindObject(name,_rootValue.get_obj(),leaf_name);
+
+		const Array &val_array = 
+			find_array(obj,leaf_name);
+
+		out_list.clear();
+
+		Array::const_iterator iter = 
+			val_array.begin();
+
+		while(iter != val_array.end())
+		{
+			switch (iter->type())
+			{
+			case str_type: 
+				{
+					out_list.push_back(iter->get_str());
+					break;
+				}
+			case bool_type: 
+				{
+					out_list.push_back(iter->get_bool());
+					break;
+				}
+			case int_type: 
+				{
+					out_list.push_back(iter->get_int());
+					break;
+				}
+			case real_type: 
+				{
+					out_list.push_back(iter->get_real());
+					break;
+				}
+			case obj_type:
+			case null_type:
+			case array_type:
+			default:
+				{
+					throw new configuration_exception("not supported JSON type. (TBD)");
+
+				}
+			} // switch
+		}
+	}
+
+
 
 	ApiErrorCode
 	JSONConfiguration::InitFromFile(IN const string &filename)
 	{
 		ifstream is(filename.c_str());
 
-		if (read(is, _value) == false)
+		if (read(is, _rootValue) == false)
 		{
 			cerr << "Error reading json configuration file '" << filename << "'. Check that file exists, accessible and json valid." << endl;
 			return API_FAILURE;
 		}
 
-		ApiErrorCode res = InitDb();
-		return res;
+		return API_SUCCESS;
 	}
 
-	ApiErrorCode
-	JSONConfiguration::InitFromString(IN const string &is)
-	{
-
-		if (read(is, _value) == false)
-		{
-			return API_FAILURE;
-		}
-
-		ApiErrorCode res = InitDb();
-		return res;
-
-	}
+// 
+// 	ApiErrorCode
+// 	JSONConfiguration::InitFromString(IN const string &is)
+// 	{
+// 
+// 		if (read(is, _value) == false)
+// 		{
+// 			return API_FAILURE;
+// 		}
+// 
+// 		ApiErrorCode res = InitDb();
+// 		return res;
+// 
+// 	}
 
 	
 
-	ApiErrorCode
-	JSONConfiguration::InitDb()
-	{
-
-		Object root_obj(_value.get_obj());
-
-		// precompile option
-		_precomile = find_bool(root_obj, "precompile");
-
-		//
-		// resiprocate logging
-		//
-		_resipLog = find_str(root_obj, "resip_log");
-
-		//
-		// debug level
-		//
-		_debugLevel = find_str(root_obj, "debug_level");
-		_debugOutputs = find_str(root_obj, "debug_outputs");
-
-		//
-		// syslog
-		//
-		_sysloghost = find_str(root_obj, "syslogd_host");
-		_syslogport = find_int(root_obj, "syslogd_port");
-
-		//
-		// ivr 
-		//
-		const string ivr_host_str = find_str(root_obj, "ivr_sip_host" );
-		const int ivr_ip_int	= find_int(root_obj, "ivr_sip_port" );
-
-		
-		
-		_ivrCnxInfo = CnxInfo(
-			convert_hname_to_addrin(ivr_host_str.c_str()),
-			ivr_ip_int);
-
-		// configuration file
-		_scriptFile = find_str(root_obj, "script_file");
-
-		// codecs
-		const Array &codecs_array = find_array(root_obj, "codecs");
-
-		Array::const_iterator iter = codecs_array.begin();
-		while(iter != codecs_array.end())
-		{
-			const MediaFormat *codec = read_codec(iter->get_obj());
-			if (codec == NULL)
-			{
-				return API_FAILURE;
-			}
-
-			_mediaFormatPtrsList.push_back(codec);
-			iter++;
-		}
-
-		// from 
-		_from		 = find_str(root_obj, "from_id");
-		_fromDisplay = find_str(root_obj, "from_display_name");
-
-		// basic sound path
-		_soundsPath	= find_str(root_obj, "sounds_dir");
-
-		// refresh mode
-		_sipRefreshMode = find_str(root_obj, "sip_refresh_mode");
-
-		// default refresh time
-		_sipDefaultSessionTime = find_int(root_obj, "sip_default_session_time");
-		_sipDefaultSessionTime = _sipDefaultSessionTime < 90 ? 90 : _sipDefaultSessionTime;
-
-		// enable session timer
-		_enableSessionTimer = find_bool(root_obj,"sip_session_timer_enabled");
-
-		// read super script
-		_superScript = find_str(root_obj, "super_script");
-		_superMode	 = find_str(root_obj, "super_mode");
-
-		_syncLog = find_bool(root_obj, "sync_log");
-
-		return API_SUCCESS;
-
-	}
+// 	ApiErrorCode
+// 	JSONConfiguration::InitDb()
+// 	{
+// 
+// 		Object root_obj(_value.get_obj());
+// 
+// 		//
+// 		// resiprocate logging
+// 		//
+// 		_resipLog = find_str(root_obj, "resip_log");
+// 
+// 		//
+// 		// debug level
+// 		//
+// 		_debugLevel = find_str(root_obj, "debug_level");
+// 		_debugOutputs = find_str(root_obj, "debug_outputs");
+// 
+// 		//
+// 		// syslog
+// 		//
+// 		_sysloghost = find_str(root_obj, "syslogd_host");
+// 		_syslogport = find_int(root_obj, "syslogd_port");
+// 
+// 		//
+// 		// ivr 
+// 		//
+// 		const string ivr_host_str = find_str(root_obj, "ivr_sip_host" );
+// 		const int ivr_ip_int	= find_int(root_obj, "ivr_sip_port" );
+// 
+// 		
+// 		
+// 		_ivrCnxInfo = CnxInfo(
+// 			convert_hname_to_addrin(ivr_host_str.c_str()),
+// 			ivr_ip_int);
+// 
+// 		// configuration file
+// 		_scriptFile = find_str(root_obj, "script_file");
+// 
+// 		// codecs
+// 		const Array &codecs_array = find_array(root_obj, "codecs");
+// 
+// 		Array::const_iterator iter = codecs_array.begin();
+// 		while(iter != codecs_array.end())
+// 		{
+// 			const MediaFormat *codec = read_codec(iter->get_obj());
+// 			if (codec == NULL)
+// 			{
+// 				return API_FAILURE;
+// 			}
+// 
+// 			_mediaFormatPtrsList.push_back(codec);
+// 			iter++;
+// 		}
+// 
+// 		// from 
+// 		_from		 = find_str(root_obj, "from_id");
+// 		_fromDisplay = find_str(root_obj, "from_display_name");
+// 
+// 		// basic sound path
+// 		_soundsPath	= find_str(root_obj, "sounds_dir");
+// 
+// 		// refresh mode
+// 		_sipRefreshMode = find_str(root_obj, "sip_refresh_mode");
+// 
+// 		// default refresh time
+// 		_sipDefaultSessionTime = find_int(root_obj, "sip_default_session_time");
+// 		_sipDefaultSessionTime = _sipDefaultSessionTime < 90 ? 90 : _sipDefaultSessionTime;
+// 
+// 		// enable session timer
+// 		_enableSessionTimer = find_bool(root_obj,"sip_session_timer_enabled");
+// 
+// 		// read super script
+// 		_superScript = find_str(root_obj, "super_script");
+// 		_superMode	 = find_str(root_obj, "super_mode");
+// 
+// 		_syncLog = find_bool(root_obj, "sync_log");
+// 
+// 		return API_SUCCESS;
+// 
+// 	}
 
 }

@@ -52,6 +52,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/any.hpp>
 #include <boost/variant/variant.hpp>
 #include <boost/assign/list_of.hpp>
 #include <boost/archive/text_woarchive.hpp>
