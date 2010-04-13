@@ -66,11 +66,11 @@ namespace ivrworx
 
 			FactoryPtrList factories_list = 
 				list_of
-				(ProcFactoryPtr(new RtpProxyFactory()))
-				(ProcFactoryPtr(new SqlFactory()))
-				(ProcFactoryPtr(new ImsFactory()))
-				(ProcFactoryPtr(new MrcpFactory()))
-				(ProcFactoryPtr(new IvrFactory()))
+// 				(ProcFactoryPtr(new RtpProxyFactory()))
+// 				(ProcFactoryPtr(new SqlFactory()))
+// 				(ProcFactoryPtr(new ImsFactory()))
+// 				(ProcFactoryPtr(new MrcpFactory()))
+// 				(ProcFactoryPtr(new IvrFactory()))
 				(ProcFactoryPtr(new OpalFactory()));
 
 
@@ -182,8 +182,6 @@ exit:
 using namespace ivrworx;
 int _tmain(int argc, _TCHAR* argv[])
 {
-
- 
 	wstring conf_file;
 
 	if (argc < 2)
@@ -193,12 +191,10 @@ int _tmain(int argc, _TCHAR* argv[])
 		cerr << "Trying default conf.json file..." << std::endl;
 
 		conf_file = L"conf.json";
-
 	} 
 	else
 	{
 		conf_file = argv[1];
-
 	}
 
 	WSADATA dat;
@@ -208,42 +204,62 @@ int _tmain(int argc, _TCHAR* argv[])
 		return -1;
 	}
 
+	MMRESULT timer_res = 
+		timeBeginPeriod(1);
 
-	ApiErrorCode err_code = API_SUCCESS;
-	ConfigurationPtr conf = 
-		ConfigurationFactory::CreateJsonConfiguration(WStringToString(conf_file),err_code);
-
-	if (IW_FAILURE(err_code))
+	if (timer_res!= TIMERR_NOERROR)
 	{
-		return IW_ERROR_PARSING_CONF;
+		cerr << "Cannot set timer resolution to 1 res:" << timer_res << endl;
+		return -2;
 	}
-	
-	
-	InitLog(*conf);
-	LogInfo(">>>>>> IVRWORX START <<<<<<");
 
-	Start_CPPCSP();
+	int res = 0;
+	try
+	{
+		ApiErrorCode err_code = API_SUCCESS;
+		ConfigurationPtr conf = 
+			ConfigurationFactory::CreateJsonConfiguration(WStringToString(conf_file),err_code);
 
-	START_FORKING_REGION;
+		string s 
+			= conf->GetString(false ? "opal/h323s-listen" : "opal/h323-listen");
 
-	DECLARE_NAMED_HANDLE_PAIR(starter_pair);
+		if (IW_FAILURE(err_code))
+		{
+			return IW_ERROR_PARSING_CONF;
+		}
 
-	DECLARE_NAMED_HANDLE_PAIR(rtsp_pair);
-	
 
-	
-	FORK(new ProcSystemStarter(starter_pair, *conf));
-	END_FORKING_REGION;
+		InitLog(*conf);
+		LogInfo(">>>>>> IVRWORX START <<<<<<");
 
- 	End_CPPCSP();
+		Start_CPPCSP();
 
-	ExitLog();
-	LogInfo(">>>>>> IVRWORX END <<<<<<");
+		START_FORKING_REGION;
 
+		DECLARE_NAMED_HANDLE_PAIR(starter_pair);
+		DECLARE_NAMED_HANDLE_PAIR(rtsp_pair);
+
+		FORK(new ProcSystemStarter(starter_pair, *conf));
+
+		END_FORKING_REGION;
+
+		End_CPPCSP();
+
+
+		LogInfo(">>>>>> IVRWORX END <<<<<<");
+		ExitLog();
+
+	} 
+	catch (exception e)
+	{
+		cerr << endl << "Exception caught during program execution e:" << e.what() << endl;
+		res = -3;
+	}
+
+	timeBeginPeriod(1);
 	WSACleanup();
 
-
-	return 0;
+	return res;
 	
 }
 

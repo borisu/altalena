@@ -31,6 +31,13 @@
 #include <opal/ivr.h>
 #include <sip/sipep.h>
 #include <h323/h323ep.h>
+#include <h323/gkclient.h>
+
+#include <opal/transcoders.h>
+#include <lids/lidep.h>
+#include <ptclib/pstun.h>
+#include <ptlib/config.h>
+#include <codec/opalpluginmgr.h>
 
 #pragma warning( pop )
 

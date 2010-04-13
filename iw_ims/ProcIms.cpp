@@ -208,7 +208,8 @@ namespace ivrworx
 		_rtpWorkerShutdownEvt(NULL),
 		_avProfile(NULL),
 		_ticker(NULL),
-		_correlationCounter(0)
+		_correlationCounter(0),
+		_rtpWorkerHandle(NULL)
 	{
 		FUNCTRACKER;
 
@@ -285,7 +286,7 @@ namespace ivrworx
 	{
 		
 		ListOfAny codecs_list;
-		 _conf.GetArray("codec", codecs_list);
+		 _conf.GetArray("codecs", codecs_list);
 
 		for (ListOfAny::iterator conf_iter = codecs_list.begin(); 
 			conf_iter != codecs_list.end(); 

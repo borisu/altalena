@@ -6,19 +6,27 @@ namespace ivrworx
 {
 
 class ProcOpalH323 :
-	public LightweightProcess
+	public LightweightProcess,
+	public PProcess
 {
+	PCLASSINFO(ProcOpalH323, PProcess)
+
 public:
+	
+
 	ProcOpalH323(Configuration &conf, LpHandlePair pair);
 	virtual ~ProcOpalH323(void);
 
 	void real_run();
 
+	void Main();
+
+
 private:
 
 	Configuration &_conf;
 
-	H323EndPoint *_h323EP;
+	shared_ptr<H323EndPoint> _h323EP;
 
 	
 };
