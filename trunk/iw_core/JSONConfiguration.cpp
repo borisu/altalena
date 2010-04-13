@@ -25,6 +25,7 @@ using namespace json_spirit;
 
 namespace ivrworx
 {
+	
 
 	static bool 
 	same_name(const Pair& pair, const string& name )
@@ -42,10 +43,37 @@ namespace ivrworx
 		return i->value_;
 	}
 
+	static const Value&
+	query_value_with_path(const Object& parent_object, const string& name )
+	{
+		size_t found = name.find_first_of("/");
+		if (found == string::npos)
+		{
+			return find_value(parent_object,name);
+		}
+
+		string next_parent_key =  
+			name.substr (0,found);
+
+		string remainder = 
+			name.substr(found + 1, name.length());
+
+		const Value& val = 
+			find_value(parent_object,next_parent_key);
+
+		if (val.type() != obj_type)
+		{
+			throw configuration_exception("path not found, next_parent_key is not an object");
+		}
+
+		return query_value_with_path(val.get_obj(), remainder);
+
+	}
+
 	static const Array& 
 	find_array( const Object& obj, const string& name )
 	{
-		const Value & val = find_value(obj, name );
+		const Value & val = query_value_with_path(obj, name );
 		if ( val.type() != array_type)
 		{
 			throw configuration_exception (name + " does not exist or not array type");
@@ -57,7 +85,7 @@ namespace ivrworx
 	static int 
 	find_int( const Object& obj, const string& name )
 	{
-		const Value & val = find_value(obj, name );
+		const Value & val = query_value_with_path(obj, name );
 		if ( val.type() != int_type)
 		{
 			throw configuration_exception (name + " does not exist or not int type");
@@ -68,7 +96,7 @@ namespace ivrworx
 	static bool
 	find_bool( const Object& obj, const string& name)
 	{
-		const Value & val = find_value(obj, name );
+		const Value & val = query_value_with_path(obj, name );
 		if ( val.type() != bool_type)
 		{
 			throw configuration_exception (name + " does not exist or not bool type");
@@ -103,7 +131,7 @@ namespace ivrworx
 	{
 		
 		
-		const Value & val = find_value(obj, name );
+		const Value & val = query_value_with_path(obj, name );
 		if ( val.type() != str_type)
 		{
 			throw configuration_exception (name + " does not exist or not string type");
@@ -130,45 +158,19 @@ namespace ivrworx
 
 	
 
-	const Object&
-	JSONConfiguration::FindObject(IN const string &name, const Object &parent_object, OUT string &leaf_name)
-	{
-		size_t found = name.find_first_of("/");
-		if (found == string::npos)
-		{
-			return parent_object;
-			leaf_name = name;
-		}
-
-		string array_name =  
-			name.substr (found); 
-		string remainder 
-			= name.substr(found + 1, name.length());
-
-		const Value& val = 
-			find_value(parent_object,array_name);
-
-		return FindObject(remainder,val.get_obj(),leaf_name);
-
-	}
+	
 
 	int
 	JSONConfiguration::GetInt(IN const string &name)
 	{
-		string leaf_name = name;
-		const Object &obj = FindObject(name,_rootValue.get_obj(),leaf_name);
-
-		return find_int(obj,leaf_name);
+		return find_int(_rootValue.get_obj(),name);
 	}
 
 	string
 	JSONConfiguration::GetString(IN const string &name)
 	{
 
-		string leaf_name = name;
-		const Object &obj = FindObject(name,_rootValue.get_obj(),leaf_name);
-
-		return find_str(obj, leaf_name);
+		return find_str(_rootValue.get_obj(),name);
 				
 	}
 
@@ -176,27 +178,22 @@ namespace ivrworx
 	JSONConfiguration::GetBool(IN const string &name)
 	{
 
-		string leaf_name = name;
-		const Object &obj = FindObject(name,_rootValue.get_obj(),leaf_name);
-
-		return find_bool(obj, leaf_name);
+		return find_bool(_rootValue.get_obj(),name);
 
 	}
 
 	BOOL 
 	JSONConfiguration::HasOption(const string &name)
 	{
-		string leaf_name = name;
-		const Object &obj = FindObject(name,_rootValue.get_obj(),leaf_name);
-
 		try
 		{
-			find_value(obj, leaf_name);
-			return true;
+			const Value& val = 
+				query_value_with_path(_rootValue.get_obj(),name);
+			return (val.type() != null_type);
 		}
-		catch (exception e)
+		catch (configuration_exception e)
 		{
-			return false;
+			return FALSE;
 		}
 		
 	}
@@ -204,20 +201,17 @@ namespace ivrworx
 	void 
 	JSONConfiguration::GetArray(IN const string &name, OUT list<any> &out_list)
 	{
-		string leaf_name = name;
-		const Object &obj = FindObject(name,_rootValue.get_obj(),leaf_name);
-
 		const Array &val_array = 
-			find_array(obj,leaf_name);
+			find_array(_rootValue.get_obj(),name);
 
 		out_list.clear();
 
-		Array::const_iterator iter = 
-			val_array.begin();
-
-		while(iter != val_array.end())
+		for (Array::const_iterator iter = val_array.begin();
+			 iter != val_array.end();
+		     iter++)
 		{
-			switch (iter->type())
+			Value_type vt = iter->type();
+			switch (vt)
 			{
 			case str_type: 
 				{

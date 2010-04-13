@@ -51,7 +51,7 @@ namespace ivrworx
 
 	protected:
 
-		const Object& FindObject(IN const string &name, IN const Object &parent_object, OUT string &leaf_name);
+		const Value& QueryValue(IN const string &name, const Object &parent_object);
 
 	private:
 

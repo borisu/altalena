@@ -90,6 +90,12 @@ namespace ivrworx
 	__declspec( thread ) debug_dostream *tls_logger = NULL;
 
 	__declspec( thread ) BOOL script_log = FALSE;
+
+	__declspec( thread ) HANDLE tls_completion_port = NULL;
+
+	__declspec( thread ) HANDLE tls_queue_semaphore = NULL;
+
+	__declspec( thread ) BOOL tls_sync_mode= FALSE;
 	
 
 
@@ -156,7 +162,7 @@ namespace ivrworx
 			string err = FormatLastSysError("CreateSemaphore");
 			std::cerr << "Cannot init logging - " << err;
 
-			return FALSE;
+			goto error;
 		}
 
 		g_IocpLogger = 	::CreateIoCompletionPort(
@@ -169,8 +175,9 @@ namespace ivrworx
 		{
 			string err = FormatLastSysError("CreateIoCompletionPort");
 			std::cerr << "Cannot init logging - " << err;
+			::CloseHandle(g_queueSemaphore);
 
-			return FALSE;
+			goto error;
 		}
 
 		DWORD tid = 0;
@@ -188,10 +195,32 @@ namespace ivrworx
 			string err = FormatLastSysError("CreateThread");
 			std::cerr << "Cannot init logging - " << err;
 
-			return FALSE;
+			goto error;
 		}
 
 		return TRUE;
+error:
+
+		if (g_loggerThread) 
+		{
+			::CloseHandle(g_loggerThread);
+			g_loggerThread = NULL;
+		};
+
+		if (g_IocpLogger) 
+		{
+			::CloseHandle(g_IocpLogger);
+			g_IocpLogger = NULL;
+		};
+
+		if (g_queueSemaphore) 
+		{
+			::CloseHandle(g_queueSemaphore);
+			g_queueSemaphore = NULL;
+		};
+
+		return FALSE;
+
 	}
 
 	void ExitLog()
@@ -358,7 +387,7 @@ namespace ivrworx
 		sync();
 	}
 
-	// forward decalration
+	// forward declaration
 	void LogBucketAndDelete(LogBucket *lb);
 
 	int 
@@ -377,15 +406,21 @@ namespace ivrworx
 		// Clear the string buffer
 		str(std::basic_string<char>());
 
-		if (::InterlockedExchangeAdd(( LONG *)&g_LogSyncMode,0) == TRUE)
+		if (tls_sync_mode == TRUE)
 		{
 			mutex::scoped_lock scoped_lock(g_loggerMutex);
 			LogBucketAndDelete(lb);
 		}
 		else
 		{
+			if (tls_queue_semaphore == NULL || 
+				tls_completion_port == NULL)
+			{
+				return 0;
+			}
+
 			DWORD res = ::WaitForSingleObject(
-				g_queueSemaphore,
+				tls_queue_semaphore,
 				INFINITE);
 
 			if (res != WAIT_OBJECT_0)
@@ -394,8 +429,13 @@ namespace ivrworx
 				return 0;
 			}
 
+			if (tls_completion_port == NULL)
+			{
+				return 0;
+			}
+
 			res = ::PostQueuedCompletionStatus(
-				g_IocpLogger,
+				tls_completion_port,
 				IW_LOG_LOG_COMPLETION_KEY,
 				0,
 				lb);
@@ -409,6 +449,50 @@ namespace ivrworx
 	debug_dostream::debug_dostream() 
 		:char_stream(new basic_debugbuf()) 
 	{
+
+		mutex::scoped_lock scoped_lock(g_loggerMutex);
+
+		tls_sync_mode = g_LogSyncMode;
+
+		if (g_IocpLogger == NULL		||
+			g_queueSemaphore == NULL	||
+			tls_queue_semaphore != NULL ||
+			tls_completion_port !=NULL)
+		{
+			return;
+		}
+
+		int res  = ::DuplicateHandle(
+						::GetCurrentProcess(), 
+						g_queueSemaphore, 
+						::GetCurrentProcess(),
+						&tls_queue_semaphore, 
+						0,
+						FALSE,
+						DUPLICATE_SAME_ACCESS);
+
+		if (res == 0)
+		{
+			DWORD os_res = ::GetLastError();
+			string msg = "Cannot initiate logging (g_queueSemaphore) GetLastError=" + os_res;
+			throw std::exception(msg.c_str());
+		}
+
+		res  = ::DuplicateHandle(
+			::GetCurrentProcess(), 
+			g_IocpLogger, 
+			::GetCurrentProcess(),
+			&tls_completion_port, 
+			0,
+			FALSE,
+			DUPLICATE_SAME_ACCESS);
+
+		if (res == 0)
+		{
+			DWORD os_res = ::GetLastError();
+			string msg = "Cannot initiate logging (g_IocpLogger) GetLastError=" + os_res;
+			throw exception(msg.c_str());
+		}
 
 	};
 
