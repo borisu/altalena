@@ -28,8 +28,9 @@
 
 #include <ptlib.h>
 #include <opal/manager.h>
-#include <opal/ivr.h>
-#include <sip/sipep.h>
+// #include <opal/ivr.h>
+// #include <sip/sipep.h>
+#include <h323/h323.h>
 #include <h323/h323ep.h>
 #include <h323/gkclient.h>
 

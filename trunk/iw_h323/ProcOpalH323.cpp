@@ -5,132 +5,162 @@ namespace ivrworx
 {
 
 
-	class MyManager : public OpalManager
+	class IwManager : public OpalManager
 	{
-		PCLASSINFO(MyManager, OpalManager)
-
+		PCLASSINFO(IwManager, OpalManager)
 	public:
 
-		virtual PBoolean 
-		OnIncomingConnection(
-			IN OpalConnection & connection,   ///<  Connection that is calling
-			IN unsigned options,              ///<  options for new connection (can't use default as overrides will fail)
-			IN OpalConnection::StringOptions * stringOptions)
+		IwManager()
 		{
-			return PTrue;
-		};
+			
+		}
 
-		virtual void OnClearedCall(OpalCall & call){}; // Callback override
+		virtual ~IwManager()
+		{
+			ShutDownEndpoints();
+		}
+		
 
-		PSyncPoint m_completed;
+	};
+
+	class IwH323EndPoint : public H323EndPoint
+	{
+		PCLASSINFO(IwH323EndPoint, H323EndPoint);
+	public:
+
+		IwH323EndPoint(Configuration &conf, IwManager &manager):
+		  H323EndPoint(manager),
+		  _conf(conf)
+		  {  
+		  
+		  }
+
+		  ApiErrorCode
+		  InitialiseH323EP(PBoolean secure)
+		  {
+			  
+			  
+			  DisableFastStart(_conf.HasOption("opal/f"));
+			  DisableH245Tunneling(_conf.HasOption("opal/T"));
+			  SetSendGRQ(!_conf.HasOption("opal/disable-grq"));
+
+
+			  // Get local username, multiple uses of -u indicates additional aliases
+			  if (_conf.HasOption("opal/u")) {
+				  PStringArray aliases = PString(_conf.GetString("opal/u")).Lines();
+				  SetLocalUserName(aliases[0]);
+				  for (PINDEX i = 1; i < aliases.GetSize(); i++)
+					  AddAliasName(aliases[i]);
+			  }
+
+			  GetManager().AddRouteEntry("h323:.* = pots:<du>");
+
+			  if (_conf.HasOption("opal/b")) {
+				  unsigned initialBandwidth =  PString(_conf.GetString("opal/b")).AsUnsigned()*100;
+				  if (initialBandwidth == 0) {
+					  LogWarn ("InitialiseH323EP - Illegal bandwidth specified.");
+					  return API_FAILURE;
+				  }
+				  SetInitialBandwidth(initialBandwidth);
+			  }
+
+			  if (_conf.HasOption("opal/gk-token"))
+				  SetGkAccessTokenOID(PString(_conf.GetString("opal/gk-token")));
+
+			  PString prefix = GetPrefixName();
+
+			  LogInfo ( prefix << " Local username: " << GetLocalUserName() << endl
+				  << prefix << " FastConnect is " << (IsFastStartDisabled() ? "off" : "on") << endl
+				  << prefix << " H245Tunnelling is " << (IsH245TunnelingDisabled() ? "off" : "on") << endl
+				  << prefix << " gk Token OID is " << GetGkAccessTokenOID() );
+
+
+			  // Start the listener thread for incoming calls.
+			  PStringArray listeners = PString(_conf.GetString(secure ? "opal/h323s-listen" : "opal/h323-listen")).Lines();
+			  PString &s = listeners[0];
+			  LogInfo("s:" << (string)s );
+
+
+			  if (!StartListeners(listeners)) {
+				  LogWarn("Could not open any " << prefix << " listener from "
+					  << setfill(',') << listeners) ;
+				  return API_FAILURE;
+			  }
+			  LogInfo(prefix << " listeners: " << setfill(',') << GetListeners() << setfill(' '));
+
+
+			  if (_conf.HasOption("opal/p"))
+				  SetGatekeeperPassword(PString(_conf.GetString("opal/p")));
+
+			  // Establish link with gatekeeper if required.
+			  if (_conf.HasOption(secure ? "opal/h323s-gk" : "opal/gatekeeper")) {
+				  PString gkHost      = _conf.GetString(secure ? "opal/h323s-gk" : "opal/gatekeeper");
+				  if (gkHost == "*")
+					  gkHost = PString::Empty();
+				  PString gkIdentifer = _conf.GetString("opal/G");
+				  PString gkInterface = _conf.GetString(secure ? "opal/h323s-listen" : "opal/h323-listen");
+
+				  stringstream s;
+				  s << ("Gatekeeper: ");
+				  if (UseGatekeeper(gkHost, gkIdentifer, gkInterface))
+				  {
+					  LogInfo(GetGatekeeper())
+				  }
+				  else 
+				  {
+					  s << "none." << endl;
+					  s << "Could not register with gatekeeper" << endl;
+					  if (!gkIdentifer)
+						  s << " id \"" << gkIdentifer << '"';
+					  if (!gkHost)
+						  s << "at \"" << gkHost << '"' ;
+					  if (!gkInterface)
+						  s << " on interface \"" << gkInterface << '"';
+					  if (GetGatekeeper() != NULL) {
+						  switch (GetGatekeeper()->GetRegistrationFailReason()) 
+						  {
+						  case H323Gatekeeper::InvalidListener :
+							  s << " - Invalid listener";
+							  break;
+						  case H323Gatekeeper::DuplicateAlias :
+							  s << " - Duplicate alias";
+							  break;
+						  case H323Gatekeeper::SecurityDenied :
+							  s << " - Security denied";
+							  break;
+						  case H323Gatekeeper::TransportError :
+							  s << " - Transport error";
+							  break;
+						  default :
+							  s << " - Error code " << GetGatekeeper()->GetRegistrationFailReason();
+						  } // switch
+					  }// if
+					  s << '.' << endl;
+					  LogWarn(s.str());
+					  if (_conf.HasOption("require-gatekeeper")) 
+						  return API_FAILURE;
+				  }
+			  }
+
+			  return API_SUCCESS;
+		  }
+
+	private:
+		Configuration &_conf;
+	
 	};
 
 
-	ApiErrorCode
-	InitialiseH323EP(Configuration &args, PBoolean secure, H323EndPoint *h323EP)
+	class IwH323Connection : public H323Connection
 	{
-		h323EP->DisableFastStart(args.HasOption("opal/f"));
-		h323EP->DisableH245Tunneling(args.HasOption("opal/T"));
-		h323EP->SetSendGRQ(!args.HasOption("opal/disable-grq"));
+		PCLASSINFO(IwH323Connection, H323Connection);
+
+	public:
+	};
 
 
-		// Get local username, multiple uses of -u indicates additional aliases
-		if (args.HasOption("opal/u")) {
-			PStringArray aliases = PString(args.GetString("opal/u")).Lines();
-			h323EP->SetLocalUserName(aliases[0]);
-			for (PINDEX i = 1; i < aliases.GetSize(); i++)
-				h323EP->AddAliasName(aliases[i]);
-		}
 
-		if (args.HasOption("opal/b")) {
-			unsigned initialBandwidth =  PString(args.GetString("opal/b")).AsUnsigned()*100;
-			if (initialBandwidth == 0) {
-				LogWarn ("InitialiseH323EP - Illegal bandwidth specified.");
-				return API_FAILURE;
-			}
-			h323EP->SetInitialBandwidth(initialBandwidth);
-		}
-
-		if (args.HasOption("opal/gk-token"))
-			h323EP->SetGkAccessTokenOID(PString(args.GetString("opal/gk-token")));
-
-		PString prefix = h323EP->GetPrefixName();
-
-		LogInfo ( prefix << " Local username: " << h323EP->GetLocalUserName() << endl
-			<< prefix << " FastConnect is " << (h323EP->IsFastStartDisabled() ? "off" : "on") << endl
-			<< prefix << " H245Tunnelling is " << (h323EP->IsH245TunnelingDisabled() ? "off" : "on") << endl
-			<< prefix << " gk Token OID is " << h323EP->GetGkAccessTokenOID() );
-
-
-		// Start the listener thread for incoming calls.
-		PStringArray listeners = PString(args.GetString(secure ? "opal/h323s-listen" : "opal/h323-listen")).Lines();
-		PString &s = listeners[0];
-		LogInfo("s:" << (string)s );
-
-
-		if (!h323EP->StartListeners(listeners)) {
-			LogWarn("Could not open any " << prefix << " listener from "
-				<< setfill(',') << listeners) ;
-			return API_FAILURE;
-		}
-		LogInfo(prefix << " listeners: " << setfill(',') << h323EP->GetListeners() << setfill(' '));
-
-
-		if (args.HasOption("opal/p"))
-			h323EP->SetGatekeeperPassword(PString(args.GetString("opal/p")));
-
-		// Establish link with gatekeeper if required.
-		if (args.HasOption(secure ? "opal/h323s-gk" : "opal/gatekeeper")) {
-			PString gkHost      = args.GetString(secure ? "opal/h323s-gk" : "opal/gatekeeper");
-			if (gkHost == "*")
-				gkHost = PString::Empty();
-			PString gkIdentifer = args.GetString("opal/G");
-			PString gkInterface = args.GetString(secure ? "opal/h323s-listen" : "opal/h323-listen");
-
-			stringstream s;
-			s << ("Gatekeeper: ");
-			if (h323EP->UseGatekeeper(gkHost, gkIdentifer, gkInterface))
-			{
-				LogInfo(h323EP->GetGatekeeper())
-			}
-			else 
-			{
-				s << "none." << endl;
-				s << "Could not register with gatekeeper" << endl;
-				if (!gkIdentifer)
-					s << " id \"" << gkIdentifer << '"';
-				if (!gkHost)
-					s << "at \"" << gkHost << '"' ;
-				if (!gkInterface)
-					s << " on interface \"" << gkInterface << '"';
-				if (h323EP->GetGatekeeper() != NULL) {
-					switch (h323EP->GetGatekeeper()->GetRegistrationFailReason()) 
-					{
-						case H323Gatekeeper::InvalidListener :
-							s << " - Invalid listener";
-							break;
-						case H323Gatekeeper::DuplicateAlias :
-							s << " - Duplicate alias";
-							break;
-						case H323Gatekeeper::SecurityDenied :
-							s << " - Security denied";
-							break;
-						case H323Gatekeeper::TransportError :
-							s << " - Transport error";
-							break;
-						default :
-							s << " - Error code " << h323EP->GetGatekeeper()->GetRegistrationFailReason();
-					} // switch
-				}// if
-				s << '.' << endl;
-				LogWarn(s.str());
-				if (args.HasOption("require-gatekeeper")) 
-					return API_FAILURE;
-				}
-			}
-		return API_SUCCESS;
-	}
-
+	
 
 	ProcOpalH323::ProcOpalH323(Configuration &conf,LpHandlePair pair)
 	:LightweightProcess(pair,"ProcOpalH323"),
@@ -162,16 +192,14 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		
-		shared_ptr<MyManager> _myMngr (new MyManager());
-		H323EndPoint *_h323EP  = new H323EndPoint(*_myMngr);
+		shared_ptr<IwManager> _myMngr (new IwManager());
+		IwH323EndPoint *_h323EP  = new IwH323EndPoint(_conf, *_myMngr);
 
-		if (IW_FAILURE(InitialiseH323EP(_conf, false, _h323EP)))
+		if (IW_FAILURE(_h323EP ->InitialiseH323EP(false)))
 		{
-			_myMngr->ShutDownEndpoints();
 			_h323EP   = NULL;
-
 			LogWarn("ProcOpalH323::Main - H.323 Initialization failure");
+
 			return;
 		}
 
@@ -179,6 +207,10 @@ namespace ivrworx
 
 		::Sleep(INFINITE);
 
+
+
+		
+		
 		
 		
 
