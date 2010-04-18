@@ -23,7 +23,7 @@
 #include "LightweightProcess.h"
 #include "UASDialogUsageManager.h"
 #include "UACDialogUsageManager.h"
-#include "Call.h"
+#include "SipCall.h"
 #include "Logger.h"
 
 

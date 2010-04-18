@@ -23,7 +23,7 @@
 #include "UASAppDialogSet.h"
 #include "UASDialogUsageManager.h"
 #include "UASAppDialogSetFactory.h"
-#include "Call.h"
+#include "SipCall.h"
 #include "Logger.h"
 
 
