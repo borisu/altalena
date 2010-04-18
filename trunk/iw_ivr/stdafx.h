@@ -33,7 +33,7 @@
 #include "Profiler.h"
 #include "LightweightProcess.h"
 #include "Configuration.h"
-#include "Call.h"
+#include "SipCall.h"
 #include "SipStackFactory.h"
 #include "ImsSession.h"
 #include "SqliteSession.h"
