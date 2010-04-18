@@ -34,7 +34,7 @@ namespace ivrworx
 
 	string GetCurrLpName();
 
-	int		GetCurrLpId();
+	HandleId GetCurrLpId();
 
 #pragma  region Interruptors
 
