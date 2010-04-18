@@ -365,14 +365,6 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\Call.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Call.h"
-			>
-		</File>
-		<File
 			RelativePath=".\ProcSipStack.cpp"
 			>
 		</File>
@@ -394,6 +386,14 @@
 		</File>
 		<File
 			RelativePath=".\resource.h"
+			>
+		</File>
+		<File
+			RelativePath=".\SipCall.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\SipCall.h"
 			>
 		</File>
 		<File

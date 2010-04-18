@@ -61,13 +61,6 @@ namespace ivrworx
 		return strm;
 	}
 
-	IwStackHandle 
-	GenerateSipHandle()
-	{
-		static volatile int index = 10000;
-		return ::InterlockedIncrement((LONG*)&index);
-	};
-
 	SipDialogContext::SipDialogContext():
 	stack_handle(IW_UNDEFINED)
 	{

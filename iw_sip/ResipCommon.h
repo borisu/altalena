@@ -21,7 +21,7 @@
 
 #include "IwBase.h"
 #include "LpHandle.h"
-#include "Call.h"
+#include "SipCall.h"
 
 
 using namespace boost;
