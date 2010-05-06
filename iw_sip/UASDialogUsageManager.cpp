@@ -159,7 +159,7 @@ namespace ivrworx
 		// prepare dialog context
 		SipDialogContextPtr ctx_ptr(new SipDialogContext());
 		ctx_ptr->uas_invite_handle = sis;
-		ctx_ptr->stack_handle = GenerateSipHandle();
+		ctx_ptr->stack_handle = GenerateCallHandle();
 
 		_resipHandlesMap[sis->getAppDialog()]= ctx_ptr;
 		_refIwHandlesMap[ctx_ptr->stack_handle]= ctx_ptr;

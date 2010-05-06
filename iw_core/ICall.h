@@ -44,6 +44,8 @@ namespace ivrworx
 		MSG_CALL_BLIND_XFER_ACK,
 		MSG_CALL_BLIND_XFER_NACK,
 
+		MSG_CALL_LAST_ONE
+
 	};
 
 	class  MsgVoipCallMixin 
@@ -67,6 +69,10 @@ namespace ivrworx
 
 		  string dnis;
 
+		  string free_body;
+
+		  string body_type;
+
 		  virtual void copy_data_on_response(IN IwMessage *msg)
 		  {
 			  MsgVoipCallMixin *req = dynamic_cast<MsgVoipCallMixin*>(msg);
@@ -78,6 +84,7 @@ namespace ivrworx
 			  accepted_codecs	= accepted_codecs.size() == 0 ? req->accepted_codecs : accepted_codecs;
 			  ani				= ani.empty()  ?  req->ani  : ani;
 			  dnis				= dnis.empty() ?  req->dnis : dnis;
+			  body_type			= body_type.empty() ? req->body_type : body_type;
 		  };
 
 	};
@@ -97,6 +104,8 @@ namespace ivrworx
 		  string destination_uri;
 
 		  LpHandlePtr call_handler_inbound;
+
+		 
 
 	};
 
@@ -302,6 +311,8 @@ namespace ivrworx
 			NAME(MSG_CALL_BLIND_XFER_NACK)){}
 
 	};
+
+#define CALL_RESET_STATE(X) ResetState(X,#X)
 
 	enum CallState
 	{

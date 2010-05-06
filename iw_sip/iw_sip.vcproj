@@ -365,6 +365,22 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\FreeContent.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\FreeContent.h"
+			>
+		</File>
+		<File
+			RelativePath=".\MscmlCall.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\MscmlCall.h"
+			>
+		</File>
+		<File
 			RelativePath=".\ProcSipStack.cpp"
 			>
 		</File>

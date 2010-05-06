@@ -22,7 +22,7 @@
 #include "Logger.h"
 #include "ActiveObject.h"
 
-#define CALL_RESET_STATE(X) ResetState(X,#X)
+
 
 namespace ivrworx
 {

@@ -34,28 +34,25 @@ namespace ivrworx
 
 
 	typedef 
-		shared_ptr<NameAddr> NameAddrPtr;
+	shared_ptr<NameAddr> NameAddrPtr;
 
 	typedef
-		shared_ptr<Data> DataPtr;
+	shared_ptr<Data> DataPtr;
 
 	typedef
-		shared_ptr<HeaderFieldValue> HeaderFieldValuePtr;
+	shared_ptr<HeaderFieldValue> HeaderFieldValuePtr;
 
 	typedef
-		shared_ptr<SdpContents> SdpContentsPtr;
+	shared_ptr<SdpContents> SdpContentsPtr;
 
 	ostream& 
-		operator <<(ostream &ostream, const Data &data);
+	operator <<(ostream &ostream, const Data &data);
 
 	ostream& 
-		operator <<(ostream& strm,  const Message& msg);
+	operator <<(ostream& strm,  const Message& msg);
 
 	typedef 
 	int IwStackHandle;
-
-	IwStackHandle 
-	GenerateSipHandle();
 
 	struct SipDialogContext :
 		public noncopyable
@@ -71,6 +68,8 @@ namespace ivrworx
 		LpHandlePtr call_handler_inbound;
 
 		IwStackHandle stack_handle;
+
+		BOOL generic_offer_answer; 
 
 	};
 

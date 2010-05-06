@@ -378,6 +378,14 @@
 				RelativePath=".\LoggerBridge.h"
 				>
 			</File>
+			<File
+				RelativePath=".\MscmlCallBridge.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MscmlCallBridge.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\CallWithRtpManagement.cpp"

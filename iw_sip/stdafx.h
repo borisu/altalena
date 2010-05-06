@@ -16,6 +16,10 @@
 
 // TODO: reference additional headers your program requires here
 #include "IwUtils.h"
+#include "IwBase.h"
+#include "ICall.h"
+#include "Logger.h"
+
 #include <ws2tcpip.h>
 #include <stdarg.h>
 
@@ -27,6 +31,7 @@
 #include "resip/stack/SelectInterruptor.hxx"
 #include "resip/stack/InterruptableStackThread.hxx"
 #include "resip/stack/StackThread.hxx"
+#include "resip/stack/Contents.hxx"
 #include "resip/dum/ClientAuthManager.hxx"
 #include "resip/dum/ClientInviteSession.hxx"
 #include "resip/dum/ClientRegistration.hxx"
@@ -44,6 +49,7 @@
 #include "resip/dum/AppDialogSet.hxx"
 #include "resip/dum/AppDialogSetFactory.hxx"
 #include "resip/dum/DumThread.hxx"
+#include "resip/dum/BaseCreator.hxx"
 #include "rutil/Log.hxx"
 #include "rutil/Logger.hxx"
 #include "rutil/Random.hxx"
@@ -51,6 +57,7 @@
 #include "rutil/Data.hxx"
 #include "rutil/Subsystem.hxx"
 
+#define SIP_STACK_Q 2
 
 #pragma warning( pop )
 

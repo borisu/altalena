@@ -33,7 +33,7 @@ class SipSessionHandlerAdapter:
 {
 public:
 
-	SipSessionHandlerAdapter(void){};
+	SipSessionHandlerAdapter(void):InviteSessionHandler(true){};
 
 	virtual ~SipSessionHandlerAdapter(void){};
 
@@ -124,6 +124,8 @@ public:
 
 	//not sure if this has any value.
 	virtual void onNewSubscription(ClientSubscriptionHandle, const SipMessage& notify){FUNCTRACKER;};
+
+	virtual void onTerminated(resip::ClientSubscriptionHandle,const resip::SipMessage *){FUNCTRACKER;};
 
 
 };

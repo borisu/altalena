@@ -409,7 +409,7 @@ namespace ivrworx
 
 		LUA_DOUBLE_PARAM(L,start_time,-3);
 		LUA_DOUBLE_PARAM(L,duration,-2);
-		LUA_DOUBLE_PARAM(L,scale,-2);
+		LUA_DOUBLE_PARAM(L,scale,-1);
 
 		LogDebug("CallBridge::rtspplay iwh:" << _call->StackCallHandle() << "start:" << start_time << ", end:" << duration << ", scale:" << scale );
 

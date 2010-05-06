@@ -112,6 +112,8 @@ namespace ivrworx
 
 		virtual ApiErrorCode Init();
 
+		virtual void UponInfoReq(IN IwMessagePtr req);
+
 		virtual void UponBlindXferReq(IN IwMessagePtr req);
 
 		virtual void UponMakeCallReq(IN IwMessagePtr req);
@@ -153,6 +155,30 @@ namespace ivrworx
 			IN InviteSessionHandle is, 
 			IN const SipMessage& msg, 
 			IN const SdpContents& sdp);
+
+		// generic offer/answer
+		virtual void onOffer(
+			InviteSessionHandle h, 
+			const SipMessage& msg, 
+			const Contents& body);
+
+		// generic offer/answer 
+		virtual void onAnswer(
+			InviteSessionHandle h, 
+			const SipMessage& msg, 
+			const Contents& body);
+
+		// generic offer/answer  
+		virtual void onRemoteAnswerChanged(
+			InviteSessionHandle h, 
+			const SipMessage& msg, 
+			const Contents& body);
+
+		// generic offer/answer  
+		virtual void onEarlyMedia(
+			ClientInviteSessionHandle h, 
+			const SipMessage& msg, 
+			const Contents& body);
 
 		virtual void onReceivedRequest(
 			IN ServerOutOfDialogReqHandle ood, 
