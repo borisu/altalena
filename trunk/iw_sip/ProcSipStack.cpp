@@ -253,6 +253,8 @@ namespace ivrworx
 
 			_dumMngr.getMasterProfile()->addSupportedMethod(INFO);
 			_dumMngr.getMasterProfile()->addSupportedMimeType(INFO,Mime("application","dtmf-relay"));
+			_dumMngr.getMasterProfile()->addSupportedMimeType(INFO,Mime("application","mediaservercontrol+xml"));
+
 
 
 			if (_conf.GetBool("sip_session_timer_enabled"))
@@ -264,8 +266,8 @@ namespace ivrworx
 
 				_dumMngr.getMasterProfile()->addSupportedOptionTag(Token(Symbols::Timer));
 
-				_confSessionTimerModeMap["prefer_uac"]	  = Profile::PreferUACRefreshes;
-				_confSessionTimerModeMap["prefer_uas"]	  = Profile::PreferUASRefreshes;
+				_confSessionTimerModeMap["prefer_uac"]	  = Profile::PreferCallerRefreshes;
+				_confSessionTimerModeMap["prefer_uas"]	  = Profile::PreferCalleeRefreshes;
 				_confSessionTimerModeMap["prefer_local"]  = Profile::PreferLocalRefreshes;
 				_confSessionTimerModeMap["prefer_remote"] = Profile::PreferRemoteRefreshes;
 
@@ -281,7 +283,7 @@ namespace ivrworx
 
 					int sip_default_session_time = _conf.GetInt("sip_default_session_time");
 					sip_default_session_time = sip_default_session_time < 90 ? 90 : sip_default_session_time;
-					LogWarn("sip_default_session_time:" << sip_default_session_time);
+					LogInfo("sip_default_session_time:" << sip_default_session_time);
 
 					_dumMngr.getMasterProfile()->setDefaultSessionTime(sip_default_session_time);
 
@@ -330,6 +332,15 @@ namespace ivrworx
 			FinalizeContext(ctx);
 		} 
 
+
+	}
+
+	void 
+	ProcSipStack::UponInfoReq(IwMessagePtr req)
+	{
+		FUNCTRACKER;
+
+		_dumUac.UponInfoReq(req);
 
 	}
 
@@ -412,6 +423,7 @@ namespace ivrworx
 		_dumUac.UponMakeCallAckReq(req);
 	}
 
+	
 	bool 
 	ProcSipStack::ProcessApplicationMessages()
 	{
@@ -432,6 +444,11 @@ namespace ivrworx
 
 			switch (msg->message_id)
 			{
+			case SIP_CALL_INFO_REQ:
+				{
+					UponInfoReq(msg);
+					break;
+				}
 			case MSG_CALL_BLIND_XFER_REQ:
 				{
 					UponBlindXferReq(msg);
@@ -531,7 +548,7 @@ namespace ivrworx
 			} 
 			catch (exception &e)
 			{
-				LogWarn("ProcSipStack::real_run exeption in stack e:" << e.what());
+				LogWarn("ProcSipStack::real_run exception in stack e:" << e.what());
 				break;
 			} // try-catch
 		} // while
@@ -544,6 +561,56 @@ namespace ivrworx
 		ShutdownStack();
 
 	}
+
+	// generic auto answer
+	// generic offer
+	void 
+	ProcSipStack::onOffer(
+		InviteSessionHandle h, 
+		const SipMessage& msg, 
+		const Contents& body)
+	{
+		FUNCTRACKER;
+		InviteSessionHandler::onOffer(h,msg,body);
+	}
+
+	// generic answer 
+	void 
+	ProcSipStack::onAnswer(
+		InviteSessionHandle h, 
+		const SipMessage& msg, 
+		const Contents& body)
+	{
+		FUNCTRACKER;
+
+		// On answer is actually called when answer SDP is received
+		// it may be in first OK sent to UAC, or in ACK response to 
+		// empty invite sent by UAS, in this case it is not correct 
+		// to send it to uac dum. This case is not handled.
+		_dumUac.onAnswer(h,msg,body);
+	}
+
+	void 
+	ProcSipStack::onEarlyMedia(
+		ClientInviteSessionHandle h, 
+		const SipMessage& msg, 
+		const Contents& body)
+	{
+		FUNCTRACKER;
+		InviteSessionHandler::onEarlyMedia(h,msg,body);
+	}
+
+	// generic 
+	void 
+	ProcSipStack::onRemoteAnswerChanged(
+		InviteSessionHandle h, 
+		const SipMessage& msg, 
+		const Contents& body)
+	{
+		FUNCTRACKER;
+		InviteSessionHandler::onRemoteAnswerChanged(h,msg,body);
+	}
+
 
 	void 
 	ProcSipStack::onNewSession(
@@ -592,9 +659,9 @@ namespace ivrworx
 		FUNCTRACKER;
 		
 		// On offer is actually called when first SDP is received
-		// it may be in first invite, or in response to empty invite
-		// in this case it is not correct to send it to uas.
-		// this case is not handled.
+		// it may be in first invite sent to UAS, or in response to 
+		// empty invite sent by UAC, in this case it is not correct 
+		// to send it to uas dum. This case is not handled.
 		_dumUas.onOffer(is,msg,sdp);
 	}
 
@@ -683,6 +750,19 @@ namespace ivrworx
 			SipDialogContextPtr ctx_ptr = (*iter).second;
 
 			Mime mime = msg.getContents()->getType();
+
+			if (ctx_ptr->generic_offer_answer)
+			{
+				MsgSipCallInfoReq *info_req = 
+					new MsgSipCallInfoReq();
+
+				info_req->free_body = msg.getContents()->getBodyData().c_str();
+				info_req->body_type = msg.getContents()->getType().type().c_str();
+
+				ctx_ptr->call_handler_inbound->Send(IwMessagePtr(info_req));
+				is->acceptNIT();
+				return;
+			}
 
 			if (mime.type() == "application" && 
 				mime.subType() == "dtmf-relay")

@@ -24,6 +24,7 @@
 #include "UacDialogUsageManager.h"
 #include "UACAppDialogSet.h"
 #include "Logger.h"
+#include "FreeContent.h"
 
 
 namespace ivrworx
@@ -45,6 +46,99 @@ namespace ivrworx
 		FUNCTRACKER;
 
 	}
+
+	void 
+	UACDialogUsageManager::UponInfoReq(IN IwMessagePtr ptr)
+	{
+		FUNCTRACKER;
+
+		shared_ptr<MsgSipCallInfoReq> options_req = 
+			dynamic_pointer_cast<MsgSipCallInfoReq>(ptr);
+
+		IwStackHandle handle = options_req->stack_call_handle;
+
+		LogDebug("UACDialogUsageManager:UponInfoReq iwh:" << options_req->stack_call_handle);
+
+		IwHandlesMap::iterator iter = _iwHandlesMap.find(handle);
+		if (iter == _iwHandlesMap.end())
+		{
+			LogDebug("UACDialogUsageManager:UponInfoReq - the call iwh:" << options_req->stack_call_handle << " ctx not found.");
+			GetCurrLightWeightProc()->SendResponse(ptr, new MsgSipCallInfoNack());
+			return;
+		}
+
+		SipDialogContextPtr ctx_ptr = (*iter).second;
+
+		SharedPtr<UserProfile> user_profile;
+		user_profile = SharedPtr<UserProfile>(_dum.getMasterProfile());
+
+		FreeContent fc(options_req->free_body, options_req->body_type);
+		ctx_ptr->invite_handle->info(fc);
+
+		GetCurrLightWeightProc()->SendResponse(ptr, new MsgSipCallInfoAck());
+		
+	
+
+	}
+
+
+
+	/// called when response to INFO message is received 
+	void 
+	UACDialogUsageManager::onInfoSuccess(InviteSessionHandle is, const SipMessage& msg)
+	{
+		FUNCTRACKER;
+
+		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
+
+		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
+
+		LogWarn("UACDialogUsageManager::onInfoSuccess rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
+
+		switch ((uac_set)->_orig_request->message_id)
+		{
+		case SIP_CALL_INFO_REQ:
+			{
+				GetCurrLightWeightProc()->SendResponse(
+					(uac_set)->_orig_request,
+					new MsgSipCallInfoAck());
+				break;
+			}
+		default:
+			{
+				LogWarn("UACDialogUsageManager::onInfoSuccess Unknown req:"  << (uac_set)->_orig_request->message_id);
+			}
+		}
+	}
+
+	void UACDialogUsageManager::onInfoFailure(InviteSessionHandle is, const SipMessage& msg)
+	{
+		FUNCTRACKER;
+
+		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
+
+		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
+
+		LogWarn("UACDialogUsageManager::onInfoFailure rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
+
+		switch ((uac_set)->_orig_request->message_id)
+		{
+		case SIP_CALL_INFO_REQ:
+			{
+				GetCurrLightWeightProc()->SendResponse(
+					(uac_set)->_orig_request,
+					new MsgSipCallInfoNack());
+				break;
+			}
+		default:
+			{
+				LogWarn("UACDialogUsageManager::onInfoFailure Unknown req:"  << (uac_set)->_orig_request->message_id);
+			}
+		}
+
+
+	}
+
 
 	void 
 	UACDialogUsageManager::UponHangupReq(IN IwMessagePtr ptr)
@@ -139,6 +233,32 @@ namespace ivrworx
 	#pragma TODO ("UACDialogUsageManager::UponMakeCallReq takes 20 ms - SDP preparation should be replaced with simple string concatenation")
 
 	void 
+	UACDialogUsageManager::onAnswer(
+		IN InviteSessionHandle is, 
+		IN const SipMessage& msg, 
+		IN const Contents& body)
+	{
+		FUNCTRACKER;
+
+		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
+		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
+
+		LogDebug("UACDialogUsageManager::onAnswer (GENERIC) rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
+
+		if (ctx_ptr->generic_offer_answer)
+		{
+
+
+		}
+		else 
+		{
+			const SdpContents* sdp = 
+				dynamic_cast<const SdpContents*>(&body);
+
+		}
+	}
+
+	void 
 	UACDialogUsageManager::UponMakeCallReq(IN IwMessagePtr ptr)
 	{
 		FUNCTRACKER;
@@ -154,120 +274,143 @@ namespace ivrworx
 			NameAddr name_addr(req->destination_uri.c_str());
 			SharedPtr<UserProfile> user_profile;
 			user_profile = SharedPtr<UserProfile>(_dum.getMasterProfile());
-			
-			//
-			// prepare sdp
-			//
-			SdpContents sdp;
-
-			unsigned long tm = ::GetTickCount();
-			unsigned long sessionId((unsigned long) tm);
-
-			SdpContents::Session::Origin origin(
-				"-", 
-				sessionId, 
-				sessionId, 
-				SdpContents::IP4, 
-				req->local_media.iptoa());
-
-			SdpContents::Session session(0, origin, "ivrworks session");
-
-			session.connection() = 
-				SdpContents::Session::Connection(SdpContents::IP4, req->local_media.iptoa());
-			session.addTime(SdpContents::Session::Time(tm, 0));
-
-			SdpContents::Session::Medium medium("audio", req->local_media.port_ho(), 0, "RTP/AVP");
 
 			
-			
-			const MediaFormat *dtmf_format = NULL;
-
-			string str_buffer(1024,'\0');
-			
-
-			ListOfAny codecs_list;
-			_conf.GetArray("codecs",codecs_list);
-
-			for (ListOfAny::iterator conf_iter = codecs_list.begin(); 
-				conf_iter != codecs_list.end(); 
-				conf_iter++)
-			{
-
-				string conf_codec_name =  any_cast<string>(*conf_iter);
-				MediaFormat media_format = MediaFormat::GetMediaFormat(conf_codec_name);
-			
-				if (MediaFormat::GetMediaType(media_format.sdp_name_tos()) == MediaFormat::MediaType_DTMF)
-				{
-					dtmf_format = &media_format;
-					continue;
-				}
-
-				medium.addFormat(media_format.sdp_mapping_tos().c_str());
-
-				str_buffer.clear();
-				str_buffer += media_format.sdp_mapping_tos() ;
-				str_buffer +=" "; 
-				str_buffer += media_format.sdp_name_tos(); 
-				str_buffer += "/"; 
-				str_buffer += media_format.sampling_rate_tos();
-
-				medium.addAttribute("rtpmap", str_buffer.c_str());
-
-			}
-
-			
-
-			// dtmf format always last
-			if (dtmf_format != NULL)
-			{
-				medium.addFormat(dtmf_format->sdp_mapping_tos().c_str());
-
-				str_buffer.clear();
-				str_buffer += dtmf_format->sdp_mapping_tos();
-				str_buffer += " "; 
-				str_buffer += dtmf_format->sdp_name_tos();
-				str_buffer += "/";
-				str_buffer += dtmf_format->sampling_rate_tos();
-				medium.addAttribute("rtpmap", str_buffer.c_str());
-
-
-				str_buffer.clear();
-				str_buffer += dtmf_format->sdp_mapping_tos();
-				str_buffer += " 0-16";
-
-				medium.addAttribute("fmtp", (str_buffer).c_str());
-			}
-
-
-			medium.addAttribute("sendrecv");
-			session.addMedium(medium);
-			
-			sdp.session() = session;
-
-			Data encoded(Data::from(sdp));
-
-
-			//
+			SharedPtr<SipMessage> invite_session;
 			// create context
 			//
-			SipDialogContextPtr ctx_ptr = 
-				SipDialogContextPtr(new SipDialogContext());
-			
+			SipDialogContextPtr ctx_ptr = SipDialogContextPtr(new SipDialogContext());;
 
-			UACAppDialogSet * uac_dialog_set = new UACAppDialogSet(_dum,ctx_ptr,ptr);
-			SharedPtr<SipMessage> invite_session; 
-			invite_session = _dum.makeInviteSession(
-				name_addr, 
-				user_profile,
-				&sdp, 
-				uac_dialog_set); 
+			if (!req->free_body.empty())
+			{
+				ctx_ptr->generic_offer_answer = TRUE;
+
+				Data free_data( req->free_body );
+
+				UACAppDialogSet * uac_dialog_set = 
+					new UACAppDialogSet(_dum,ctx_ptr,ptr);
+
+				FreeContent fc(req->free_body,req->body_type);
+
+				invite_session = _dum.makeInviteSession(
+					name_addr, 
+					user_profile,
+					&fc, 
+					uac_dialog_set); 
+
+			} 
+			else
+			{
+				//
+				// prepare sdp
+				//
+				SdpContents sdp;
+
+				unsigned long tm = ::GetTickCount();
+				unsigned long sessionId((unsigned long) tm);
+
+				SdpContents::Session::Origin origin(
+					"-", 
+					sessionId, 
+					sessionId, 
+					SdpContents::IP4, 
+					req->local_media.iptoa());
+
+				SdpContents::Session session(0, origin, "ivrworks session");
+
+				session.connection() = 
+					SdpContents::Session::Connection(SdpContents::IP4, req->local_media.iptoa());
+				session.addTime(SdpContents::Session::Time(tm, 0));
+
+				SdpContents::Session::Medium medium("audio", req->local_media.port_ho(), 0, "RTP/AVP");
+
+
+
+				const MediaFormat *dtmf_format = NULL;
+
+				string str_buffer(1024,'\0');
+
+
+				ListOfAny codecs_list;
+				_conf.GetArray("codecs",codecs_list);
+
+				for (ListOfAny::iterator conf_iter = codecs_list.begin(); 
+					conf_iter != codecs_list.end(); 
+					conf_iter++)
+				{
+
+					string conf_codec_name =  any_cast<string>(*conf_iter);
+					MediaFormat media_format = MediaFormat::GetMediaFormat(conf_codec_name);
+
+					if (MediaFormat::GetMediaType(media_format.sdp_name_tos()) == MediaFormat::MediaType_DTMF)
+					{
+						dtmf_format = &media_format;
+						continue;
+					}
+
+					medium.addFormat(media_format.sdp_mapping_tos().c_str());
+
+					str_buffer.clear();
+					str_buffer += media_format.sdp_mapping_tos() ;
+					str_buffer +=" "; 
+					str_buffer += media_format.sdp_name_tos(); 
+					str_buffer += "/"; 
+					str_buffer += media_format.sampling_rate_tos();
+
+					medium.addAttribute("rtpmap", str_buffer.c_str());
+
+				}
+
+
+
+				// dtmf format always last
+				if (dtmf_format != NULL)
+				{
+					medium.addFormat(dtmf_format->sdp_mapping_tos().c_str());
+
+					str_buffer.clear();
+					str_buffer += dtmf_format->sdp_mapping_tos();
+					str_buffer += " "; 
+					str_buffer += dtmf_format->sdp_name_tos();
+					str_buffer += "/";
+					str_buffer += dtmf_format->sampling_rate_tos();
+					medium.addAttribute("rtpmap", str_buffer.c_str());
+
+
+					str_buffer.clear();
+					str_buffer += dtmf_format->sdp_mapping_tos();
+					str_buffer += " 0-16";
+
+					medium.addAttribute("fmtp", (str_buffer).c_str());
+				}
+
+
+				medium.addAttribute("sendrecv");
+				session.addMedium(medium);
+
+				sdp.session() = session;
+
+
+
+				
+				UACAppDialogSet * uac_dialog_set = new UACAppDialogSet(_dum,ctx_ptr,ptr);
+
+				invite_session = _dum.makeInviteSession(
+					name_addr, 
+					user_profile,
+					&sdp, 
+					uac_dialog_set); 
+
+			}
+			
+			
 
 			
 			_dum.send(invite_session);
 
 			
 			ctx_ptr->stack_handle = req->stack_call_handle == IW_UNDEFINED ? 
-				GenerateSipHandle() : req->stack_call_handle;
+				GenerateCallHandle() : req->stack_call_handle;
 
 			ctx_ptr->call_handler_inbound = req->call_handler_inbound;
 
@@ -365,8 +508,6 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		
-
 		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
 
 		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
@@ -410,13 +551,36 @@ namespace ivrworx
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
 
+		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
+
 		MsgMakeCallOk *ack = 
 			new MsgMakeCallOk();
 
 		ack->stack_call_handle = ctx_ptr->stack_handle;
 
+		const Uri &from_uri = msg.header(h_From).uri();
+		ack->ani = from_uri.user().c_str();
+
+		if (ctx_ptr->generic_offer_answer)
+		{
+			if (msg.getContents())
+			{
+				ack->free_body = msg.getContents()->getBodyData().c_str();
+			}
+
+			GetCurrLightWeightProc()->SendResponse(
+				uac_set->_orig_request,
+				ack);
+
+			return;
+
+		}
+
+
+		
 		const resip::SdpContents &sdp = 
-			is->getRemoteSdp();
+				*dynamic_cast<const SdpContents*>(msg.getContents());
+		
 		const SdpContents::Session &s = sdp.session();
 		const Data &addr_data = s.connection().getAddress();
 	
@@ -470,10 +634,10 @@ namespace ivrworx
 				codec_iter->payloadType()));
 		}
 
-		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
+		
 
-		const Uri &from_uri = msg.header(h_From).uri();
-		ack->ani = from_uri.user().c_str();
+		
+
 
 
 		GetCurrLightWeightProc()->SendResponse(

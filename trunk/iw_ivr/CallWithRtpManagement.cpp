@@ -71,7 +71,7 @@ namespace ivrworx
 
 		if (_callState != CALL_STATE_INITIAL_OFFERED)
 		{
-			LogWarn("CallWithRtpManagement::AcceptInitialOffer -  wrong call state:" << _callState << ", iwh:" << _stackCallHandle);
+			LogWarn("CallWithRtpManagement::AcceptInitialOffer -  wrong call state:" << _callState << ", iwh:" << _stackHandleId);
 			return API_WRONG_STATE;
 		}
 		
@@ -216,7 +216,7 @@ namespace ivrworx
 
 		if (!_imsEnabled)
 		{
-			LogDebug("CallWithRtpManagement::PlayFile - Media streaming disabled for iwh:" << _stackCallHandle )
+			LogDebug("CallWithRtpManagement::PlayFile - Media streaming disabled for iwh:" << _stackHandleId )
 			return API_FAILURE;
 		}
 
@@ -365,7 +365,7 @@ namespace ivrworx
 			return res;
 		};
 
-		LogDebug("CallWithRtpManagement::MakeCall - caller remote rtp = iwh:" <<  _stackCallHandle 
+		LogDebug("CallWithRtpManagement::MakeCall - caller remote rtp = iwh:" <<  _stackHandleId 
 			<< ", rci:" << RemoteMedia() 
 			<< " codec:" << _acceptedSpeechFormat);
 

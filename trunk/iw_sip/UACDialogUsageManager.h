@@ -49,6 +49,8 @@ public:
 
 	virtual void UponHangupReq(IN IwMessagePtr ptr);
 
+	virtual void UponInfoReq(IN IwMessagePtr ptr);
+
 	virtual void onNewSession(
 		IN ClientInviteSessionHandle s, 
 		IN InviteSession::OfferAnswerType oat, 
@@ -65,6 +67,24 @@ public:
 
 	virtual void CleanUpCall(
 		IN SipDialogContextPtr ctx_ptr);
+
+	/// called when INFO message is received 
+	//virtual void onInfo(InviteSessionHandle, const SipMessage& msg){ FUNCTRACKER;};
+
+	/// called when response to INFO message is received 
+	virtual void onInfoSuccess(
+		IN InviteSessionHandle, 
+		IN const SipMessage& msg);
+
+	virtual void onInfoFailure(
+		IN InviteSessionHandle, 
+		IN const SipMessage& msg);
+
+	virtual void onAnswer(
+		IN InviteSessionHandle h, 
+		IN const SipMessage& msg, 
+		IN const Contents& body);
+
 
 private:
 

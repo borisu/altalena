@@ -66,12 +66,12 @@ namespace ivrworx
 
 			FactoryPtrList factories_list = 
 				list_of
-// 				(ProcFactoryPtr(new RtpProxyFactory()))
-// 				(ProcFactoryPtr(new SqlFactory()))
-// 				(ProcFactoryPtr(new ImsFactory()))
-// 				(ProcFactoryPtr(new MrcpFactory()))
-// 				(ProcFactoryPtr(new IvrFactory()))
-				(ProcFactoryPtr(new OpalFactory()));
+				(ProcFactoryPtr(new RtpProxyFactory()))
+				(ProcFactoryPtr(new SqlFactory()))
+				(ProcFactoryPtr(new ImsFactory()))
+				(ProcFactoryPtr(new MrcpFactory()))
+				(ProcFactoryPtr(new IvrFactory()));
+				//(ProcFactoryPtr(new OpalFactory()));
 
 
 			if (factories_list.size() == 0)

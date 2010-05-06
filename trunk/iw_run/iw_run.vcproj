@@ -373,6 +373,10 @@
 				RelativePath=".\conf.json"
 				>
 			</File>
+			<File
+				RelativePath=".\mscml-dev.json"
+				>
+			</File>
 			<Filter
 				Name="unimrcp"
 				>
@@ -391,6 +395,10 @@
 			</File>
 			<File
 				RelativePath=".\scripts\super-dev.lua"
+				>
+			</File>
+			<File
+				RelativePath=".\scripts\super-mscml.lua"
 				>
 			</File>
 			<File

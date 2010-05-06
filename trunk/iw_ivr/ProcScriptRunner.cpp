@@ -23,6 +23,7 @@
 #include "LoggerBridge.h"
 #include "ConfBridge.h"
 #include "CallBridge.h"
+#include "MscmlCallBridge.h"
 #include "ls_sqlite3.h"
 #include "LuaRestoreStack.h"
 
@@ -347,6 +348,30 @@ exit:
 
 
 	int
+	ProcScriptRunner::LuaCreateMscmlCall(lua_State *state)
+	{
+		FUNCTRACKER;
+
+
+		ProcScriptRunner *runner = 
+			GetScriptRunner(state);
+
+		if (runner == NULL || runner->_forking == NULL)
+		{
+			LogWarn("ProcScriptRunner::LuaCreateMscmlCall - Cannot find object1");
+			return 0;
+		}
+
+		MscmlCallPtr call_ptr 
+			(new MscmlCall(*runner->_forking));
+
+		Luna<MscmlCallBridge>::PushObject(state,new MscmlCallBridge(call_ptr));
+
+		return 1;
+	}
+
+
+	int
 	ProcScriptRunner::LuaWait(lua_State *state)
 	{
 		FUNCTRACKER;
@@ -420,6 +445,7 @@ exit:
 			ivrworx_table.AddFunction("sleep",ProcScriptRunner::LuaWait);
 			ivrworx_table.AddFunction("run",ProcScriptRunner::LuaRunLongOperation);
 			ivrworx_table.AddFunction("createcall",ProcScriptRunner::LuaCreateCall);
+			ivrworx_table.AddFunction("createmscmlcall",ProcScriptRunner::LuaCreateMscmlCall);
 			ivrworx_table.AddFunction("spawn",ProcScriptRunner::LuaSpawn);
 
 
@@ -441,6 +467,10 @@ exit:
 
 			// CallBridge
 			Luna<CallBridge>::RegisterType(vm,FALSE);
+
+
+			// MscmlCallBridge
+			Luna<MscmlCallBridge>::RegisterType(vm,FALSE);
 
 			//
 			// register sql library

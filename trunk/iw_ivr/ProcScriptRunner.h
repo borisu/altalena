@@ -154,6 +154,8 @@ namespace ivrworx
 
 		static int LuaCreateCall(lua_State *L);
 
+		static int LuaCreateMscmlCall(lua_State *L);
+
 		static int LuaSpawn(lua_State *L);
 
 		static int LuaFork(lua_State *L);
