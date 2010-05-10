@@ -107,13 +107,11 @@ namespace ivrworx
 		IN const char *precompiled_buffer,
 		IN size_t buffer_size,
 		IN shared_ptr<MsgCallOfferedReq> msg, 
-		IN LpHandlePair stack_pair, 
 		IN LpHandlePair spawn_pair,
 		IN LpHandlePair pair)
 		:LightweightProcess(pair,"IvrScript"),
 		_conf(conf),
 		_initialMsg(msg),
-		_stackPair(stack_pair),
 		_scriptName(script_name),
 		_precompiledBuffer(precompiled_buffer),
 		_bufferSize(buffer_size),
@@ -127,13 +125,11 @@ namespace ivrworx
 	ProcScriptRunner::ProcScriptRunner(
 		IN Configuration &conf,
 		IN shared_ptr<MsgIvrStartScriptReq> req,
-		IN LpHandlePair stack_pair, 
 		IN LpHandlePair spawn_pair,
 		IN LpHandlePair pair)
 		:LightweightProcess(pair,"IvrScript"),
 		_conf(conf),
 		_startScriptReq(req),
-		_stackPair(stack_pair),
 		_spawnPair(spawn_pair),
 		_forking(NULL)
 	{
@@ -502,6 +498,8 @@ exit:
 				
 
 				_stackHandle = _initialMsg->stack_call_handle;
+
+
 				CallWithRtpManagementPtr call_ptr(
 					new CallWithRtpManagement(
 					_conf,

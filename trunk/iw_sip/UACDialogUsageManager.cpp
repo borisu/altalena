@@ -72,7 +72,7 @@ namespace ivrworx
 		SharedPtr<UserProfile> user_profile;
 		user_profile = SharedPtr<UserProfile>(_dum.getMasterProfile());
 
-		FreeContent fc(options_req->free_body, options_req->body_type);
+		FreeContent fc(options_req->offer, options_req->offer_type);
 		ctx_ptr->invite_handle->info(fc);
 
 		GetCurrLightWeightProc()->SendResponse(ptr, new MsgSipCallInfoAck());
@@ -281,16 +281,16 @@ namespace ivrworx
 			//
 			SipDialogContextPtr ctx_ptr = SipDialogContextPtr(new SipDialogContext());;
 
-			if (!req->free_body.empty())
+			if (!req->offer.empty())
 			{
 				ctx_ptr->generic_offer_answer = TRUE;
 
-				Data free_data( req->free_body );
+				Data free_data( req->offer );
 
 				UACAppDialogSet * uac_dialog_set = 
 					new UACAppDialogSet(_dum,ctx_ptr,ptr);
 
-				FreeContent fc(req->free_body,req->body_type);
+				FreeContent fc(req->offer,req->offer_type);
 
 				invite_session = _dum.makeInviteSession(
 					name_addr, 
@@ -565,7 +565,7 @@ namespace ivrworx
 		{
 			if (msg.getContents())
 			{
-				ack->free_body = msg.getContents()->getBodyData().c_str();
+				ack->offer = msg.getContents()->getBodyData().c_str();
 			}
 
 			GetCurrLightWeightProc()->SendResponse(

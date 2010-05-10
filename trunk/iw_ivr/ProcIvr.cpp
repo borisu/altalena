@@ -35,7 +35,7 @@ namespace ivrworx
 {
 
 ProcIvr::ProcIvr(IN LpHandlePair pair, IN Configuration &conf)
-:LightweightProcess(pair,IVR_Q,	"Ivr"),
+:LightweightProcess(pair,IVR_Q,	"ProcIvr"),
 _conf(conf),
 _precompiledBuffer(NULL),
 _superSize(0),
@@ -101,7 +101,7 @@ ProcIvr::real_run()
 	DECLARE_NAMED_HANDLE_PAIR(stack_pair);
 	_stackPair = stack_pair;
 
-	FORK(SipStackFactory::CreateSipStack(stack_pair,_conf));
+	FORK(SipStackFactory().Create(stack_pair,_conf));
 	if (IW_FAILURE(WaitTillReady(Seconds(5),stack_pair)))
 	{
 		LogWarn("Couldn't start sip stack process. Exiting ivr process.");
@@ -129,22 +129,26 @@ ProcIvr::real_run()
 			_precompiledBuffer_Super,			// precompiled buffer
 			_superSize,							// size of precompiled buffer
 			shared_ptr<MsgCallOfferedReq>(),	// initial incoming message
-			_stackPair,							// handle to stack
 			_pair,								// handle used to send "spawn" messages
 			super_script_handle					// handle created by stack for events
 			);
 
-		if (_conf.GetString("super_mode") == "sync")
+		if (_conf.GetString("super_mode") == "sync" || 
+			_conf.GetBool("ivr_enabled") == FALSE)
+		{
+			csp::RunInThisThread(super_script_proc);
+		} 
+		else
 		{
 			_waitingForSuperCompletion = TRUE;
-		} ;
-
-		FORK_IN_THIS_THREAD(super_script_proc);
+			FORK_IN_THIS_THREAD(super_script_proc);
+		}
 
 	}
 
 	if (_conf.GetBool("ivr_enabled") == FALSE)
 	{
+		Shutdown(Seconds(5),stack_pair);
 		LogInfo("ivr_enabled:false... exiting");
 		return;
 	}
@@ -253,7 +257,6 @@ ProcIvr::ProcessSpawnMessage(IN IwMessagePtr event, IN LpHandlePair spawn_pair, 
 				new ProcScriptRunner(
 				_conf,					// configuration
 				req,					// script name
-				_stackPair,				// handle to stack
 				spawn_pair,				// on this handle "spawn" requests will be recieved
 				script_runner_handle	// handle created by stack for events
 				));
@@ -337,7 +340,6 @@ ProcIvr::ProcessStackMessage(IN IwMessagePtr ptr, IN ScopedForking &forking)
 						_precompiledBuffer,				// precompiled buffer
 						_scriptSize,					// size of precompiled buffer
 						call_offered,					// initial incoming message
-						_stackPair,						// handle to stack
 						_pair,							// handle used to send "spawn" messages
 						script_runner_handle			// handle created by stack for events
 				));

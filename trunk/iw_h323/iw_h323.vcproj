@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm150"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\iw_core"
+				AdditionalIncludeDirectories="..\iw_core;..\iw_telephony"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

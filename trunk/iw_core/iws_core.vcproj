@@ -448,18 +448,6 @@
 				>
 			</File>
 		</Filter>
-		<Filter
-			Name="telephony"
-			>
-			<File
-				RelativePath=".\ICall.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ICall.h"
-				>
-			</File>
-		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>

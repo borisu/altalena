@@ -17,8 +17,14 @@
 // TODO: reference additional headers your program requires here
 #include "IwUtils.h"
 #include "IwBase.h"
-#include "ICall.h"
 #include "Logger.h"
+#include "Message.h"
+#include "LpHandle.h"
+#include "ActiveObject.h"
+
+#include "TelephonyProvider.h"
+#include "Call.h"
+
 
 #include <ws2tcpip.h>
 #include <stdarg.h>

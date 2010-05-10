@@ -22,7 +22,7 @@
 namespace ivrworx
 {
 	class CallWithRtpManagement :
-		public SipCall
+		public SipMediaCall
 	{
 		
 

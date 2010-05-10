@@ -21,10 +21,16 @@
 
 namespace ivrworx
 {
-	class H323Call
+	class H323Call : 
+		public IMediaCall
 	{
 	public:
-		H323Call(void);
+
+		H323Call(IN ScopedForking &forking);
+
+		H323Call(IN ScopedForking &forking,
+			IN shared_ptr<MsgCallOfferedReq> offered_msg);
+
 		virtual ~H323Call(void);
 	};
 }

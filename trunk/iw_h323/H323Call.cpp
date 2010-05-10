@@ -19,16 +19,28 @@
 
 #include "StdAfx.h"
 #include "H323Call.h"
+#include "ProcOpalH323.h"
 
 namespace ivrworx
 {
-	H323Call::H323Call(void)
-	{
-	}
 
-	H323Call::~H323Call(void)
-	{
-	}
+H323Call::H323Call(IN ScopedForking &forking):
+IMediaCall(forking, OPAL_H323_STACK_Q)
+{
+	FUNCTRACKER;
+}
+
+H323Call::H323Call(IN ScopedForking &forking,
+						   IN shared_ptr<MsgCallOfferedReq> offered_msg):
+IMediaCall(forking, OPAL_H323_STACK_Q, offered_msg)
+{
+	FUNCTRACKER;
+}
+
+H323Call::~H323Call(void)
+{
+
+}
 
 }
 
