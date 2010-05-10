@@ -20,7 +20,9 @@
 #include "Configuration.h"
 #include "LightweightProcess.h"
 #include "LocalProcessRegistrar.h"
+#include "Call.h"
 #include "Profiler.h"
+#include "TelephonyProvider.h"
 
 
 #pragma warning( push )

@@ -738,158 +738,152 @@ namespace ivrworx
 
 		IwStackHandle ixhandle = IW_UNDEFINED;
 		ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
-		if (iter != _resipHandlesMap.end())
+		if (iter == _resipHandlesMap.end())
 		{
-			if (!msg.exists(h_ContentType))
-			{
-				LogWarn("Cannot deduce content/type type");
-				return;
-			};
-
-			// early termination
-			SipDialogContextPtr ctx_ptr = (*iter).second;
-
-			Mime mime = msg.getContents()->getType();
-
-			if (ctx_ptr->generic_offer_answer)
-			{
-				MsgSipCallInfoReq *info_req = 
-					new MsgSipCallInfoReq();
-
-				info_req->free_body = msg.getContents()->getBodyData().c_str();
-				info_req->body_type = msg.getContents()->getType().type().c_str();
-
-				ctx_ptr->call_handler_inbound->Send(IwMessagePtr(info_req));
-				is->acceptNIT();
-				return;
-			}
-
-			if (mime.type() == "application" && 
-				mime.subType() == "dtmf-relay")
-			{
-				Data data = msg.getContents()->getBodyData();
-
-
-				std::istringstream iss(data.c_str());
-				string signal,duration;
-
-				std::getline(iss, signal,'=');
-				string str_signal_value;
-				int signal_value;
-
-				// the value may be index
-				// or symbol
-
-
-				iss >> str_signal_value;
-
-				if (str_signal_value == "*")
-				{
-					signal_value = 10;
-				} else if (str_signal_value == "#")
-				{
-					signal_value = 11;
-				} else 
-				{
-					
-					signal_value = ::atoi(str_signal_value.c_str());
-
-					if (signal_value < 0 || signal_value > 15)
-					{
-						is->rejectNIT();
-						return;
-					}
-				}
-
-				
-
-
-
-				MsgCallDtmfEvt *dtmf_evt = 
-					new MsgCallDtmfEvt();
-
-				switch (signal_value)
-				{
-				case 0:
-					{
-						dtmf_evt->signal = "0";
-						break;
-					}
-				case 1:
-					{
-						dtmf_evt->signal = "1";
-						break;
-					}
-				case 2:
-					{
-						dtmf_evt->signal = "2";
-						break;
-					}
-				case 3:
-					{
-						dtmf_evt->signal = "3";
-						break;
-					}
-				case 4:
-					{
-						dtmf_evt->signal = "4";
-						break;
-					}
-				case 5:
-					{
-						dtmf_evt->signal = "5";
-						break;
-					}
-				case 6:
-					{
-						dtmf_evt->signal = "6";
-						break;
-					}
-				case 7:
-					{
-						dtmf_evt->signal = "7";
-						break;
-					}
-				case 8:
-					{
-						dtmf_evt->signal = "8";
-						break;
-					}
-				case 9:
-					{
-						dtmf_evt->signal = "9";
-						break;
-					}
-				case 10:
-					{
-						dtmf_evt->signal = "*";
-						break;
-					}
-				case 11:
-					{
-						dtmf_evt->signal = "#";
-						break;
-					}
-				default:
-					{
-						
-						is->rejectNIT();
-						return;
-					}
-
-				}
-
-			
-				ctx_ptr->call_handler_inbound->Send(IwMessagePtr(dtmf_evt));
-				is->acceptNIT();
-				return;
-			} 
-
 			is->rejectNIT();
+			return;
 
 		}
 
+		if (!msg.exists(h_ContentType))
+		{
+			LogWarn("Cannot deduce content/type type");
+			is->rejectNIT();
+			return;
+		};
 
+		// early termination
+		SipDialogContextPtr ctx_ptr = (*iter).second;
+
+		Mime mime = msg.getContents()->getType();
+
+		
+		if (mime.type() == "application" && 
+			mime.subType() == "dtmf-relay")
+		{
+			Data data = msg.getContents()->getBodyData();
+
+
+			std::istringstream iss(data.c_str());
+			string signal,duration;
+
+			std::getline(iss, signal,'=');
+			string str_signal_value;
+			int signal_value;
+
+			// the value may be index
+			// or symbol
+
+
+			iss >> str_signal_value;
+
+			if (str_signal_value == "*")
+			{
+				signal_value = 10;
+			} else if (str_signal_value == "#")
+			{
+				signal_value = 11;
+			} else 
+			{
+				
+				signal_value = ::atoi(str_signal_value.c_str());
+
+				if (signal_value < 0 || signal_value > 15)
+				{
+					is->rejectNIT();
+					return;
+				}
+			}
+
+			
+			MsgCallDtmfEvt *dtmf_evt = 
+				new MsgCallDtmfEvt();
+
+			switch (signal_value)
+			{
+			case 0:
+				{
+					dtmf_evt->signal = "0";
+					break;
+				}
+			case 1:
+				{
+					dtmf_evt->signal = "1";
+					break;
+				}
+			case 2:
+				{
+					dtmf_evt->signal = "2";
+					break;
+				}
+			case 3:
+				{
+					dtmf_evt->signal = "3";
+					break;
+				}
+			case 4:
+				{
+					dtmf_evt->signal = "4";
+					break;
+				}
+			case 5:
+				{
+					dtmf_evt->signal = "5";
+					break;
+				}
+			case 6:
+				{
+					dtmf_evt->signal = "6";
+					break;
+				}
+			case 7:
+				{
+					dtmf_evt->signal = "7";
+					break;
+				}
+			case 8:
+				{
+					dtmf_evt->signal = "8";
+					break;
+				}
+			case 9:
+				{
+					dtmf_evt->signal = "9";
+					break;
+				}
+			case 10:
+				{
+					dtmf_evt->signal = "*";
+					break;
+				}
+			case 11:
+				{
+					dtmf_evt->signal = "#";
+					break;
+				}
+			default:
+				{
+					
+					is->rejectNIT();
+					return;
+				}
+
+			} 
+		
+			ctx_ptr->call_handler_inbound->Send(IwMessagePtr(dtmf_evt));
+			is->acceptNIT();
+		} 
+		else
+		{
+			MsgSipCallInfoReq *info_req = 
+				new MsgSipCallInfoReq();
+
+			info_req->offer = msg.getContents()->getBodyData().c_str();
+			info_req->offer_type = msg.getContents()->getType().type().c_str();
+
+			ctx_ptr->call_handler_inbound->Send(IwMessagePtr(info_req));
+			is->acceptNIT();
+		}
 	}
 
 

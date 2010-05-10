@@ -20,9 +20,32 @@
 #include "StdAfx.h"
 #include "OpalFactory.h"
 #include "ProcOpalH323.h"
+#include "H323Call.h"
 
 namespace ivrworx
 {
+	IMediaCallPtr 
+	OpalProvider::CreateCall(ScopedForking &forking, shared_ptr<MsgCallOfferedReq> msg)
+	{
+		return IMediaCallPtr(new H323Call(forking,msg));
+
+	}
+
+	IMediaCallPtr 
+	OpalProvider::CreateCall(ScopedForking &forking)
+	{
+		return IMediaCallPtr(new H323Call(forking));
+
+	}
+
+	const string& 
+	OpalProvider::protocolId()
+	{
+		static string protocol_id = "h323";
+		return protocol_id;
+	}
+
+	
 	OpalFactory::OpalFactory(void)
 	{
 	}

@@ -23,6 +23,27 @@
 
 namespace ivrworx
 {
+	IMediaCallPtr 
+	ResiprocateProvider::CreateCall(ScopedForking &forking, shared_ptr<MsgCallOfferedReq> msg)
+	{
+		return IMediaCallPtr(new SipMediaCall(forking,msg));
+
+	}
+
+	IMediaCallPtr 
+	ResiprocateProvider::CreateCall(ScopedForking &forking)
+	{
+		return IMediaCallPtr(new SipMediaCall(forking));
+
+	}
+
+	const string& 
+	ResiprocateProvider::protocolId()
+	{
+		static string protocol_id = "sip";
+		return protocol_id;
+	}
+
 	SipStackFactory::SipStackFactory(void)
 	{
 	}
@@ -32,7 +53,7 @@ namespace ivrworx
 	}
 
 	LightweightProcess*
-	SipStackFactory::CreateSipStack(IN LpHandlePair stack_pair, IN Configuration &conf)
+	SipStackFactory::Create(IN LpHandlePair stack_pair, IN Configuration &conf)
 	{
 
 		return new ProcSipStack(

@@ -65,7 +65,8 @@ namespace ivrworx
 		int dnis(lua_State *L);
 		int mediaformat(lua_State *L);
 
-		
+		int sendinfo(lua_State *L);
+
 		int makecall(lua_State *L);
 		int blindxfer(lua_State *L);
 		int hangup(lua_State *L);

@@ -41,6 +41,8 @@
 #include "LocalProcessRegistrar.h"
 #include "ProcHandleWaiter.h"
 #include "ActiveObject.h"
+#include "TelephonyProvider.h"
+#include "SipStackFactory.h"
 #include "RtspFactory.h"
 #include "RtspSession.h"
 #include "ImsFactory.h"

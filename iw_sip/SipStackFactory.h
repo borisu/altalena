@@ -27,13 +27,27 @@
 
 namespace ivrworx
 {
-	class SipStackFactory
+	
+	class ResiprocateProvider : 
+		public IMediaCallProvider
+	{
+	public:
+		virtual IMediaCallPtr CreateCall(ScopedForking &forking, shared_ptr<MsgCallOfferedReq> msg);
+
+		virtual IMediaCallPtr CreateCall(ScopedForking &forking);
+
+		virtual const string& protocolId();
+
+	};
+
+	class SipStackFactory :
+		public IProcFactory
 	{
 	public:
 		SipStackFactory(void);
 		virtual ~SipStackFactory(void);
 
-		static LightweightProcess *CreateSipStack(
+		LightweightProcess *Create(
 			IN LpHandlePair stack_pair, 
 			IN Configuration &conf);
 	};

@@ -44,6 +44,7 @@ namespace ivrworx
 		method(CallBridge, rtspplay),
 		method(CallBridge, rtsppause),
 		method(CallBridge, rtspteardown),
+		method(CallBridge, sendinfo),
 		{0,0}
 	};
 
@@ -454,6 +455,28 @@ namespace ivrworx
 		LogDebug("CallBridge::rtspteardown iwh:" << _call->StackCallHandle() );
 
 		ApiErrorCode res = _call->RtspTearDown();
+		lua_pushnumber (L, res);
+
+		return 1;
+
+	}
+
+	int
+	CallBridge::sendinfo(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		if (!_call)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		LUA_STRING_PARAM(L,body,-2);
+		LUA_STRING_PARAM(L,type,-1);
+
+
+		ApiErrorCode res = _call->SendInfo(body,type);
 		lua_pushnumber (L, res);
 
 		return 1;

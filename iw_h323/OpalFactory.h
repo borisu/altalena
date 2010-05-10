@@ -21,6 +21,18 @@
 
 namespace ivrworx
 {
+	class OpalProvider : 
+		public IMediaCallProvider
+	{
+	public:
+		virtual IMediaCallPtr CreateCall(ScopedForking &forking, shared_ptr<MsgCallOfferedReq> msg);
+
+		virtual IMediaCallPtr CreateCall(ScopedForking &forking);
+
+		virtual const string& protocolId();
+
+	};
+	
 	class OpalFactory : 
 		public IProcFactory
 	{

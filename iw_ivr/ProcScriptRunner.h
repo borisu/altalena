@@ -129,14 +129,12 @@ namespace ivrworx
 			IN const char *precompiled_buffer,
 			IN size_t buffer_size,
 			IN shared_ptr<MsgCallOfferedReq> msg, 
-			IN LpHandlePair stack_pair, 
 			IN LpHandlePair ivr_pair, 
 			IN LpHandlePair pair);
 
 		ProcScriptRunner(
 			IN Configuration &conf,
 			IN shared_ptr<MsgIvrStartScriptReq> req,
-			IN LpHandlePair stack_pair, 
 			IN LpHandlePair ivr_pair, 
 			IN LpHandlePair pair);
 
@@ -165,8 +163,6 @@ namespace ivrworx
 		shared_ptr<MsgCallOfferedReq> _initialMsg;
 
 		shared_ptr<MsgIvrStartScriptReq> _startScriptReq;
-
-		LpHandlePair _stackPair;
 
 		LpHandlePair _spawnPair;
 
