@@ -26,7 +26,7 @@ namespace ivrworx
 	CallWithRtpManagement::CallWithRtpManagement(
 		IN Configuration &conf,
 		IN ScopedForking &forking)
-		:SipMediaCall(forking),
+		:ResipMediaCall(forking),
 		_conf(conf),
 		_mrcpEnabled(FALSE),
 		_imsEnabled(FALSE),
@@ -46,7 +46,7 @@ namespace ivrworx
 		IN Configuration &conf,
 		IN ScopedForking &forking,
 		IN shared_ptr<MsgCallOfferedReq> offered_msg)
-		:SipMediaCall(forking,offered_msg),
+		:ResipMediaCall(forking,offered_msg),
 		_conf(conf),
 		_mrcpEnabled(FALSE),
 		_imsEnabled(FALSE),
@@ -190,7 +190,7 @@ namespace ivrworx
 		
 		
 		
-		res = SipMediaCall::AcceptInitialOffer(
+		res = ResipMediaCall::AcceptInitialOffer(
 			_callerRtpSession.LocalCnxInfo(),
 			accepted_media_formats,
 			speech_media_format);
@@ -321,7 +321,7 @@ namespace ivrworx
 		_mrcpSession.InterruptWithHangup();
 		_rtspSession.TearDown();
 
-		SipMediaCall::UponCallTerminated(ptr);
+		ResipMediaCall::UponCallTerminated(ptr);
 	}
 
 	ApiErrorCode 
@@ -353,7 +353,7 @@ namespace ivrworx
 		
 		
 		LogDebug("CallWithRtpManagement::MakeCall *** calling ***");
-		res = SipMediaCall::MakeCall(destination_uri,_callerRtpSession.LocalCnxInfo(),_ringTimeout);
+		res = ResipMediaCall::MakeCall(destination_uri,_callerRtpSession.LocalCnxInfo(),_ringTimeout);
 		if (IW_FAILURE(res))
 		{
 			return res;

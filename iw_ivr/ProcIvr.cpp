@@ -95,19 +95,7 @@ ProcIvr::real_run()
 
 	START_FORKING_REGION;
 
-	//
-	// Start SIP stack process
-	//
-	DECLARE_NAMED_HANDLE_PAIR(stack_pair);
-	_stackPair = stack_pair;
-
-	FORK(SipStackFactory().Create(stack_pair,_conf));
-	if (IW_FAILURE(WaitTillReady(Seconds(5),stack_pair)))
-	{
-		LogWarn("Couldn't start sip stack process. Exiting ivr process.");
-		return;
-	};
-
+	
 
 	LogInfo("Ivr process started successfully");
 	I_AM_READY;

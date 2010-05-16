@@ -34,12 +34,11 @@
 #include "LightweightProcess.h"
 #include "Configuration.h"
 #include "SipCall.h"
-#include "SipStackFactory.h"
-#include "ImsSession.h"
+#include "M2ImsSession.h"
 #include "SqliteSession.h"
-#include "RtpProxySession.h"
-#include "MrcpSession.h"
-#include "RtspSession.h"
+#include "Live555RtpProxySession.h"
+#include "UniMrcpSession.h"
+#include "Live555RtspSession.h"
 
 
 extern "C"
