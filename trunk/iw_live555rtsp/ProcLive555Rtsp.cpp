@@ -18,8 +18,8 @@
 */
 
 #include "StdAfx.h"
-#include "ProcRtsp.h"
-#include "RtspSession.h"
+#include "ProcLive555Rtsp.h"
+#include "Live555RtspSession.h"
 
 namespace ivrworx
 {
@@ -31,8 +31,8 @@ namespace ivrworx
 		return ::InterlockedExchangeAdd(&rtsph_counter,1);
 	}
 	
-	ProcRtsp::ProcRtsp(Configuration &conf,LpHandlePair pair):
-	LightweightProcess(pair,"ProcRtsp"),
+	ProcLive555Rtsp::ProcLive555Rtsp(Configuration &conf,LpHandlePair pair):
+	LightweightProcess(pair,"ProcLive555Rtsp"),
 	_conf(conf),
 	_rtspClient(NULL),
 	_session(NULL)
@@ -48,13 +48,13 @@ namespace ivrworx
 		_rtspHandle = GenerateNewRtsph();
 	}
 
-	ProcRtsp::~ProcRtsp(void)
+	ProcLive555Rtsp::~ProcLive555Rtsp(void)
 	{
 
 	}
 
 	void
-	ProcRtsp::real_run()
+	ProcLive555Rtsp::real_run()
 	{
 		FUNCTRACKER;
 
@@ -72,7 +72,7 @@ namespace ivrworx
 
 			if (res == API_TIMEOUT)
 			{
-				LogDebug("ProcRtsp::real_run - Keep Alive rtsph:")
+				LogDebug("ProcLive555Rtsp::real_run - Keep Alive rtsph:")
 				continue;
 			}
 
@@ -109,7 +109,7 @@ namespace ivrworx
 					BOOL res = HandleOOBMessage(msg);
 					if (res == FALSE)
 					{
-						LogWarn("ProcRtsp::real_run received unknown message id:" << msg->message_id_str);
+						LogWarn("ProcLive555Rtsp::real_run received unknown message id:" << msg->message_id_str);
 					}
 				} // default
 			} // switch
@@ -305,7 +305,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcRtsp::Teardown()
+	ProcLive555Rtsp::Teardown()
 	{
 		FUNCTRACKER;
 
@@ -328,7 +328,7 @@ namespace ivrworx
 
 
 	void 
-	ProcRtsp::SetupSession(IwMessagePtr msg)
+	ProcLive555Rtsp::SetupSession(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 
@@ -355,7 +355,7 @@ namespace ivrworx
 
 		if (sdpDescription == NULL) 
 		{
-			LogWarn("ProcRtsp::SetupSession - Failed to get a SDP description from URL \"" << req->request_url
+			LogWarn("ProcLive555Rtsp::SetupSession - Failed to get a SDP description from URL \"" << req->request_url
 				<< " live555 msg:" << *_env->getResultMsg());
 			SendResponse(msg, new MsgRtspSetupSessionNack());
 			return;
@@ -367,11 +367,11 @@ namespace ivrworx
 
 		delete[] sdpDescription;
 		if (session == NULL) {
-			LogWarn("ProcRtsp::SetupSession - Failed to create a MediaSession object from the SDP description: " << *_env->getResultMsg());
+			LogWarn("ProcLive555Rtsp::SetupSession - Failed to create a MediaSession object from the SDP description: " << *_env->getResultMsg());
 			SendResponse(msg, new MsgRtspSetupSessionNack());
 			return;
 		} else if (!session->hasSubsessions()) {
-			LogWarn("ProcRtsp::SetupSession - This session has no media subsessions (i.e., \"m=\" lines)");
+			LogWarn("ProcLive555Rtsp::SetupSession - This session has no media subsessions (i.e., \"m=\" lines)");
 			SendResponse(msg, new MsgRtspSetupSessionNack());
 			return;
 		}
@@ -389,7 +389,7 @@ namespace ivrworx
 			if (strcmp(curr_subsession->mediumName(),"audio") == 0 &&
 				req->media_format.sdp_name_tos() == curr_subsession->codecName() )
 			{
-				LogDebug("ProcRtsp::SetupSession - chosen :" << curr_subsession->controlPath());
+				LogDebug("ProcLive555Rtsp::SetupSession - chosen :" << curr_subsession->controlPath());
 				subsession_candidate = curr_subsession;
 				break;
 			}
@@ -397,7 +397,7 @@ namespace ivrworx
 
 		if (curr_subsession == NULL)
 		{
-			LogWarn("ProcRtsp::SetupSession - This session has no media subsessions with needed codec:" << req->media_format.sdp_name_tos());
+			LogWarn("ProcLive555Rtsp::SetupSession - This session has no media subsessions with needed codec:" << req->media_format.sdp_name_tos());
 			SendResponse(msg, new MsgRtspSetupSessionNack());
 			return;
 		}
@@ -408,7 +408,7 @@ namespace ivrworx
 		Boolean res = setupStreams(_rtspClient,session,False,_env);
 		if (res == False)
 		{
-			LogWarn("ProcRtsp::SetupSession - Error setting up session");
+			LogWarn("ProcLive555Rtsp::SetupSession - Error setting up session");
 			SendResponse(msg, new MsgRtspSetupSessionNack());
 		}
 
@@ -423,7 +423,7 @@ namespace ivrworx
 
 
 	void 
-	ProcRtsp::Play(IwMessagePtr msg)
+	ProcLive555Rtsp::Play(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 
@@ -450,7 +450,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcRtsp::Teardown(IwMessagePtr msg)
+	ProcLive555Rtsp::Teardown(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 
@@ -459,7 +459,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcRtsp::Pause(IwMessagePtr msg)
+	ProcLive555Rtsp::Pause(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 

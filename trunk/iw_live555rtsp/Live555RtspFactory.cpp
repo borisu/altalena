@@ -17,58 +17,25 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#pragma once
+#include "StdAfx.h"
+#include "Live555RtspFactory.h"
+#include "ProcLive555Rtsp.h"
 
 namespace ivrworx
 {
-	struct RtspCtx
+	RtspFactory::RtspFactory(void)
 	{
+	}
 
-	};
-
-	typedef shared_ptr<RtspCtx> 
-	RtspCtxPtr;
-
-	typedef int
-	RtspHandle;
-
-	class ProcRtsp :
-		public LightweightProcess
+	RtspFactory::~RtspFactory(void)
 	{
-	public:
+	}
 
-		ProcRtsp(Configuration &conf,LpHandlePair pair);
+	LightweightProcess * 
+	RtspFactory::Create(ivrworx::LpHandlePair pair, ivrworx::Configuration &conf)
+	{
+		return new ProcLive555Rtsp(conf,pair);
+	}
 
-		void real_run();
-
-		void SetupSession(IwMessagePtr msg);
-
-		void Play(IwMessagePtr msg);
-
-		void Pause(IwMessagePtr msg);
-
-		void Teardown(IwMessagePtr msg);
-
-		void Teardown();
-
-		virtual ~ProcRtsp(void);
-
-	private:
-
-		Configuration &_conf;
-
-		TaskScheduler *_scheduler;
-
-		BasicUsageEnvironment *_env;
-
-		RTSPClient *_rtspClient;
-
-		MediaSession *_session;
-
-		RtspHandle _rtspHandle;
-
-	};
-
-
-}
+};
 

@@ -18,8 +18,8 @@
 */
 
 #include "StdAfx.h"
-#include "RtspSession.h"
-#include "ProcRtsp.h"
+#include "Live555RtspSession.h"
+#include "ProcLive555Rtsp.h"
 
 namespace ivrworx
 {
@@ -65,7 +65,7 @@ namespace ivrworx
 		DECLARE_NAMED_HANDLE_PAIR(rtsp_proc_pair);
 		_rtspProcPair = rtsp_proc_pair;
 
-		_forking.fork(new ProcRtsp(_conf,rtsp_proc_pair));
+		_forking.fork(new ProcLive555Rtsp(_conf,rtsp_proc_pair));
 
 		ApiErrorCode res = GetCurrLightWeightProc()->WaitTillReady(Seconds(5),_rtspProcPair);
 		return res;
@@ -144,7 +144,7 @@ namespace ivrworx
 		MsgRtspPlayReq *msg = new MsgRtspPlayReq();
 		msg->start_time = start_time;
 		msg->duration = duration;
-		msg->scale = scale;
+		msg->scale =  scale;
 
 		IwMessagePtr response = NULL_MSG;
 		ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
