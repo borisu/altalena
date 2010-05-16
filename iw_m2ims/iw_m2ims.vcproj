@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="iw_ims"
+	Name="iw_m2ims"
 	ProjectGUID="{E4E14960-A4AD-4B7A-8471-8091D58C11F3}"
 	RootNamespace="ims"
 	Keyword="Win32Proj"
