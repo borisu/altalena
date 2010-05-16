@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="iw_sql"
+	Name="iw_sqlite"
 	ProjectGUID="{8CA2317C-A9D2-4602-BB16-780ECA678181}"
 	RootNamespace="CCU2"
 	Keyword="Win32Proj"
