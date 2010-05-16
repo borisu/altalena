@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="iw_rtpproxy"
+	Name="iw_live555rtpproxy"
 	ProjectGUID="{3D629C10-A820-4349-A00A-97DB6802543D}"
 	RootNamespace="iw_rtpproxy"
 	Keyword="Win32Proj"
@@ -149,15 +149,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\Live555RtpProxyFactory.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Live555RtpProxySession.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\ProcRtpProxy.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\RtpProxyFactory.cpp"
+				RelativePath=".\ProcLive555RtpProxy.cpp"
 				>
 			</File>
 			<File
@@ -175,15 +175,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Live555RtpProxyFactory.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Live555RtpProxySession.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ProcRtpProxy.h"
-				>
-			</File>
-			<File
-				RelativePath=".\RtpProxyFactory.h"
+				RelativePath=".\ProcLive555RtpProxy.h"
 				>
 			</File>
 			<File

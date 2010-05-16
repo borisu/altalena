@@ -40,7 +40,7 @@ namespace ivrworx
 		CONNECTION_STATE_OUTPUT
 	};
 	
-	class ProcRtpProxy :
+	class ProcLive555RtpProxy :
 		public LightweightProcess
 	{
 	public:
@@ -84,9 +84,9 @@ namespace ivrworx
 		};
 
 
-		ProcRtpProxy(LpHandlePair pair, Configuration &conf);
+		ProcLive555RtpProxy(LpHandlePair pair, Configuration &conf);
 
-		virtual ~ProcRtpProxy(void);
+		virtual ~ProcLive555RtpProxy(void);
 
 		virtual void real_run();
 

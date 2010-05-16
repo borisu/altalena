@@ -17,7 +17,7 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 #include "StdAfx.h"
-#include "ProcRtpProxy.h"
+#include "ProcLive555RtpProxy.h"
 #include "IwUsageEnvironment.h"
 
 #define RTP_PROXY_POLL_TIME 10
@@ -45,7 +45,7 @@ convert_hname_to_addrin(const char *name)
 }
 
 
-ProcRtpProxy::RtpConnection::RtpConnection()
+ProcLive555RtpProxy::RtpConnection::RtpConnection()
 :connection_id(NULL),
 state(CONNECTION_STATE_AVAILABLE),
 source(NULL),
@@ -55,14 +55,14 @@ rtcp_instance(NULL)
 
 }
 
-ProcRtpProxy::RtpConnection::~RtpConnection()
+ProcLive555RtpProxy::RtpConnection::~RtpConnection()
 {
 
 }
 
 void processIwMessagesTask(void* clientData) 
 {
-	ProcRtpProxy *proxy = (ProcRtpProxy *)clientData;
+	ProcLive555RtpProxy *proxy = (ProcLive555RtpProxy *)clientData;
 
 	if (proxy->InboundPending())
 	{
@@ -122,8 +122,8 @@ reschedule:
 }
 
 
-ProcRtpProxy::ProcRtpProxy(LpHandlePair pair, Configuration &conf):
-LightweightProcess(pair,"ProcRtpProxy"),
+ProcLive555RtpProxy::ProcLive555RtpProxy(LpHandlePair pair, Configuration &conf):
+LightweightProcess(pair,"ProcLive555RtpProxy"),
 _conf(conf),
 _env(NULL),
 _scheduler(NULL),
@@ -138,22 +138,22 @@ _stopChar('\0')
 }
 
 ApiErrorCode 
-ProcRtpProxy::InitSockets()
+ProcLive555RtpProxy::InitSockets()
 {
 	FUNCTRACKER;
 
 	
 	int base_port	 = _conf.GetInt("rtp_proxy_base_port");
-	LogDebug("ProcRtpProxy::InitSockets rtp_proxy_base_port=" << base_port);
+	LogDebug("ProcLive555RtpProxy::InitSockets rtp_proxy_base_port=" << base_port);
 
 	int top_port	 = _conf.GetInt("rtp_proxy_top_port");
-	LogDebug("ProcRtpProxy::InitSockets rtp_proxy_top_port=" << top_port);
+	LogDebug("ProcLive555RtpProxy::InitSockets rtp_proxy_top_port=" << top_port);
 
 	unsigned int num_of_conns = _conf.GetInt("rtp_proxy_num_of_connections");
-	LogDebug("ProcRtpProxy::InitSockets rtp_proxy_num_of_connections=" << num_of_conns);
+	LogDebug("ProcLive555RtpProxy::InitSockets rtp_proxy_num_of_connections=" << num_of_conns);
 
 	string rtp_ip = _conf.GetString("rtp_proxy_ip");
-	LogDebug("ProcRtpProxy::InitSockets rtp_proxy_ip=" << rtp_ip);
+	LogDebug("ProcLive555RtpProxy::InitSockets rtp_proxy_ip=" << rtp_ip);
 
 	const char * input_address_str = rtp_ip.c_str();
 
@@ -221,7 +221,7 @@ ProcRtpProxy::InitSockets()
 
 	if (_connectionsMap.size() < num_of_conns)
 	{
-		LogCrit("ProcRtpProxy::InitSockets - unable open open num_of_conns=" << num_of_conns << " rtp connections");
+		LogCrit("ProcLive555RtpProxy::InitSockets - unable open open num_of_conns=" << num_of_conns << " rtp connections");
 		return API_FAILURE;
 	};
 
@@ -232,7 +232,7 @@ ProcRtpProxy::InitSockets()
 
 
 void 
-ProcRtpProxy::real_run()
+ProcLive555RtpProxy::real_run()
 {
 	FUNCTRACKER;
 
@@ -277,7 +277,7 @@ ProcRtpProxy::real_run()
 }
 
 void 
-ProcRtpProxy::UponAllocateReq(IwMessagePtr msg)
+ProcLive555RtpProxy::UponAllocateReq(IwMessagePtr msg)
 {
 	FUNCTRACKER;
 
@@ -300,7 +300,7 @@ ProcRtpProxy::UponAllocateReq(IwMessagePtr msg)
 
 	if (!candidate)
 	{
-		LogWarn("ProcRtpProxy::UponAllocateReq - No available rtp resource");
+		LogWarn("ProcLive555RtpProxy::UponAllocateReq - No available rtp resource");
 		SendResponse(req, new MsgRtpProxyNack());
 		return;
 	}
@@ -332,13 +332,13 @@ ProcRtpProxy::UponAllocateReq(IwMessagePtr msg)
 		candidate->media_format = req->media_format; 
 	}
 	
-	LogDebug("ProcRtpProxy::UponAllocateReq allocated rtph:" << candidate->connection_id << " local:" << candidate->local_cnx_ino << ", remote:" << req->remote_media.ipporttos() << ", media format:" << req->media_format.sdp_name_tos());
+	LogDebug("ProcLive555RtpProxy::UponAllocateReq allocated rtph:" << candidate->connection_id << " local:" << candidate->local_cnx_ino << ", remote:" << req->remote_media.ipporttos() << ", media format:" << req->media_format.sdp_name_tos());
 	SendResponse(req, ack);
 	
 }
 
 void 
-ProcRtpProxy::UponDeallocateReq(IwMessagePtr msg)
+ProcLive555RtpProxy::UponDeallocateReq(IwMessagePtr msg)
 {
 	FUNCTRACKER;
 
@@ -351,7 +351,7 @@ ProcRtpProxy::UponDeallocateReq(IwMessagePtr msg)
 	if (iter == _connectionsMap.end())
 	{
 
-		LogWarn("ProcRtpProxy::UponDeallocateReq rtph:" << req->rtp_proxy_handle << " not found");
+		LogWarn("ProcLive555RtpProxy::UponDeallocateReq rtph:" << req->rtp_proxy_handle << " not found");
 		SendResponse(req, new MsgRtpProxyNack());
 		return;
 
@@ -361,7 +361,7 @@ ProcRtpProxy::UponDeallocateReq(IwMessagePtr msg)
 	
 	if (conn->state == CONNECTION_STATE_AVAILABLE)
 	{
-		LogWarn("ProcRtpProxy::UponDeallocateReq rtph:" << req->rtp_proxy_handle << " not allocated");
+		LogWarn("ProcLive555RtpProxy::UponDeallocateReq rtph:" << req->rtp_proxy_handle << " not allocated");
 		SendResponse(req, new MsgRtpProxyNack());
 		return;
 	}
@@ -394,7 +394,7 @@ ProcRtpProxy::UponDeallocateReq(IwMessagePtr msg)
 }
 
 void 
-ProcRtpProxy::UponModifyReq(IwMessagePtr msg)
+ProcLive555RtpProxy::UponModifyReq(IwMessagePtr msg)
 {
 	FUNCTRACKER;
 
@@ -444,7 +444,7 @@ ProcRtpProxy::UponModifyReq(IwMessagePtr msg)
 
 
 ApiErrorCode
-ProcRtpProxy::Unbridge(RtpConnectionPtr conn)
+ProcLive555RtpProxy::Unbridge(RtpConnectionPtr conn)
 {
 	FUNCTRACKER;
 
@@ -491,7 +491,7 @@ ProcRtpProxy::Unbridge(RtpConnectionPtr conn)
 
 
 void 
-ProcRtpProxy::UponBridgeReq(IwMessagePtr msg)
+ProcLive555RtpProxy::UponBridgeReq(IwMessagePtr msg)
 {
 	FUNCTRACKER;
 
@@ -505,7 +505,7 @@ ProcRtpProxy::UponBridgeReq(IwMessagePtr msg)
 	if (iter == _connectionsMap.end())
 	{
 
-		LogWarn("ProcRtpProxy::UponBridgeReq - rtph:" << bridge_req->rtp_proxy_handle << " not found");
+		LogWarn("ProcLive555RtpProxy::UponBridgeReq - rtph:" << bridge_req->rtp_proxy_handle << " not found");
 		SendResponse(bridge_req, new MsgRtpProxyNack());
 		return;
 
@@ -532,7 +532,7 @@ ProcRtpProxy::UponBridgeReq(IwMessagePtr msg)
 		destination_connection->media_format.get_media_type() == MediaFormat::MediaType_UNKNOWN ||
 		destination_connection->media_format != source_connection->media_format)
 	{
-		LogWarn("ProcRtpProxy::UponBridgeReq - transcoding not supported src rtph:"
+		LogWarn("ProcLive555RtpProxy::UponBridgeReq - transcoding not supported src rtph:"
 			<< source_connection->connection_id << "(" << source_connection->media_format << ")" << 
 			 " <-> dst rtph:" << destination_connection->connection_id << "(" << destination_connection->media_format << ")");
 
@@ -571,7 +571,7 @@ ProcRtpProxy::UponBridgeReq(IwMessagePtr msg)
 
 			if (rtp_source == NULL)
 			{
-				LogWarn("ProcRtpProxy::UponBridgeReq - Cannot create source");
+				LogWarn("ProcLive555RtpProxy::UponBridgeReq - Cannot create source");
 				goto error;
 			};
 		}
@@ -590,7 +590,7 @@ ProcRtpProxy::UponBridgeReq(IwMessagePtr msg)
 				);
 			if (source_rtcp_instance == NULL)
 			{
-				LogWarn("ProcRtpProxy::UponBridgeReq - Cannot create source rtcp instance");
+				LogWarn("ProcLive555RtpProxy::UponBridgeReq - Cannot create source rtcp instance");
 				goto error;
 			};
 		}
@@ -612,7 +612,7 @@ ProcRtpProxy::UponBridgeReq(IwMessagePtr msg)
 					);
 			if (rtp_sink == NULL)
 			{
-				LogWarn("ProcRtpProxy::UponBridgeReq - Cannot create sink instance");
+				LogWarn("ProcLive555RtpProxy::UponBridgeReq - Cannot create sink instance");
 				goto error;
 			}
 		}
@@ -631,7 +631,7 @@ ProcRtpProxy::UponBridgeReq(IwMessagePtr msg)
 					);					
 			if (sink_rtcp_instance == NULL)
 			{
-				LogWarn("ProcRtpProxy::UponBridgeReq - Cannot create sink instance");
+				LogWarn("ProcLive555RtpProxy::UponBridgeReq - Cannot create sink instance");
 				goto error;
 			}
 		}
@@ -651,7 +651,7 @@ ProcRtpProxy::UponBridgeReq(IwMessagePtr msg)
 		
 		if (rtp_sink->startPlaying(*rtp_source, NULL, NULL) == FALSE)
 		{
-			LogWarn("ProcRtpProxy::UponBridgeReq error: startPlaying");
+			LogWarn("ProcLive555RtpProxy::UponBridgeReq error: startPlaying");
 			goto error;
 		}
 
@@ -691,7 +691,7 @@ error:
 	
 }
 
-ProcRtpProxy::~ProcRtpProxy(void)
+ProcLive555RtpProxy::~ProcLive555RtpProxy(void)
 {
 
 }
