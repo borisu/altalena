@@ -19,36 +19,14 @@
 
 #pragma once
 
-#include "Call.h"
+#include "MediaCallSession.h"
 
 using namespace std;
 
 namespace ivrworx
 {
 
-typedef shared_ptr<IMediaCall>
-IMediaCallPtr;
 
-class IMediaCallProvider
-{
-public:
-
-	virtual IMediaCallPtr 
-	CreateCall(ScopedForking &forking, shared_ptr<MsgCallOfferedReq> msg) = 0;
-
-	virtual IMediaCallPtr
-	CreateCall(ScopedForking &forking) = 0;
-
-	virtual const string& 
-	protocolId() = 0;
-
-	virtual const string& 
-	providerId() = 0;
-
-};
-
-typedef shared_ptr<IMediaCallProvider> 
-IMediaCallProviderPtr;
 
 class TelephonyProviderRepository
 {
@@ -57,7 +35,7 @@ public:
 	virtual ~TelephonyProviderRepository(void);
 
 	void 
-	SetMediaCallProvider(IMediaCallProviderPtr provider);
+	AddMediaCallProvider(IMediaCallProviderPtr provider);
 
 	IMediaCallProviderPtr  
 	GetMediaCallProviderByProtocol(const string& protocol);
