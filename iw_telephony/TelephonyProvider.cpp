@@ -34,7 +34,7 @@ TelephonyProviderRepository::~TelephonyProviderRepository(void)
 }
 
 void
-TelephonyProviderRepository::SetMediaCallProvider(IMediaCallProviderPtr provider)
+TelephonyProviderRepository::AddMediaCallProvider(IMediaCallProviderPtr provider)
 {
 	_providersProtocolMap[provider->protocolId()] = provider;
 	_providersIdMap[provider->protocolId()] = provider;
