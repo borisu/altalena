@@ -18,21 +18,21 @@
 */
 
 #include "StdAfx.h"
-#include "SipStackFactory.h"
-#include "ProcSipStack.h"
+#include "ResipStackFactory.h"
+#include "ProcResipStack.h"
 
 namespace ivrworx
 {
 	
-	SipStackFactory::~SipStackFactory(void)
+	ResipStackFactory::~ResipStackFactory(void)
 	{
 	}
 
 	LightweightProcess*
-	SipStackFactory::Create(IN LpHandlePair stack_pair, IN Configuration &conf)
+	ResipStackFactory::Create(IN LpHandlePair stack_pair, IN Configuration &conf)
 	{
 
-		return new ProcSipStack(
+		return new ProcResipStack(
 			stack_pair, 
 			conf);
 

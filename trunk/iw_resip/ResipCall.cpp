@@ -18,7 +18,7 @@
 */
 
 #include "StdAfx.h"
-#include "SipCall.h"
+#include "ResipCall.h"
 #include "ResipCommon.h"
 
 
@@ -27,13 +27,13 @@
 namespace ivrworx
 {
 
-SipMediaCall::SipMediaCall(IN ScopedForking &forking, IN HandleId handle_id):
+ResipMediaCall::ResipMediaCall(IN ScopedForking &forking, IN HandleId handle_id):
 	MediaCallSession(forking, handle_id)
 {
 	FUNCTRACKER;
 }
 
-SipMediaCall::SipMediaCall(IN ScopedForking &forking,
+ResipMediaCall::ResipMediaCall(IN ScopedForking &forking,
 		   IN shared_ptr<MsgCallOfferedReq> offered_msg):
 	 MediaCallSession(forking, offered_msg->source.handle_id, offered_msg)
 {
@@ -41,17 +41,17 @@ SipMediaCall::SipMediaCall(IN ScopedForking &forking,
 
 }
 
-SipMediaCall::~SipMediaCall()
+ResipMediaCall::~ResipMediaCall()
 {
 
 }
 
 ApiErrorCode
-SipMediaCall::SendInfo(const string &body, const string &type)
+ResipMediaCall::SendInfo(const string &body, const string &type)
 {
 	FUNCTRACKER;
 
-	LogDebug("SipMediaCall::SendInfo - body:" << body  << ", type:"  << type);
+	LogDebug("ResipMediaCall::SendInfo - body:" << body  << ", type:"  << type);
 
 	MsgSipCallInfoReq *msg = new MsgSipCallInfoReq();
 	msg->stack_call_handle = _iwCallHandle;
@@ -68,7 +68,7 @@ SipMediaCall::SendInfo(const string &body, const string &type)
 
 	if (res != API_SUCCESS)
 	{
-		LogWarn("SipMediaCall::SendInfo - Error allocating RTSP session" << res);
+		LogWarn("ResipMediaCall::SendInfo - Error allocating RTSP session" << res);
 		return res;
 	}
 
@@ -77,7 +77,7 @@ SipMediaCall::SendInfo(const string &body, const string &type)
 	case SIP_CALL_INFO_ACK:
 		{
 
-			LogDebug("SipMediaCall::SendInfo - OK :");
+			LogDebug("ResipMediaCall::SendInfo - OK :");
 
 			break;
 
@@ -99,7 +99,7 @@ SipMediaCall::SendInfo(const string &body, const string &type)
 }
 
 void 
-SipMediaCall::UponActiveObjectEvent(IwMessagePtr ptr)
+ResipMediaCall::UponActiveObjectEvent(IwMessagePtr ptr)
 {
 	FUNCTRACKER;
 

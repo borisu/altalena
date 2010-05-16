@@ -62,21 +62,21 @@ namespace ivrworx
 	};
 
 
-	class SipMediaCall : 
+	class ResipMediaCall : 
 		public MediaCallSession
 	{
 	public:
 
-		SipMediaCall(IN ScopedForking &forking,IN HandleId handle_id);
+		ResipMediaCall(IN ScopedForking &forking,IN HandleId handle_id);
 
-		SipMediaCall(IN ScopedForking &forking,
+		ResipMediaCall(IN ScopedForking &forking,
 			 IN shared_ptr<MsgCallOfferedReq> offered_msg);
 
 		virtual ApiErrorCode SendInfo(const string &body, const string &type);
 
 		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
 
-		virtual ~SipMediaCall(void);
+		virtual ~ResipMediaCall(void);
 
 	private:
 
