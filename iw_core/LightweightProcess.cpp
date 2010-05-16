@@ -134,7 +134,7 @@ namespace ivrworx
 
 		LogDebug("=== START " << _inbound << " START ===");
 
-		RegistrationGuard guard(_inbound,_processAlias);
+		RegistrationGuard guard(_inbound,_serviceId,_processAlias);
 
 		// Created only once -  thread local storage 
 		// of the fibers.
@@ -160,7 +160,7 @@ namespace ivrworx
 		{
 			// should never happen
 			LogCrit("Shut 'er down Clancy, she's pumping mud!")
-			throw;
+			throw critical_exception("cannot determine thread type");
 		}
 
 		
@@ -237,6 +237,18 @@ clean:
 	LightweightProcess::Name(IN const string &val) 
 	{
 		_name = val; 
+	}
+
+	string 
+	LightweightProcess::ServiceId()
+	{ 
+		return _name; 
+	}
+
+	void 
+	LightweightProcess::ServiceId(IN const string &serviceId) 
+	{
+		_serviceId = serviceId; 
 	}
 
 	ApiErrorCode

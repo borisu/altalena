@@ -68,9 +68,13 @@ public:
 
 	virtual string Name();
 
-	virtual int ProcessId();
-
 	virtual void Name(IN const string &val);
+
+	virtual string ServiceId();
+
+	virtual void ServiceId(IN const string &serviceId);
+
+	virtual int ProcessId();
 
 	virtual ApiErrorCode SendMessage(
 		IN ProcId dest_channel_id, 
@@ -168,6 +172,8 @@ protected:
 	int _processAlias;
 
 	BOOL _startSuspended;
+
+	string _serviceId;
 
 private:
 

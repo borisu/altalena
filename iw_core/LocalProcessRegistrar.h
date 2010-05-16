@@ -51,7 +51,9 @@ namespace ivrworx
 	{
 	public:
 
-		RegistrationGuard(IN LpHandlePtr ptr, 
+		RegistrationGuard(
+			IN LpHandlePtr ptr, 
+			IN const string& service_name = "",
 			IN int process_alias = IW_UNDEFINED);
 
 		~RegistrationGuard();
@@ -72,6 +74,8 @@ namespace ivrworx
 
 	private:
 
+		mutex _mutex;
+
 		typedef 
 		map<int,LpHandlePtr> LocalProcessesMap;
 		LocalProcessesMap _locProcessesMap;
@@ -81,10 +85,10 @@ namespace ivrworx
 		ListenersMap _listenersMap;
 
 		typedef
-		map<int,int> AliasesMap;
-		AliasesMap _aliasesMap;
+		map<ProcId, string> ServicesMap;
+		ServicesMap _servicesMap;
 
-		mutex _mutex;
+		
 
 	public:
 
@@ -96,7 +100,8 @@ namespace ivrworx
 
 		void RegisterChannel(
 			IN int channel_id, 
-			IN LpHandlePtr hande);
+			IN LpHandlePtr hande,
+			IN const string& service_id);
 
 		void UnregisterChannel(
 			IN int channel_id);
@@ -111,6 +116,8 @@ namespace ivrworx
 		LpHandlePtr GetHandle(
 			IN int channel_id, 
 			IN const string &qpath);
+
+		LpHandlePtr GetHandle(IN const string &service_regex);
 	};
 
 	void AddShutdownListener(
@@ -118,6 +125,8 @@ namespace ivrworx
 		IN LpHandlePtr listener_handle);
 
 	LpHandlePtr GetHandle(IN int handle_id);
+
+	LpHandlePtr GetHandle(IN const string &service_regex);
 
 }
 

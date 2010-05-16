@@ -3,6 +3,8 @@
 #include "Logger.h"
 #include "IwBase.h"
 
+using namespace boost;
+
 namespace ivrworx
 {
 
@@ -16,12 +18,13 @@ LocalProcessRegistrar::_instanceMutex;
 
 
 RegistrationGuard::RegistrationGuard(IN LpHandlePtr ptr, 
+									 IN const string& service_name,
 									 IN int process_alias):
 _handleUid(ptr->GetObjectUid()),
 _aliasId(process_alias)
 {
-	LocalProcessRegistrar::Instance().RegisterChannel(_handleUid,ptr);
-	LocalProcessRegistrar::Instance().RegisterChannel(_aliasId,ptr);
+	LocalProcessRegistrar::Instance().RegisterChannel(_handleUid,ptr,service_name);
+	LocalProcessRegistrar::Instance().RegisterChannel(_aliasId,ptr,service_name);
 	
 }
 
@@ -57,7 +60,7 @@ LocalProcessRegistrar::Instance()
 }
 
 void
-LocalProcessRegistrar::RegisterChannel(IN int handle_id, IN LpHandlePtr ptr)
+LocalProcessRegistrar::RegisterChannel(IN int handle_id, IN LpHandlePtr ptr, IN const string& service_id)
 {
 	
 	if (handle_id == IW_UNDEFINED)
@@ -68,10 +71,13 @@ LocalProcessRegistrar::RegisterChannel(IN int handle_id, IN LpHandlePtr ptr)
 	mutex::scoped_lock lock(_mutex);
 	if ( _locProcessesMap.find(handle_id) != _locProcessesMap.end())
 	{
-		throw;
+		throw critical_exception("trying to register the same process twice");
 	}
 
 	_locProcessesMap[handle_id] = ptr;
+	_servicesMap[handle_id] = service_id;
+	
+	
 	
 	LogTrace("Mapped " << handle_id << " to (" << ptr.get() << ")");
 }
@@ -91,6 +97,8 @@ LocalProcessRegistrar::UnregisterChannel(IN int handle_id)
 	}
 
 	_locProcessesMap.erase(handle_id);
+	_servicesMap.erase(handle_id);
+	
 
 
 	ListenersMap::iterator iter = _listenersMap.find(handle_id);
@@ -143,30 +151,46 @@ LocalProcessRegistrar::AddShutdownListener(IN int procId, IN LpHandlePtr channel
 LpHandlePtr
 LocalProcessRegistrar::GetHandle(IN int procId, IN const string &qpath)
 {
-	//
-	// Scope to refrain taking nested locks
-	// logs & collection
-	//
+	mutex::scoped_lock lock(_mutex);
+
+	LocalProcessesMap::iterator i = 
+		_locProcessesMap.find(procId);
+
+	if (i != _locProcessesMap.end())
 	{
-		mutex::scoped_lock lock(_mutex);
+		return (*i).second;
+	}
 
-		//
-		// user specified no destination queue 
-		// and pid is not well known process
-		// => if the process found in registrar send 
-		// it locally
-		//
-		LocalProcessesMap::iterator i = 
-			_locProcessesMap.find(procId);
+	
+	return IW_NULL_HANDLE;
+	
 
-		if (i != _locProcessesMap.end())
+}
+
+LpHandlePtr
+LocalProcessRegistrar::GetHandle( IN const string &regex)
+{
+	mutex::scoped_lock lock(_mutex);
+
+	boost::regex e(regex);
+
+	for (LocalProcessesMap::iterator i = _locProcessesMap.begin();
+		i != _locProcessesMap.end();
+		++i)
+	{
+		
+		ProcId proc_id = (*i).first;
+		string service_name = _servicesMap[proc_id];
+
+		boost::smatch what;
+		if (true == boost::regex_match(service_name, what, e, boost::match_extra))
 		{
 			return (*i).second;
 		}
 
-		
-		return IW_NULL_HANDLE;
 	}
+
+	return IW_NULL_HANDLE;
 
 }
 
@@ -184,7 +208,11 @@ LpHandlePtr
 GetHandle(IN int handle_id)
 {
 	return LocalProcessRegistrar::Instance().GetHandle(handle_id);
+}
 
+LpHandlePtr GetHandle(IN const string &service_regex)
+{
+	return LocalProcessRegistrar::Instance().GetHandle(service_regex);
 }
 
 
