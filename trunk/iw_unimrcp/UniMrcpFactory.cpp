@@ -18,26 +18,26 @@
 */
 
 #include "StdAfx.h"
-#include "MrcpFactory.h"
-#include "ProcMrcp.h"
-#include "MrcpSession.h"
+#include "UniMrcpFactory.h"
+#include "ProcUniMrcp.h"
+#include "UniMrcpSession.h"
 
 namespace ivrworx
 {
 
-	MrcpFactory::MrcpFactory(void)
+	UniMrcpFactory::UniMrcpFactory(void)
 	{
 	}
 
-	MrcpFactory::~MrcpFactory(void)
+	UniMrcpFactory::~UniMrcpFactory(void)
 	{
 	}
 
 
 	LightweightProcess *
-	MrcpFactory::Create(LpHandlePair pair,Configuration &conf)
+	UniMrcpFactory::Create(LpHandlePair pair,Configuration &conf)
 	{
-		return new ProcMrcp(pair, conf);
+		return new ProcUniMrcp(pair, conf);
 
 	}
 
