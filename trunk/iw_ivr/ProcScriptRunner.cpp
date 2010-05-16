@@ -359,7 +359,7 @@ exit:
 		}
 
 		MscmlCallPtr call_ptr 
-			(new MscmlCall(*runner->_forking));
+			(new ResipMscmlCall(*runner->_forking));
 
 		Luna<MscmlCallBridge>::PushObject(state,new MscmlCallBridge(call_ptr));
 
