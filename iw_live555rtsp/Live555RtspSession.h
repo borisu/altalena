@@ -42,11 +42,11 @@ namespace ivrworx
 	typedef int
 	RtspHandle; 
 
-	class RtsMixin
+	class RtspMixin
 	{
 	public:
 
-		RtsMixin():
+		RtspMixin():
 		  rtsp_handle(IW_UNDEFINED),
 		  start_time(0.0),
 		  duration(0.0),
@@ -65,7 +65,7 @@ namespace ivrworx
 
 		double duration;
 
-		float scale;
+		double scale;
 
 		CnxInfo local_cnx_info;
 
@@ -74,7 +74,7 @@ namespace ivrworx
 //--- Setup session
 
 	class MsgRtspSetupSessionReq
-		: public RtsMixin,
+		: public RtspMixin,
 		public MsgRequest
 	{
 	public:
@@ -83,7 +83,7 @@ namespace ivrworx
 	};
 
 	class MsgRtspSetupSessionAck
-		: public RtsMixin, public MsgRequest
+		: public RtspMixin, public MsgRequest
 	{
 	public:
 		MsgRtspSetupSessionAck(): 
@@ -92,7 +92,7 @@ namespace ivrworx
 
 
 	class MsgRtspSetupSessionNack
-		: public RtsMixin,public MsgRequest
+		: public RtspMixin,public MsgRequest
 	{
 	public:
 		MsgRtspSetupSessionNack(): 
@@ -102,7 +102,7 @@ namespace ivrworx
 //--- Play
 
 	class MsgRtspPlayReq
-		: public RtsMixin,
+		: public RtspMixin,
 		public MsgRequest
 	{
 	public:
@@ -111,7 +111,7 @@ namespace ivrworx
 	};
 
 	class MsgRtspPlayAck
-		: public RtsMixin, public MsgRequest
+		: public RtspMixin, public MsgRequest
 	{
 	public:
 		MsgRtspPlayAck(): 
@@ -120,7 +120,7 @@ namespace ivrworx
 
 
 	class MsgRtspPlayNack
-		: public RtsMixin,public MsgRequest
+		: public RtspMixin,public MsgRequest
 	{
 	public:
 		MsgRtspPlayNack(): 
@@ -130,7 +130,7 @@ namespace ivrworx
 //--- Pause
 
 	class MsgRtspPauseReq
-		: public RtsMixin,
+		: public RtspMixin,
 		public MsgRequest
 	{
 	public:
@@ -139,7 +139,7 @@ namespace ivrworx
 	};
 
 	class MsgRtspPauseAck
-		: public RtsMixin, public MsgRequest
+		: public RtspMixin, public MsgRequest
 	{
 	public:
 		MsgRtspPauseAck(): 
@@ -147,7 +147,7 @@ namespace ivrworx
 	};
 
 	class MsgRtspPauseNack
-		: public RtsMixin, public MsgRequest
+		: public RtspMixin, public MsgRequest
 	{
 	public:
 		MsgRtspPauseNack(): 
@@ -157,7 +157,7 @@ namespace ivrworx
 // -- Tear Down
 
 	class MsgRtspTearDownReq
-		: public RtsMixin,public MsgRequest
+		: public RtspMixin,public MsgRequest
 	{
 	public:
 		MsgRtspTearDownReq(): 
@@ -165,7 +165,7 @@ namespace ivrworx
 	};
 
 	class MsgRtspTearDownAck
-		: public RtsMixin, public MsgRequest
+		: public RtspMixin, public MsgRequest
 	{
 	public:
 		MsgRtspTearDownAck(): 
@@ -174,7 +174,7 @@ namespace ivrworx
 
 
 	class MsgRtspTearDownNack
-		: public RtsMixin,public MsgRequest
+		: public RtspMixin,public MsgRequest
 	{
 	public:
 		MsgRtspTearDownNack(): 
