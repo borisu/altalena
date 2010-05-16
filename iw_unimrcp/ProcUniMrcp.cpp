@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "ProcMrcp.h"
+#include "ProcUniMrcp.h"
 #include "Logger.h"
 
 
@@ -172,8 +172,8 @@ namespace ivrworx
 	}
 
 	
-	ProcMrcp::ProcMrcp(LpHandlePair pair, Configuration &conf):
-	LightweightProcess(pair,"ProcMrcp"),
+	ProcUniMrcp::ProcUniMrcp(LpHandlePair pair, Configuration &conf):
+	LightweightProcess(pair,"ProcUniMrcp"),
 	_conf(conf),
 	_application(NULL),
 	_pool(NULL),
@@ -195,7 +195,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcMrcp::real_run()
+	ProcUniMrcp::real_run()
 	{
 
 		if (IW_FAILURE(Init()))
@@ -363,7 +363,7 @@ namespace ivrworx
 	}
 
 	void
-	ProcMrcp::UponTearDownReq(IwMessagePtr msg)
+	ProcUniMrcp::UponTearDownReq(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 
@@ -375,7 +375,7 @@ namespace ivrworx
 		if (iter == _mrcpCtxMap.end())
 		{
 
-			LogWarn("ProcMrcp::UponTearDownReq - non existent ctx.");
+			LogWarn("ProcUniMrcp::UponTearDownReq - non existent ctx.");
 			SendResponse(req, new MsgMrcpSpeakReqNack());
 			return;
 		}
@@ -392,7 +392,7 @@ namespace ivrworx
 	}
 
 	void
-	ProcMrcp::UponStopSpeakReq(IwMessagePtr msg)
+	ProcUniMrcp::UponStopSpeakReq(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 
@@ -404,7 +404,7 @@ namespace ivrworx
 		if (iter == _mrcpCtxMap.end())
 		{
 
-			LogWarn("ProcMrcp::UponSpeakReq - non existent mrcph:" << req->mrcp_handle);
+			LogWarn("ProcUniMrcp::UponSpeakReq - non existent mrcph:" << req->mrcp_handle);
 			SendResponse(req, new MsgMrcpStopSpeakNack());
 			return;
 		}
@@ -414,7 +414,7 @@ namespace ivrworx
 
 		if (ctx->state != MRCP_ALLOCATED)
 		{
-			LogWarn("ProcMrcp::UponSpeakReq - mrcph:" << ctx->mrcp_handle << " is not in allocated state.");
+			LogWarn("ProcUniMrcp::UponSpeakReq - mrcph:" << ctx->mrcp_handle << " is not in allocated state.");
 			SendResponse(req, new MsgMrcpStopSpeakNack());
 			return;
 		}
@@ -430,7 +430,7 @@ namespace ivrworx
 
 		if(!mrcp_message) 
 		{
-			LogWarn("ProcMrcp::UponSpeakReq - error:mrcp_application_message_create");
+			LogWarn("ProcUniMrcp::UponSpeakReq - error:mrcp_application_message_create");
 			SendResponse(req, new MsgMrcpStopSpeakNack());
 			return ;
 		}
@@ -441,7 +441,7 @@ namespace ivrworx
 		mrcp_generic_header_t *generic_header = (mrcp_generic_header_t *)mrcp_generic_header_prepare(mrcp_message);
 		if(!generic_header) 
 		{
-			LogWarn("ProcMrcp::UponSpeakReq - error:mrcp_generic_header_prepare");
+			LogWarn("ProcUniMrcp::UponSpeakReq - error:mrcp_generic_header_prepare");
 			SendResponse(req, new MsgMrcpStopSpeakNack());
 			return;
 		}
@@ -455,7 +455,7 @@ namespace ivrworx
 
 		if (!res)
 		{
-			LogWarn("ProcMrcp::UponSpeakReq - error(speak):mrcp_application_message_send");
+			LogWarn("ProcUniMrcp::UponSpeakReq - error(speak):mrcp_application_message_send");
 			SendResponse(req, new MsgMrcpStopSpeakNack());
 			return;
 		}
@@ -465,7 +465,7 @@ namespace ivrworx
 	}
 
 	void
-	ProcMrcp::UponSpeakReq(IwMessagePtr msg)
+	ProcUniMrcp::UponSpeakReq(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 		
@@ -477,7 +477,7 @@ namespace ivrworx
 		if (iter == _mrcpCtxMap.end())
 		{
 			
-			LogWarn("ProcMrcp::UponSpeakReq - non existent mrcph:" << req->mrcp_handle);
+			LogWarn("ProcUniMrcp::UponSpeakReq - non existent mrcph:" << req->mrcp_handle);
 			SendResponse(req, new MsgMrcpSpeakReqNack());
 			return;
 		}
@@ -487,7 +487,7 @@ namespace ivrworx
 
 		if (ctx->state != MRCP_ALLOCATED)
 		{
-			LogWarn("ProcMrcp::UponSpeakReq - mrcph:" << ctx->mrcp_handle << " is not in allocated state.");
+			LogWarn("ProcUniMrcp::UponSpeakReq - mrcph:" << ctx->mrcp_handle << " is not in allocated state.");
 			SendResponse(req, new MsgMrcpSpeakReqNack());
 			return;
 		}
@@ -503,7 +503,7 @@ namespace ivrworx
 
 		if(!mrcp_message) 
 		{
-			LogWarn("ProcMrcp::UponSpeakReq - error(speak):mrcp_application_message_create");
+			LogWarn("ProcUniMrcp::UponSpeakReq - error(speak):mrcp_application_message_create");
 			SendResponse(req, new MsgMrcpSpeakReqNack());
 			return ;
 		}
@@ -514,7 +514,7 @@ namespace ivrworx
 		mrcp_generic_header_t *generic_header = (mrcp_generic_header_t *)mrcp_generic_header_prepare(mrcp_message);
 		if(!generic_header) 
 		{
-			LogWarn("ProcMrcp::UponSpeakReq - error(speak):mrcp_generic_header_prepare");
+			LogWarn("ProcUniMrcp::UponSpeakReq - error(speak):mrcp_generic_header_prepare");
 			SendResponse(req, new MsgMrcpSpeakReqNack());
 			return;
 		}
@@ -532,7 +532,7 @@ namespace ivrworx
 		mrcp_synth_header_t *synth_header = (mrcp_synth_header_t *)mrcp_resource_header_prepare(mrcp_message);
 		if(!synth_header) 
 		{
-			LogWarn("ProcMrcp::UponSpeakReq - error(speak):mrcp_resource_header_prepare");
+			LogWarn("ProcUniMrcp::UponSpeakReq - error(speak):mrcp_resource_header_prepare");
 			SendResponse(req, new MsgMrcpSpeakReqNack());
 			return;
 		}
@@ -561,7 +561,7 @@ namespace ivrworx
 		
 		if (!res)
 		{
-			LogWarn("ProcMrcp::UponSpeakReq - error(speak):mrcp_application_message_send");
+			LogWarn("ProcUniMrcp::UponSpeakReq - error(speak):mrcp_application_message_send");
 			SendResponse(req, new MsgMrcpSpeakReqNack());
 			return;
 		}
@@ -571,7 +571,7 @@ namespace ivrworx
 	
 
 	void
-	ProcMrcp::UponMrcpAllocateSessionReq(IwMessagePtr msg)
+	ProcUniMrcp::UponMrcpAllocateSessionReq(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 		
@@ -631,27 +631,27 @@ namespace ivrworx
 	}
 
 	void
-	ProcMrcp::onMrcpMessageReceived(MrcpOverlapped *olap)
+	ProcUniMrcp::onMrcpMessageReceived(MrcpOverlapped *olap)
 	{
 		FUNCTRACKER;
 
 		shared_ptr<MrcpOverlapped> guard(olap);
 
 		MrcpHandle handle = olap->mrcp_handle_id;
-		LogDebug("ProcMrcp::UponMessageReceived mrcph:" <<  olap->mrcp_handle_id << ", status:" << olap->status << ", request-line:" << olap->message->start_line.method_name.buf);
+		LogDebug("ProcUniMrcp::UponMessageReceived mrcph:" <<  olap->mrcp_handle_id << ", status:" << olap->status << ", request-line:" << olap->message->start_line.method_name.buf);
 
 
 		MrcpCtxMap::iterator iter =  _mrcpCtxMap.find(handle);
 		if (iter == _mrcpCtxMap.end())
 		{
 			//mrcp_application_session_destroy(olap->session);
-			LogWarn("ProcMrcp::UponMessageReceived mrcph:" << handle << " not found.");
+			LogWarn("ProcUniMrcp::UponMessageReceived mrcph:" << handle << " not found.");
 			return;
 		}
 
 		MrcpSessionCtxPtr ctx = (*iter).second;
 
-		LogDebug("ProcMrcp::Received MRCP message mrcph:" << olap->mrcp_handle_id << 
+		LogDebug("ProcUniMrcp::Received MRCP message mrcph:" << olap->mrcp_handle_id << 
 			" -> net reqid:" << olap->message->start_line.request_id << 
 			"(" << olap->message->start_line.method_name.buf << ")" << 
 			", curr reqid:" << ctx->last_message->start_line.request_id << 
@@ -661,7 +661,7 @@ namespace ivrworx
 		if (ctx->last_message->start_line.request_id != 
 			olap->message->start_line.request_id)
 		{
-			LogWarn("ProcMrcp::Received oudated mrcp reponse mrcph:" << olap->mrcp_handle_id );
+			LogWarn("ProcUniMrcp::Received oudated mrcp reponse mrcph:" << olap->mrcp_handle_id );
 			return;
 		}
 
@@ -693,7 +693,7 @@ namespace ivrworx
 
 	
 	void
-	ProcMrcp::onMrcpSessionTerminatedEvt(MrcpOverlapped *olap)
+	ProcUniMrcp::onMrcpSessionTerminatedEvt(MrcpOverlapped *olap)
 	{
 		FUNCTRACKER;
 
@@ -704,7 +704,7 @@ namespace ivrworx
 		MrcpHandle handle = olap->mrcp_handle_id;
 		mrcp_sig_status_code_e status = olap->status;
 
-		LogDebug("ProcMrcp::onMrcpTerminatedEvt mrcph:" <<  olap->mrcp_handle_id << ", status:" << olap->status);
+		LogDebug("ProcUniMrcp::onMrcpTerminatedEvt mrcph:" <<  olap->mrcp_handle_id << ", status:" << olap->status);
 
 
 
@@ -722,7 +722,7 @@ namespace ivrworx
 
 
 	void
-	ProcMrcp::onMrcpSessionTerminatedRsp(MrcpOverlapped *olap)
+	ProcUniMrcp::onMrcpSessionTerminatedRsp(MrcpOverlapped *olap)
 	{
 		FUNCTRACKER;
 
@@ -733,7 +733,7 @@ namespace ivrworx
 		MrcpHandle handle = olap->mrcp_handle_id;
 		mrcp_sig_status_code_e status = olap->status;
 
-		LogDebug("ProcMrcp::onMrcpSessionTerminatedEvt mrcph:" <<  olap->mrcp_handle_id << ", status:" << olap->status);
+		LogDebug("ProcUniMrcp::onMrcpSessionTerminatedEvt mrcph:" <<  olap->mrcp_handle_id << ", status:" << olap->status);
 
 
 		// if we got here ctx does not exist already
@@ -743,7 +743,7 @@ namespace ivrworx
 	}
 
 	void
-	ProcMrcp::onMrcpChanndelAddEvt(MrcpOverlapped *olap)
+	ProcUniMrcp::onMrcpChanndelAddEvt(MrcpOverlapped *olap)
 	{
 		FUNCTRACKER;
 
@@ -802,7 +802,7 @@ namespace ivrworx
 	}
 
 	void
-	ProcMrcp::FinalizeSessionContext(MrcpSessionCtxPtr ctx)
+	ProcUniMrcp::FinalizeSessionContext(MrcpSessionCtxPtr ctx)
 	{
 		
 		FUNCTRACKER;
@@ -816,7 +816,7 @@ namespace ivrworx
 	}
 
 	ApiErrorCode
-	ProcMrcp::Init()
+	ProcUniMrcp::Init()
 	{
 		
 		/* APR global initialization */
@@ -945,7 +945,7 @@ error:
 
 	
 	void
-	ProcMrcp::Destroy(void)
+	ProcUniMrcp::Destroy(void)
 	{
 		
 		_mrcpCtxMap.clear();
@@ -974,7 +974,7 @@ error:
 	}
 
 	
-	ProcMrcp::~ProcMrcp(void)
+	ProcUniMrcp::~ProcUniMrcp(void)
 	{
 		FUNCTRACKER;
 	}

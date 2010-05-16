@@ -1,5 +1,5 @@
 #pragma once
-#include "MrcpSession.h"
+#include "UniMrcpSession.h"
 
 namespace ivrworx
 {
@@ -58,14 +58,14 @@ namespace ivrworx
 		mrcp_message_t *message;
 	};
 
-	class ProcMrcp : 
+	class ProcUniMrcp : 
 		public LightweightProcess
 	{
 	public:
 
-		ProcMrcp(IN LpHandlePair pair, IN Configuration &conf);
+		ProcUniMrcp(IN LpHandlePair pair, IN Configuration &conf);
 
-		virtual ~ProcMrcp(void);
+		virtual ~ProcUniMrcp(void);
 
 		void real_run();	
 

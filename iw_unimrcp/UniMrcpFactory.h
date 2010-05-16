@@ -19,21 +19,21 @@
 
 #pragma once
 
-#include "MrcpSession.h"
+#include "UniMrcpSession.h"
 
 namespace ivrworx
 {
-	class MrcpFactory:
+	class UniMrcpFactory:
 		public IProcFactory
 	{
 	public:
-		MrcpFactory(void);
+		UniMrcpFactory(void);
 
 		LightweightProcess *Create(LpHandlePair pair, Configuration &conf);
 
 		static MrcpSessionPtr CreateMrcpSession();
 
-		virtual ~MrcpFactory(void);
+		virtual ~UniMrcpFactory(void);
 	};
 
 }

@@ -18,8 +18,8 @@
 */
 
 #include "StdAfx.h"
-#include "ProcMrcp.h"
-#include "MrcpSession.h"
+#include "ProcUniMrcp.h"
+#include "UniMrcpSession.h"
 #include "Mrcp.h"
 
 
