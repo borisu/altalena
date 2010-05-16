@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="iw_h323"
+	Name="iw_opalh323"
 	ProjectGUID="{2902EA58-12A7-4964-AA43-7976CDC2D4C0}"
 	RootNamespace="iw_h323"
 	Keyword="Win32Proj"
