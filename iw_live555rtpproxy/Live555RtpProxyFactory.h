@@ -5,13 +5,13 @@ namespace  ivrworx
 {
 
 
-class RtpProxyFactory:
+class Live555RtpProxyFactory:
 	public IProcFactory
 {
 public:
-	RtpProxyFactory(void);
+	Live555RtpProxyFactory(void);
 	LightweightProcess *Create(LpHandlePair pair, Configuration &conf);
-	virtual ~RtpProxyFactory(void);
+	virtual ~Live555RtpProxyFactory(void);
 };
 
 }
