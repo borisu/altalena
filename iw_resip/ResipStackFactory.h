@@ -21,18 +21,18 @@
 
 #include "Configuration.h"
 #include "LightweightProcess.h"
-#include "SipCall.h"
+#include "ResipCall.h"
 
 // wrapper class to hide dependencies
 
 namespace ivrworx
 {
-	class SipStackFactory :
+	class ResipStackFactory :
 		public IProcFactory
 	{
 	public:
-		SipStackFactory(void);
-		virtual ~SipStackFactory(void);
+		ResipStackFactory(void);
+		virtual ~ResipStackFactory(void);
 
 		LightweightProcess *Create(
 			IN LpHandlePair stack_pair, 

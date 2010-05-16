@@ -23,7 +23,7 @@
 #include "LightweightProcess.h"
 #include "UASDialogUsageManager.h"
 #include "UACDialogUsageManager.h"
-#include "SipCall.h"
+#include "ResipCall.h"
 #include "Logger.h"
 
 
@@ -57,7 +57,7 @@ namespace ivrworx
 	DialogUsageManager(sipStack){};
 	public:
 		friend class ResipInterruptor;
-		friend class ProcSipStack;
+		friend class ProcResipStack;
 
 		virtual ~IwDialogUsageManager(){};
 	};
@@ -94,17 +94,17 @@ namespace ivrworx
 	typedef
 	shared_ptr<ResipInterruptor> ResipInterruptorPtr;
 
-	class ProcSipStack : 
+	class ProcResipStack : 
 		public LightweightProcess, 
 		public SipSessionHandlerAdapter
 	{
 	public:
 
-		ProcSipStack(
+		ProcResipStack(
 			IN LpHandlePair pair, 
 			IN Configuration &conf);
 
-		virtual ~ProcSipStack(void);
+		virtual ~ProcResipStack(void);
 
 		virtual void SetResipLogLevel();
 

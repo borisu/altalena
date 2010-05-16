@@ -1,19 +1,19 @@
 #pragma once
-#include "SipCall.h"
+#include "ResipCall.h"
 
 using namespace std;
 
 namespace ivrworx
 {
 	
-	class MscmlCall:
-		public SipMediaCall
+	class ResipMscmlCall:
+		public ResipMediaCall
 	{
 	public:
 
-		MscmlCall(IN ScopedForking &forking, IN HandleId handle_id);
+		ResipMscmlCall(IN ScopedForking &forking, IN HandleId handle_id);
 
-		virtual ~MscmlCall(void);
+		virtual ~ResipMscmlCall(void);
 
 		virtual ApiErrorCode MakeCall(
 			IN const string &destination_uri, 
@@ -28,7 +28,7 @@ namespace ivrworx
 
 	};
 
-	typedef shared_ptr<MscmlCall>
+	typedef shared_ptr<ResipMscmlCall>
 	MscmlCallPtr;
 
 }

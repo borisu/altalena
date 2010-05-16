@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="iw_sip"
+	Name="iw_resip"
 	ProjectGUID="{50528028-6320-4171-A2FE-E50B79954E70}"
 	RootNamespace="CCU2"
 	Keyword="Win32Proj"
@@ -373,23 +373,23 @@
 			>
 		</File>
 		<File
-			RelativePath=".\MscmlCall.cpp"
+			RelativePath=".\ProcResipStack.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\MscmlCall.h"
-			>
-		</File>
-		<File
-			RelativePath=".\ProcSipStack.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\ProcSipStack.h"
+			RelativePath=".\ProcResipStack.h"
 			>
 		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
+			>
+		</File>
+		<File
+			RelativePath=".\ResipCall.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\ResipCall.h"
 			>
 		</File>
 		<File
@@ -401,27 +401,27 @@
 			>
 		</File>
 		<File
+			RelativePath=".\ResipMscmlCall.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\ResipMscmlCall.h"
+			>
+		</File>
+		<File
+			RelativePath=".\ResipStackFactory.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\ResipStackFactory.h"
+			>
+		</File>
+		<File
 			RelativePath=".\resource.h"
 			>
 		</File>
 		<File
-			RelativePath=".\SipCall.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\SipCall.h"
-			>
-		</File>
-		<File
 			RelativePath=".\SipSessionHandlerAdapter.h"
-			>
-		</File>
-		<File
-			RelativePath=".\SipStackFactory.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\SipStackFactory.h"
 			>
 		</File>
 		<File

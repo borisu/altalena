@@ -18,7 +18,7 @@
 */
 
 #include "StdAfx.h"
-#include "ProcSipStack.h"
+#include "ProcResipStack.h"
 #include "UASAppDialogSetFactory.h"
 #include "UASDialogUsageManager.h"
 
@@ -86,7 +86,7 @@ namespace ivrworx
 
 	}
 
-	ProcSipStack::ProcSipStack(IN LpHandlePair pair, 
+	ProcResipStack::ProcResipStack(IN LpHandlePair pair, 
 		IN Configuration &conf):
 		LightweightProcess(pair,"SipStack"),
 		_shutDownFlag(false),
@@ -114,7 +114,7 @@ namespace ivrworx
 	map<string,Log::Level> LogLevelMap;
 
 	void
-	ProcSipStack::SetResipLogLevel()
+	ProcResipStack::SetResipLogLevel()
 	{
 		LogLevelMap levelsMap;
 		levelsMap["OFF"] = Log::None;
@@ -184,7 +184,7 @@ namespace ivrworx
 	}
 
 
-	ProcSipStack::~ProcSipStack(void)
+	ProcResipStack::~ProcResipStack(void)
 	{
 		FUNCTRACKER;
 		
@@ -192,7 +192,7 @@ namespace ivrworx
 
 
 	ApiErrorCode
-	ProcSipStack::Init()
+	ProcResipStack::Init()
 	{
 		FUNCTRACKER;
 
@@ -321,16 +321,16 @@ namespace ivrworx
 	}
 
 	void 
-	ProcSipStack::onSessionExpired(IN InviteSessionHandle is)
+	ProcResipStack::onSessionExpired(IN InviteSessionHandle is)
 	{
 		FUNCTRACKER;
 
-		LogWarn("ProcSipStack::onSessionExpired - rsh:" << is.getId());
+		LogWarn("ProcResipStack::onSessionExpired - rsh:" << is.getId());
 		ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
 		if (iter != _resipHandlesMap.end())
 		{
 			SipDialogContextPtr ctx = (*iter).second;
-			LogDebug("ProcSipStack::onSessionExpired rsh:" << is.getId() << ", iwh:" << ctx->stack_handle);
+			LogDebug("ProcResipStack::onSessionExpired rsh:" << is.getId() << ", iwh:" << ctx->stack_handle);
 			FinalizeContext(ctx);
 		} 
 
@@ -338,7 +338,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcSipStack::UponInfoReq(IwMessagePtr req)
+	ProcResipStack::UponInfoReq(IwMessagePtr req)
 	{
 		FUNCTRACKER;
 
@@ -347,7 +347,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcSipStack::UponBlindXferReq(IwMessagePtr req)
+	ProcResipStack::UponBlindXferReq(IwMessagePtr req)
 	{
 		FUNCTRACKER;
 
@@ -356,7 +356,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcSipStack::UponHangupCallReq(IwMessagePtr ptr)
+	ProcResipStack::UponHangupCallReq(IwMessagePtr ptr)
 	{
 		FUNCTRACKER;
 
@@ -366,7 +366,7 @@ namespace ivrworx
 	}
 
 	void
-	ProcSipStack::ShutdownStack()
+	ProcResipStack::ShutdownStack()
 	{
 		FUNCTRACKER;
 
@@ -385,14 +385,14 @@ namespace ivrworx
 	}
 
 	void
-	ProcSipStack::UponShutDownReq(IwMessagePtr req)
+	ProcResipStack::UponShutDownReq(IwMessagePtr req)
 	{
 		FUNCTRACKER;
 
 	}
 
 	void
-	ProcSipStack::UponCallOfferedAck(IwMessagePtr req)
+	ProcResipStack::UponCallOfferedAck(IwMessagePtr req)
 	{
 		FUNCTRACKER;
 
@@ -401,7 +401,7 @@ namespace ivrworx
 	}
 
 	void
-	ProcSipStack::UponCallOfferedNack(IwMessagePtr req)
+	ProcResipStack::UponCallOfferedNack(IwMessagePtr req)
 	{
 		FUNCTRACKER;
 
@@ -410,7 +410,7 @@ namespace ivrworx
 	}
 
 	void
-	ProcSipStack::UponMakeCallReq(IwMessagePtr req)
+	ProcResipStack::UponMakeCallReq(IwMessagePtr req)
 	{
 		FUNCTRACKER;
 
@@ -418,7 +418,7 @@ namespace ivrworx
 	}
 
 	void
-	ProcSipStack::UponMakeCallAckReq(IwMessagePtr req)
+	ProcResipStack::UponMakeCallAckReq(IwMessagePtr req)
 	{
 		FUNCTRACKER;
 
@@ -427,7 +427,7 @@ namespace ivrworx
 
 	
 	bool 
-	ProcSipStack::ProcessApplicationMessages()
+	ProcResipStack::ProcessApplicationMessages()
 	{
 
 		FUNCTRACKER;
@@ -505,14 +505,14 @@ namespace ivrworx
 
 
 	void 
-	ProcSipStack::real_run()
+	ProcResipStack::real_run()
 	{
 		FUNCTRACKER;
 
 		ApiErrorCode res = Init();
 		if (IW_FAILURE(res))
 		{
-			LogCrit("ProcSipStack::real_run - Cannot start sip stack res:" << res);
+			LogCrit("ProcResipStack::real_run - Cannot start sip stack res:" << res);
 			return;
 		}
 
@@ -550,7 +550,7 @@ namespace ivrworx
 			} 
 			catch (exception &e)
 			{
-				LogWarn("ProcSipStack::real_run exception in stack e:" << e.what());
+				LogWarn("ProcResipStack::real_run exception in stack e:" << e.what());
 				break;
 			} // try-catch
 		} // while
@@ -567,7 +567,7 @@ namespace ivrworx
 	// generic auto answer
 	// generic offer
 	void 
-	ProcSipStack::onOffer(
+	ProcResipStack::onOffer(
 		InviteSessionHandle h, 
 		const SipMessage& msg, 
 		const Contents& body)
@@ -578,7 +578,7 @@ namespace ivrworx
 
 	// generic answer 
 	void 
-	ProcSipStack::onAnswer(
+	ProcResipStack::onAnswer(
 		InviteSessionHandle h, 
 		const SipMessage& msg, 
 		const Contents& body)
@@ -593,7 +593,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcSipStack::onEarlyMedia(
+	ProcResipStack::onEarlyMedia(
 		ClientInviteSessionHandle h, 
 		const SipMessage& msg, 
 		const Contents& body)
@@ -604,7 +604,7 @@ namespace ivrworx
 
 	// generic 
 	void 
-	ProcSipStack::onRemoteAnswerChanged(
+	ProcResipStack::onRemoteAnswerChanged(
 		InviteSessionHandle h, 
 		const SipMessage& msg, 
 		const Contents& body)
@@ -615,7 +615,7 @@ namespace ivrworx
 
 
 	void 
-	ProcSipStack::onNewSession(
+	ProcResipStack::onNewSession(
 		IN ClientInviteSessionHandle s, 
 		IN InviteSession::OfferAnswerType oat, 
 		IN const SipMessage& msg)
@@ -625,7 +625,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcSipStack::onConnected(
+	ProcResipStack::onConnected(
 		IN ClientInviteSessionHandle is, 
 		IN const SipMessage& msg)
 	{
@@ -635,7 +635,7 @@ namespace ivrworx
 
 
 	void 
-	ProcSipStack::onNewSession(
+	ProcResipStack::onNewSession(
 		IN ServerInviteSessionHandle sis, 
 		IN InviteSession::OfferAnswerType oat, 
 		IN const SipMessage& msg)
@@ -645,7 +645,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcSipStack::onFailure(IN ClientInviteSessionHandle is, IN const SipMessage& msg)
+	ProcResipStack::onFailure(IN ClientInviteSessionHandle is, IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
 		_dumUac.onFailure(is,msg);
@@ -653,7 +653,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcSipStack::onOffer(
+	ProcResipStack::onOffer(
 		IN InviteSessionHandle is, 
 		IN const SipMessage& msg, 
 		IN const SdpContents& sdp)
@@ -669,7 +669,7 @@ namespace ivrworx
 
 	/// called when ACK (with out an answer) is received for initial invite (UAS)
 	void 
-	ProcSipStack::onConnectedConfirmed( 
+	ProcResipStack::onConnectedConfirmed( 
 		IN InviteSessionHandle is, 
 		IN const SipMessage &msg)
 	{
@@ -679,7 +679,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcSipStack::onReceivedRequest(
+	ProcResipStack::onReceivedRequest(
 		IN ServerOutOfDialogReqHandle ood, 
 		IN const SipMessage& request)
 	{
@@ -688,7 +688,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcSipStack::FinalizeContext(SipDialogContextPtr ctx_ptr)
+	ProcResipStack::FinalizeContext(SipDialogContextPtr ctx_ptr)
 	{
 		FUNCTRACKER;
 		
@@ -709,7 +709,7 @@ namespace ivrworx
 	}
 
 	void 
-	ProcSipStack::onTerminated(
+	ProcResipStack::onTerminated(
 		IN InviteSessionHandle is, 
 		IN InviteSessionHandler::TerminatedReason reason, 
 		IN const SipMessage* msg)
@@ -718,25 +718,25 @@ namespace ivrworx
 		FUNCTRACKER;
 
 		// this logic is not UAS/UAC specific
-		LogDebug("ProcSipStack::onTerminated rsh:" << is.getId());
+		LogDebug("ProcResipStack::onTerminated rsh:" << is.getId());
 	
 		ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
 		if (iter != _resipHandlesMap.end())
 		{
 			SipDialogContextPtr ctx = (*iter).second;
-			LogDebug("ProcSipStack::onTerminated rsh:" << is.getId() << ", iwh:" << ctx->stack_handle);
+			LogDebug("ProcResipStack::onTerminated rsh:" << is.getId() << ", iwh:" << ctx->stack_handle);
 			FinalizeContext(ctx);
 		} 
 	}
 
 	void 
-	ProcSipStack::onInfo(
+	ProcResipStack::onInfo(
 		IN InviteSessionHandle is, 
 		IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
 
-		LogDebug("ProcSipStack::onInfo rsh:" << is.getId());
+		LogDebug("ProcResipStack::onInfo rsh:" << is.getId());
 
 		IwStackHandle ixhandle = IW_UNDEFINED;
 		ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
