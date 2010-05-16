@@ -63,18 +63,16 @@ namespace ivrworx
 			START_FORKING_REGION;
 
 			TelephonyProviderRepository tpr;
-			tpr.SetMediaCallProvider(IMediaCallProviderPtr(new ResiprocateProvider()));
-			tpr.SetMediaCallProvider(IMediaCallProviderPtr(new OpalProvider()));
-
 
 			FactoryPtrList factories_list = 
 				list_of
-				(ProcFactoryPtr(new RtpProxyFactory	()))
+				(ProcFactoryPtr(new Live555RtpProxyFactory	()))
+				(ProcFactoryPtr(new ResipStackFactory ()))
 				(ProcFactoryPtr(new SqlFactory		()))
-				(ProcFactoryPtr(new ImsFactory		()))
-				(ProcFactoryPtr(new MrcpFactory		()))
-				(ProcFactoryPtr(new IvrFactory		()))
-				(ProcFactoryPtr(new OpalFactory		()));
+				(ProcFactoryPtr(new M2ImsFactory		()))
+				(ProcFactoryPtr(new UniMrcpFactory		()))
+				(ProcFactoryPtr(new OpalFactory		()))
+				(ProcFactoryPtr(new IvrFactory		()));
 
 
 			if (factories_list.size() == 0)

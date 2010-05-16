@@ -44,7 +44,7 @@
 				AdditionalOptions="-Zm120"
 				Optimization="0"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories="..\iw_rtsp;..\iw_core;..\iw_telephony;..\iw_ims;..\iw_ivr;..\iw_mrcp;..\iw_sql;..\iw_rtpproxy;..\iw_sip;&quot;..\sqlite-amalgamation-3_6_17&quot;;..\iw_h323"
+				AdditionalIncludeDirectories="..\iw_live555rtsp;..\iw_core;..\iw_telephony;..\iw_m2ims;..\iw_ivr;..\iw_unimrcp;..\iw_sqlite;..\iw_live555rtpproxy;..\iw_resip;&quot;..\sqlite-amalgamation-3_6_17&quot;;..\iw_opalh323"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
