@@ -36,6 +36,9 @@ namespace ivrworx
 
 		virtual void real_run();
 
+		virtual void Init(
+			IN const HandlesVector &stackOutboundHandles);
+
 		virtual ~ProcIvr(void);
 
 	protected:
@@ -60,7 +63,7 @@ namespace ivrworx
 
 	private:
 
-		LpHandlePair _stackPair;
+		HandlesVector _stackOutboundHandles;
 
 		CnxInfo _sipStackData;
 
@@ -73,6 +76,8 @@ namespace ivrworx
 		size_t _scriptSize;
 
 		BOOL _waitingForSuperCompletion;
+
+		
 
 	};
 

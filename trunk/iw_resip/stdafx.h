@@ -21,9 +21,7 @@
 #include "Message.h"
 #include "LpHandle.h"
 #include "ActiveObject.h"
-
-#include "TelephonyProvider.h"
-#include "MediaCallSession.h"
+#include "SipCall.h"
 
 
 #include <ws2tcpip.h>

@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\iw_core;..\live555\live\UsageEnvironment\include;..\live555\live\BasicUsageEnvironment\include;..\live555\live\groupsock\include;..\live555\live\liveMedia\include;..\iw_live555rtpproxy"
+				AdditionalIncludeDirectories="..\iw_core;..\live555\live\UsageEnvironment\include;..\live555\live\BasicUsageEnvironment\include;..\live555\live\groupsock\include;..\live555\live\liveMedia\include;..\iw_live555rtpproxy;..\iw_telephony"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

@@ -20,7 +20,6 @@
 #include "StdAfx.h"
 #include "UniMrcpFactory.h"
 #include "ProcUniMrcp.h"
-#include "UniMrcpSession.h"
 
 namespace ivrworx
 {

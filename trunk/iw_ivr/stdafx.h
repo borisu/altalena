@@ -32,12 +32,22 @@
 #include "Logger.h"
 #include "Profiler.h"
 #include "LightweightProcess.h"
+#include "LocalProcessRegistrar.h"
+#include "ActiveObject.h"
 #include "Configuration.h"
+#include "MediaCallSession.h"
+#include "StreamingSession.h"
 #include "SipCall.h"
-#include "M2ImsSession.h"
+#include "MscmlCall.h"
+#include "RtpProxySession.h"
+#include "MrcpSession.h"
+
+
+ // ("MUST REDUCE EXPLICIT PROVIDER DEPENDENCIES")
+
+
 #include "SqliteSession.h"
-#include "Live555RtpProxySession.h"
-#include "UniMrcpSession.h"
+#include "RtspSession.h"
 #include "Live555RtspSession.h"
 
 

@@ -385,27 +385,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\ResipCall.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\ResipCall.h"
-			>
-		</File>
-		<File
 			RelativePath=".\ResipCommon.cpp"
 			>
 		</File>
 		<File
 			RelativePath=".\ResipCommon.h"
-			>
-		</File>
-		<File
-			RelativePath=".\ResipMscmlCall.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\ResipMscmlCall.h"
 			>
 		</File>
 		<File

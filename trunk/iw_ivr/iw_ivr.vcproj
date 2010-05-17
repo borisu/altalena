@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\iw_core;..\iw_unimrcp;..\iw_m2ims;..\iw_resip;..\iw_sqlite;..\lua5.1\include;..\iw_live555rtsp;..\iw_live555rtpproxy;..\luasqlite;&quot;..\sqlite-amalgamation-3_6_17&quot;"
+				AdditionalIncludeDirectories="..\iw_core;..\iw_telephony;..\iw_live555rtsp;..\iw_sqlite;&quot;..\sqlite-amalgamation-3_6_17&quot;;..\lua5.1\include;..\luasql"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

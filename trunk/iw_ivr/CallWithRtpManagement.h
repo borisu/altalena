@@ -21,23 +21,24 @@
 
 namespace ivrworx
 {
-	class CallWithRtpManagement :
-		public ResipMediaCall
+	class CallWithRtpManagement 
 	{
-		
-
 	public:
 
 		CallWithRtpManagement(
 			IN Configuration &conf,
-			IN ScopedForking &forking);
+			IN ScopedForking &forking,
+			IN MediaCallSessionPtr media_session);
 
 		CallWithRtpManagement(
 			IN Configuration &conf,
 			IN ScopedForking &forking,
+			IN MediaCallSessionPtr media_session,
 			IN shared_ptr<MsgCallOfferedReq> offered_msg);
 
 		virtual ~CallWithRtpManagement(void);
+
+		virtual ApiErrorCode Init();
 
 		virtual ApiErrorCode AcceptInitialOffer();
 
@@ -59,8 +60,26 @@ namespace ivrworx
 
 		virtual ApiErrorCode RtspTearDown();
 
-		
+		virtual int	StackCallHandle() const;
 
+		virtual ApiErrorCode BlindXfer(IN const string &destination_uri);
+
+		virtual ApiErrorCode WaitForDtmf(OUT string &signal, IN const Time timeout);
+
+		virtual void WaitTillHangup();
+
+		virtual const string& Dnis();
+
+		virtual const string& Ani();
+
+		virtual ApiErrorCode HangupCall();
+
+		virtual void CleanDtmfBuffer();
+
+		virtual const MediaFormat& AcceptedSpeechCodec();
+
+		virtual ApiErrorCode SendInfo(const string &body, const string &type);
+	
 	protected:
 
 		virtual void UponCallTerminated(IwMessagePtr ptr);
@@ -69,32 +88,34 @@ namespace ivrworx
 
 		Configuration &_conf;
 
-		RtpProxySession _callerRtpSession;
+		shared_ptr<RtpProxySession> _callerRtpSession;
 
 		// 
-		// rtsp
+		// live555rtsp
 		//
-		BOOL			_rtspEnabled;
-		RtspSession		_rtspSession;
-		RtpProxySession _rtspRtpSession;
+		BOOL								_rtspEnabled;
+		shared_ptr<Live555RtspSession>		_rtspSession;
+		shared_ptr<RtpProxySession>			_rtspRtpSession;
 
 
 		//
-		// ims
+		// m2ims
 		//
-		BOOL			_imsEnabled;
-		ImsSession		_imsSession;
-		RtpProxySession _imsRtpSession;
+		BOOL							_imsEnabled;
+		shared_ptr<StreamingSession>	_imsSession;
+		shared_ptr<RtpProxySession>		_imsRtpSession;
 
 		//
-		// mrcp
+		// unimrcp
 		//
-		BOOL			_mrcpEnabled;
-		MrcpSession		_mrcpSession;
-		RtpProxySession _mrcpRtpSession;
+		BOOL							_mrcpEnabled;
+		shared_ptr<MrcpSession>			_mrcpSession;
+		shared_ptr<RtpProxySession>		_mrcpRtpSession;
 
 	
-		shared_ptr<MsgCallOfferedReq> _origOffereReq;
+		shared_ptr<MsgCallOfferedReq>		_origOffereReq;
+
+		MediaCallSessionPtr					_callerMediaCall;
 
 		csp::Time _ringTimeout;
 

@@ -155,10 +155,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\OpalH323Call.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ProcOpalH323.cpp"
 				>
 			</File>
@@ -190,10 +186,6 @@
 			>
 			<File
 				RelativePath=".\OpalFactory.h"
-				>
-			</File>
-			<File
-				RelativePath=".\OpalH323Call.h"
 				>
 			</File>
 			<File
