@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include "UniMrcpSession.h"
-
 namespace ivrworx
 {
 	class UniMrcpFactory:
@@ -30,8 +28,6 @@ namespace ivrworx
 		UniMrcpFactory(void);
 
 		LightweightProcess *Create(LpHandlePair pair, Configuration &conf);
-
-		static MrcpSessionPtr CreateMrcpSession();
 
 		virtual ~UniMrcpFactory(void);
 	};

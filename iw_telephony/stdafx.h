@@ -22,3 +22,4 @@
 #include "Message.h"
 #include "LpHandle.h"
 #include "ActiveObject.h"
+#include "LocalProcessRegistrar.h"

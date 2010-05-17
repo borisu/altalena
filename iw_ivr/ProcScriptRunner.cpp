@@ -297,71 +297,72 @@ exit:
 
 	void enable_configured_media_formats(Configuration &conf, CallWithRtpManagementPtr call_ptr)
 	{
-		ListOfAny codecs_list;
-		conf.GetArray("codecs",codecs_list);
-
-		for (ListOfAny::iterator conf_iter = codecs_list.begin(); 
-			conf_iter != codecs_list.end(); 
-			conf_iter++)
-		{
-
-			string conf_codec_name =  any_cast<string>(*conf_iter);
-			MediaFormat media_format = MediaFormat::GetMediaFormat(conf_codec_name);
-
-
-			call_ptr->EnableMediaFormat(media_format);
-		}
+// 		ListOfAny codecs_list;
+// 		conf.GetArray("codecs",codecs_list);
+// 
+// 		for (ListOfAny::iterator conf_iter = codecs_list.begin(); 
+// 			conf_iter != codecs_list.end(); 
+// 			conf_iter++)
+// 		{
+// 
+// 			string conf_codec_name =  any_cast<string>(*conf_iter);
+// 			MediaFormat media_format = MediaFormat::GetMediaFormat(conf_codec_name);
+// 
+// 
+// 			call_ptr->EnableMediaFormat(media_format);
+// 		}
 
 	}
 
 	
 
 	int
-	ProcScriptRunner::LuaCreateCall(lua_State *state)
+	ProcScriptRunner::LuaCreateSession(lua_State *L)
 	{
 		FUNCTRACKER;
 
+		ApiErrorCode result = API_WRONG_PARAMETER;
+
+		if (lua_isstring(L, -1) != 1 ) 
+		{ 
+			lua_pushnumber (L, result); 
+			return 1;
+		};
+
+		string protocol = 
+			lua_tostring(L,-1);
+
 		
 		ProcScriptRunner *runner = 
-			GetScriptRunner(state);
+			GetScriptRunner(L);
 
 		if (runner == NULL || runner->_forking == NULL)
 		{
-			LogWarn("ProcScriptRunner::LuaCreateCall - Cannot find object1");
+			LogWarn("ProcScriptRunner::LuaCreateSession - Cannot find object1");
 			return 0;
 		}
-
-		CallWithRtpManagementPtr call_ptr 
-			(new CallWithRtpManagement(runner->_conf, *runner->_forking));
-
-		enable_configured_media_formats(runner->_conf,call_ptr);
 
 		
-		Luna<CallBridge>::PushObject(state,new CallBridge(call_ptr));
+// 		CallWithRtpManagementPtr call_ptr 
+// 			(new CallWithRtpManagement(runner->_conf, *runner->_forking));
+// 
+// 		enable_configured_media_formats(runner->_conf,call_ptr);
+// 
+// 		
+// 		Luna<CallBridge>::PushObject(state,new CallBridge(call_ptr));
 
-		return 1;
-	}
-
-
-	int
-	ProcScriptRunner::LuaCreateMscmlCall(lua_State *state)
-	{
-		FUNCTRACKER;
-
-
-		ProcScriptRunner *runner = 
-			GetScriptRunner(state);
-
-		if (runner == NULL || runner->_forking == NULL)
+		if (protocol == "mscml")
 		{
-			LogWarn("ProcScriptRunner::LuaCreateMscmlCall - Cannot find object1");
-			return 0;
+			
+			MscmlCallPtr call_ptr 
+				(new MscmlCall(*runner->_forking));
+
+			Luna<MscmlCallBridge>::PushObject(L,new MscmlCallBridge(call_ptr));
+
+			result = API_SUCCESS;
+
 		}
 
-		MscmlCallPtr call_ptr 
-			(new ResipMscmlCall(*runner->_forking));
-
-		Luna<MscmlCallBridge>::PushObject(state,new MscmlCallBridge(call_ptr));
 
 		return 1;
 	}
@@ -440,8 +441,7 @@ exit:
 			ivrworx_table.AddParam(NAME(API_FEATURE_DISABLED),API_FEATURE_DISABLED);
 			ivrworx_table.AddFunction("sleep",ProcScriptRunner::LuaWait);
 			ivrworx_table.AddFunction("run",ProcScriptRunner::LuaRunLongOperation);
-			ivrworx_table.AddFunction("createcall",ProcScriptRunner::LuaCreateCall);
-			ivrworx_table.AddFunction("createmscmlcall",ProcScriptRunner::LuaCreateMscmlCall);
+			ivrworx_table.AddFunction("createsession",ProcScriptRunner::LuaCreateSession);
 			ivrworx_table.AddFunction("spawn",ProcScriptRunner::LuaSpawn);
 
 
@@ -500,10 +500,12 @@ exit:
 				_stackHandle = _initialMsg->stack_call_handle;
 
 
+				
 				CallWithRtpManagementPtr call_ptr(
 					new CallWithRtpManagement(
 					_conf,
 					forking,
+					MediaCallSessionPtr(), // temporary!!!!
 					_initialMsg));
 
 				enable_configured_media_formats(_conf,call_ptr);

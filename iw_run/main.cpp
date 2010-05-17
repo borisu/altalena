@@ -50,6 +50,10 @@ namespace ivrworx
 		typedef list<LpHandlePair>
 		HandlePairList;
 
+		HandlePairList proc_handlepairs;
+
+		HandlesVector selected_handles;
+
 	public:
 		ProcSystemStarter(LpHandlePair pair,Configuration &conf)
 			:LightweightProcess(pair,"ProcSystemStarter"),
@@ -61,8 +65,6 @@ namespace ivrworx
 		void real_run()
 		{
 			START_FORKING_REGION;
-
-			TelephonyProviderRepository tpr;
 
 			FactoryPtrList factories_list = 
 				list_of
@@ -86,6 +88,7 @@ namespace ivrworx
 
 			HandlesVector selected_handles;
 			selected_handles.push_back(_inbound);
+
 
 			BOOL all_booted = TRUE;
 			for (FactoryPtrList::iterator i = factories_list.begin(); 

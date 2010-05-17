@@ -210,7 +210,8 @@ GetHandle(IN int handle_id)
 	return LocalProcessRegistrar::Instance().GetHandle(handle_id);
 }
 
-LpHandlePtr GetHandle(IN const string &service_regex)
+LpHandlePtr 
+GetHandle(IN const string &service_regex)
 {
 	return LocalProcessRegistrar::Instance().GetHandle(service_regex);
 }

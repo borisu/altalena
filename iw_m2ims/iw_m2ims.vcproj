@@ -285,10 +285,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\M2StreamingSession.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ProcM2Ims.cpp"
 				>
 			</File>
@@ -336,10 +332,6 @@
 			>
 			<File
 				RelativePath=".\M2ImsFactory.h"
-				>
-			</File>
-			<File
-				RelativePath=".\M2StreamingSession.h"
 				>
 			</File>
 			<File

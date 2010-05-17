@@ -414,7 +414,7 @@ namespace ivrworx
 
 		LogDebug("CallBridge::rtspplay iwh:" << _call->StackCallHandle() << "start:" << start_time << ", end:" << duration << ", scale:" << scale );
 
-		ApiErrorCode res = _call->RtspPlay(start_time,duration,scale);
+		ApiErrorCode res = _call->RtspPlay(start_time,duration, (float)scale);
 		lua_pushnumber (L, res);
 
 		return 1;

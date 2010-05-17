@@ -20,7 +20,7 @@
 #include "StdAfx.h"
 #include "OpalFactory.h"
 #include "ProcOpalH323.h"
-#include "OpalH323Call.h"
+
 
 namespace ivrworx
 {

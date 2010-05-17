@@ -22,7 +22,6 @@
 #include "LocalProcessRegistrar.h"
 #include "MediaCallSession.h"
 #include "Profiler.h"
-#include "TelephonyProvider.h"
 
 
 #pragma warning( push )

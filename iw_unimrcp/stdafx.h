@@ -20,6 +20,8 @@
 #include "LightweightProcess.h"
 #include "LocalProcessRegistrar.h"
 #include "Profiler.h"
+#include "Telephony.h"
+#include "MrcpSession.h"
 
 
 #include "mrcp.h"

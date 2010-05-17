@@ -21,7 +21,7 @@
 
 #include "Configuration.h"
 #include "LightweightProcess.h"
-#include "ResipCall.h"
+
 
 // wrapper class to hide dependencies
 

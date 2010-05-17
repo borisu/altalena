@@ -23,7 +23,6 @@
 #include "LightweightProcess.h"
 #include "UASDialogUsageManager.h"
 #include "UACDialogUsageManager.h"
-#include "ResipCall.h"
 #include "Logger.h"
 
 

@@ -24,6 +24,10 @@
 namespace ivrworx
 {
 	
+	ResipStackFactory::ResipStackFactory(void)
+	{
+	}
+
 	ResipStackFactory::~ResipStackFactory(void)
 	{
 	}

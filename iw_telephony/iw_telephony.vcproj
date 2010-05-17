@@ -178,6 +178,54 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="rtsp"
+			>
+			<File
+				RelativePath=".\RtspSession.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\RtspSession.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="sip"
+			>
+			<File
+				RelativePath=".\MscmlCall.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MscmlCall.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SipCall.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SipCall.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="h323"
+			>
+		</Filter>
+		<Filter
+			Name="mrcp"
+			>
+			<File
+				RelativePath=".\MrcpSession.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MrcpSession.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>
@@ -207,11 +255,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\TelephonyProvider.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\TelephonyProvider.h"
+			RelativePath=".\Telephony.h"
 			>
 		</File>
 	</Files>

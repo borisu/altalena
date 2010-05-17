@@ -57,6 +57,12 @@ ProcIvr::~ProcIvr(void)
 }
 
 void
+ProcIvr::Init(IN const HandlesVector &stackOutboundHandles)
+{
+	_stackOutboundHandles = stackOutboundHandles;
+}
+
+void
 ProcIvr::real_run()
 {
 
@@ -84,7 +90,8 @@ ProcIvr::real_run()
 		if (super_script.empty() != false)
 		{
 			res = 
-				LuaUtils::Precompile(super_script,&_precompiledBuffer_Super, &_superSize);
+			LuaUtils::Precompile(super_script,&_precompiledBuffer_Super, &_superSize);
+
 			if (IW_FAILURE(res))
 			{
 				LogCrit("ProcIvr::real_run - Cannot precompile super script file res:" << res);
@@ -93,9 +100,8 @@ ProcIvr::real_run()
 		}//if super exists
 	}// if precompilation needed
 
-	START_FORKING_REGION;
-
 	
+	START_FORKING_REGION;
 
 	LogInfo("Ivr process started successfully");
 	I_AM_READY;
@@ -136,13 +142,13 @@ ProcIvr::real_run()
 
 	if (_conf.GetBool("ivr_enabled") == FALSE)
 	{
-		Shutdown(Seconds(5),stack_pair);
 		LogInfo("ivr_enabled:false... exiting");
 		return;
 	}
 	
 
-	HandlesVector list = list_of(stack_pair.outbound)(_inbound)(spawn_handle.outbound);
+	HandlesVector list = list_of(_inbound)(spawn_handle.outbound);
+	list.insert(list.begin(),_stackOutboundHandles.begin(),_stackOutboundHandles.end());
 
 	//
 	// Message Loop
@@ -178,10 +184,24 @@ ProcIvr::real_run()
 			}
 		}
 
-		
 		switch (index)
 		{
 		case 0:
+			{
+				
+				shutdown_flag = ProcessInboundMessage(event, forking);
+				if (shutdown_flag == TRUE)
+				{
+					Shutdown(Time(Seconds(5)),super_script_handle);
+				}
+				break;
+			}
+		case 1:
+			{
+				ProcessSpawnMessage(event, spawn_handle, forking);
+				break;
+			}
+		default:
 			{
 				shutdown_flag = ProcessStackMessage(event, forking);
 				if (shutdown_flag == TRUE)
@@ -189,27 +209,6 @@ ProcIvr::real_run()
 					LogWarn("Sip stack process terminated unexpectedly. Waiting for all calls to finish and exiting Ivr process.");
 				}
 				break;
-			}
-		case 1:
-			{
-				
-				shutdown_flag = ProcessInboundMessage(event, forking);
-				if (shutdown_flag == TRUE)
-				{
-					Shutdown(Time(Seconds(5)),super_script_handle);
-					Shutdown(Time(Seconds(5)),stack_pair);
-				}
-				break;
-			}
-		case 2:
-			{
-				ProcessSpawnMessage(event, spawn_handle, forking);
-				break;
-			}
-		default:
-			{
-				LogCrit("Unknown handle signaled");
-				throw critical_exception("Unknown handle signaled");
 			}
 		}
 
