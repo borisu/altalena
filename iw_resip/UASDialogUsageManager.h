@@ -41,7 +41,6 @@ namespace ivrworx
 			IN Configuration &conf,
 			IN IwHandlesMap &ccu_handles_map,
 			IN ResipDialogHandlesMap &resipHandlesMap,
-			IN LpHandlePtr events_handle,
 			IN DialogUsageManager &dum);
 
 		virtual ~UASDialogUsageManager(void);
@@ -49,6 +48,8 @@ namespace ivrworx
 		virtual void UponCallOfferedAck(IwMessagePtr req);
 
 		virtual void UponCallOfferedNack(IwMessagePtr req);
+
+		virtual void UponSubscribeToIncomingReq(IwMessagePtr req);
 
 		virtual void onNewSession(ServerInviteSessionHandle sis, InviteSession::OfferAnswerType oat, const SipMessage& msg);
 

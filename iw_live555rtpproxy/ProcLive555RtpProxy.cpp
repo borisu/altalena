@@ -129,11 +129,8 @@ _env(NULL),
 _scheduler(NULL),
 _stopChar('\0')
 {
-	static const size_t buf_len = 1024;
-	char buf[buf_len];
-	_snprintf_s(buf,buf_len,"proto=rtpproxy;vendor=live555;uid=%d",_processId);
 
-	ServiceId(buf);
+	ServiceId(_conf.GetString("live555rtpproxy/uri"));
 	
 }
 
@@ -143,16 +140,16 @@ ProcLive555RtpProxy::InitSockets()
 	FUNCTRACKER;
 
 	
-	int base_port	 = _conf.GetInt("rtp_proxy_base_port");
+	int base_port	 = _conf.GetInt("live555rtpproxy/rtp_proxy_base_port");
 	LogDebug("ProcLive555RtpProxy::InitSockets rtp_proxy_base_port=" << base_port);
 
-	int top_port	 = _conf.GetInt("rtp_proxy_top_port");
+	int top_port	 = _conf.GetInt("live555rtpproxy/rtp_proxy_top_port");
 	LogDebug("ProcLive555RtpProxy::InitSockets rtp_proxy_top_port=" << top_port);
 
-	unsigned int num_of_conns = _conf.GetInt("rtp_proxy_num_of_connections");
+	unsigned int num_of_conns = _conf.GetInt("live555rtpproxy/rtp_proxy_num_of_connections");
 	LogDebug("ProcLive555RtpProxy::InitSockets rtp_proxy_num_of_connections=" << num_of_conns);
 
-	string rtp_ip = _conf.GetString("rtp_proxy_ip");
+	string rtp_ip = _conf.GetString("live555rtpproxy/rtp_proxy_ip");
 	LogDebug("ProcLive555RtpProxy::InitSockets rtp_proxy_ip=" << rtp_ip);
 
 	const char * input_address_str = rtp_ip.c_str();

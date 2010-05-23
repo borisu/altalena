@@ -2,62 +2,82 @@
 	
 	"sync_log"  : true,
 	
-	"resip_log" : "",
 	
 	"debug_level"  : "DBG",
 	"debug_outputs" : "debug,console",
 	
 	"syslogd_host" : "127.0.0.1",
 	"syslogd_port" : 515,
-    
-    "ivr_sip_host": "$COMPUTERNAME",
-    "ivr_sip_port": 5060,
-    
-    "precompile" : false,
-    "super_script": "scripts\\super-mscml.lua",
-    "super_mode":   "async",
-    
-    "sip_session_timer_enabled" : true,
-    "sip_refresh_mode" : "prefer_local",
-    "sip_default_session_time" : 360,
-    
-    "ring_timeout" : 20, 
-    
-    "from_id" : "ivrworx",
-    "from_display_name": "ivrworx",
-    
-     
-    "mrcp_enabled": false,
-    "unimrcp_conf_dir": "./unimrcp",
-    "unimrcp_client_profile": "MRCPv2-Default",
-    "unimrcp_log_file": "unimrcpclient",
-    
-    
-    "ims_enabled": false, 
-    "rtsp_enabled": false,
-   
-    
-    "rtp_proxy_base_port" : 6000,
-    "rtp_proxy_top_port" : 7000,
-    "rtp_proxy_num_of_connections" : 100,
-    "rtp_proxy_ip" : "$COMPUTERNAME",
-    
-    "ivr_enabled" : true,
-    "script_file" : "scripts\\test-dev.lua",
-    
-    "sounds_dir" : "sounds",
-    
-    "codecs": [
+	
+	"codecs": [
         "PCMU", 
         "PCMA",
         "SPEEX" 
     ],
     
+    
+    "resip" :  {
+		"resip_log" : "",
+		"uri"	: "sip,resip",
+		"from_id" : "ivrworx",
+		"from_display_name": "ivrworx",
+		"sip_host": "$COMPUTERNAME",
+		"sip_port": 5060,
+		"sip_session_timer_enabled" : true,
+		"sip_refresh_mode" : "prefer_local",
+		"sip_default_session_time" : 360
+    },
+    
+    
+    "unimrcp" :   {
+		"uri" : "mrcp,unimrcp",
+		"unimrcp_conf_dir": "./unimrcp",
+		"unimrcp_client_profile": "MRCPv2-Default",
+		"unimrcp_log_file": "unimrcpclient"
+    },
+    
+    "live555rtpproxy" :  {
+		"uri"	: "rtpproxy,live555",
+		"rtp_proxy_base_port" : 6000,
+		"rtp_proxy_top_port" : 7000,
+		"rtp_proxy_num_of_connections" : 100,
+		"rtp_proxy_ip" : "$COMPUTERNAME"
+    },
+    
+   
+    
+    "m2ims" :  {
+		"uri" : "stream,m2",
+		"sounds_dir" : "sounds"
+    },
+    
+    
     "opal" : {
-     "no-h323"     : "",
-     "t-trace"     : "no-trace",
-     "o-output"    : "no-output",
-     "h323-listen" : "tcp$10.0.0.1:1720",
-     "u"		   : "ivrworx"	
+		 "uri" : "h.323,opal",
+		 "no-h323"      : "",
+		 "t-trace"      : "no-trace",
+		 "o-output"     : "no-output",
+		 "h323-listen"  : "tcp$10.0.0.1:1720",
+		 "u"		    : "ivrworx"	
+    },
+    
+     "ivr" : {
+		"ivr_enabled"  : true,
+		"mrcp_enabled" : false,
+		"ims_enabled"  : false, 
+		"rtsp_enabled" : false,
+		"ring_timeout" : 20, 
+		"script_file"  : "scripts\\test-dev.lua",
+		"precompile"   : false,
+		"super_script" : "scripts\\super-mscml.lua",
+		"super_mode"   : "async",
+		"h323_service" : "h323,opal",
+		"sip_service"  : "sip,resip",
+		"unimrcp_service"  : "mrcp,unimrcp",
+		"rtsp_service"     : "rtsp,live555",
+		"rtpproxy_service" : "rtpproxy,live555"	
     }
+    
+    
+    
 }

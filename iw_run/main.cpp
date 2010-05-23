@@ -69,10 +69,10 @@ namespace ivrworx
 			FactoryPtrList factories_list = 
 				list_of
 				(ProcFactoryPtr(new Live555RtpProxyFactory	()))
-				(ProcFactoryPtr(new ResipStackFactory ()))
+				(ProcFactoryPtr(new ResipStackFactory		()))
 				(ProcFactoryPtr(new SqlFactory		()))
-				(ProcFactoryPtr(new M2ImsFactory		()))
-				(ProcFactoryPtr(new UniMrcpFactory		()))
+				(ProcFactoryPtr(new M2ImsFactory	()))
+				(ProcFactoryPtr(new UniMrcpFactory	()))
 				(ProcFactoryPtr(new OpalFactory		()))
 				(ProcFactoryPtr(new IvrFactory		()));
 
@@ -100,16 +100,29 @@ namespace ivrworx
 				DECLARE_NAMED_HANDLE_PAIR(proc_pair);
 
 				AddShutdownListener(proc_pair,shutdown_handle);
-				LightweightProcess *p = (*i)->Create(proc_pair,_conf);
-				string name = p->Name();
-
-				FORK(p);
-				if (IW_FAILURE(WaitTillReady(MilliSeconds(IW_DEFAULT_BOOT_TIME), proc_pair)))
+				try 
 				{
-					LogCrit("Cannot start proc:" << name);
-					all_booted = FALSE;
-					break;
-				};
+					LightweightProcess *p = (*i)->Create(proc_pair,_conf);
+					string name = p->Name();
+
+					LogInfo("Booting process name:" << name << ", service uri:" << p->ServiceId());
+
+
+					FORK(p);
+					if (IW_FAILURE(WaitTillReady(MilliSeconds(IW_DEFAULT_BOOT_TIME), proc_pair)))
+					{
+						LogCrit("Cannot start proc:" << name);
+						all_booted = FALSE;
+						break;
+					};
+
+				} 
+				catch (exception &e)
+				{
+					LogWarn("Exception during botting one of the processes, what:" << e.what());
+					goto exit;
+				}
+				
 
 				proc_handlepairs.push_back(proc_pair);
 				selected_handles.push_back(shutdown_handle);
@@ -223,9 +236,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		ApiErrorCode err_code = API_SUCCESS;
 		ConfigurationPtr conf = 
 			ConfigurationFactory::CreateJsonConfiguration(WStringToString(conf_file),err_code);
-
-		string s 
-			= conf->GetString(false ? "opal/h323s-listen" : "opal/h323-listen");
 
 		if (IW_FAILURE(err_code))
 		{

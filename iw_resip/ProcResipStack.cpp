@@ -94,11 +94,13 @@ namespace ivrworx
 		_stack(NULL, resip::DnsStub::EmptyNameserverList, &_si),
 		_stackThread(_stack,_si),
 		_dumMngr(_stack),
-		_dumUas(_conf,_iwHandlesMap,_resipHandlesMap,pair.outbound,_dumMngr),
+		_dumUas(_conf,_iwHandlesMap,_resipHandlesMap,_dumMngr),
 		_dumUac(_conf,_iwHandlesMap,_resipHandlesMap,_dumMngr)
 
 	{
 		FUNCTRACKER;
+
+		this->ServiceId(conf.GetString("resip/uri"));
 
 		Log::initialize(Log::OnlyExternal, Log::Debug, NULL, _logger);
 		SetResipLogLevel();
@@ -152,7 +154,7 @@ namespace ivrworx
 		
 
 		resip_conf_separator sep("|");
-		const string &resip_conf = _conf.GetString("resip_log");
+		const string &resip_conf = _conf.GetString("resip/resip_log");
 
 		resip_conf_tokenizer tokens(resip_conf, sep);
 
@@ -203,8 +205,8 @@ namespace ivrworx
 			//
 			// Prepare SIP stack
 			//
-			const string ivr_host_str = _conf.GetString("ivr_sip_host");
-			const int ivr_ip_int	= _conf.GetInt("ivr_sip_port" );
+			const string ivr_host_str = _conf.GetString("resip/sip_host");
+			const int ivr_ip_int	= _conf.GetInt("resip/sip_port" );
 
 
 			CnxInfo ipAddr(
@@ -240,7 +242,7 @@ namespace ivrworx
 			_inbound->HandleInterruptor(_dumInt);
 
 
-			string uasUri = "sip:" + _conf.GetString("from_id") + "@" + ipAddr.ipporttos();
+			string uasUri = "sip:" + _conf.GetString("resip/from_id") + "@" + ipAddr.ipporttos();
 			NameAddr uasAor	(uasUri.c_str());
 
 
@@ -259,7 +261,7 @@ namespace ivrworx
 
 
 
-			if (_conf.GetBool("sip_session_timer_enabled"))
+			if (_conf.GetBool("resip/sip_session_timer_enabled"))
 			{
 // 				auto_ptr<KeepAliveManager> keepAlive(new resip::KeepAliveManager());
 // 				_dumMngr.setKeepAliveManager(keepAlive); 
@@ -273,7 +275,7 @@ namespace ivrworx
 				_confSessionTimerModeMap["prefer_local"]  = Profile::PreferLocalRefreshes;
 				_confSessionTimerModeMap["prefer_remote"] = Profile::PreferRemoteRefreshes;
 
-				ConfSessionTimerModeMap::iterator  i = _confSessionTimerModeMap.find(_conf.GetString("sip_refresh_mode"));
+				ConfSessionTimerModeMap::iterator  i = _confSessionTimerModeMap.find(_conf.GetString("resip/sip_refresh_mode"));
 				if (i == _confSessionTimerModeMap.end())
 				{
 					LogInfo("Setting refresh mode to 'none'");
@@ -283,7 +285,7 @@ namespace ivrworx
 					LogInfo("Setting refresh mode to " << i->first);
 					_dumMngr.getMasterProfile()->setDefaultSessionTimerMode(i->second);
 
-					int sip_default_session_time = _conf.GetInt("sip_default_session_time");
+					int sip_default_session_time = _conf.GetInt("resip/sip_default_session_time");
 					sip_default_session_time = sip_default_session_time < 90 ? 90 : sip_default_session_time;
 					LogInfo("sip_default_session_time:" << sip_default_session_time);
 
@@ -334,6 +336,15 @@ namespace ivrworx
 			FinalizeContext(ctx);
 		} 
 
+
+	}
+
+	void 
+	ProcResipStack::UponSubscribeToIncomingReq(IwMessagePtr req)
+	{
+		FUNCTRACKER;
+
+		_dumUas.UponSubscribeToIncomingReq(req);
 
 	}
 
@@ -446,6 +457,11 @@ namespace ivrworx
 
 			switch (msg->message_id)
 			{
+			case MSG_CALL_SUBSCRIBE_REQ:
+				{
+					UponSubscribeToIncomingReq(msg);
+					break;
+				}
 			case SIP_CALL_INFO_REQ:
 				{
 					UponInfoReq(msg);

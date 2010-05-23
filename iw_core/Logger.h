@@ -149,7 +149,12 @@ namespace ivrworx
 	#define LogCrit(x)		COND_LOG(LOG_LEVEL_CRITICAL,x)
 	#define LogSysError(x) 	COND_LOG(LOG_LEVEL_WARN, FormatLastSysError(x))
 
+#ifdef TRACE_FUNC_CALLS
 	#define FUNCTRACKER LoggerTracker _ltTag(__FUNCTION__) 
+#else 
+	#define FUNCTRACKER 
+#endif
+
 #else
 	#define LogStartScriptLog()		
 	#define LogStopScriptLog()
