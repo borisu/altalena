@@ -32,12 +32,10 @@ namespace ivrworx
 		IN Configuration &conf,
 		IN IwHandlesMap &handles_map,
 		IN ResipDialogHandlesMap &resipHandlesMap,
-		IN LpHandlePtr events_handle,
 		IN DialogUsageManager &dum):
 		_conf(conf),
 		_resipHandlesMap(resipHandlesMap),
 		_refIwHandlesMap(handles_map),
-		_eventsHandle(events_handle),
 		_dum(dum)
 	{
 
@@ -176,6 +174,29 @@ namespace ivrworx
 		_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
 	}
 
+	void
+	UASDialogUsageManager::UponSubscribeToIncomingReq(IwMessagePtr req)
+	{
+		FUNCTRACKER;
+		shared_ptr<MsgCallSubscribeReq> subscribe_req = 
+			dynamic_pointer_cast<MsgCallSubscribeReq>(req);
+
+		if (_eventsHandle)
+		{
+			LogWarn("Only one listener suported curently");
+			GetCurrLightWeightProc()->SendResponse(subscribe_req, 
+				new MsgCallSubscribeNack());
+		}
+		else
+		{
+			_eventsHandle = subscribe_req->listener_handle;
+			GetCurrLightWeightProc()->SendResponse(subscribe_req, 
+				new MsgCallSubscribeAck());
+		}
+	
+
+	}
+
 #pragma TODO("UASDialogUsageManager::onOffer takes 7 ms - SDP parsing is taking long (almost 4 ms)")
 
 	void 
@@ -188,6 +209,13 @@ namespace ivrworx
 		{
 			LogCrit("UASDialogUsageManager::onOffer - without created context, rsh:" << is.getId());
 			throw;
+		}
+
+		if (!_eventsHandle)
+		{
+			LogWarn("Stack has no listener set - rejecting the call");
+			is->getAppDialogSet()->end();
+			return;
 		}
 
 		SipDialogContextPtr ctx_ptr = (*ctx_iter).second;
@@ -217,7 +245,7 @@ namespace ivrworx
 			return;
 		}
 
-		// currently we only "audio" conversation
+		// currently we support only "audio" conversation
 		list<SdpContents::Session::Medium>::const_iterator iter = s.media().begin();
 		for (;iter != s.media().end();iter++)
 		{

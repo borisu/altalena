@@ -111,6 +111,8 @@ namespace ivrworx
 
 		virtual ApiErrorCode Init();
 
+		virtual void UponSubscribeToIncomingReq(IN IwMessagePtr req);
+
 		virtual void UponInfoReq(IN IwMessagePtr req);
 
 		virtual void UponBlindXferReq(IN IwMessagePtr req);
@@ -243,7 +245,7 @@ namespace ivrworx
 
 		UACDialogUsageManager _dumUac;
 
-		
+		LpHandlePtr _listener;
 
 	};
 

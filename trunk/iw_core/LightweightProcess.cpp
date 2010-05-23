@@ -207,9 +207,13 @@ namespace ivrworx
 		{
 			real_run();
 		} 
-		catch (std::exception e)
+		catch (exception &e)
 		{
 			LogWarn("Exception proc:" << Name() << ", what:" << e.what());
+		}
+		catch (...)
+		{
+
 		}
 
 clean:

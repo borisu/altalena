@@ -182,11 +182,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		static const size_t buf_len = 1024;
-		char buf[buf_len];
-		_snprintf_s(buf,buf_len,"proto=mrcp;vendor=unimrcp;uid=%d",_processId);
-
-		ServiceId(buf);
+		ServiceId(_conf.GetString("unimrcp/uri"));
 
 		_iocpPtr = IocpInterruptorPtr(new IocpInterruptor());
 		_inbound->HandleInterruptor(_iocpPtr);
@@ -592,7 +588,7 @@ namespace ivrworx
 
 		/* create session */
 		mrcp_session_t *session = 
-			mrcp_application_session_create(_application,_conf.GetString("unimrcp_client_profile").c_str(), (void *)handle);
+			mrcp_application_session_create(_application,_conf.GetString("unimrcp/unimrcp_client_profile").c_str(), (void *)handle);
 
 		if (!session)
 		{
@@ -834,7 +830,7 @@ namespace ivrworx
 
 		/* create default directory layout relative to root directory path */
 		apt_dir_layout_t *dir_layout = 
-			apt_default_dir_layout_create(_conf.GetString("unimrcp_conf_dir").c_str(),_pool);
+			apt_default_dir_layout_create(_conf.GetString("unimrcp/unimrcp_conf_dir").c_str(),_pool);
 		if(!dir_layout) {
 			LogWarn("error:apt_default_dir_layout_create");
 			goto error;
@@ -843,18 +839,18 @@ namespace ivrworx
 		/* create singleton logger */
 		apt_bool_t res = apt_log_instance_create(APT_LOG_OUTPUT_FILE,APT_PRIO_DEBUG,_pool);
 		if(!res) {
-			LogWarn("error:apt_log_instance_create");
+			LogWarn("error:apt_log_instance_create, res:" << res);
 			goto error;
 		}
 
 		res = apt_log_file_open(
 			dir_layout->log_dir_path,
-			_conf.GetString("unimrcp_log_file").c_str(),
+			_conf.GetString("unimrcp/unimrcp_log_file").c_str(),
 			MAX_LOG_FILE_SIZE,
 			MAX_LOG_FILE_COUNT,
 			_pool);
 		if(!res) {
-			LogWarn("error:apt_log_file_open");
+			LogWarn("error:apt_log_file_open, res:" << res);
 			goto error;
 		}
 
