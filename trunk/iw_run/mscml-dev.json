@@ -53,11 +53,12 @@
     
     
     "opal" : {
-		 "uri" : "h.323,opal",
+		"uri" : "h.323,opal",
+		 "ani" : "ivrworx",
 		 "no-h323"      : "",
 		 "t-trace"      : "no-trace",
 		 "o-output"     : "no-output",
-		 "h323-listen"  : "tcp$10.0.0.1:1720",
+		 "h323-listen"  : "tcp$*:1720",
 		 "u"		    : "ivrworx"	
     },
     
@@ -71,7 +72,7 @@
 		"precompile"   : false,
 		"super_script" : "scripts\\super-mscml.lua",
 		"super_mode"   : "async",
-		"h323_service" : "h323,opal",
+		"h323_service" : "h.323,opal",
 		"sip_service"  : "sip,resip",
 		"unimrcp_service"  : "mrcp,unimrcp",
 		"rtsp_service"     : "rtsp,live555",

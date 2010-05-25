@@ -343,14 +343,6 @@ exit:
 		}
 
 		
-// 		CallWithRtpManagementPtr call_ptr 
-// 			(new CallWithRtpManagement(runner->_conf, *runner->_forking));
-// 
-// 		enable_configured_media_formats(runner->_conf,call_ptr);
-// 
-// 		
-// 		Luna<CallBridge>::PushObject(state,new CallBridge(call_ptr));
-
 		if (protocol == "mscml")
 		{
 			

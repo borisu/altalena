@@ -254,11 +254,7 @@ _conf(conf)
 {
 	FUNCTRACKER;
 
-	static const size_t buf_len = 1024;
-	char buf[buf_len];
-	_snprintf_s(buf,buf_len,"proto=h.323;vendor=opal;uid=%d",_processId);
-
-	ServiceId(buf);
+	ServiceId(_conf.GetString(("opal/uri")));
 }
 
 ProcOpalH323::~ProcOpalH323(void)
@@ -378,6 +374,11 @@ ProcOpalH323::ProcessApplicationMessages()
 
 		switch (msg->message_id)
 		{
+		case MSG_CALL_SUBSCRIBE_REQ:
+			{
+				SendResponse(msg, new MsgCallSubscribeAck());
+				break;
+			}
 		case MSG_CALL_BLIND_XFER_REQ:
 			{
 				SendResponse(msg, new MsgCallBlindXferNack());
