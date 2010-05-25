@@ -36,9 +36,6 @@ namespace ivrworx
 
 		virtual void real_run();
 
-		virtual void Init(
-			IN const HandlesVector &stackOutboundHandles);
-
 		virtual ~ProcIvr(void);
 
 	protected:
@@ -61,14 +58,20 @@ namespace ivrworx
 		void StartScript(
 			IN IwMessagePtr msg);
 
+		ApiErrorCode SubscribeToIncomingCalls(
+			IN const string &serviceUri, 
+			IN LpHandlePtr listenerHandle);
+
+
 	private:
 
-		HandlesVector _stackOutboundHandles;
-
-		CnxInfo _sipStackData;
-
+		
 		Configuration &_conf;
+		
+		LpHandlePtr _sipIncomingHandle;
 
+		LpHandlePtr _h323IncomingHandle;
+		
 		char *_precompiledBuffer_Super;
 		size_t _superSize;
 

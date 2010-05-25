@@ -211,10 +211,7 @@ namespace ivrworx
 		{
 			LogWarn("Exception proc:" << Name() << ", what:" << e.what());
 		}
-		catch (...)
-		{
 
-		}
 
 clean:
 		_inbound->Poison();

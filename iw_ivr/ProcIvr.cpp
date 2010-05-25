@@ -41,14 +41,12 @@ _precompiledBuffer(NULL),
 _superSize(0),
 _precompiledBuffer_Super(NULL),
 _scriptSize(0),
-_waitingForSuperCompletion(FALSE)
+_waitingForSuperCompletion(FALSE),
+_sipIncomingHandle(new LpHandle()),
+_h323IncomingHandle(new LpHandle())
 {
-	_sipStackData = CnxInfo(
-		convert_hname_to_addrin(_conf.GetString("ivr_sip_host").c_str()),
-		_conf.GetInt("ivr_sip_port"));
+	
 }
-
-
 
 ProcIvr::~ProcIvr(void)
 {
@@ -56,11 +54,34 @@ ProcIvr::~ProcIvr(void)
 	if (_precompiledBuffer != NULL) ::free(_precompiledBuffer);
 }
 
-void
-ProcIvr::Init(IN const HandlesVector &stackOutboundHandles)
+ApiErrorCode 
+ProcIvr::SubscribeToIncomingCalls(IN const string &serviceUri, 
+								  IN LpHandlePtr listenerHandle)
 {
-	_stackOutboundHandles = stackOutboundHandles;
+	if (!_conf.HasOption(serviceUri))
+	{
+		return API_FEATURE_DISABLED;
+	}
+
+	string service_uri = _conf.GetString(serviceUri);
+	LpHandlePtr service_handle = ivrworx::GetHandle(service_uri);
+	if (!service_handle)
+	{
+		LogWarn("ProcIvr::SubscribeToIncomingCalls - service:" <<  service_uri << " is not up, exiting...");
+		return API_FAILURE;
+	}
+
+	if (IW_FAILURE(ivrworx::SubscribeToIncomingCalls(service_handle,listenerHandle)))
+	{
+		LogCrit("ProcIvr::SubscribeToIncomingCalls - cannot subscribe to sip service:" <<  service_uri << ", exiting...");
+		return API_FAILURE;
+	}
+
+	return API_SUCCESS;
+
 }
+
+
 
 void
 ProcIvr::real_run()
@@ -70,16 +91,41 @@ ProcIvr::real_run()
 	
 	IwMessagePtr event;
 
-	string super_script = _conf.GetString("super_script");
+	string service_uri;
+	
+
+	//
+	// subscribe to SIP incoming calls
+	//
+	ApiErrorCode res = this->SubscribeToIncomingCalls("ivr/sip_service",	_sipIncomingHandle);
+	if (IW_FAILURE(res) && res != API_FEATURE_DISABLED)
+	{
+		LogCrit("cannot subscribe to SIP service exiting");
+		return;
+	}
+	
+	
+
+	res = this->SubscribeToIncomingCalls("ivr/h323_service", 
+			_h323IncomingHandle);
+	if (IW_FAILURE(res) && res != API_FEATURE_DISABLED)
+	{
+		LogCrit("cannot subscribe to H.323 service exiting");
+		return;
+	}
+
+
+
+	string super_script = _conf.GetString("ivr/super_script");
 
 	//
 	// Precompile files
 	//
-	if (_conf.GetBool("precompile"))
+	if (_conf.GetBool("ivr/precompile"))
 	{
 
 		ApiErrorCode res = 
-			LuaUtils::Precompile(_conf.GetString("script_file"),&_precompiledBuffer, &_scriptSize);
+			LuaUtils::Precompile(_conf.GetString("ivr/script_file"),&_precompiledBuffer, &_scriptSize);
 
 		if (IW_FAILURE(res))
 		{
@@ -127,8 +173,8 @@ ProcIvr::real_run()
 			super_script_handle					// handle created by stack for events
 			);
 
-		if (_conf.GetString("super_mode") == "sync" || 
-			_conf.GetBool("ivr_enabled") == FALSE)
+		if (_conf.GetString("ivr/super_mode") == "sync" || 
+			_conf.GetBool("ivr/ivr_enabled") == FALSE)
 		{
 			csp::RunInThisThread(super_script_proc);
 		} 
@@ -140,15 +186,16 @@ ProcIvr::real_run()
 
 	}
 
-	if (_conf.GetBool("ivr_enabled") == FALSE)
+	if (_conf.GetBool("ivr/ivr_enabled") == FALSE)
 	{
 		LogInfo("ivr_enabled:false... exiting");
 		return;
 	}
 	
 
-	HandlesVector list = list_of(_inbound)(spawn_handle.outbound);
-	list.insert(list.begin(),_stackOutboundHandles.begin(),_stackOutboundHandles.end());
+	HandlesVector list = 
+		list_of(_inbound)(spawn_handle.outbound)(_h323IncomingHandle)(_sipIncomingHandle);
+	
 
 	//
 	// Message Loop

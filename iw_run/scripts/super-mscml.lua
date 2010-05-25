@@ -8,7 +8,7 @@ conf   = assert(ivrworx.CONF)
 
 logger:loginfo("*** CONF START ***");
 
-ccl = assert(ivrworx.createmscmlcall());
+ccl = assert(ivrworx.createsession("mscml"));
 
 setup_conf = [[
 <?xml version="1.0" encoding="utf-8"?>

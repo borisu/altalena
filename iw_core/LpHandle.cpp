@@ -204,8 +204,6 @@ namespace ivrworx
 	{
 		return Send(IwMessagePtr(message));
 	}
-// #pragma push_macro("IX_PROFILE_CODE")
-// #define IX_PROFILE_CODE(code) code
 
 	ApiErrorCode 
 	LpHandle::Send(IN IwMessagePtr message)
@@ -238,7 +236,7 @@ namespace ivrworx
 		return API_SUCCESS;
 	}
 
-//#pragma pop_macro("IX_PROFILE_CODE")
+
 
 	void
 	LpHandle::CheckReader()
@@ -275,8 +273,6 @@ namespace ivrworx
 				_interruptor->SignalDataOut();
 			}
 
-// 			IX_PROFILE_ADD_DATA(ptr->message_id_str, ptr->enter_queue_timestamp);
-// 			IX_PROFILE_ADD_DATA("MSG PUMP AVG", ptr->enter_queue_timestamp);
 		} 
 		catch(PoisonException p)
 		{
