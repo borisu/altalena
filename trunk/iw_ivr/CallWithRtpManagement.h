@@ -78,6 +78,8 @@ namespace ivrworx
 
 		virtual const MediaFormat& AcceptedSpeechCodec();
 
+		virtual void EnableMediaFormat(IN const MediaFormat& media_format);
+
 		virtual ApiErrorCode SendInfo(const string &body, const string &type);
 	
 	protected:

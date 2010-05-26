@@ -97,6 +97,14 @@ namespace ivrworx
 
 	}
 
+	void 
+	CallWithRtpManagement::EnableMediaFormat(IN const MediaFormat& media_format)
+	{
+		FUNCTRACKER;
+
+		_callerMediaCall->EnableMediaFormat(media_format);
+	}
+
 	int 
 	CallWithRtpManagement::StackCallHandle() const 
 	{ 
