@@ -23,6 +23,7 @@
 #include "LoggerBridge.h"
 #include "ConfBridge.h"
 #include "CallBridge.h"
+#include "SipCallBridge.h"
 #include "MscmlCallBridge.h"
 #include "ls_sqlite3.h"
 #include "LuaRestoreStack.h"
@@ -297,20 +298,40 @@ exit:
 
 	void enable_configured_media_formats(Configuration &conf, CallWithRtpManagementPtr call_ptr)
 	{
-// 		ListOfAny codecs_list;
-// 		conf.GetArray("codecs",codecs_list);
-// 
-// 		for (ListOfAny::iterator conf_iter = codecs_list.begin(); 
-// 			conf_iter != codecs_list.end(); 
-// 			conf_iter++)
-// 		{
-// 
-// 			string conf_codec_name =  any_cast<string>(*conf_iter);
-// 			MediaFormat media_format = MediaFormat::GetMediaFormat(conf_codec_name);
-// 
-// 
-// 			call_ptr->EnableMediaFormat(media_format);
-// 		}
+		ListOfAny codecs_list;
+		conf.GetArray("codecs",codecs_list);
+
+		for (ListOfAny::iterator conf_iter = codecs_list.begin(); 
+			conf_iter != codecs_list.end(); 
+			conf_iter++)
+		{
+
+			string conf_codec_name =  any_cast<string>(*conf_iter);
+			MediaFormat media_format = MediaFormat::GetMediaFormat(conf_codec_name);
+
+
+			call_ptr->EnableMediaFormat(media_format);
+		}
+
+	}
+
+	static ApiErrorCode 
+	GetConfiguredServiceHandle(OUT HandleId &handleId, IN const string& serviceUri, Configuration &conf)
+	{
+		if (!conf.HasOption(serviceUri))
+		{
+			return API_FEATURE_DISABLED;
+		}
+
+		LpHandlePtr handle = ivrworx::GetHandle(conf.GetString(serviceUri));
+
+		if (!handle)
+		{
+			return API_FEATURE_DISABLED;
+		}
+
+		handleId = handle->GetObjectUid();
+		return API_SUCCESS;
 
 	}
 
@@ -325,8 +346,8 @@ exit:
 
 		if (lua_isstring(L, -1) != 1 ) 
 		{ 
-			lua_pushnumber (L, result); 
-			return 1;
+			LogWarn("ProcScriptRunner::LuaCreateSession - API_WRONG_PARAMETER");
+			return 0;
 		};
 
 		string protocol = 
@@ -343,20 +364,43 @@ exit:
 		}
 
 		
+		HandleId service_handle_id = IW_UNDEFINED;
 		if (protocol == "mscml")
 		{
 			
+			if (IW_FAILURE(GetConfiguredServiceHandle(service_handle_id, "ivr/mscml_service", runner->_conf)))
+			{
+				return 0;
+			}
+
 			MscmlCallPtr call_ptr 
-				(new MscmlCall(*runner->_forking));
+				(new MscmlCall(*runner->_forking,service_handle_id));
 
 			Luna<MscmlCallBridge>::PushObject(L,new MscmlCallBridge(call_ptr));
 
-			result = API_SUCCESS;
+			return 1;
 
 		}
 
+		if (protocol == "sip")
+		{
 
-		return 1;
+			if (IW_FAILURE(GetConfiguredServiceHandle(service_handle_id, "ivr/sip_service", runner->_conf)))
+			{
+				return 0;
+			}
+
+			SipMediaCallPtr media_call_ptr =
+				SipMediaCallPtr(new SipMediaCall(*runner->_forking, service_handle_id));
+
+			Luna<SipCallBridge>::PushObject(L, new SipCallBridge(media_call_ptr));
+
+			return 1;
+
+		}
+
+		return 0;
+
 	}
 
 
@@ -455,10 +499,8 @@ exit:
 
 			// CallBridge
 			Luna<CallBridge>::RegisterType(vm,FALSE);
-
-
-			// MscmlCallBridge
 			Luna<MscmlCallBridge>::RegisterType(vm,FALSE);
+			Luna<SipCallBridge>::RegisterType(vm,FALSE);
 
 			//
 			// register sql library

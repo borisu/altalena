@@ -424,6 +424,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\SipCallBridge.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\SipCallBridge.h"
+			>
+		</File>
+		<File
 			RelativePath=".\stdafx.cpp"
 			>
 			<FileConfiguration
