@@ -53,11 +53,11 @@ http://www.prettythingsflying.com/images/tree.gif
 
  * Replace '<root project>\mediastreamer2-antisip-4.3.3-rc2\mediastreamer2\build\win32native\mediastreamer2.def' with <root project>\mediastreamer2.def . 
 
- * Change "Export Library Dependencies" linker option in libmsilb, mediastreamer2, ortp projects to "No".
-
  * Replace 'apr.vsprops' and 'sofia.vsprops' in <root project>\unimrcp\unimrcp\build\vsprops with the ones in <root project>.
 
  * Open <root project>\solutions\altalena_all\altalena_all.sln.
+
+ * In Linker\General Change "Link Library Dependencies" option in libmsilbc, mediastreamer2, ortp projects to "No".
 
  * build unimrcp-deps first
 
