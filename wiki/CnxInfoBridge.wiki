@@ -5,7 +5,7 @@
 CnxInfoBridge is the object representing ip address and port.
 
 
-== `new` ==
+== `new(...)` ==
 _ctor_
 creates CnxInfoBridge object
 
@@ -34,17 +34,17 @@ cnx3 = assert(CnxInfoBridge:new{cnx=cnx1})
 
 }}}
 
-== `ip` ==
+== `ip()` ==
 _property_
 
 ip address
 
-== `port` ==
+== `port()` ==
 _property_
 
 port
 
-== `address` ==
+== `address()` ==
 _property_
 
 address in "ip:port" form 
