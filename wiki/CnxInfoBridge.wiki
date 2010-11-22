@@ -1,5 +1,7 @@
 #summary CnxInfoBridge -
 
+<wiki:toc max_depth="1" />
+
 = Introduction =
 
 CnxInfoBridge is the object representing ip address and port.
