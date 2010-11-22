@@ -5,15 +5,13 @@
 CnxInfoBridge is the object representing ip address and port.
 
 
-= Method =
-
-* new 
-
-|| named parama || description ||
-|| ip || resolved ip address ||
-|| port || port ||
+== `new` ==
 
 creates CnxInfoBridge object
+
+|| *named parameter* || *description* ||
+|| ip || resolved ip address ||
+|| port || port ||
 
 {{{
 
