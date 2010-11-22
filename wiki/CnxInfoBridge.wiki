@@ -1,4 +1,3 @@
-
 <wiki:toc max_depth="3" />
 
 = Introduction =
@@ -13,6 +12,7 @@ creates CnxInfoBridge object
 || *named parameter* || *description* ||
 || ip || resolved ip address ||
 || port || port ||
+|| cnx  || initiated from other connection ||
 
 {{{
 
