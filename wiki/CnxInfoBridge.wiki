@@ -24,7 +24,13 @@ cnx1 = assert(CnxInfoBridge:new())
 --
 -- creates valid CnxInfoBridge
 --
-cnx1 = assert(CnxInfoBridge:new{ip="192.168.100.5", port=6000})
+cnx2 = assert(CnxInfoBridge:new{ip="192.168.100.5", port=6000})
+
+
+--
+-- creates valid CnxInfoBridge
+--
+cnx3 = assert(CnxInfoBridge:new{cnx=cnx1})
 
 }}}
 
