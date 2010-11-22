@@ -8,4 +8,4 @@ CnxInfoBridge is the object representing ip address and port.
 = Method =
 
 || Method || Named Params || Example ||
-| new  | ip - (mandatory) resolved host , port = (mandatory) port|
+| new  | ip - (mandatory) resolved host , port = (mandatory) port| |
