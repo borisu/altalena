@@ -9,6 +9,10 @@ CnxInfoBridge is the object representing ip address and port.
 
 * new 
 
+|| named parama || description ||
+|| ip || resolved ip address ||
+|| port || port ||
+
 creates CnxInfoBridge object
 
 {{{
