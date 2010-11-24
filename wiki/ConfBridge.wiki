@@ -19,15 +19,17 @@ conf = assert(iw.CONF)
 }}}
 
 You may access underlying configuration in a hierarchical manner, by using slashes notations. This is only works for object JSON type as parent . For example for following configuration file:-
+{{{
 {
 	
     "sqlite" : {
 	"uri" : "sql,sqlite"
     }
 }
+}}}
 
 you may access the property by 
-'ivrworx.CONF.getstring("sqlite/uri")'
+`ivrworx.CONF.getstring("sqlite/uri")`
 
 
 == `getstring(string)` ==
