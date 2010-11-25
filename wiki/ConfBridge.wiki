@@ -43,3 +43,7 @@ gets boolean value from configuration object
 == `getint(string)` ==
 
 gets  int value from configuration object
+
+== `getarray(string)` ==
+
+gets  int value from configuration object
