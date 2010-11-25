@@ -32,18 +32,18 @@ you may access the property by
 `ivrworx.CONF.getstring("sqlite/uri")`
 
 
-== `getstring(string)` ==
+== `:getstring(string)` ==
 
 gets string value from configuration object
 
-== `getboolean(string)` ==
+== `:getboolean(string)` ==
 
 gets boolean value from configuration object
 
-== `getint(string)` ==
+== `:getint(string)` ==
 
 gets  int value from configuration object
 
-== `getarray(string)` ==
+== `:getarray(string)` ==
 
 gets  int value from configuration object
