@@ -7,7 +7,7 @@ MediaFormatBridge is the object representing media format(codec).
 
 == `:new(...)` ==
 _ctor_
-creates CnxInfoBridge object
+creates MediaFormatBridge object
 
 || *named parameter* || *description* ||
 || mf|| other MediaFormatBridge ||
@@ -17,36 +17,45 @@ creates CnxInfoBridge object
 || type || type of media format (MediaType_SPEECH,MediaType_DTMF) ||
 
 {{{
+--
+-- Invalid MediaFormatBridge
+--
+m1 = MediaFormatBridge:new();
+l:loginfo("m1 = "..m1:name())
 
 --
--- creates invalid CnxInfoBridge
+-- initiates by well known name
 --
-cnx1 = assert(CnxInfoBridge:new())
+m2 = MediaFormatBridge:new{id="SPEEX"};
+l:loginfo("m1 = "..m2:name())
 
 --
--- creates valid CnxInfoBridge
+-- initiates by supplying all parameters
 --
-cnx2 = assert(CnxInfoBridge:new{ip="192.168.100.5", port=6000})
+m3 = MediaFormatBridge:new{name="PCMU", rate=8000, type=iw.MediaType_SPEECH};
+l:loginfo("m3 = "..m3:name()..",rate="..m3:rate())
 
 
 --
--- creates valid CnxInfoBridge
+-- initiates by supplying other MediaFormatBridge object
 --
-cnx3 = assert(CnxInfoBridge:new{cnx=cnx1})
+m4 = MediaFormatBridge:new{mf=m1}
+l:loginfo("m3 = "..m3:name())
+
 
 }}}
 
-== `:ip()` ==
+== `:name()` ==
 _property_
 
-ip address
+codec name
 
-== `:port()` ==
+== `:sdpmapping()` ==
 _property_
 
-port
+sdp mapping (0 for PCMU for example)
 
-== `:address()` ==
+== `:rate()` ==
 _property_
 
-address in "ip:port" form 
+codec sampling rate (8000 for PCMU for example)
