@@ -1,13 +1,52 @@
-#summary One-sentence summary of this page.
+<wiki:toc max_depth="3" />
 
 = Introduction =
 
-Add your content here.
+MediaFormatBridge is the object representing media format(codec).
 
 
-= Details =
+== `:new(...)` ==
+_ctor_
+creates CnxInfoBridge object
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+|| *named parameter* || *description* ||
+|| mf|| other MediaFormatBridge ||
+|| id || id of well known supprted codec  (PCMU,PCMA,SPEEX)||
+|| name|| name of the codec||
+|| rate|| sampling rate of the codec||
+|| type || type of media format (MediaType_SPEECH,MediaType_DTMF) ||
+
+{{{
+
+--
+-- creates invalid CnxInfoBridge
+--
+cnx1 = assert(CnxInfoBridge:new())
+
+--
+-- creates valid CnxInfoBridge
+--
+cnx2 = assert(CnxInfoBridge:new{ip="192.168.100.5", port=6000})
+
+
+--
+-- creates valid CnxInfoBridge
+--
+cnx3 = assert(CnxInfoBridge:new{cnx=cnx1})
+
+}}}
+
+== `:ip()` ==
+_property_
+
+ip address
+
+== `:port()` ==
+_property_
+
+port
+
+== `:address()` ==
+_property_
+
+address in "ip:port" form 
