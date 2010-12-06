@@ -1,13 +1,13 @@
-#summary One-sentence summary of this page.
+== `:makecalle(...)` ==
+_ctor_
+creates CnxInfoBridge object
 
-= Introduction =
+|| *named parameter* || *description* ||
+|| dest || destination ||
+|| timeout || client side timeout ||
 
-Add your content here.
+Makes call to the destination, the INVITE sent is empty the call should answered lately. 
 
+{{{
 
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+}}}
