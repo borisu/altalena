@@ -1,10 +1,15 @@
-== `:makecalle(...)` ==
+Encapsulates SIP 
+
+== `:new(...)` ==
 _ctor_
-creates CnxInfoBridge object
+creates SipCallBridge object
+
+== `:makecall(...)` ==
 
 || *named parameter* || *description* ||
 || dest || destination ||
 || timeout || client side timeout ||
+|| sdp || sdp string to offer (may be used insted of offer/type)||
 
 Makes call to the destination, the INVITE sent is empty the call should answered lately. 
 
