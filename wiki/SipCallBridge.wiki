@@ -34,3 +34,15 @@ a=rtpmap:0 PCMU/8000
 caller:answer{sdp=localoffer}, "caller:answer")
 
 }}}
+
+example 1: B2B proxy
+{{{
+local leg1 = sipcall:new()
+local leg2 = sipcall:new()
+
+leg1:makecall{dest="sip:24001@192.168.150.3", timeout=15}
+leg2:makecall{dest="sip:6095@192.168.150.3", sdp=leg1:remoteoffer(), timeout=15}
+
+leg1:answer{sdp=leg2:remoteoffer()}
+
+}}}
