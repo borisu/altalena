@@ -14,7 +14,7 @@ creates SipCallBridge object
 || localoffer || raw local offer ||
 || type || type ||
 
-example 1:
+===example 1===
 Makes call to the destination, the INVITE sent is empty the call should be answered lately. 
 
 {{{
@@ -35,7 +35,8 @@ caller:answer{sdp=localoffer}, "caller:answer")
 
 }}}
 
-example 1: B2B proxy
+
+===example 2 B2B proxy===
 {{{
 local leg1 = sipcall:new()
 local leg2 = sipcall:new()
