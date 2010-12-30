@@ -10,7 +10,8 @@ creates SipCallBridge object
 || dest || destination ||
 || timeout || client side timeout ||
 || sdp || sdp string to offer (may be used insted of offer/type)||
-|| offer || raw offer ||
+|| remoteoffer || raw remote offer ||
+|| localoffer || raw local offer ||
 || type || type ||
 
 example 1:
