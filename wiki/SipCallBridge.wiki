@@ -10,6 +10,8 @@ creates SipCallBridge object
 || dest || destination ||
 || timeout || client side timeout ||
 || sdp || sdp string to offer (may be used insted of offer/type)||
+|| offer || raw offer ||
+|| type || type ||
 
 Makes call to the destination, the INVITE sent is empty the call should answered lately. 
 
