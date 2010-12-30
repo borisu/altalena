@@ -13,8 +13,23 @@ creates SipCallBridge object
 || offer || raw offer ||
 || type || type ||
 
-Makes call to the destination, the INVITE sent is empty the call should answered lately. 
+example 1:
+Makes call to the destination, the INVITE sent is empty the call should be answered lately. 
 
 {{{
+local caller = sipcall:new()
+caller:makecall{dest="sip:24001@192.168.150.3", timeout=15}
+
+localoffer = [[v=0
+o=alice 2890844526 2890844526 IN IP4 host.ivrworx.com
+s=
+c=IN IP4 192.168.150.3
+t=0 0
+m=audio 49170 RTP/AVP 0
+a=rtpmap:0 PCMU/8000
+
+]]
+
+caller:answer{sdp=localoffer}, "caller:answer")
 
 }}}
