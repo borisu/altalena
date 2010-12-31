@@ -2,7 +2,7 @@ Encapsulates SIP
 
 == `:new(...)` ==
 _ctor_
-creates SipCallBridge object
+creates sipcall object
 
 == `:makecall(...)` ==
 
