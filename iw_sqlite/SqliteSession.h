@@ -19,6 +19,7 @@
 #pragma once
 #include "Message.h"
 #include "sqlite3.h"
+#include "SqlFactory.h"
 
 /**
 @defgroup sql SQL Connectivity
@@ -77,7 +78,7 @@ namespace ivrworx
 	};
 
 
-	class MsgSqlMixin
+	class IW_SQLLITE_API MsgSqlMixin
 	{
 	public:
 
@@ -101,7 +102,7 @@ namespace ivrworx
 	};
 
 	
-	class MsgSqlOpenConnectionReq: 
+	class IW_SQLLITE_API MsgSqlOpenConnectionReq: 
 		public MsgSqlMixin, public MsgRequest
 	{
 	public:
@@ -113,7 +114,7 @@ namespace ivrworx
 		 
 	};
 
-	class MsgSqlOpenConnectionAck: 
+	class IW_SQLLITE_API MsgSqlOpenConnectionAck: 
 		public MsgSqlMixin, public MsgResponse
 	{
 	public:
@@ -129,7 +130,7 @@ namespace ivrworx
 
 	};
 
-	class MsgSqlOpenConnectionNack: 
+	class IW_SQLLITE_API MsgSqlOpenConnectionNack: 
 		public MsgSqlMixin, public MsgResponse
 	{
 	public:
@@ -144,7 +145,7 @@ namespace ivrworx
 
 	};
 
-	class MsgSqlCloseConnectionReq: 
+	class IW_SQLLITE_API MsgSqlCloseConnectionReq: 
 		public MsgSqlMixin, public MsgRequest
 	{
 	public:
@@ -153,7 +154,7 @@ namespace ivrworx
 
 	};
 
-	class MsgSqlExecReq: 
+	class IW_SQLLITE_API MsgSqlExecReq: 
 		public MsgSqlMixin, public MsgRequest
 	{
 	public:
@@ -164,7 +165,7 @@ namespace ivrworx
 
 	};
 
-	class MsgSqlExecAck: 
+	class IW_SQLLITE_API MsgSqlExecAck: 
 		public MsgSqlMixin, public MsgResponse
 	{
 	public:
@@ -181,7 +182,7 @@ namespace ivrworx
 
 	};
 
-	class MsgSqlExecNack: 
+	class IW_SQLLITE_API MsgSqlExecNack: 
 		public MsgSqlMixin, public MsgResponse
 	{
 	public:
@@ -196,7 +197,7 @@ namespace ivrworx
 
 	};
 
-	class MsgSqlStepReq: 
+	class IW_SQLLITE_API MsgSqlStepReq: 
 		public MsgSqlMixin, public MsgRequest
 	{
 	public:
@@ -207,7 +208,7 @@ namespace ivrworx
 
 	};
 
-	class MsgSqlStepAck: 
+	class IW_SQLLITE_API MsgSqlStepAck: 
 		public MsgSqlMixin, public MsgResponse
 	{
 	public:
@@ -224,7 +225,7 @@ namespace ivrworx
 
 	};
 
-	class MsgSqlStepNack: 
+	class IW_SQLLITE_API MsgSqlStepNack: 
 		public MsgSqlMixin, public MsgResponse
 	{
 	public:
@@ -239,7 +240,7 @@ namespace ivrworx
 
 	};
 
-	class MsgSqlFinalizeReq: 
+	class IW_SQLLITE_API MsgSqlFinalizeReq: 
 		public MsgSqlMixin, public MsgRequest
 	{
 	public:
@@ -253,7 +254,7 @@ namespace ivrworx
 	/**
 	Sqlite fiber non blocking connectivity
 	**/
-	class SqliteSession
+	class IW_SQLLITE_API SqliteSession
 	{
 	public:
 		SqliteSession(void);

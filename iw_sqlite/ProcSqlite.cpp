@@ -24,15 +24,11 @@
 
 namespace  ivrworx
 {
-	ProcSqlite::ProcSqlite(Configuration &conf, LpHandlePair pair)
-		:LightweightProcess(pair,SQLITE_Q,"SQLite"),
+	ProcSqlite::ProcSqlite(ConfigurationPtr conf, LpHandlePair pair)
+		:LightweightProcess(pair,"SQLite"),
 		_conf(conf)
 	{
-		static const size_t buf_len = 1024;
-		char buf[buf_len];
-		_snprintf_s(buf,buf_len,"proto=sql;vendor=mysql;uid=%d",_processId);
-
-		ServiceId(buf);
+		ServiceId(_conf->GetString("sqlite/uri"));
 	}
 
 	ProcSqlite::~ProcSqlite(void)

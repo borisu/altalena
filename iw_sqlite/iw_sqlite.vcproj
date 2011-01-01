@@ -19,7 +19,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="2"
 			CharacterSet="1"
 			>
 			<Tool
@@ -44,7 +44,7 @@
 				Optimization="0"
 				EnableFiberSafeOptimizations="false"
 				AdditionalIncludeDirectories="&quot;..\sqlite-amalgamation-3_6_17&quot;;..\iw_core"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_DLL_IW_SQLLITE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -65,12 +65,14 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				AdditionalOptions="/MACHINE:X86"
-				AdditionalLibraryDirectories=""
+				Name="VCLinkerTool"
+				GenerateDebugInformation="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -80,6 +82,12 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"

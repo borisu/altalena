@@ -101,7 +101,7 @@ namespace ivrworx
 
 		close_req->session_id = _sessionId;
 
-		ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(
+		ApiErrorCode res = GetCurrRunningContext()->SendMessage(
 			SQLITE_Q,
 			IwMessagePtr(close_req));
 
@@ -136,7 +136,7 @@ namespace ivrworx
 		
 		
 		IwMessagePtr response;
-		ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
+		ApiErrorCode res = GetCurrRunningContext()->DoRequestResponseTransaction(
 			SQLITE_Q,
 			IwMessagePtr(open_req),
 			response,
@@ -203,7 +203,7 @@ namespace ivrworx
 		
 
 		IwMessagePtr response;
-		ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
+		ApiErrorCode res = GetCurrRunningContext()->DoRequestResponseTransaction(
 			SQLITE_Q,
 			IwMessagePtr(exec_req),
 			response,
@@ -278,7 +278,7 @@ namespace ivrworx
 		finalize_req->pStmt = pStmt;
 		finalize_req->session_id = _sessionId;
 
-		ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(
+		ApiErrorCode res = GetCurrRunningContext()->SendMessage(
 			SQLITE_Q,
 			IwMessagePtr(finalize_req));
 
@@ -308,7 +308,7 @@ namespace ivrworx
 
 
 		IwMessagePtr response;
-		ApiErrorCode res = GetCurrLightWeightProc()->DoRequestResponseTransaction(
+		ApiErrorCode res = GetCurrRunningContext()->DoRequestResponseTransaction(
 			SQLITE_Q,
 			IwMessagePtr(step_req),
 			response,

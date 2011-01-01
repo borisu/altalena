@@ -30,7 +30,7 @@ namespace ivrworx
 		public LightweightProcess
 	{
 	public:
-		ProcSqlite(Configuration &conf, LpHandlePair pair);
+		ProcSqlite(ConfigurationPtr conf, LpHandlePair pair);
 		virtual ~ProcSqlite(void);
 
 		void real_run();
@@ -49,7 +49,7 @@ namespace ivrworx
 
 		void CloseAllConnections();
 
-		Configuration &_conf;
+		ConfigurationPtr _conf;
 
 		SqlSessionsMap _sqlMap;
 
