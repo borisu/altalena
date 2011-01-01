@@ -17,31 +17,34 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "StdAfx.h"
-#include "IvrFactory.h"
-#include "ProcIvr.h"
+#pragma once
+#include "Luna.h"
 
 namespace ivrworx
 {
-	IvrFactory::IvrFactory(void)
+	class RTPProxyBridge
 	{
-	}
+	public:
+		RTPProxyBridge(lua_State *L);
+		RTPProxyBridge(RtpProxySessionPtr rtpProxySession);
 
-	IvrFactory::~IvrFactory(void)
-	{
-	}
+		virtual ~RTPProxyBridge();
+		
+		// Lua interface
+		int allocate(lua_State *L);
+		int teardown(lua_State *L);
+		int modify(lua_State *L);
+		int localcnx(lua_State *L);
 
+		static const char className[];
+		static Luna<RTPProxyBridge>::RegType methods[];
 
-	LightweightProcess*
-	IvrFactory::Create(LpHandlePair pair, ConfigurationPtr conf)
-	{
-		return new ProcIvr(pair, conf);
-	}
+		private:
 
-	IW_IVR_API IProcFactory* GetIwFactory()
-	{
-		return new IvrFactory();
-	}
+		RtpProxySessionPtr _rtpProxySession;
+
+	};
+
 
 }
 

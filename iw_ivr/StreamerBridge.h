@@ -16,32 +16,39 @@
 *	License along with this library; if not, write to the Free Software
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+#pragma once
 
-#include "StdAfx.h"
-#include "IvrFactory.h"
-#include "ProcIvr.h"
+#include "Luna.h"
 
 namespace ivrworx
 {
-	IvrFactory::IvrFactory(void)
+	class streamer
 	{
-	}
+	public:
 
-	IvrFactory::~IvrFactory(void)
-	{
-	}
+		streamer(lua_State *L);
+
+		streamer(StreamingSessionPtr ptr);
+
+		virtual ~streamer(void);
+
+		int allocate(lua_State *L);
+		int allocate0(lua_State *L);
+		int modify(lua_State *L);
+		int play(lua_State *L);
+		int bindtomike(lua_State *L){throw;};
+		int localoffer(lua_State *L);
+		int remoteoffer(lua_State *L);
 
 
-	LightweightProcess*
-	IvrFactory::Create(LpHandlePair pair, ConfigurationPtr conf)
-	{
-		return new ProcIvr(pair, conf);
-	}
+		static const char className[];
+		static Luna<streamer>::RegType methods[];
 
-	IW_IVR_API IProcFactory* GetIwFactory()
-	{
-		return new IvrFactory();
-	}
+	private:
 
+		StreamingSessionPtr _streamingSessionPtr;
+
+	
+	};
 }
 

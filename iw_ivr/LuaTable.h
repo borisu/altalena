@@ -18,26 +18,25 @@
 */
 
 #pragma once
-
-#include "LuaVirtualMachine.h"
+#include "IvrDllApi.h"
 
 namespace ivrworx
 {
-	class LuaTable
+	class IW_IVR_API LuaTable
 	{
 	public:
 
-		LuaTable(IN CLuaVirtualMachine& vm);
+		LuaTable(IN lua_State  *L);
 
 		void Create(IN const string &table_name);
+
+		void Attach(IN const string &name);
 
 		void AddParam(IN const string &key,  IN const string &value);
 
 		void AddParam(IN const string &key,  IN const int value);
 
 		void AddFunction(IN const string &key,  IN const lua_CFunction func);
-
-		//void AddTable(IN const string &key, IN const lua_CTa);
 
 		int TableRef();
 			  
@@ -49,7 +48,7 @@ namespace ivrworx
 
 		int _oldRef;
 
-		CLuaVirtualMachine& _vm;
+		lua_State  *_vm;
 
 		int _tableRef;
 

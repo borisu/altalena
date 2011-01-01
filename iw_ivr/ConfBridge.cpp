@@ -24,18 +24,19 @@ namespace ivrworx
 	const char ConfBridge::className[] = "ConfBridge";
 	Luna<ConfBridge>::RegType ConfBridge::methods[] = {
 		method(ConfBridge, getstring),
-		method(ConfBridge, getstring),
+		method(ConfBridge, getint),
+		method(ConfBridge, getboolean),
+		method(ConfBridge, getarray),
 		{0,0}
 	};
 
 	// needed to compile but must never be called
-	ConfBridge::ConfBridge(lua_State *L):
-	_conf(NULL)
+	ConfBridge::ConfBridge(lua_State *L)
 	{
 		throw;
 	}
 
-	ConfBridge::ConfBridge(Configuration *conf):
+	ConfBridge::ConfBridge(ConfigurationPtr conf):
 	_conf(conf)
 	{
 	}
@@ -128,6 +129,72 @@ namespace ivrworx
 		return 1;
 
 	}
+
+	int 
+	ConfBridge::getarray(lua_State *L)
+	{
+		if (lua_isstring(L, -1) != 1 )
+		{
+			LogWarn("ConfBridge::getarray wrong param.");
+			return 0;
+		}
+
+		size_t string_length = 0;
+		const char *log_string = lua_tolstring(L, -1, &string_length);
+
+
+		string value;
+		try
+		{
+			ListOfAny l;
+			_conf->GetArray(log_string,l);
+
+			lua_newtable(L);
+			int index = 0;
+			for (ListOfAny::iterator iter = l.begin(); iter != l.end(); ++iter)
+			{
+
+				lua_pushnumber(L,index);
+
+				any &value = (*iter);
+				if (typeid(int) == value.type())
+				{
+					lua_pushnumber(L, any_cast<int>(value));
+				} 
+				else if (typeid(string) == (*iter).type())
+				{
+					lua_pushstring(L, (any_cast<string>(value)).c_str());
+
+				} 
+				else if (typeid(BOOL) == (*iter).type())
+				{
+					lua_pushboolean(L, any_cast<BOOL>(value));
+				}
+				else
+				{
+					lua_pop(L,1);
+					continue;
+				}
+
+				lua_settable(L,-3);
+				++index;
+
+			}
+
+			return 1;
+		}
+		catch (exception* e)
+		{
+			LogWarn("ConfBridge::getarray e:" << e->what());
+			return 0;
+		}
+
+		lua_pushstring(L, value.c_str());
+		return 1;
+
+
+	}
+	
 
 	
 

@@ -21,43 +21,46 @@
 #include "BridgeMacros.h"
 #include "SipCallBridge.h"
 
+
 namespace ivrworx
 {
-const char SipCallBridge::className[] = "SipCallBridge";
-Luna<SipCallBridge>::RegType SipCallBridge::methods[] = {
-	method(SipCallBridge, answer),
-	method(SipCallBridge, cleandtmfbuffer),
-	method(SipCallBridge, waitfordtmf),
-	method(SipCallBridge, waitforhangup),
-	method(SipCallBridge, ani),
-	method(SipCallBridge, dnis),
-	method(SipCallBridge, mediaformat),
-	method(SipCallBridge, makecall),
-	method(SipCallBridge, blindxfer),
-	method(SipCallBridge, hangup),
-	method(SipCallBridge, sendinfo),
+const char sipcall::className[] = "sipcall";
+Luna<sipcall>::RegType sipcall::methods[] = {
+	method(sipcall, answer),
+	method(sipcall, cleandtmfbuffer),
+	method(sipcall, waitfordtmf),
+	method(sipcall, waitforhangup),
+	method(sipcall, ani),
+	method(sipcall, dnis),
+	method(sipcall, makecall),
+	method(sipcall, blindxfer),
+	method(sipcall, hangup),
+	method(sipcall, sendinfo),
+	method(sipcall, waitforinfo),
+	method(sipcall, remoteoffer),
+	method(sipcall, localoffer),
 	{0,0}
 };
 
-SipCallBridge::SipCallBridge(lua_State *L)
+sipcall::sipcall(lua_State *L)
 {
 
 }
 
-SipCallBridge::SipCallBridge(SipMediaCallPtr call):
+sipcall::sipcall(SipMediaCallPtr call):
 _call(call)
 {
 
 }
 
-SipCallBridge::~SipCallBridge(void)
+sipcall::~sipcall(void)
 {
 	_call.reset();
 }
 
 
 int
-SipCallBridge::hangup(lua_State *L)
+sipcall::hangup(lua_State *L)
 {
 	FUNCTRACKER;
 
@@ -74,7 +77,35 @@ SipCallBridge::hangup(lua_State *L)
 }
 
 int
-SipCallBridge::makecall(lua_State *L)
+sipcall::remoteoffer(lua_State *L)
+{
+	FUNCTRACKER;
+	if (!_call)
+	{
+		lua_pushnumber (L, API_WRONG_STATE);
+		return 1;
+	}
+
+	lua_pushstring(L, _call->RemoteOffer().body.c_str());
+	return 1;
+}
+
+int
+sipcall::localoffer(lua_State *L)
+{
+	FUNCTRACKER;
+	if (!_call)
+	{
+		lua_pushnumber (L, API_WRONG_STATE);
+		return 1;
+	}
+
+	lua_pushstring(L, _call->LocalOffer().body.c_str());
+	return 1;
+}
+
+int
+sipcall::makecall(lua_State *L)
 {
 	FUNCTRACKER;
 
@@ -84,22 +115,52 @@ SipCallBridge::makecall(lua_State *L)
 		return 1;
 	}
 
-	LUA_STRING_PARAM(L,dest,-2);
-	LUA_STRING_PARAM(L,sdp,-1);
+	MapOfAny freemap;
+	AbstractOffer offer;
+	string dest;
 	
 
-	_call->OfferType("sdp");
+	BOOL paramres = GetTableStringParam(L,-1,dest,"dest");
+	if (paramres == FALSE)
+		goto error_param;
+	
+
+	int timeout = 15;
+	paramres = GetTableNumberParam(L,-1,&timeout,"timeout",15);
+	if (paramres == FALSE)
+		goto error_param;
+	
+
+	
+	paramres = GetTableStringParam(L,-1,offer.body,"sdp");
+	if (paramres == FALSE)
+	{
+		GetTableStringParam(L,-1,offer.body,"offer");
+		GetTableStringParam(L,-1,offer.type,"type");
+	}
+	else
+	{
+		offer.type = "sdp";
+	}
+
+	FillTable(L,-1,freemap);
 
 	ApiErrorCode res = 
-		(shared_polymorphic_cast<CallSession>(_call))->MakeCall(dest,sdp,Seconds(15));
+		_call->MakeCall(dest,offer,freemap,Seconds(timeout));
+
 
 	lua_pushnumber (L, res);
-
 	return 1;
+	
+
+error_param:
+	lua_pushnumber (L, API_WRONG_PARAMETER);
+	return 1;
+
 }
 
 int
-SipCallBridge::blindxfer(lua_State *L)
+sipcall::blindxfer(lua_State *L)
 {
 	FUNCTRACKER;
 
@@ -121,7 +182,7 @@ SipCallBridge::blindxfer(lua_State *L)
 
 
 int
-SipCallBridge::cleandtmfbuffer(lua_State *L)
+sipcall::cleandtmfbuffer(lua_State *L)
 {
 	FUNCTRACKER;
 
@@ -131,7 +192,7 @@ SipCallBridge::cleandtmfbuffer(lua_State *L)
 		return 1;
 	}
 
-	LogDebug("SipCallBridge::cleandtmfbuffer iwh:" << _call->StackCallHandle());
+	LogDebug("sipcall::cleandtmfbuffer iwh:" << _call->StackCallHandle());
 
 	_call->CleanDtmfBuffer();
 
@@ -141,7 +202,7 @@ SipCallBridge::cleandtmfbuffer(lua_State *L)
 }
 
 int
-SipCallBridge::waitfordtmf(lua_State *L)
+sipcall::waitfordtmf(lua_State *L)
 {
 	FUNCTRACKER;
 
@@ -154,7 +215,7 @@ SipCallBridge::waitfordtmf(lua_State *L)
 
 	LUA_INT_PARAM(L,timeout,-1);
 
-	LogDebug("SipCallBridge::waitfordtmf iwh:" << _call->StackCallHandle() << ", timeout:" << timeout);
+	LogDebug("sipcall::waitfordtmf iwh:" << _call->StackCallHandle() << ", timeout:" << timeout);
 
 	string signal;
 #pragma TODO ("CSP++ Does not handle correctly the large timeouts")
@@ -177,7 +238,7 @@ SipCallBridge::waitfordtmf(lua_State *L)
 
 
 int
-SipCallBridge::ani(lua_State *L)
+sipcall::ani(lua_State *L)
 {
 	FUNCTRACKER;
 
@@ -193,25 +254,10 @@ SipCallBridge::ani(lua_State *L)
 
 }
 
-int
-SipCallBridge::mediaformat(lua_State *L)
-{
-	FUNCTRACKER;
 
-	if (!_call)
-	{
-		lua_pushnumber (L, API_WRONG_STATE);
-		return 1;
-	}
-
-	lua_pushstring(L,_call->AcceptedSpeechCodec().sdp_name_tos().c_str());
-
-	return 1;
-
-}
 
 int
-SipCallBridge::dnis(lua_State *L)
+sipcall::dnis(lua_State *L)
 {
 	FUNCTRACKER;
 
@@ -227,7 +273,24 @@ SipCallBridge::dnis(lua_State *L)
 }
 
 int
-SipCallBridge::waitforhangup(lua_State *L)
+sipcall::waitforinfo(lua_State *L)
+{
+	FUNCTRACKER;
+
+	if (!_call)
+	{
+		lua_pushnumber (L, API_WRONG_STATE);
+		return 1;
+	}
+
+	ApiErrorCode res = _call->WaitForInfo();
+
+	lua_pushnumber (L, res);
+	return 1;
+}
+
+int
+sipcall::waitforhangup(lua_State *L)
 {
 	FUNCTRACKER;
 
@@ -244,7 +307,7 @@ SipCallBridge::waitforhangup(lua_State *L)
 }
 
 int
-SipCallBridge::answer(lua_State *L)
+sipcall::answer(lua_State *L)
 {
 	FUNCTRACKER;
 
@@ -254,17 +317,43 @@ SipCallBridge::answer(lua_State *L)
 		return 1;
 	}
 
-	LogDebug("SipCallBridge::answer  iwh:" << _call->StackCallHandle());
+	LogDebug("sipcall::answer  iwh:" << _call->StackCallHandle());
 
-	ApiErrorCode res = API_SERVER_FAILURE; // _call->AcceptInitialOffer();
+	MapOfAny params;
+	AbstractOffer offer;
+	BOOL paramres = GetTableStringParam(L,-1,offer.body,"sdp");
+	if (paramres == FALSE)
+	{
+		GetTableStringParam(L,-1,offer.body,"offer");
+		GetTableStringParam(L,-1,offer.type,"type");
+	}
+	else
+	{
+		offer.type = "sdp";
+	}
+
+	if (offer.body.empty())
+		goto error_param;
+
+
+	int timeout = 15;
+	paramres = GetTableNumberParam(L,-1,&timeout,"timeout",15);
+
+	
+	ApiErrorCode res = API_SUCCESS;  
+	res = _call->Answer(offer, params,Seconds(timeout));
+
 	lua_pushnumber (L, res);
+	return 1;
 
+error_param:
+	lua_pushnumber (L, API_WRONG_PARAMETER);
 	return 1;
 }
 
 
 int
-SipCallBridge::sendinfo(lua_State *L)
+sipcall::sendinfo(lua_State *L)
 {
 	FUNCTRACKER;
 
@@ -274,18 +363,20 @@ SipCallBridge::sendinfo(lua_State *L)
 		return 1;
 	}
 
-	LUA_STRING_PARAM(L,body,-2);
-	LUA_STRING_PARAM(L,type,-1);
+	LUA_STRING_PARAM(L,type,-2);
+	LUA_STRING_PARAM(L,body,-1);
+
+	throw;
 
 
-	ApiErrorCode res = _call->SendInfo(body,type);
-	lua_pushnumber (L, res);
-
-	return 1;
+// 	ApiErrorCode res = _call->SendInfo(body,type);
+// 	lua_pushnumber (L, res);
+// 
+// 	return 1;
 
 }
 
-
 }
+
 
 
