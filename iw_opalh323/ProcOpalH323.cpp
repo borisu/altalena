@@ -65,7 +65,7 @@ class IwH323EndPoint : public H323EndPoint
 	PCLASSINFO(IwH323EndPoint, H323EndPoint);
 public:
 
-	IwH323EndPoint(Configuration &conf, IwManager &manager, IocpInterruptorPtr iocpPtr):
+	IwH323EndPoint(ConfigurationPtr conf, IwManager &manager, IocpInterruptorPtr iocpPtr):
 	  H323EndPoint(manager),
 	  _conf(conf),
 	  _iocpPtr(iocpPtr)
@@ -80,21 +80,21 @@ public:
 	  {
 		  
 		  
-		  DisableFastStart(_conf.HasOption("opal/f"));
-		  DisableH245Tunneling(_conf.HasOption("opal/T"));
-		  SetSendGRQ(!_conf.HasOption("opal/disable-grq"));
+		  DisableFastStart(_conf->HasOption("opal/f"));
+		  DisableH245Tunneling(_conf->HasOption("opal/T"));
+		  SetSendGRQ(!_conf->HasOption("opal/disable-grq"));
 
 
 		  // Get local username, multiple uses of -u indicates additional aliases
-		  if (_conf.HasOption("opal/u")) {
-			  PStringArray aliases = PString(_conf.GetString("opal/u")).Lines();
+		  if (_conf->HasOption("opal/u")) {
+			  PStringArray aliases = PString(_conf->GetString("opal/u")).Lines();
 			  SetLocalUserName(aliases[0]);
 			  for (PINDEX i = 1; i < aliases.GetSize(); i++)
 				  AddAliasName(aliases[i]);
 		  }
 
-		  if (_conf.HasOption("opal/b")) {
-			  unsigned initialBandwidth =  PString(_conf.GetString("opal/b")).AsUnsigned()*100;
+		  if (_conf->HasOption("opal/b")) {
+			  unsigned initialBandwidth =  PString(_conf->GetString("opal/b")).AsUnsigned()*100;
 			  if (initialBandwidth == 0) {
 				  LogWarn ("InitialiseH323EP - Illegal bandwidth specified.");
 				  return API_FAILURE;
@@ -102,8 +102,8 @@ public:
 			  SetInitialBandwidth(initialBandwidth);
 		  }
 
-		  if (_conf.HasOption("opal/gk-token"))
-			  SetGkAccessTokenOID(PString(_conf.GetString("opal/gk-token")));
+		  if (_conf->HasOption("opal/gk-token"))
+			  SetGkAccessTokenOID(PString(_conf->GetString("opal/gk-token")));
 
 		  PString prefix = GetPrefixName();
 
@@ -114,7 +114,7 @@ public:
 
 
 		  // Start the listener thread for incoming calls.
-		  PStringArray listeners = PString(_conf.GetString(secure ? "opal/h323s-listen" : "opal/h323-listen")).Lines();
+		  PStringArray listeners = PString(_conf->GetString(secure ? "opal/h323s-listen" : "opal/h323-listen")).Lines();
 		  PString &s = listeners[0];
 		  LogInfo("s:" << (string)s );
 
@@ -127,16 +127,16 @@ public:
 		  LogInfo(prefix << " listeners: " << setfill(',') << GetListeners() << setfill(' '));
 
 
-		  if (_conf.HasOption("opal/p"))
-			  SetGatekeeperPassword(PString(_conf.GetString("opal/p")));
+		  if (_conf->HasOption("opal/p"))
+			  SetGatekeeperPassword(PString(_conf->GetString("opal/p")));
 
 		  // Establish link with gatekeeper if required.
-		  if (_conf.HasOption(secure ? "opal/h323s-gk" : "opal/gatekeeper")) {
-			  PString gkHost      = _conf.GetString(secure ? "opal/h323s-gk" : "opal/gatekeeper");
+		  if (_conf->HasOption(secure ? "opal/h323s-gk" : "opal/gatekeeper")) {
+			  PString gkHost      = _conf->GetString(secure ? "opal/h323s-gk" : "opal/gatekeeper");
 			  if (gkHost == "*")
 				  gkHost = PString::Empty();
-			  PString gkIdentifer = _conf.GetString("opal/G");
-			  PString gkInterface = _conf.GetString(secure ? "opal/h323s-listen" : "opal/h323-listen");
+			  PString gkIdentifer = _conf->GetString("opal/G");
+			  PString gkInterface = _conf->GetString(secure ? "opal/h323s-listen" : "opal/h323-listen");
 
 			  stringstream s;
 			  s << ("Gatekeeper: ");
@@ -175,7 +175,7 @@ public:
 				  }// if
 				  s << '.' << endl;
 				  LogWarn(s.str());
-				  if (_conf.HasOption("require-gatekeeper")) 
+				  if (_conf->HasOption("require-gatekeeper")) 
 					  return API_FAILURE;
 			  }
 		  }
@@ -242,19 +242,19 @@ public:
 
 private:
 
-	Configuration &_conf;
+	ConfigurationPtr _conf;
 
 	IocpInterruptorPtr _iocpPtr;
 
 };
 
-ProcOpalH323::ProcOpalH323(Configuration &conf,LpHandlePair pair)
+ProcOpalH323::ProcOpalH323(ConfigurationPtr conf,LpHandlePair pair)
 :LightweightProcess(pair,"ProcOpalH323"),
 _conf(conf)
 {
 	FUNCTRACKER;
 
-	ServiceId(_conf.GetString(("opal/uri")));
+	ServiceId(_conf->GetString(("opal/uri")));
 }
 
 ProcOpalH323::~ProcOpalH323(void)
@@ -348,7 +348,9 @@ ProcOpalH323::Main()
 		}
 
 
-		ProcessApplicationMessages();
+		bool shutdown = ProcessApplicationMessages();
+		if (shutdown)
+			break;
 
 	}// while
 

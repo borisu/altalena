@@ -34,7 +34,7 @@ class UACDialogUsageManager :
 {
 public:
 	UACDialogUsageManager(
-		IN Configuration &conf,
+		IN ConfigurationPtr conf,
 		IN IwHandlesMap &ccu_handles_map,
 		IN ResipDialogHandlesMap &resip_handles_map,
 		IN DialogUsageManager &dum);
@@ -45,7 +45,7 @@ public:
 
 	virtual void UponBlindXferReq(IN IwMessagePtr req);
 
-	virtual void UponMakeCallAckReq(IN IwMessagePtr request);
+	virtual void UponCallConnected(IN IwMessagePtr request);
 
 	virtual void UponHangupReq(IN IwMessagePtr ptr);
 
@@ -88,7 +88,7 @@ public:
 
 private:
 
-	Configuration &_conf;
+	ConfigurationPtr _conf;
 
 	DialogUsageManager &_dum;
 

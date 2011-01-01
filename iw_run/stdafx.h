@@ -30,6 +30,8 @@
 
 #include <tchar.h>
 #include <stdio.h>
+#include <WinSock2.h>
+#include <ws2tcpip.h>
 
 #include "IwUtils.h"
 #include "IwBase.h"
@@ -41,15 +43,7 @@
 #include "LocalProcessRegistrar.h"
 #include "ProcHandleWaiter.h"
 #include "ActiveObject.h"
-#include "ResipStackFactory.h"
-#include "Live555RtspFactory.h"
-#include "RtspSession.h"
-#include "Live555RtspSession.h"
-#include "M2ImsFactory.h"
-#include "IvrFactory.h"
-#include "SqlFactory.h"
-#include "UniMrcpFactory.h"
-#include "Live555RtpProxyFactory.h"
-#include "OpalFactory.h"
+
+
 
 

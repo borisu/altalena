@@ -17,9 +17,14 @@ Live555RtpProxyFactory::~Live555RtpProxyFactory(void)
 
 
 LightweightProcess *
-Live555RtpProxyFactory::Create(LpHandlePair pair, Configuration &conf)
+Live555RtpProxyFactory::Create(LpHandlePair pair, ConfigurationPtr conf)
 {
 	return new ProcLive555RtpProxy(pair,conf);
+}
+
+IW_LIVE555PROXY_API IProcFactory* GetIwFactory()
+{
+	return new Live555RtpProxyFactory();
 }
 
 }

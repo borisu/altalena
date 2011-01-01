@@ -34,7 +34,7 @@ namespace ivrworx
 	}
 
 	LightweightProcess *
-	OpalFactory::Create(LpHandlePair pair, Configuration &conf)
+	OpalFactory::Create(LpHandlePair pair, ConfigurationPtr conf)
 	{
 		return new ProcOpalH323(conf,pair);
 	}

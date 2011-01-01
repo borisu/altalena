@@ -19,18 +19,26 @@
 
 #pragma once
 
+#ifdef _DLL_IW_M2IMS // assume this is defined when we build the DLL
+#define IW_M2IMS_API  __declspec( dllexport)
+#else
+#define IW_M2IMS_API  __declspec( dllimport)
+#endif
 
 namespace ivrworx
 {
-	class M2ImsFactory :
+
+	class IW_M2IMS_API M2ImsFactory :
 		public IProcFactory
 	{
 	public:
 		M2ImsFactory(void);
 
-		LightweightProcess *Create(LpHandlePair pair, Configuration &conf);
+		LightweightProcess *Create(LpHandlePair pair, ConfigurationPtr conf);
 
 		virtual ~M2ImsFactory(void);
 	};
+
+	IW_M2IMS_API IProcFactory* GetIwFactory();
 
 }

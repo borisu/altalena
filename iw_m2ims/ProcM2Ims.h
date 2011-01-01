@@ -62,6 +62,10 @@ namespace ivrworx
 
 		StreamerHandle streamer_handle;
 
+		SndDeviceType snd_device_type;
+
+		RcvDeviceType rcv_device_type;
+
 	};
 
 	typedef 
@@ -80,7 +84,7 @@ namespace ivrworx
 	{
 
 	public:
-		ProcM2Ims(IN LpHandlePair pair, IN Configuration &conf);
+		ProcM2Ims(IN LpHandlePair pair, IN ConfigurationPtr conf);
 
 		void real_run();
 
@@ -136,7 +140,9 @@ namespace ivrworx
 		map<string, int> PayloadIndexMap;
 		PayloadIndexMap _payloadIndexMap;
 
-		Configuration &_conf;
+		ConfigurationPtr _conf;
+
+		in_addr _localInAddr;
 
 		IocpInterruptorPtr _iocpPtr;
 

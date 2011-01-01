@@ -19,7 +19,7 @@ class ProcOpalH323 :
 public:
 	
 
-	ProcOpalH323(Configuration &conf, LpHandlePair pair);
+	ProcOpalH323(ConfigurationPtr conf, LpHandlePair pair);
 	virtual ~ProcOpalH323(void);
 
 	void real_run();
@@ -45,7 +45,7 @@ public:
 
 private:
 
-	Configuration &_conf;
+	ConfigurationPtr _conf;
 
 	IocpInterruptorPtr _iocpPtr;
 

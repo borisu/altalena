@@ -33,13 +33,18 @@ namespace ivrworx
 	}
 
 	LightweightProcess*
-	ResipStackFactory::Create(IN LpHandlePair stack_pair, IN Configuration &conf)
+	ResipStackFactory::Create(IN LpHandlePair stack_pair, IN ConfigurationPtr conf)
 	{
 
 		return new ProcResipStack(
 			stack_pair, 
 			conf);
 
+	}
+
+	IW_RESIP_API IProcFactory* GetIwFactory()
+	{
+		return new ResipStackFactory();
 	}
 
 	

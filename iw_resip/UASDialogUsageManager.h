@@ -38,7 +38,7 @@ namespace ivrworx
 	{
 	public:
 		UASDialogUsageManager(
-			IN Configuration &conf,
+			IN ConfigurationPtr conf,
 			IN IwHandlesMap &ccu_handles_map,
 			IN ResipDialogHandlesMap &resipHandlesMap,
 			IN DialogUsageManager &dum);
@@ -67,7 +67,7 @@ namespace ivrworx
 
 	private:
 
-		Configuration &_conf;
+		ConfigurationPtr _conf;
 
 		ResipDialogHandlesMap &_resipHandlesMap;
 

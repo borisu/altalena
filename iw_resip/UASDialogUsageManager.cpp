@@ -24,12 +24,13 @@
 #include "UASDialogUsageManager.h"
 #include "UASAppDialogSetFactory.h"
 #include "Logger.h"
+#include "FreeContent.h"
 
 
 namespace ivrworx
 {
 	UASDialogUsageManager::UASDialogUsageManager(
-		IN Configuration &conf,
+		IN ConfigurationPtr conf,
 		IN IwHandlesMap &handles_map,
 		IN ResipDialogHandlesMap &resipHandlesMap,
 		IN DialogUsageManager &dum):
@@ -90,7 +91,7 @@ namespace ivrworx
 		}
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
-		if (ack->accepted_codecs.empty())
+		if (ack->localOffer.body.empty())
 		{
 			LogWarn("UASDialogUsageManager::UponCallOfferedAck -  No accepted codec found " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 			HangupCall(ctx_ptr);
@@ -98,49 +99,14 @@ namespace ivrworx
 
 		LogDebug("UASDialogUsageManager::UponCallOfferedAck -  " << LogHandleState(ctx_ptr, ctx_ptr->invite_handle));
 
-		SdpContents sdp;
-
-		unsigned long tm = ::GetTickCount();
-		unsigned long sessionId((unsigned long) tm);
-
-
-		SdpContents::Session::Origin origin("-", sessionId, sessionId, SdpContents::IP4, ack->local_media.iptoa());
-		SdpContents::Session session(0, origin, "ivrworks session");
-
-		session.connection() = SdpContents::Session::Connection(SdpContents::IP4, ack->local_media.iptoa());
-		session.addTime(SdpContents::Session::Time(tm, 0));
-
-		SdpContents::Session::Medium medium("audio", ack->local_media.port_ho(), 0, "RTP/AVP");
-
-		for (MediaFormatsList::iterator iter = ack->accepted_codecs.begin(); 
-			iter != ack->accepted_codecs.end(); iter ++)	
-		{
-
-			MediaFormat &media_format = *iter;
-
-			medium.addFormat(media_format.sdp_mapping_tos().c_str());
-
-			string rtpmap = media_format.sdp_mapping_tos() + " " + media_format.sdp_name_tos() + "/" + media_format.sampling_rate_tos();
-			medium.addAttribute("rtpmap", rtpmap.c_str());
-		}
-
-		
-		if (ack->invite_type == OFFER_TYPE_HOLD)
-		{
-			medium.addAttribute("inactive");
-		}
-		
-
-		session.addMedium(medium);
-		sdp.session() = session;
-
-		Data encoded(Data::from(sdp));
+		Data free_data(ack->localOffer.body);
+		FreeContent fc(ack->localOffer.body,ack->localOffer.type);
 
 		((UASAppDialogSet*)(ctx_ptr->uas_invite_handle->getAppDialogSet().get()))->_makeCallAck
 			= req;
 		
 
-		ctx_ptr->uas_invite_handle.get()->provideAnswer(sdp);
+		ctx_ptr->uas_invite_handle.get()->provideAnswer(fc);
 		ctx_ptr->uas_invite_handle.get()->accept();
 	}
 
@@ -184,13 +150,13 @@ namespace ivrworx
 		if (_eventsHandle)
 		{
 			LogWarn("Only one listener suported curently");
-			GetCurrLightWeightProc()->SendResponse(subscribe_req, 
+			GetCurrRunningContext()->SendResponse(subscribe_req, 
 				new MsgCallSubscribeNack());
 		}
 		else
 		{
 			_eventsHandle = subscribe_req->listener_handle;
-			GetCurrLightWeightProc()->SendResponse(subscribe_req, 
+			GetCurrRunningContext()->SendResponse(subscribe_req, 
 				new MsgCallSubscribeAck());
 		}
 	
@@ -237,7 +203,6 @@ namespace ivrworx
 			return;
 		}
 
-		
 		if (s.media().empty())
 		{
 			LogWarn("UASDialogUsageManager::onOffer - Empty medias list " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
@@ -277,13 +242,14 @@ namespace ivrworx
 			medium.exists("sendonly") || 
 			medium.exists("inactive"))
 		{
-			LogWarn("UASDialogUsageManager::onOffer - In-dialog offer is not supported, rejecting offer" << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
+			LogWarn("UASDialogUsageManager::onOffer - In-dialog body is not supported, rejecting body" << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 			is->reject(488);
 			return;
 		}
 
 		MsgCallOfferedReq *offered = new MsgCallOfferedReq();
-		offered->remote_media		= CnxInfo(addr,port);
+		offered->remoteOffer.body = sdp.getBodyData().c_str();
+		offered->remoteOffer.type = "application/sdp";
 		offered->stack_call_handle	= ctx_ptr->stack_handle;
 		offered->call_handler_inbound = call_handler_pair;
 
@@ -295,22 +261,6 @@ namespace ivrworx
 		offered->ani = from_uri.user().c_str();
 
 		
-
-
-		// send list of codecs to the main process
-		const list<Codec> &offered_codecs = medium.codecs();
-		for (list<Codec>::const_iterator codec_iter = offered_codecs.begin(); 
-			codec_iter != offered_codecs.end(); codec_iter++)
-		{
-
-			offered->offered_codecs.push_front(
-				MediaFormat(
-				codec_iter->getName().c_str(),
-				codec_iter->getRate(),
-				codec_iter->payloadType()));
-		}
-
-
 		if (offered->is_indialog || 
 			offered->invite_type == ivrworx::OFFER_TYPE_HOLD ||
 			offered->invite_type == ivrworx::OFFER_TYPE_RESUME)
@@ -348,7 +298,7 @@ namespace ivrworx
 			new MsgNewCallConnected();
 
 
-		GetCurrLightWeightProc()->SendResponse(
+		GetCurrRunningContext()->SendResponse(
 			((UASAppDialogSet *)is->getAppDialogSet().get())->_makeCallAck, 
 			conn_msg);
 

@@ -18,9 +18,6 @@
 */
 
 #include "stdafx.h"
-#include <ws2tcpip.h>
-
-
 
 using namespace boost::assign;
 
@@ -41,12 +38,7 @@ namespace ivrworx
 	{
 	private:
 
-		typedef shared_ptr<IProcFactory> 
-		ProcFactoryPtr;
-
-		typedef list<ProcFactoryPtr> 
-		FactoryPtrList;
-
+		
 		typedef list<LpHandlePair>
 		HandlePairList;
 
@@ -55,7 +47,7 @@ namespace ivrworx
 		HandlesVector selected_handles;
 
 	public:
-		ProcSystemStarter(LpHandlePair pair,Configuration &conf)
+		ProcSystemStarter(LpHandlePair pair,ConfigurationPtr conf)
 			:LightweightProcess(pair,"ProcSystemStarter"),
 			_conf(conf)
 		{
@@ -68,14 +60,14 @@ namespace ivrworx
 
 			FactoryPtrList factories_list = 
 				list_of
-				(ProcFactoryPtr(new Live555RtpProxyFactory	()))
+				//(ProcFactoryPtr(new Live555RtpProxyFactory	()))
 				(ProcFactoryPtr(new ResipStackFactory		()))
-				(ProcFactoryPtr(new SqlFactory		()))
-				(ProcFactoryPtr(new M2ImsFactory	()))
-				(ProcFactoryPtr(new UniMrcpFactory	()))
-				(ProcFactoryPtr(new OpalFactory		()))
-				(ProcFactoryPtr(new IvrFactory		()));
-
+// 				(ProcFactoryPtr(new SqlFactory		()))
+// 				(ProcFactoryPtr(new M2ImsFactory	()))
+// 				(ProcFactoryPtr(new UniMrcpFactory	()))
+// 				(ProcFactoryPtr(new OpalFactory		()))
+//				(ProcFactoryPtr(new IvrFactory		()));
+;
 
 			if (factories_list.size() == 0)
 			{
@@ -137,6 +129,32 @@ namespace ivrworx
 	
 			I_AM_READY;
 
+			
+			{
+				LpHandlePtr handle = ivrworx::GetHandle(_conf->GetString("ivr/sip_service"));
+
+				
+				HandleId service_handle_id = handle->GetObjectUid();
+				SipMediaCallPtr first_call =
+					SipMediaCallPtr(new SipMediaCall(forking, service_handle_id));
+
+				SipMediaCallPtr second_call =
+					SipMediaCallPtr(new SipMediaCall(forking, service_handle_id));
+
+				BridgedMediaCallSession b;
+				ApiErrorCode res = b.MakeBridgedCall(
+					first_call,
+					"sip:24001@192.168.150.3",
+					second_call, 
+					"sip:6095@192.168.150.3");
+
+				return;
+			}
+
+			
+
+			
+
 
 			while(true)
 			{
@@ -190,7 +208,7 @@ exit:
 
 	private:
 
-		Configuration &_conf;
+		ConfigurationPtr _conf;
 
 	};
 
@@ -243,7 +261,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 
 
-		InitLog(*conf);
+		InitLog(conf);
 		LogInfo(">>>>>> IVRWORX START <<<<<<");
 
 		Start_CPPCSP();
@@ -251,9 +269,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		START_FORKING_REGION;
 
 		DECLARE_NAMED_HANDLE_PAIR(starter_pair);
-		DECLARE_NAMED_HANDLE_PAIR(rtsp_pair);
 
-		FORK(new ProcSystemStarter(starter_pair, *conf));
+		FORK(new ProcSystemStarter(starter_pair, conf));
 
 		END_FORKING_REGION;
 

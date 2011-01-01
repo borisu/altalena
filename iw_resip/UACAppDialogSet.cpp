@@ -33,7 +33,7 @@ namespace ivrworx
 		IN IwMessagePtr orig_request): 
 	AppDialogSet(dum),
 	_ptr(ptr),
-	_orig_request(orig_request)
+	last_makecall_req(orig_request)
 	{
 		FUNCTRACKER;
 	}

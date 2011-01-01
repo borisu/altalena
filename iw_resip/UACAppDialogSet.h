@@ -45,7 +45,10 @@ namespace ivrworx
 
 		SipDialogContextPtr _ptr;
 
-		IwMessagePtr _orig_request;
+		IwMessagePtr last_makecall_req;
+
+		IwMessagePtr last_options_req;
+
 
 	};
 

@@ -69,7 +69,9 @@ namespace ivrworx
 
 		IwStackHandle stack_handle;
 
-		BOOL generic_offer_answer; 
+		AbstractOffer local_media_offer;
+
+		AbstractOffer remote_media_offer;
 
 	};
 
@@ -111,7 +113,6 @@ namespace ivrworx
 		return stream.str();
 
 	}
-
 
 }
 

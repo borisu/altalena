@@ -28,7 +28,7 @@ namespace ivrworx
 	public:
 		OpalFactory(void);
 
-		virtual LightweightProcess *Create(LpHandlePair pair, Configuration &conf);
+		virtual LightweightProcess *Create(LpHandlePair pair, ConfigurationPtr conf);
 		
 		virtual ~OpalFactory(void);
 	};

@@ -20,6 +20,7 @@
 #include <mediastreamer2\msfileplayer.h>
 #include <mediastreamer2\dtmfgen.h>
 #include <ortp\telephonyevents.h>
+#include <mediastreamer2\msfilerec.h>
 
 #include "IwUtils.h"
 #include "IwBase.h"
