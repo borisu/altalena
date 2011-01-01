@@ -20,26 +20,14 @@
 #pragma once
 #include "Configuration.h"
 #include "IwBase.h"
+#include "DllHelpers.h"
 
 using namespace boost;
 
 namespace ivrworx
 {
 
-	typedef 
-	shared_ptr<Configuration> ConfigurationPtr;
-
-	/**
-	*
-	*	Configuration Factory.
-	*
-	*	This class is used to hide @ref configuration data source dependencies from including files.
-	*	Every new configuration should supply factory class so using files will not have to include 
-	*	dependent headers.
-	*	
-	*
-	**/
-	class ConfigurationFactory
+	class IW_CORE_API ConfigurationFactory
 	{
 	public:
 

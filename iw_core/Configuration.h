@@ -17,7 +17,10 @@
 */
 
 #pragma once
+
 using namespace std;
+using namespace boost;
+
 
 
 
@@ -32,7 +35,7 @@ namespace ivrworx
 	};
 
 	typedef
-	std::list<boost::any> ListOfAny;
+	list<boost::any> ListOfAny;
 
 	// Configuration class follows basic JSON semantics
 	// though it may be implemented as XML or Db or any
@@ -57,6 +60,9 @@ namespace ivrworx
 		virtual void GetArray(IN const string &key, OUT ListOfAny &out_list) = 0;
 		
 	};
+
+	typedef 
+	shared_ptr<Configuration> ConfigurationPtr;
 
 }
 

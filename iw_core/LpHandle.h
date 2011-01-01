@@ -46,11 +46,11 @@ namespace ivrworx
 	// Some classes are not csp-fibers and need to be 
 	// interrupted by setting some event or any other
 	// OS related measure while they are waiting. This 
-	// class represents the interface which wraps the OS 
+	// class IW_CORE_API represents the interface which wraps the OS 
 	// related facility which used to interrupt such a
 	// process and inform it that new message has arrived
 	//
-	class WaitInterruptor
+	class IW_CORE_API WaitInterruptor
 	{
 	public:
 
@@ -64,7 +64,7 @@ namespace ivrworx
 
 	// use this interruptor if you want to receive messages 
 	// by waiting on specific HANDLE by means of WaitForMultipleObjects 
-	class SemaphoreInterruptor
+	class IW_CORE_API SemaphoreInterruptor
 	:public WaitInterruptor, noncopyable
 	{
 	public:
@@ -91,7 +91,7 @@ namespace ivrworx
 
 	// use this interruptor if you want to receive messages 
 	// by waiting on io completion port by  means of  GetQueuedCompletionStatus  
-	class IocpInterruptor
+	class IW_CORE_API IocpInterruptor
 		:public WaitInterruptor, noncopyable
 	{
 	public:
@@ -135,7 +135,7 @@ namespace ivrworx
 	};
 
 
-	class LpHandle;
+	class IW_CORE_API LpHandle;
 
 	typedef 
 	shared_ptr<LpHandle> LpHandlePtr;
@@ -143,7 +143,7 @@ namespace ivrworx
 	typedef 
 	vector<LpHandlePtr> HandlesVector;
 
-	class LpHandle :
+	class IW_CORE_API LpHandle :
 	public UIDOwner
 	{
 
@@ -201,7 +201,7 @@ namespace ivrworx
 
 		friend ostream& operator << (ostream &ostream, const LpHandle *lpHandlePtr);
 
-		friend ApiErrorCode SelectFromChannels(
+		IW_CORE_API friend ApiErrorCode SelectFromChannels(
 			IN  HandlesVector &map,
 			IN  Time timeout, 
 			OUT int &index, 
@@ -211,14 +211,14 @@ namespace ivrworx
 
 
 
-	ApiErrorCode SelectFromChannels(
+	IW_CORE_API ApiErrorCode SelectFromChannels(
 		IN  HandlesVector &map,
 		IN  Time timeout, 
 		OUT int &index, 
 		OUT IwMessagePtr &event);
 
 
-	struct LpHandlePair
+	struct IW_CORE_API LpHandlePair
 	{
 		LpHandlePair();
 

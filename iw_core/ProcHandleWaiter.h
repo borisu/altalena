@@ -22,8 +22,6 @@
 #include "Message.h"
 #include "LightweightProcess.h"
 
-#define WAITER_Q 4
-
 namespace ivrworx
 {
 

@@ -83,7 +83,7 @@ namespace ivrworx
 	HANDLE		g_IocpLogger	= NULL;
 	HANDLE		g_loggerThread	= NULL;
 
-	extern LogLevel g_LogLevel		= LOG_LEVEL_INFO;
+	IW_CORE_API extern LogLevel g_MaxLogLevel 	= LOG_LEVEL_INFO;
 	DWORD	 g_logMask		= IW_LOG_MASK_CONSOLE;
 	BOOL	 g_LogSyncMode  = FALSE;
 
@@ -97,7 +97,16 @@ namespace ivrworx
 
 	__declspec( thread ) BOOL tls_sync_mode= FALSE;
 	
+	IW_CORE_API debug_dostream *GetTlsLogger()
+	{
+		if (tls_logger == NULL)
+		{
+			tls_logger = new debug_dostream();
+		};
 
+		return tls_logger;
+
+	}
 
 	struct LogBucket :
 		public OVERLAPPED
@@ -118,31 +127,31 @@ namespace ivrworx
 
 	DWORD WINAPI LoggerThread(LPVOID lpParam);
 
-	void 
+	IW_CORE_API void 
 	IwStartScript()
 	{
 		script_log = TRUE;
 	}
 
-	void
+	IW_CORE_API void
 	IwStopScript()
 	{
 		script_log = FALSE;
 	}
 	
 	BOOL 
-	InitLog(Configuration &conf)
+	InitLog(ConfigurationPtr conf)
 	{
 		mutex::scoped_lock scoped_lock(g_loggerMutex);
 
-		SetLogLevelFromString(conf.GetString("debug_level"));
-		SetLogMaskFromString(conf.GetString("debug_outputs"));
+		SetLogLevelFromString(conf->GetString("debug_level"));
+		SetLogMaskFromString(conf->GetString("debug_outputs"));
 
-		g_LogSyncMode = conf.GetBool("sync_log");
+		g_LogSyncMode = conf->GetBool("sync_log");
 
-		openlog(conf.GetString("syslogd_host").c_str(),conf.GetInt("syslogd_port"),"ivrworx",0,LOG_USER );
+		openlog(conf->GetString("syslogd_host").c_str(),conf->GetInt("syslogd_port"),"ivrworx",0,LOG_USER );
 
-		if (conf.GetBool("sync_log"))
+		if (conf->GetBool("sync_log"))
 		{
 			return TRUE;
 		}
@@ -366,7 +375,7 @@ error:
 	{
 		mutex::scoped_lock scoped_lock(g_loggerMutex);
 
-		g_LogLevel = log_level;
+		g_MaxLogLevel = log_level;
 
 		setlogmask(GetSyslogPri(log_level));
 
@@ -630,7 +639,7 @@ error:
 	
 	LoggerTracker::LoggerTracker(IN char *log_function)
 	{
-		if (::InterlockedExchangeAdd((LONG*)&g_LogLevel,0) < LOG_LEVEL_TRACE)
+		if (::InterlockedExchangeAdd((LONG*)&g_MaxLogLevel,0) < LOG_LEVEL_TRACE)
 		{
 			_funcname[0] = '\0';
 			return;

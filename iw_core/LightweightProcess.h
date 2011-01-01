@@ -30,9 +30,9 @@ using namespace std;
 namespace ivrworx
 {
 
-#define I_AM_READY SendReadyMessage();
-
-#define	SEND_RESPONSE(P, R) GetCurrLightWeightProc()->SendResponse(P, R);
+#define I_AM_READY				SendReadyMessage()
+#define	SEND_RESPONSE(P, R)		GetCurrRunningContext()->SendResponse(P, R)
+#define	WAIT_TILL_READY(T, P)	GetCurrRunningContext()->WaitTillReady((T), (P))
 
 typedef list<CSProcess*> ProcessList;
 
@@ -40,31 +40,33 @@ typedef list<CSProcess*> ProcessList;
 typedef
 shared_ptr<Bucket> BucketPtr;
 
-class LightweightProcess: 
-	public CSProcess
+class RunningContext;
+
+typedef shared_ptr<RunningContext>
+RunningContextPtr;
+
+IW_CORE_API void  RegisterContext(RunningContext* ctx);
+IW_CORE_API RunningContext* UnegisterContext(void);
+
+class IW_CORE_API AppData : boost::noncopyable
+{
+public:
+	virtual int getType();
+};
+
+class IW_CORE_API RunningContext
 {
 public:
 
-	LightweightProcess(
+	RunningContext(
 		IN LpHandlePair pair, 
 		IN const string &owner_name = "",
 		IN BOOL start_suspended = FALSE);
 
 	
-	LightweightProcess(
-		IN LpHandlePair pair, 
-		IN int inbound_channel_id, 
-		IN const string &owner_name = "",
-		IN BOOL start_suspended = FALSE);
-
-
-	virtual ~LightweightProcess(void);
+	virtual ~RunningContext(void);
 
 	static void Join(BucketPtr bucket);
-
-	virtual void run();
-
-	virtual void real_run() = 0;
 
 	virtual string Name();
 
@@ -153,11 +155,8 @@ public:
 		OUT IwMessagePtr &response,
 		IN  Time timout);
 
-	LpHandlePair _pair;
-
-	LpHandlePtr _inbound;
-
-	LpHandlePtr _outbound;
+	virtual AppData *GetAppData();
+	virtual void SetAppData(AppData *data);
 
 	BucketPtr _bucket;
 
@@ -169,39 +168,99 @@ protected:
 	
 	int _processId;
 
-	int _processAlias;
-
 	BOOL _startSuspended;
 
 	string _serviceId;
+
+	LpHandlePair _pair;
+
+	LpHandlePtr _inbound;
+
+	LpHandlePtr _outbound;
+
+	 AppData *_appData;
 
 private:
 
 	void Init(int UID, const string &owner_name);
 
+	friend IW_CORE_API void RegisterContext(RunningContext* ctx);
+
+	friend IW_CORE_API RunningContext* UnregisterContext();
+
+
 };
 
 #pragma endregion
 
-class IProcFactory
+class IW_CORE_API LightweightProcess: 
+	public CSProcess,
+	public RunningContext
+	
 {
 public:
-	virtual LightweightProcess *Create(LpHandlePair pair, Configuration &conf) = 0;
+
+	LightweightProcess(
+		IN LpHandlePair pair, 
+		IN const string &owner_name = "",
+		IN BOOL start_suspended = FALSE);
+
+
+	virtual ~LightweightProcess(void);
+
+	virtual void run();
+
+	virtual void real_run() = 0;
+
+};
+
+
+class IW_CORE_API IProcFactory
+{
+public:
+	virtual LightweightProcess *Create(LpHandlePair pair, ConfigurationPtr conf) = 0;
 
 	virtual ~IProcFactory(){};
 };
 
+typedef IProcFactory *  (*IWPROC)(VOID); 
+
 //
 // owners map, used for logging mostly
 //
-LightweightProcess*
-GetCurrLightWeightProc();
+IW_CORE_API RunningContext*
+GetCurrRunningContext();
 
-string 
+IW_CORE_API string 
 GetCurrLpName();
 
-int
+IW_CORE_API int
 GetCurrLpId();
+
+typedef shared_ptr<IProcFactory> 
+ProcFactoryPtr;
+
+typedef list<ProcFactoryPtr> 
+FactoryPtrList;
+
+
+typedef list<LpHandlePair>
+HandlePairList;
+
+IW_CORE_API ApiErrorCode
+LoadConfiguredModules(IN ConfigurationPtr conf,
+					  OUT FactoryPtrList &factoriesList);
+IW_CORE_API ApiErrorCode
+BootModulesSimple(
+				  IN ConfigurationPtr conf,
+				  IN ScopedForking &forking,
+				  IN const FactoryPtrList &factories_list,
+				  OUT HandlePairList &proc_handlepairs,
+				  OUT HandlesVector &selected_handles);
+
+IW_CORE_API ApiErrorCode
+ShutdownModules(IN HandlePairList &proc_handlepairs,
+				IN ConfigurationPtr conf);
 
 }
 
