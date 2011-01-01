@@ -1,9 +1,18 @@
 #pragma once
 #define method(class, name) {#name, &class::name}
 
+enum LUA_RT_CONTROL
+{
+	LUA_RT_ALLOW_NONE = 0x00,
+	LUA_RT_ALLOW_NEW  = 0x01,
+	LUA_RT_ALLOW_GC   = 0x10,
+	LUA_RT_ALLOW_ALL  = LUA_RT_ALLOW_GC | LUA_RT_ALLOW_NEW
+};
+
 template <typename T> class Luna {
+	public:
 	typedef struct { T *pT; } userdataType;
-public:
+
 	typedef int (T::*mfp)(lua_State *L);
 	typedef struct { const char *name; mfp mfunc; } RegType;
 
@@ -50,7 +59,8 @@ public:
 
 	};
 
-	static void RegisterType(lua_State *L, BOOL singleton = FALSE) {
+
+	static void RegisterType(lua_State *L, LUA_RT_CONTROL luartcontrol = LUA_RT_ALLOW_ALL , lua_CFunction creator = NULL) {
 		lua_newtable(L);
 		int methods = lua_gettop(L);
 
@@ -75,16 +85,25 @@ public:
 		lua_pushcfunction(L, tostring_T);
 		lua_settable(L, metatable);
 
-		if (singleton == FALSE)
+		// borisu added to recognize the class
+		// see bridgemacros for usage
+		lua_pushstring(L, "className");
+		lua_pushstring(L, T::className);
+		lua_settable(L, metatable);
+
+		if (luartcontrol | LUA_RT_ALLOW_GC)
 		{
 			lua_pushliteral(L, "__gc");
 			lua_pushcfunction(L, gc_T);
 			lua_settable(L, metatable);
+		}
 
+		if (luartcontrol | LUA_RT_ALLOW_NEW)
+		{
 			lua_newtable(L);                // mt for method table
 			int mt = lua_gettop(L);
 			lua_pushliteral(L, "__call");
-			lua_pushcfunction(L, new_T);
+			lua_pushcfunction(L, creator == NULL ? new_T : creator);
 			lua_pushliteral(L, "new");
 			lua_pushvalue(L, -2);           // dup new_T function
 			lua_settable(L, methods);       // add new_T to method table

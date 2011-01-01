@@ -23,15 +23,15 @@
 
 namespace ivrworx
 {
-	class SipCallBridge
+	class sipcall
 	{
 	public:
 
-		SipCallBridge(lua_State *L);
+		sipcall(lua_State *L);
 
-		SipCallBridge(SipMediaCallPtr call);
+		sipcall(SipMediaCallPtr call);
 
-		virtual ~SipCallBridge(void);
+		virtual ~sipcall(void);
 
 		int answer(lua_State *L);
 		int cleandtmfbuffer(lua_State *L);
@@ -39,16 +39,21 @@ namespace ivrworx
 		int waitforhangup(lua_State *L);
 		int ani(lua_State *L);
 		int dnis(lua_State *L);
-		int mediaformat(lua_State *L);
+		
 
 		int sendinfo(lua_State *L);
+		int waitforinfo(lua_State *L);
 
 		int makecall(lua_State *L);
 		int blindxfer(lua_State *L);
 		int hangup(lua_State *L);
 
+	
+		int remoteoffer(lua_State *L);
+		int localoffer(lua_State *L);
+
 		static const char className[];
-		static Luna<SipCallBridge>::RegType methods[];
+		static Luna<sipcall>::RegType methods[];
 
 	private:
 

@@ -27,18 +27,19 @@ namespace ivrworx
 		
 		ConfBridge(lua_State *L);
 
-		ConfBridge(Configuration *conf);
+		ConfBridge(ConfigurationPtr conf);
 
 		virtual ~ConfBridge(void);
 
 		int getstring(lua_State *L);
 		int getint(lua_State *L);
 		int getboolean(lua_State *L);
+		int getarray(lua_State *L);
 
 		static const char className[];
 		static Luna<ConfBridge>::RegType methods[];
 
-		Configuration *_conf;
+		ConfigurationPtr _conf;
 	};
 
 

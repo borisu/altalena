@@ -35,10 +35,8 @@
 #include "LocalProcessRegistrar.h"
 #include "ActiveObject.h"
 #include "Configuration.h"
-#include "MediaCallSession.h"
 #include "StreamingSession.h"
 #include "SipCall.h"
-#include "MscmlCall.h"
 #include "RtpProxySession.h"
 #include "MrcpSession.h"
 

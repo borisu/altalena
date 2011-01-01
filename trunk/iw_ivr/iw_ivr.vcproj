@@ -19,7 +19,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="2"
 			CharacterSet="1"
 			>
 			<Tool
@@ -42,7 +42,7 @@
 				AdditionalOptions="-Zm120"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\iw_core;..\iw_telephony;..\iw_live555rtsp;..\iw_sqlite;&quot;..\sqlite-amalgamation-3_6_17&quot;;..\lua5.1\include;..\luasql"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_DLL_IW_IVR"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -62,10 +62,14 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				GenerateDebugInformation="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -75,6 +79,12 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -351,15 +361,11 @@
 			Name="bridges"
 			>
 			<File
+				RelativePath=".\BridgeMacros.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\BridgeMacros.h"
-				>
-			</File>
-			<File
-				RelativePath=".\CallBridge.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\CallBridge.h"
 				>
 			</File>
 			<File
@@ -379,20 +385,48 @@
 				>
 			</File>
 			<File
-				RelativePath=".\MscmlCallBridge.cpp"
+				RelativePath=".\LuaStaticApi.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\MscmlCallBridge.h"
+				RelativePath=".\LuaStaticApi.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MrcpBridge.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MrcpBridge.h"
+				>
+			</File>
+			<File
+				RelativePath=".\RTPProxyBridge.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\RTPProxyBridge.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SipCallBridge.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SipCallBridge.h"
+				>
+			</File>
+			<File
+				RelativePath=".\StreamerBridge.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\StreamerBridge.h"
 				>
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\CallWithRtpManagement.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\CallWithRtpManagement.h"
+			RelativePath=".\IvrDllApi.h"
 			>
 		</File>
 		<File
@@ -421,14 +455,6 @@
 		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
-			>
-		</File>
-		<File
-			RelativePath=".\SipCallBridge.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\SipCallBridge.h"
 			>
 		</File>
 		<File

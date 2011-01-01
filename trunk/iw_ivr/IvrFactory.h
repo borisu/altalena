@@ -18,10 +18,12 @@
 */
 
 #pragma once
+#include "IvrDllApi.h"
+
 
 namespace ivrworx
 {
-	class IvrFactory : public
+	class IW_IVR_API IvrFactory : public
 		IProcFactory
 	{
 	public:
@@ -30,9 +32,11 @@ namespace ivrworx
 
 		virtual ~IvrFactory(void);
 
-		LightweightProcess *Create(LpHandlePair pair, Configuration  &conf);
+		LightweightProcess *Create(LpHandlePair pair, ConfigurationPtr conf);
 
 	};
+
+	IW_IVR_API IProcFactory* GetIwFactory();
 
 
 }

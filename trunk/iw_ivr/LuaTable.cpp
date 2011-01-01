@@ -24,13 +24,22 @@
 
 namespace ivrworx
 {
-	LuaTable::LuaTable(IN CLuaVirtualMachine& vm): 
+	LuaTable::LuaTable(IN lua_State  *L): 
 		_oldRef (IW_UNDEFINED), 
-		_vm (vm),
+		_vm(L),
 		_tableRef(IW_UNDEFINED)
 	{
 
 	}
+
+	void 
+	LuaTable::Attach(const string &table_name)
+	{
+		lua_getglobal (_vm,table_name.c_str());
+		_tableRef = luaL_ref (_vm, LUA_REGISTRYINDEX);
+		
+	}
+
 
 	void 
 	LuaTable::Create(IN const string &table_name)
@@ -41,7 +50,7 @@ namespace ivrworx
 			throw;
 		}
 
-		if (_tableName != "")
+		if (_tableName != "" || _tableRef != IW_UNDEFINED)
 		{
 			LogCrit("Cannot create table twice");
 			throw;
@@ -49,21 +58,19 @@ namespace ivrworx
 
 		_tableName = table_name;
 
-		if (_vm.Ok ())
-		{
-			lua_State *state = (lua_State *) _vm;
+		lua_State *state = (lua_State *) _vm;
 
-			lua_newtable (state);
-			_tableRef = luaL_ref (state, LUA_REGISTRYINDEX);
+		lua_newtable (state);
+		_tableRef = luaL_ref (state, LUA_REGISTRYINDEX);
 
-			// Save the old table
-			lua_getglobal (state,table_name.c_str());
-			_oldRef = luaL_ref (state, LUA_REGISTRYINDEX);
+		// Save the old table
+		lua_getglobal (state,table_name.c_str());
+		_oldRef = luaL_ref (state, LUA_REGISTRYINDEX);
 
-			// replace it with our new one
-			lua_rawgeti(state, LUA_REGISTRYINDEX, _tableRef);
-			lua_setglobal (state, table_name.c_str());
-		}
+		// replace it with our new one
+		lua_rawgeti(state, LUA_REGISTRYINDEX, _tableRef);
+		lua_setglobal (state, table_name.c_str());
+		
 	}
 
 	int
@@ -75,11 +82,7 @@ namespace ivrworx
 	void 
 	LuaTable::AddParam(IN const string &key, IN const int value)
 	{
-		if (_vm.Ok () == false || _tableRef == 0)
-		{
-			LogCrit("Cannot add parameter to unintialized table");
-			throw;
-		}
+		
 		CLuaRestoreStack rs (_vm);
 
 		lua_State *state = (lua_State *) _vm;
@@ -95,11 +98,7 @@ namespace ivrworx
 	void 
 	LuaTable::AddParam(IN const string &key, IN const string &value)
 	{
-		if (_vm.Ok () == false || _tableRef == 0)
-		{
-			LogCrit("Cannot add parameter to unintialized table");
-			throw;
-		}
+		
 		CLuaRestoreStack rs (_vm);
 
 		lua_State *state = (lua_State *) _vm;
@@ -114,12 +113,6 @@ namespace ivrworx
 	void 
 	LuaTable::AddFunction(IN const string &key, IN const lua_CFunction func)
 	{
-		if (_vm.Ok () == false || _tableRef == 0)
-		{
-			LogCrit("Cannot add parameter to unintialized table");
-			throw;
-		}
-
 		CLuaRestoreStack rs (_vm);
 
 		lua_State *state = (lua_State *) _vm;
@@ -134,15 +127,14 @@ namespace ivrworx
 
 	LuaTable::~LuaTable (void)
 	{
-		if (_vm.Ok () == false  || 
-			_tableName == ""	||  
+		if (_tableName == ""	||  
 			_tableRef == 0) 
 		{
 			return;
 		}
 
 		lua_State *state = (lua_State *) _vm;
-		if (_oldRef > 0 && _vm.Ok ())
+		if (_oldRef > 0)
 		{
 			// Replace the old "this" table
 			lua_rawgeti(state, LUA_REGISTRYINDEX, _oldRef);

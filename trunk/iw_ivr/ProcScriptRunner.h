@@ -21,9 +21,8 @@
 
 #include "LuaVirtualMachine.h"
 #include "LuaScript.h"
-#include "CallWithRtpManagement.h"
 #include "LuaTable.h"
-
+#include "LuaStaticApi.h"
 
 namespace ivrworx
 {
@@ -48,71 +47,6 @@ namespace ivrworx
 		MSG_IVR_START_SCRIPT_REQ = MSG_USER_DEFINED,
 	};
 
-	enum ParamType
-	{
-		PT_UNKNOWN,
-		PT_INTEGER,
-		PT_STRING,
-		PT_BOOL,
-		PT_CALL,
-		PT_LIGHTUSERDATA
-	};
-
-	struct ProcParam 
-	{
-		ParamType param_type; 
-
-		ProcParam():
-		param_type(PT_UNKNOWN),
-			ud_value(NULL)
-		{
-
-		}
-
-		ProcParam(const ProcParam &p)
-		{
-			int_value    = p.int_value;
-			string_value = p.string_value;
-			call_value	 = p.call_value;
-			bool_value	 = p.bool_value;
-			ud_value	 = p.ud_value;
-
-		}
-
-		/* couldn't use union because of copy c'tor */
-		int int_value;
-
-		BOOL bool_value;
-
-		void *ud_value;
-
-		string string_value;
-
-		CallWithRtpManagementPtr call_value;
-
-	};
-
-
-	typedef map<int,ProcParam>  
-	ProcParamMap;
-
-	typedef shared_ptr<ProcParamMap>
-	ProcParamMapPtr;
-
-
-	class MsgIvrStartScriptReq : 
-		public MsgRequest
-	{
-	public:
-		MsgIvrStartScriptReq():
-		  MsgRequest(MSG_IVR_START_SCRIPT_REQ, 
-			  NAME(MSG_IVR_START_SCRIPT_REQ)){};
-
-		  string script_name;
-
-		  ProcParamMapPtr params_map;
-
-	};
 	
 
 	/**
@@ -124,17 +58,11 @@ namespace ivrworx
 	public:
 
 		ProcScriptRunner(
-			IN Configuration &conf,
+			IN ConfigurationPtr conf,
 			IN const string &script_name,
 			IN const char *precompiled_buffer,
 			IN size_t buffer_size,
 			IN shared_ptr<MsgCallOfferedReq> msg, 
-			IN LpHandlePair ivr_pair, 
-			IN LpHandlePair pair);
-
-		ProcScriptRunner(
-			IN Configuration &conf,
-			IN shared_ptr<MsgIvrStartScriptReq> req,
 			IN LpHandlePair ivr_pair, 
 			IN LpHandlePair pair);
 
@@ -146,25 +74,18 @@ namespace ivrworx
 
 		virtual BOOL HandleOOBMessage(IN IwMessagePtr msg);
 
-		static int LuaWait(lua_State *L);
+		virtual AppData* GetAppData() { return &_ctx; };
 
-		static int LuaRunLongOperation(lua_State *L);
-
-		static int LuaCreateSession(lua_State *L);
-
-		static int LuaSpawn(lua_State *L);
-
-		static int LuaFork(lua_State *L);
-
+	
 	private:
+
+		Context _ctx;
 
 		shared_ptr<MsgCallOfferedReq> _initialMsg;
 
-		shared_ptr<MsgIvrStartScriptReq> _startScriptReq;
-
 		LpHandlePair _spawnPair;
 
-		Configuration &_conf;
+		ConfigurationPtr _conf;
 
 		int _stackHandle;
 
@@ -176,7 +97,7 @@ namespace ivrworx
 
 		ScopedForking *_forking;
 
-		ProcParamMap _procMap;
+		void Init();
 
 	};
 

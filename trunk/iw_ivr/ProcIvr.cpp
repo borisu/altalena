@@ -19,7 +19,6 @@
 
 #include "StdAfx.h"
 #include "ProcIvr.h"
-#include "CallWithRtpManagement.h"
 #include "ProcScriptRunner.h"
 #include "LocalProcessRegistrar.h"
 #include "ProcHandleWaiter.h"
@@ -27,15 +26,14 @@
 
 
 
-#define IVR_Q 0
 
 using namespace boost::assign;
 
 namespace ivrworx
 {
 
-ProcIvr::ProcIvr(IN LpHandlePair pair, IN Configuration &conf)
-:LightweightProcess(pair,IVR_Q,	"ProcIvr"),
+ProcIvr::ProcIvr(IN LpHandlePair pair, IN ConfigurationPtr conf)
+:LightweightProcess(pair,"ProcIvr"),
 _conf(conf),
 _precompiledBuffer(NULL),
 _superSize(0),
@@ -58,12 +56,12 @@ ApiErrorCode
 ProcIvr::SubscribeToIncomingCalls(IN const string &serviceUri, 
 								  IN LpHandlePtr listenerHandle)
 {
-	if (!_conf.HasOption(serviceUri))
+	if (!_conf->HasOption(serviceUri))
 	{
 		return API_FEATURE_DISABLED;
 	}
 
-	string service_uri = _conf.GetString(serviceUri);
+	string service_uri = _conf->GetString(serviceUri);
 	LpHandlePtr service_handle = ivrworx::GetHandle(service_uri);
 	if (!service_handle)
 	{
@@ -88,7 +86,7 @@ ProcIvr::real_run()
 {
 
 	FUNCTRACKER;
-	
+
 	IwMessagePtr event;
 
 	string service_uri;
@@ -116,16 +114,16 @@ ProcIvr::real_run()
 
 
 
-	string super_script = _conf.GetString("ivr/super_script");
+	string super_script = _conf->GetString("ivr/super_script");
 
 	//
 	// Precompile files
 	//
-	if (_conf.GetBool("ivr/precompile"))
+	if (_conf->GetBool("ivr/precompile"))
 	{
 
 		ApiErrorCode res = 
-			LuaUtils::Precompile(_conf.GetString("ivr/script_file"),&_precompiledBuffer, &_scriptSize);
+			LuaUtils::Precompile(_conf->GetString("ivr/script_file"),&_precompiledBuffer, &_scriptSize);
 
 		if (IW_FAILURE(res))
 		{
@@ -156,7 +154,6 @@ ProcIvr::real_run()
 	// Run super script
 	//
 	DECLARE_NAMED_HANDLE_PAIR(super_script_handle);
-	DECLARE_NAMED_HANDLE_PAIR(spawn_handle);
 
 	if (!super_script.empty())
 	{
@@ -173,8 +170,8 @@ ProcIvr::real_run()
 			super_script_handle					// handle created by stack for events
 			);
 
-		if (_conf.GetString("ivr/super_mode") == "sync" || 
-			_conf.GetBool("ivr/ivr_enabled") == FALSE)
+		if (_conf->GetString("ivr/super_mode") == "sync" || 
+			_conf->GetBool("ivr/ivr_enabled") == FALSE)
 		{
 			csp::RunInThisThread(super_script_proc);
 		} 
@@ -186,7 +183,7 @@ ProcIvr::real_run()
 
 	}
 
-	if (_conf.GetBool("ivr/ivr_enabled") == FALSE)
+	if (_conf->GetBool("ivr/ivr_enabled") == FALSE)
 	{
 		LogInfo("ivr_enabled:false... exiting");
 		return;
@@ -194,7 +191,7 @@ ProcIvr::real_run()
 	
 
 	HandlesVector list = 
-		list_of(_inbound)(spawn_handle.outbound)(_h323IncomingHandle)(_sipIncomingHandle);
+		list_of(_inbound)(_h323IncomingHandle)(_sipIncomingHandle);
 	
 
 	//
@@ -243,11 +240,6 @@ ProcIvr::real_run()
 				}
 				break;
 			}
-		case 1:
-			{
-				ProcessSpawnMessage(event, spawn_handle, forking);
-				break;
-			}
 		default:
 			{
 				shutdown_flag = ProcessStackMessage(event, forking);
@@ -270,45 +262,6 @@ ProcIvr::real_run()
 		SendResponse(event,new MsgShutdownAck());
 	}
 
-
-}
-
-BOOL 
-ProcIvr::ProcessSpawnMessage(IN IwMessagePtr event, IN LpHandlePair spawn_pair, IN ScopedForking &forking)
-{
-   FUNCTRACKER;
-
-   shared_ptr<MsgIvrStartScriptReq> req = 
-	   dynamic_pointer_cast<MsgIvrStartScriptReq> (event);
-
-	switch (event->message_id)
-	{
-	case MSG_IVR_START_SCRIPT_REQ:
-		{
-			DECLARE_NAMED_HANDLE_PAIR(script_runner_handle);
-
-			FORK_IN_THIS_THREAD(
-				new ProcScriptRunner(
-				_conf,					// configuration
-				req,					// script name
-				spawn_pair,				// on this handle "spawn" requests will be recieved
-				script_runner_handle	// handle created by stack for events
-				));
-
-			return FALSE;
-		}
-	default:
-		{
-			BOOL oob_res = HandleOOBMessage(event);
-			if (oob_res = FALSE)
-			{
-				LogCrit("ProcIvr::ProcessSpawnMessage - Unknown message received id=[" << event->message_id_str << "]");
-				throw;
-			}
-		}
-	}
-
-	return FALSE;
 
 }
 
@@ -370,7 +323,7 @@ ProcIvr::ProcessStackMessage(IN IwMessagePtr ptr, IN ScopedForking &forking)
 			FORK_IN_THIS_THREAD(
 					new ProcScriptRunner(
 						_conf,							// configuration
-						_conf.GetString("script_file"),	// script name
+						_conf->GetString("script_file"),	// script name
 						_precompiledBuffer,				// precompiled buffer
 						_scriptSize,					// size of precompiled buffer
 						call_offered,					// initial incoming message

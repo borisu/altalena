@@ -32,7 +32,7 @@ namespace ivrworx
 
 	public:
 
-		ProcIvr(IN LpHandlePair pair, IN Configuration &conf);
+		ProcIvr(IN LpHandlePair pair, IN ConfigurationPtr conf);
 
 		virtual void real_run();
 
@@ -50,11 +50,6 @@ namespace ivrworx
 			IN ScopedForking &forking
 			);
 
-		BOOL ProcessSpawnMessage(
-			IN IwMessagePtr event, 
-			IN LpHandlePair spawn_pair, 
-			IN ScopedForking &forking);
-
 		void StartScript(
 			IN IwMessagePtr msg);
 
@@ -66,7 +61,7 @@ namespace ivrworx
 	private:
 
 		
-		Configuration &_conf;
+		ConfigurationPtr _conf;
 		
 		LpHandlePtr _sipIncomingHandle;
 
