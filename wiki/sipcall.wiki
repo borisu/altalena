@@ -13,6 +13,7 @@ creates sipcall object
 || remoteoffer || raw remote offer ||
 || localoffer || raw local offer ||
 || type || type ||
+|| H_XXX || XXX header will be added to the SIP message ||
 
 ===example 1===
 Makes call to the destination, the INVITE sent is empty the call should be answered lately. 
