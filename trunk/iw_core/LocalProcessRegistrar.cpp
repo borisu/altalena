@@ -18,22 +18,23 @@ LocalProcessRegistrar::_instanceMutex;
 
 
 RegistrationGuard::RegistrationGuard(IN LpHandlePtr ptr, 
-									 IN const string& service_name,
-									 IN int process_alias):
-_handleUid(ptr->GetObjectUid()),
-_aliasId(process_alias)
+									 IN const string& service_name):
+_handleUid(ptr->GetObjectUid())
 {
 	LocalProcessRegistrar::Instance().RegisterChannel(_handleUid,ptr,service_name);
-	LocalProcessRegistrar::Instance().RegisterChannel(_aliasId,ptr,service_name);
-	
+}
+
+void RegistrationGuard::dismiss()
+{
+	_handleUid = IW_UNDEFINED;
 }
 
 
 
 RegistrationGuard::~RegistrationGuard()
 {
-	LocalProcessRegistrar::Instance().UnregisterChannel(_handleUid);
-	LocalProcessRegistrar::Instance().UnregisterChannel(_aliasId);
+	if (_handleUid!=IW_UNDEFINED) 
+		LocalProcessRegistrar::Instance().UnregisterChannel(_handleUid);
 }
 
 
@@ -194,7 +195,7 @@ LocalProcessRegistrar::GetHandle( IN const string &regex)
 
 }
 
-void 
+IW_CORE_API void 
 AddShutdownListener( IN LpHandlePair observable_pair, 
 					 IN LpHandlePtr listener_handle)
 {
@@ -204,13 +205,13 @@ AddShutdownListener( IN LpHandlePair observable_pair,
 
 }
 
-LpHandlePtr 
+IW_CORE_API LpHandlePtr 
 GetHandle(IN int handle_id)
 {
 	return LocalProcessRegistrar::Instance().GetHandle(handle_id);
 }
 
-LpHandlePtr 
+IW_CORE_API LpHandlePtr 
 GetHandle(IN const string &service_regex)
 {
 	return LocalProcessRegistrar::Instance().GetHandle(service_regex);

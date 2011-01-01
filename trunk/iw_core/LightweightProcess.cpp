@@ -27,12 +27,17 @@ namespace ivrworx
 {
 
 	typedef 
-	map<PVOID, LightweightProcess*> ProcMap;
+	map<PVOID, RunningContext*> ProcMap;
 
 	__declspec (thread) ProcMap *tl_procMap = NULL;
 
+	int AppData::getType()
+	{
+		return IW_UNDEFINED;
+	}
 
-	LightweightProcess::LightweightProcess(
+
+	RunningContext::RunningContext(
 		IN LpHandlePair pair,
 		IN const string &owner_name,
 		IN BOOL start_suspended):
@@ -41,28 +46,8 @@ namespace ivrworx
 	_outbound(pair.outbound),
 	_bucket(new Bucket()),
 	_transactionTimeout(5000),
-	_processAlias(IW_UNDEFINED),
-	_startSuspended(start_suspended)
-	{
-		FUNCTRACKER;
-
-		// process id is as its inbound handle id
-		Init(_inbound->GetObjectUid(), owner_name);
-	}
-
-	LightweightProcess::LightweightProcess(
-		IN LpHandlePair pair,
-		IN int process_alias,
-		IN const string &owner_name,
-		IN BOOL start_suspended
-		):
-	_pair(pair),
-	_inbound(pair.inbound),
-	_outbound(pair.outbound),
-	_bucket(new Bucket()),
-	_transactionTimeout(5000),
-	_processAlias(process_alias),
-	_startSuspended(start_suspended)
+	_startSuspended(start_suspended),
+	_appData(NULL)
 	{
 		FUNCTRACKER;
 
@@ -71,7 +56,7 @@ namespace ivrworx
 	}
 
 	void
-	LightweightProcess::Init(int process_id, const string &owner_name)
+	RunningContext::Init(int process_id, const string &owner_name)
 	{
 
 		FUNCTRACKER;
@@ -105,7 +90,7 @@ namespace ivrworx
 
 
 	BOOL 
-	LightweightProcess::HandleOOBMessage(IN IwMessagePtr msg)
+	RunningContext::HandleOOBMessage(IN IwMessagePtr msg)
 	{
 		FUNCTRACKER;
 
@@ -126,134 +111,44 @@ namespace ivrworx
 
 	}
 
+	AppData*
+	RunningContext::GetAppData() 
+	{ 
+		return _appData;
+	};
+
 	void
-	LightweightProcess::run()
-	{
-
-		FUNCTRACKER;
-
-		LogDebug("=== START " << _inbound << " START ===");
-
-		RegistrationGuard guard(_inbound,_serviceId,_processAlias);
-
-		// Created only once -  thread local storage 
-		// of the fibers.
-		if (tl_procMap == NULL)
-		{
-			tl_procMap = new ProcMap();
-		}
-
-		//
-		// register itself within thread 
-		// local storage
-		//
-		PVOID fiber = ::GetCurrentFiber();
-
-		if (tl_procMap->find(fiber) != tl_procMap->end())
-		{
-			LogCrit("Fiber id already exists in the map. Have you run the routine manually?")
-			throw;
-		}
-
-		if (fiber == (PVOID)NULL || 
-			fiber == NON_FIBEROUS_THREAD )
-		{
-			// should never happen
-			LogCrit("Shut 'er down Clancy, she's pumping mud!")
-			throw critical_exception("cannot determine thread type");
-		}
-
-		
-		(*tl_procMap)[fiber] = this ;
-
-		//
-		// Wait for resume message to start the process.
-		//
-		if (_startSuspended == TRUE)
-		{
-			ApiErrorCode res = API_SUCCESS;
-			do 
-			{
-				IwMessagePtr msg =  _inbound->Wait(Seconds(60),res);
-				if (res == API_TIMEOUT)
-				{
-					continue;
-				}
-
-				switch (msg->message_id)
-				{
-					case MSG_PROC_SHUTDOWN_EVT:
-						{
-							goto clean;
-						}
-					case MSG_PROC_RESUME:
-						{
-							break;
-						}
-					default:
-						{
-							BOOL res = HandleOOBMessage(msg);
-							if (res == FALSE)
-							{
-								LogDebug("Unhandled OOB msg");
-								goto clean;
-							}
-						}
-				}// switch
-			} while (true);
-		}; // if
-
-		try
-		{
-			real_run();
-		} 
-		catch (exception &e)
-		{
-			LogWarn("Exception proc:" << Name() << ", what:" << e.what());
-		}
-
-
-clean:
-		_inbound->Poison();
-		_bucket->flush();
-         
-
-		tl_procMap->erase(tl_procMap->find(fiber));
-
-		csp::CPPCSP_Yield();
-
-		_outbound->Send(new MsgShutdownEvt());
-
-		LogDebug("=== END " << _inbound << " END ===");
-
-	}
+	RunningContext::SetAppData(AppData* data) 
+	{ 
+		_appData = data;
+	};
 
 	string 
-	LightweightProcess::Name()
+	RunningContext::Name()
 	{ 
 		return _name; 
 	}
 
 	void 
-	LightweightProcess::Name(IN const string &val) 
+	RunningContext::Name(IN const string &val) 
 	{
 		_name = val; 
 	}
 
 	string 
-	LightweightProcess::ServiceId()
+	RunningContext::ServiceId()
 	{ 
 		return _name; 
 	}
 
 	void 
-	LightweightProcess::ServiceId(IN const string &serviceId) 
+	RunningContext::ServiceId(IN const string &serviceId) 
 	{
 		_serviceId = serviceId; 
 	}
 
 	ApiErrorCode
-	LightweightProcess::SendMessage(
+	RunningContext::SendMessage(
 		IN ProcId qid, 
 		IN IwMessage *message)
 	{
@@ -262,7 +157,7 @@ clean:
 
 
 	ApiErrorCode
-	LightweightProcess::SendResponse(
+	RunningContext::SendResponse(
 		IN IwMessagePtr request, 
 		IN IwMessage* response)
 	{
@@ -271,7 +166,7 @@ clean:
 	}
 
 	ApiErrorCode
-	LightweightProcess::SendMessage(
+	RunningContext::SendMessage(
 		IN ProcId qid, 
 		IN IwMessagePtr message)
 	{
@@ -281,7 +176,7 @@ clean:
 	}
 
 	ApiErrorCode
-	LightweightProcess::SendMessage(
+	RunningContext::SendMessage(
 		IN LpHandlePtr handle, 
 		IN IwMessagePtr message)
 	{
@@ -290,7 +185,7 @@ clean:
 
 
 	ApiErrorCode
-	LightweightProcess::SendMessage(IN IwMessagePtr message)
+	RunningContext::SendMessage(IN IwMessagePtr message)
 	{
 
 		FUNCTRACKER;
@@ -335,21 +230,21 @@ clean:
 	}
 
 	int
-	LightweightProcess::ProcessId()
+	RunningContext::ProcessId()
 	{
 		return _processId;
 	}
 
 
 	void
-	LightweightProcess::Join(BucketPtr bucket)
+	RunningContext::Join(BucketPtr bucket)
 	{
 		bucket->fallInto();
 	}
 
 
 	ApiErrorCode
-	LightweightProcess::DoRequestResponseTransaction(
+	RunningContext::DoRequestResponseTransaction(
 		IN LpHandlePtr dest_handle, 
 		IN IwMessagePtr request, 
 		OUT IwMessagePtr &response,
@@ -378,13 +273,13 @@ clean:
 			response,
 			timeout);
 
-		LogTrace("LightweightProcess::DoRequestResponseTransaction - res:" << res);
+		LogTrace("RunningContext::DoRequestResponseTransaction - res:" << res);
 		return res;
 
 	}
 
 	ApiErrorCode	
-	LightweightProcess::DoRequestResponseTransaction(
+	RunningContext::DoRequestResponseTransaction(
 		IN ProcId dest_proc_id, 
 		IN IwMessagePtr request, 
 		OUT IwMessagePtr &response, 
@@ -417,13 +312,13 @@ clean:
 			timout);
 end:
 
-		LogTrace("LightweightProcess::DoRequestResponseTransaction - res:" << res);
+		LogTrace("RunningContext::DoRequestResponseTransaction - res:" << res);
 		return res;
 
 	}
 
 	ApiErrorCode 
-	LightweightProcess::WaitForTxnResponse(
+	RunningContext::WaitForTxnResponse(
 		IN LpHandlePtr txn_handle,
 		OUT IwMessagePtr &response,
 		IN Time timout)
@@ -444,7 +339,7 @@ end:
 	}
 
 	ApiErrorCode 
-	LightweightProcess::WaitForTxnResponse(
+	RunningContext::WaitForTxnResponse(
 		IN  const HandlesVector &handles_list,
 		OUT int &index,
 		OUT IwMessagePtr &response,
@@ -500,7 +395,7 @@ end:
 					if (res == FALSE)
 					{
 						LogWarn("Unhandled OOB msg:" << response->message_id_str);
-						throw std::exception("Transaction was terminated");
+						return API_UNKNOWN_RESPONSE;
 					} 
 					else 
 					{
@@ -534,7 +429,7 @@ select_end:
 
 
 	ApiErrorCode
-	LightweightProcess::SendReadyMessage()
+	RunningContext::SendReadyMessage()
 	{
 		MsgProcReady* ready = new MsgProcReady();
 		ready->thread_id = ::GetCurrentThread();
@@ -545,7 +440,7 @@ select_end:
 	}
 
 	ApiErrorCode
-	LightweightProcess::Ping(IN ProcId qid)
+	RunningContext::Ping(IN ProcId qid)
 	{
 		FUNCTRACKER;
 
@@ -563,7 +458,7 @@ select_end:
 	}
 
 	ApiErrorCode
-	LightweightProcess::Ping(IN LpHandlePair pair)
+	RunningContext::Ping(IN LpHandlePair pair)
 	{
 		FUNCTRACKER;
 
@@ -582,7 +477,7 @@ select_end:
 
 
 	ApiErrorCode
-	LightweightProcess::WaitTillReady(IN Time time, IN LpHandlePair pair)
+	RunningContext::WaitTillReady(IN Time time, IN LpHandlePair pair)
 	{
 
 
@@ -614,7 +509,7 @@ select_end:
 	}
 
 	ApiErrorCode
-	LightweightProcess::Shutdown(IN Time time, IN LpHandlePair pair)
+	RunningContext::Shutdown(IN Time time, IN LpHandlePair pair)
 	{
 
 		FUNCTRACKER;
@@ -646,44 +541,58 @@ select_end:
 	}
 
 	long 
-	LightweightProcess::TransactionTimeout() const 
+	RunningContext::TransactionTimeout() const 
 	{ 
 		return _transactionTimeout; 
 	}
 
 	void 
-	LightweightProcess::TransactionTimeout(long val) 
+	RunningContext::TransactionTimeout(long val) 
 	{
 		_transactionTimeout = val; 
 	}
 
 
-	LightweightProcess::~LightweightProcess(void)
+	RunningContext::~RunningContext(void)
 	{
 		FUNCTRACKER;
 	}
 
 
 	BOOL 
-	LightweightProcess::InboundPending()
+	RunningContext::InboundPending()
 	{
 		return _inbound->InboundPending();
 	}
 
 
 	IwMessagePtr 
-	LightweightProcess::GetInboundMessage(IN Time timeout, OUT ApiErrorCode &res)
+	RunningContext::GetInboundMessage(IN Time timeout, OUT ApiErrorCode &res)
 	{
 		return _inbound->Wait(timeout, res);
 	}
 
-	int
+	LightweightProcess::LightweightProcess(
+		IN LpHandlePair pair, 
+		IN const string &owner_name ,
+		IN BOOL start_suspended):
+	RunningContext(pair,owner_name,start_suspended)
+	{
+
+	}
+
+	LightweightProcess::~LightweightProcess(void)
+	{
+
+	}
+
+	IW_CORE_API int
 	GetCurrLpId()
 	{
-		LightweightProcess *proc = 
-			GetCurrLightWeightProc();
+		RunningContext *proc = 
+			GetCurrRunningContext();
 
-		if (GetCurrLightWeightProc() != NULL )
+		if (GetCurrRunningContext() != NULL )
 		{
 			return proc->ProcessId();
 		} else {
@@ -692,8 +601,8 @@ select_end:
 
 	}
 
-	LightweightProcess*
-	GetCurrLightWeightProc()
+	IW_CORE_API RunningContext*
+	GetCurrRunningContext()
 	{
 		PVOID fiber = ::GetCurrentFiber();
 		if (tl_procMap== NULL || 
@@ -707,21 +616,360 @@ select_end:
 		return  (iter == tl_procMap->end()) ? NULL : iter->second;
 	}
 
-	string 
+	IW_CORE_API string 
 	GetCurrLpName()
 	{
 
-		LightweightProcess *proc = 
-			GetCurrLightWeightProc();
+		RunningContext *proc = 
+			GetCurrRunningContext();
 
-		if (GetCurrLightWeightProc() != NULL )
+		if (GetCurrRunningContext() != NULL )
 		{
 			return proc->Name();
 		} else {
 			return "NOT CCU THREAD";
 		}
 	}
+
+	IW_CORE_API void RegisterContext(RunningContext *ctx)
+	{
+		FUNCTRACKER;
+
+		if (ctx == NULL)
+			return;
+
+		LogDebug("=== START service:" << ctx->_serviceId << " inbound:" << ctx->_inbound << " START ===");
+
+		RegistrationGuard guard(ctx->_inbound,ctx->_serviceId);
+
+		// Created only once -  thread local storage 
+		// of the fibers.
+		if (tl_procMap == NULL)
+		{
+			tl_procMap = new ProcMap();
+		}
+
+		//
+		// register itself within thread 
+		// local storage
+		//
+		PVOID fiber = ::GetCurrentFiber();
+
+		if (tl_procMap->find(fiber) != tl_procMap->end())
+		{
+			LogCrit("Fiber id already exists in the map. Have you run the routine manually?")
+				throw;
+		}
+
+		if (fiber == (PVOID)NULL || 
+			fiber == NON_FIBEROUS_THREAD )
+		{
+			// should never happen
+			LogCrit("Shut 'er down Clancy, she's pumping mud!")
+				throw critical_exception("cannot determine thread type");
+		}
+
+
+		(*tl_procMap)[fiber] = ctx ;
+
+		guard.dismiss();
+
+	}
+
+	IW_CORE_API RunningContext* 
+	UnregisterContext()
+	{
+		RunningContext* ctx = 
+			GetCurrRunningContext();
+
+		if (ctx == NULL)
+			return NULL;
+
+		ctx->_inbound->Poison();
+		ctx->_bucket->flush();
+
+
+		PVOID fiber = ::GetCurrentFiber();
+		tl_procMap->erase(tl_procMap->find(fiber));
+
+		csp::CPPCSP_Yield();
+
+		ctx->_outbound->Send(new MsgShutdownEvt());
+
+		LocalProcessRegistrar::Instance().UnregisterChannel(ctx->_inbound->GetObjectUid());
+
+		LogDebug("=== END service:" << ctx->_serviceId << " inbound:" << ctx->_inbound << " END ===");
+
+		return ctx;
+
+	}
+
+
+	void
+	LightweightProcess::run()
+	{
+		RegisterContext(this);
+		
+		//
+		// Wait for resume message to start the process.
+		//
+		if (_startSuspended == TRUE)
+		{
+			ApiErrorCode res = API_SUCCESS;
+			do 
+			{
+				IwMessagePtr msg =  _inbound->Wait(Seconds(60),res);
+				if (res == API_TIMEOUT)
+				{
+					continue;
+				}
+
+				switch (msg->message_id)
+				{
+				case MSG_PROC_SHUTDOWN_EVT:
+					{
+						goto clean;
+					}
+				case MSG_PROC_RESUME:
+					{
+						break;
+					}
+				default:
+					{
+						BOOL res = HandleOOBMessage(msg);
+						if (res == FALSE)
+						{
+							LogDebug("Unhandled OOB msg");
+							goto clean;
+						}
+					}
+				}// switch
+			} while (true);
+		}; // if
+
+		try
+		{
+			real_run();
+		} 
+		catch (exception &e)
+		{
+			LogWarn("Exception proc:" << Name() << ", what:" << e.what());
+		}
+
+clean:
+		UnregisterContext();
+		
+	}
+
+	IW_CORE_API ApiErrorCode
+	BootProcesses(IN ConfigurationPtr conf,
+		IN FactoryPtrList &factoriesList,
+		OUT HandlePairList &procHandlePairs,
+		OUT HandlesVector &shutdownHandles)
+	{
+
+		BOOL all_booted = TRUE;
+
+		int default_timeout = conf->GetInt("default_boot_time");
+
+		for (FactoryPtrList::iterator i = factoriesList.begin(); 
+			i !=  factoriesList.end(); 
+			++i)
+		{
+			// listen to process shutdown event
+			DECLARE_NAMED_HANDLE(shutdown_handle);
+			DECLARE_NAMED_HANDLE_PAIR(proc_pair);
+
+			AddShutdownListener(proc_pair,shutdown_handle);
+			try 
+			{
+				LightweightProcess *p = (*i)->Create(proc_pair,conf);
+				string name = p->Name();
+
+				LogInfo("Booting process name:" << name << ", service uri:" << p->ServiceId());
+
+
+				Run(p);
+				if (IW_FAILURE(GetCurrRunningContext()->WaitTillReady(MilliSeconds(default_timeout), proc_pair)))
+				{
+					LogCrit("Cannot start proc:" << name);
+					all_booted = FALSE;
+					break;
+				};
+
+			} 
+			catch (exception &e)
+			{
+				LogWarn("Exception during booting one of the processes, what:" << e.what());
+				goto exit;
+			}
+
+
+			procHandlePairs.push_back(proc_pair);
+			shutdownHandles.push_back(shutdown_handle);
+
+		};
+
+		return API_SUCCESS;
+exit:
+		return API_FAILURE;
+
+	}
+
+	IW_CORE_API ApiErrorCode
+    LoadConfiguredModules(IN ConfigurationPtr conf,
+		OUT FactoryPtrList &factoriesList)
+	{
+		
+		ListOfAny modules;
+		conf->GetArray("modules",modules);
+
+		list<HMODULE> modules_list;
+
+		
+		for (ListOfAny::iterator iter = modules.begin(); 
+			iter!=modules.end();
+			++iter)
+		{
+			string &module_name = 
+				any_cast<string>(*iter);
+
+			HMODULE handle = ::LoadLibraryA(module_name.c_str());
+			if (handle ==  NULL)
+			{
+				LogSysError("LoadLibraryA");
+				LogCrit("LoadConfiguredModules - module_name:"<< module_name)
+				return API_FAILURE;
+			}
+
+			modules_list.push_back(handle);
+
+			FARPROC f = ::GetProcAddress(handle,"?GetIwFactory@ivrworx@@YAPAVIProcFactory@1@XZ");
+			if (f ==  NULL)
+			{
+				LogSysError("GetProcAddress");
+				LogCrit("Error Loading :" << module_name);
+				goto error;
+			}
+
+			IProcFactory *factory = ((IWPROC)f)();
+			factoriesList.push_back(ProcFactoryPtr(factory));
+
+			LogInfo("LoadConfiguredModules - loaded module_name:" << module_name);
+
+		}
+
+
+		return API_SUCCESS;
+
+error:
+
+		// this should clear shared pointers
+		factoriesList.clear();
+
+		for (list<HMODULE>::iterator iter = modules_list.begin(); 
+			iter!=modules_list.end();
+			++iter)
+		{
+			::FreeLibrary(*iter);
+		}
+
+		return API_FAILURE;
+	
+	};
+
+	IW_CORE_API ApiErrorCode
+	BootModulesSimple(
+		IN ConfigurationPtr conf,
+		IN ScopedForking &forking,
+		IN const FactoryPtrList &factories_list,
+		OUT HandlePairList &proc_handlepairs,
+		OUT HandlesVector &selected_handles)
+	{
+		
+		int default_boot_time = conf->GetInt("default_boot_time");
+
+		if (factories_list.size() == 0)
+		{
+			LogWarn("No processes to boot, exiting.");
+			return API_SUCCESS;
+		};
+
+
+		BOOL all_booted = TRUE;
+		for (FactoryPtrList::const_iterator i = factories_list.begin(); 
+			i !=  factories_list.end(); 
+			++i)
+		{
+			// listen to process shutdown event
+			DECLARE_NAMED_HANDLE(shutdown_handle);
+			DECLARE_NAMED_HANDLE_PAIR(proc_pair);
+
+			AddShutdownListener(proc_pair,shutdown_handle);
+			try 
+			{
+				LightweightProcess *p = (*i)->Create(proc_pair,conf);
+				const string &name = p->Name();
+
+				LogInfo("Booting process name:" << name << ", service uri:" << p->ServiceId());
+
+
+				FORK(p);
+				if (IW_FAILURE(GetCurrRunningContext()->WaitTillReady(MilliSeconds(default_boot_time), proc_pair)))
+				{
+					LogCrit("Cannot start proc:" << name);
+					all_booted = FALSE;
+					break;
+				};
+
+			} 
+			catch (exception &e)
+			{
+				LogWarn("Exception during booting one of the processes, what:" << e.what());
+				goto exit;
+			}
+
+
+			proc_handlepairs.push_back(proc_pair);
+			selected_handles.push_back(shutdown_handle);
+
+		};
+
+		if (all_booted == FALSE)
+		{
+			goto exit;
+		}
+
+		return API_SUCCESS;
+
+		
+exit:
+
+		// shutdown in reverse order (pop) first one
+		ShutdownModules(proc_handlepairs,conf);
+		return API_FAILURE;
+
+	}
+
+	IW_CORE_API ApiErrorCode
+	ShutdownModules(IN HandlePairList &proc_handlepairs,
+		IN ConfigurationPtr conf)
+	{
+		// used for shutdown timeout also
+		int default_boot_time = conf->GetInt("default_boot_time");
+		for (HandlePairList::reverse_iterator i = proc_handlepairs.rbegin(); 
+			i!= proc_handlepairs.rend();
+			++i)
+		{
+			LogInfo("Shutting down proc:" << (*i).inbound->HandleName());
+			GetCurrRunningContext()->Shutdown(Seconds(default_boot_time), (*i));
+		}
+
+		return API_SUCCESS;
+	}
+
 }
+
 
 
 

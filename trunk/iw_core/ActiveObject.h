@@ -29,7 +29,7 @@ namespace ivrworx
 {
 	typedef map<int,LpHandlePtr> EventListenersMap;
 
-	class ActiveObject: 
+	class IW_CORE_API ActiveObject: 
 		public boost::noncopyable
 	{
 	public:

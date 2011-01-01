@@ -18,7 +18,7 @@
 */
 
 #pragma once
-
+#include "DllHelpers.h"
 
 using namespace std;
 using namespace boost;
@@ -33,6 +33,8 @@ namespace ivrworx
 	{
 		API_SUCCESS = 0,
 		API_FAILURE,
+		API_SOCKET_INIT_FAILURE,
+		API_TIMER_INIT_FAILURE,
 		API_SERVER_FAILURE,
 		API_TIMEOUT,
 		API_WRONG_PARAMETER,
@@ -40,7 +42,8 @@ namespace ivrworx
 		API_HANGUP,
 		API_UNKNOWN_DESTINATION,
 		API_FEATURE_DISABLED,
-		API_UNKNOWN_RESPONSE
+		API_UNKNOWN_RESPONSE,
+		API_PENDING_OPERATION
 	};
 
 	#define IW_SUCCESS(x)	((x) == API_SUCCESS)
@@ -52,7 +55,7 @@ namespace ivrworx
 
 	typedef LARGE_INTEGER TimeStamp;
 
-	class critical_exception: public exception 
+	class IW_CORE_API critical_exception: public exception 
 	{
 	public:
 		critical_exception();
@@ -61,102 +64,14 @@ namespace ivrworx
 
 	
 
-	/**
-
-	Denotes SDP format (speech codec, dtmf encoding..)
-
-	**/
-	class MediaFormat
-	{
-	public:
-
-		enum MediaType
-		{
-			MediaType_UNKNOWN,
-			MediaType_SPEECH,
-			MediaType_DTMF
-		};
-
-		MediaFormat();
-		
-		MediaFormat(IN const MediaFormat &codec);
-
-		MediaFormat(
-			IN const string &param_name, 
-			IN int param_sampling_rate,
-			IN int param_sdp_mapping,
-			IN MediaType media_type = MediaType_UNKNOWN);
-
-		int sampling_rate() const;
-
-		const string& sampling_rate_tos() const;
-
-		int sdp_mapping() const;
-
-		const string& sdp_mapping_tos() const;
-
-		const string& sdp_name_tos() const;
-
-		const string& get_sdp_a() const;
-
-		MediaType get_media_type() const;
-
-		static const MediaFormat UNKNOWN;
-
-		static const MediaFormat PCMA;
-
-		static const MediaFormat PCMU;
-
-		static const MediaFormat DTMF_RFC2833;
-
-		static const MediaFormat SPEEX;
-
-		int operator == (const MediaFormat &other) const;
-
-		int operator != (const MediaFormat &other) const;
-
-		static MediaType GetMediaType(const string &name);
-
-		static MediaFormat GetMediaFormat(const string &name);
-
-	private:
-
-		void init_strings();
-
-		int rate;
-
-		int mapping;
-
-		string rate_s;
-
-		string mapping_s;
-
-		string name;
-
-		string sdp_a;
-
-		MediaType media_type;
-
-	};
-	
-	typedef list<const MediaFormat*> MediaFormatsPtrList;
-
-	typedef list<const MediaFormat> MediaFormatsList;
-
-	typedef map<int,const MediaFormat> MediaFormatsMap;
-
-	typedef pair<int,const MediaFormat> MediaFormatMapPair;
-
-	ostream& operator << (ostream &ostream, const MediaFormat &ptr);
-
-	in_addr convert_hname_to_addrin(const char *name);
+	IW_CORE_API in_addr convert_hname_to_addrin(const char *name);
 
 	/**
 
 	Encapsulates the ip and port information. If supplied host name tries to resolve it to ip addr structure.
 
 	**/
-	class CnxInfo
+	class IW_CORE_API CnxInfo
 	{
 	private:
 
@@ -170,6 +85,8 @@ namespace ivrworx
 
 	public:
 
+		CnxInfo(IN const char *hostport);
+
 		CnxInfo(IN const string &host, IN int p_port);
 
 		CnxInfo(IN const char *host, IN int p_port);
@@ -180,9 +97,11 @@ namespace ivrworx
 
 		CnxInfo();
 
-		bool is_ip_valid() const;
+		BOOL is_valid() const;
 
-		bool is_port_valid() const;
+		BOOL is_ip_valid() const;
+
+		BOOL is_port_valid() const;
 
 		int port_ho() const;
 
@@ -202,7 +121,7 @@ namespace ivrworx
 
 		string porttos() const;
 
-		const char *ipporttoa(char *buffer, int len) const;
+		const char *ipporttoa() const;
 
 		const char *iptoa() const;
 
@@ -223,8 +142,11 @@ namespace ivrworx
 	typedef 
 	list<CnxInfo> CnxInfosList;
 
+	typedef
+	map<string, boost::any> MapOfAny;
 
-	ostream& operator << (ostream &ostream, const CnxInfo *ptr);
 
-	ostream& operator << (ostream &ostream, const CnxInfo &ptr);
+	IW_CORE_API ostream& operator << (ostream &ostream, const CnxInfo *ptr);
+
+	IW_CORE_API ostream& operator << (ostream &ostream, const CnxInfo &ptr);
 }

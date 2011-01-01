@@ -68,7 +68,7 @@ namespace ivrworx
 	};
 
 
-	class IwMessage :
+	class IW_CORE_API IwMessage :
 	public boost::noncopyable // must not be copied but only passed as shared pointer or serialized via network
 	{
 		protected:
@@ -109,7 +109,7 @@ namespace ivrworx
 
 	#define NULL_MSG IwMessagePtr((IwMessage*)NULL)
 
-	class MsgRequest:
+	class IW_CORE_API MsgRequest:
 		public IwMessage
 	{
 	public:
@@ -120,7 +120,7 @@ namespace ivrworx
 		  };
 	};
 
-	class MsgResponse:
+	class IW_CORE_API MsgResponse:
 		public IwMessage
 	{
 	public:
@@ -134,7 +134,7 @@ namespace ivrworx
 
 #pragma region Simpletons
 
-	class MsgAck : 
+	class IW_CORE_API MsgAck : 
 		public MsgResponse
 	{
 	public:
@@ -143,7 +143,7 @@ namespace ivrworx
 	};
 
 
-	class MsgNack : 
+	class IW_CORE_API MsgNack : 
 		public MsgResponse
 	{
 	public:
@@ -156,7 +156,7 @@ namespace ivrworx
 
 #pragma region Process_Management_Events
 
-	class MsgPing : 
+	class IW_CORE_API MsgPing : 
 		public MsgRequest
 	{
 	public:
@@ -166,7 +166,7 @@ namespace ivrworx
 	};
 
 
-	class MsgPong : 
+	class IW_CORE_API MsgPong : 
 		public MsgResponse
 	{
 	public:
@@ -175,7 +175,7 @@ namespace ivrworx
 	};
 
 
-	class MsgShutdownReq: 
+	class IW_CORE_API MsgShutdownReq: 
 		public MsgRequest
 	{
 	public:
@@ -184,7 +184,7 @@ namespace ivrworx
 
 	};
 
-	class MsgShutdownAck: 
+	class IW_CORE_API MsgShutdownAck: 
 		public MsgResponse
 	{
 	public:
@@ -192,7 +192,7 @@ namespace ivrworx
 		  MsgResponse(MSG_PROC_SHUTDOWN_ACK, NAME(MSG_PROC_SHUTDOWN_ACK)){};
 	};
 
-	class MsgProcReady:
+	class IW_CORE_API MsgProcReady:
 		public IwMessage
 	{
 	public:
@@ -205,7 +205,7 @@ namespace ivrworx
 
 	};
 
-	class MsgProcResume:
+	class IW_CORE_API MsgProcResume:
 		public IwMessage
 	{
 	public:

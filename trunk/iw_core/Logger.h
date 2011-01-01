@@ -26,15 +26,16 @@ using namespace JadedHoboConsole;
 namespace con = JadedHoboConsole;
 
 #include "Configuration.h"
+#include "DllHelpers.h"
 
 namespace ivrworx
 {
 	
-	string FormatLastSysError(const char *lpszFunction);
+	string IW_CORE_API FormatLastSysError(const char *lpszFunction);
 
-	BOOL InitLog(Configuration &conf);	
+	BOOL IW_CORE_API InitLog(ConfigurationPtr conf);	
 
-	void ExitLog();
+	void IW_CORE_API ExitLog();
 
 	#define IW_LOG_MASK_CONSOLE		0x001
 	#define IW_LOG_MASK_DEBUGVIEW	0x010
@@ -53,7 +54,7 @@ namespace ivrworx
 		LOG_LEVEL_TRACE
 	};
 
-	extern LogLevel g_LogLevel;
+	extern IW_CORE_API LogLevel g_MaxLogLevel;
 
 	void
 	SetLogLevelFromString(const string &level_str);
@@ -64,16 +65,16 @@ namespace ivrworx
 	void
 	SetLogLevel(IN LogLevel log_level);
 
-	void 
+	IW_CORE_API void 
 	IwStartScript();
 	
-	void
+	IW_CORE_API void
 	IwStopScript();
 	
 	typedef 
 	std::basic_stringbuf<char, std::char_traits<char>>	char_string_buf;
 
-	class basic_debugbuf: 
+	class IW_CORE_API basic_debugbuf: 
 		public char_string_buf
 	{
 	public:
@@ -87,7 +88,7 @@ namespace ivrworx
 	typedef
 	std::basic_ostream<char, std::char_traits<char>> char_stream;
 
-	class debug_dostream: 
+	class IW_CORE_API debug_dostream: 
 		public char_stream
 	{
 	public:
@@ -103,7 +104,7 @@ namespace ivrworx
 
 	extern __declspec( thread ) debug_dostream *tls_logger;
 
-	class LoggerTracker
+	class IW_CORE_API LoggerTracker
 	{
 	public:
 		LoggerTracker(char *log_function);
@@ -119,11 +120,12 @@ namespace ivrworx
 	#define __FILEW__          _STR2WSTR(__FILE__)
 	#define __FUNCTIONW__      _STR2WSTR(__FUNCTION__)
 
+	#define TLS_LOGGER_SLOT 10
+
+	IW_CORE_API debug_dostream *GetTlsLogger();
+
 	#define IX_SCOPED_LOG(level,x) {			\
-		if (tls_logger == NULL)					\
-		{										\
-			tls_logger = new debug_dostream();  \
-		};										\
+		debug_dostream *tls_logger = GetTlsLogger();\
 		(*tls_logger).set_log_level(level);		\
 		(*tls_logger) << x << std::endl;		\
 	}	
@@ -134,7 +136,7 @@ namespace ivrworx
 		#define LogProfile(x)
 	#endif
 
-	#define COND_LOG(level,x) if (::InterlockedExchangeAdd(( LONG *)&g_LogLevel,0) >= level) IX_SCOPED_LOG(level,x)
+	#define COND_LOG(level,x) if (::InterlockedExchangeAdd(( LONG *)&g_MaxLogLevel,0) >= level) IX_SCOPED_LOG(level,x)
 
 #ifndef NOLOGS
 	// hack to display script logging 

@@ -55,7 +55,9 @@ namespace ivrworx
 		msg->timeout			= timeout; 
 		msg->source.handle_id	= waiter_txn->GetObjectUid();
 
-		ApiErrorCode res = GetCurrLightWeightProc()->SendMessage(WAITER_Q,IwMessagePtr(msg));
+		LpHandlePtr waiter_inbound = ivrworx::GetHandle("__waiter__");
+
+		ApiErrorCode res = GetCurrRunningContext()->SendMessage(waiter_inbound,IwMessagePtr(msg));
 		if (IW_FAILURE(res))
 		{
 			os_res = WAIT_FAILED;
@@ -76,7 +78,7 @@ namespace ivrworx
 
 		do 
 		{
-			res = GetCurrLightWeightProc()->WaitForTxnResponse(
+			res = GetCurrRunningContext()->WaitForTxnResponse(
 				waiter_txn,
 				response, 
 				wait_timeout);
@@ -128,12 +130,14 @@ namespace ivrworx
 
 
 	ProcHandleWaiter::ProcHandleWaiter(LpHandlePair pair)
-		:LightweightProcess(pair,WAITER_Q,"ProcHandleWaiter")
+		:LightweightProcess(pair,"ProcHandleWaiter")
 	{
 		FUNCTRACKER;
 
 		_interruptor = SemaphoreInterruptorPtr(new SemaphoreInterruptor());
 		_inbound->HandleInterruptor(_interruptor);
+
+		ServiceId("__waiter__");
 	}
 
 

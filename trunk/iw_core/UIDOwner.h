@@ -18,12 +18,13 @@
 */
 
 #pragma once
+#include "DllHelpers.h"
 
 using namespace boost;
 
 namespace ivrworx
 {
-	class UIDOwner : 
+	class IW_CORE_API UIDOwner : 
 		public noncopyable
 	{
 	public:

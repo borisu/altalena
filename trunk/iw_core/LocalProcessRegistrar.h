@@ -53,10 +53,11 @@ namespace ivrworx
 
 		RegistrationGuard(
 			IN LpHandlePtr ptr, 
-			IN const string& service_name = "",
-			IN int process_alias = IW_UNDEFINED);
+			IN const string& service_name = "");
 
 		~RegistrationGuard();
+
+		void dismiss();
 
 	private:
 
@@ -66,7 +67,7 @@ namespace ivrworx
 
 	};
 
-	class LocalProcessRegistrar
+	class IW_CORE_API LocalProcessRegistrar
 	{
 		static mutex _instanceMutex;
 
@@ -120,13 +121,13 @@ namespace ivrworx
 		LpHandlePtr GetHandle(IN const string &service_regex);
 	};
 
-	void AddShutdownListener(
+	IW_CORE_API void AddShutdownListener(
 		IN LpHandlePair observable_pair, 
 		IN LpHandlePtr listener_handle);
 
-	LpHandlePtr GetHandle(IN int handle_id);
+	IW_CORE_API LpHandlePtr GetHandle(IN int handle_id);
 
-	LpHandlePtr GetHandle(IN const string &service_regex);
+	IW_CORE_API LpHandlePtr GetHandle(IN const string &service_regex);
 
 }
 
