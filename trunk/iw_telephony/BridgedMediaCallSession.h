@@ -17,36 +17,27 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "StdAfx.h"
-#include "UniMrcpFactory.h"
-#include "ProcUniMrcp.h"
+#pragma once
+#include "MediaCallSession.h"
 
 namespace ivrworx
 {
-
-	UniMrcpFactory::UniMrcpFactory(void)
+	class IW_TELEPHONY_API BridgedMediaCallSession
 	{
-	}
+	public:
 
-	UniMrcpFactory::~UniMrcpFactory(void)
-	{
-	}
+		BridgedMediaCallSession(void);
 
+		virtual ~BridgedMediaCallSession(void);
 
-	LightweightProcess *
-	UniMrcpFactory::Create(LpHandlePair pair,ConfigurationPtr conf)
-	{
-		return new ProcUniMrcp(pair, conf);
-
-	}
-
-	IW_UNIMRCP_API IProcFactory* GetIwFactory()
-	{
-		return new UniMrcpFactory();
-	}
-
-	
+		ApiErrorCode
+		MakeBridgedCall(
+			MediaCallSessionPtr first_call,
+			const string &first_destination,
+			MediaCallSessionPtr second_call,
+			const string &second_destination);
 
 
+	};
 }
 

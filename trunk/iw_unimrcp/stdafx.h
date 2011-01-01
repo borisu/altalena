@@ -32,11 +32,17 @@
 #include <apr_file_info.h>
 #include "apt_pool.h"
 #include "apt_log.h"
+#include "mrcp_types.h"
+#include "mrcp_resource.h"
 #include "mrcp_message.h"
 #include "mrcp_client_session.h"
 #include "mrcp_synth_resource.h"
 #include "mrcp_generic_header.h"
 #include "mrcp_synth_header.h"
+#include "mrcp_connection_types.h"
+#include "mrcp_connection.h"
+#include "mrcp_recog_resource.h"
+#include "mrcp_recog_header.h"
 
 
 

@@ -19,7 +19,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="2"
 			CharacterSet="1"
 			>
 			<Tool
@@ -40,8 +40,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\iw_core"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				AdditionalIncludeDirectories="..\resiprocate\resiprocate;..\iw_core"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_IW_TELEPHONY_API"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -60,10 +60,15 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalDependencies="ws2_32.lib  Iphlpapi.lib Winmm.lib"
+				GenerateDebugInformation="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -73,6 +78,12 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -170,11 +181,11 @@
 			Name="mediacall"
 			>
 			<File
-				RelativePath=".\MediaCallSession.cpp"
+				RelativePath=".\OfferAnswerSession.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\MediaCallSession.h"
+				RelativePath=".\OfferAnswerSession.h"
 				>
 			</File>
 		</Filter>
@@ -194,14 +205,6 @@
 			Name="sip"
 			>
 			<File
-				RelativePath=".\MscmlCall.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\MscmlCall.h"
-				>
-			</File>
-			<File
 				RelativePath=".\SipCall.cpp"
 				>
 			</File>
@@ -209,10 +212,6 @@
 				RelativePath=".\SipCall.h"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="h323"
-			>
 		</Filter>
 		<Filter
 			Name="mrcp"
@@ -252,6 +251,10 @@
 		</File>
 		<File
 			RelativePath=".\stdafx.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Telephony.cpp"
 			>
 		</File>
 		<File

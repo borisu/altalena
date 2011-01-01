@@ -31,9 +31,13 @@ namespace ivrworx
 
 		mrcp_session_t *session;
 
-		mrcp_channel_t *channel;
+		mrcp_channel_t *synthesizer_channel;
+
+		mrcp_channel_t *recognizer_channel;
 
 		mrcp_message_t *last_message;
+
+		mpf_rtp_termination_descriptor_t *rtp_desc;
 
 	};
 
@@ -62,7 +66,7 @@ namespace ivrworx
 	{
 	public:
 
-		ProcUniMrcp(IN LpHandlePair pair, IN Configuration &conf);
+		ProcUniMrcp(IN LpHandlePair pair, IN ConfigurationPtr conf);
 
 		virtual ~ProcUniMrcp(void);
 
@@ -80,6 +84,9 @@ namespace ivrworx
 			IN IwMessagePtr msg);
 
 		virtual void UponTearDownReq(
+			IN IwMessagePtr msg);
+
+		virtual void UponRecognizeReq(
 			IN IwMessagePtr msg);
 
 		// mrcp server events
@@ -103,7 +110,7 @@ namespace ivrworx
 
 		void FinalizeSessionContext(MrcpSessionCtxPtr ctx);
 
-		Configuration &_conf;
+		ConfigurationPtr _conf;
 
 		IocpInterruptorPtr _iocpPtr;
 
