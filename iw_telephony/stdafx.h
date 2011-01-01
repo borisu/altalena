@@ -11,7 +11,7 @@
 
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
-
+#include "resip/stack/SdpContents.hxx"
 
 // TODO: reference additional headers your program requires here
 #include "IwUtils.h"

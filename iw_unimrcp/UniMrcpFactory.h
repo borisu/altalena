@@ -19,17 +19,25 @@
 
 #pragma once
 
+#ifdef _DLL_IW_UNIMRCP // assume this is defined when we build the DLL
+#define IW_UNIMRCP_API  __declspec( dllexport)
+#else
+#define IW_UNIMRCP_API  __declspec( dllimport)
+#endif
+
 namespace ivrworx
 {
-	class UniMrcpFactory:
+	class IW_UNIMRCP_API UniMrcpFactory:
 		public IProcFactory
 	{
 	public:
 		UniMrcpFactory(void);
 
-		LightweightProcess *Create(LpHandlePair pair, Configuration &conf);
+		LightweightProcess *Create(LpHandlePair pair, ConfigurationPtr conf);
 
 		virtual ~UniMrcpFactory(void);
 	};
+
+	IW_UNIMRCP_API IProcFactory* GetIwFactory();
 
 }

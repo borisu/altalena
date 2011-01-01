@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "ProcUniMrcp.h"
 #include "Logger.h"
+#include "MrcpUtils.h"
 
 
 // 5 secs
@@ -30,8 +31,10 @@ namespace ivrworx
 		:state(MRCP_INITIAL),
 		mrcp_handle(IW_UNDEFINED),
 		session(NULL),
-		channel(NULL),
-		last_message(NULL)
+		synthesizer_channel(NULL),
+		recognizer_channel(NULL),
+		last_message(NULL),
+		rtp_desc(NULL)
 	{
 
 	}
@@ -61,35 +64,18 @@ namespace ivrworx
 
 	}
 
-	/** Event indicating client stack is started and ready to process requests from the application */
-	static HANDLE dupReadyEvent = NULL;
-
-	apt_bool_t iw_application_on_message_ready(
-		mrcp_application_t *application, 
-		mrcp_sig_status_code_e status)
-	{
-		FUNCTRACKER;
-		if (dupReadyEvent)
-		{
-			::SetEvent(dupReadyEvent);
-			::CloseHandle(dupReadyEvent);
-			return TRUE;
-		}
-
-		return FALSE;
-	}
-
 	apt_bool_t iw_on_terminate_event(
 		mrcp_application_t *application, 
 		mrcp_session_t *session,
-		mrcp_channel_t *channel)
+		mrcp_session_descriptor_t * desc,
+		mrcp_sig_status_code_e status)
 	{
 		FUNCTRACKER;
 
 		MrcpOverlapped *olap = new MrcpOverlapped();
 		olap->mrcp_handle_id = (int)((mrcp_client_session_t*)session)->app_obj;
 		olap->session = session;
-		olap->channel = channel;
+		//olap->channel = channel;
 
 		send_overlapped_message(olap,IW_MRCP_TERMINATE_EVT);
 
@@ -158,9 +144,8 @@ namespace ivrworx
 		iw_application_on_channel_add,			/** Response to mrcp_application_channel_add() request */
 		NULL,									/** Response to mrcp_application_channel_remove() request */
 		iw_application_on_message_receive,		/** Response (event) to mrcp_application_message_send() request */
-		iw_application_on_message_ready,		/** Event indicating client stack is started and ready to process requests from the application */
-		iw_on_terminate_event,					/** Event indicating unexpected session/channel termination */
-		NULL,									/** Response to mrcp_application_resource_discover() request */
+		NULL,									/** Event indicating client stack is started and ready to process requests from the application */
+		iw_on_terminate_event,					/** Event indicating unexpected session/synthesizer_channel termination */
 	};
 
 	apt_bool_t app_message_handler(const mrcp_app_message_t *app_message)
@@ -172,7 +157,7 @@ namespace ivrworx
 	}
 
 	
-	ProcUniMrcp::ProcUniMrcp(LpHandlePair pair, Configuration &conf):
+	ProcUniMrcp::ProcUniMrcp(LpHandlePair pair, ConfigurationPtr conf):
 	LightweightProcess(pair,"ProcUniMrcp"),
 	_conf(conf),
 	_application(NULL),
@@ -182,7 +167,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		ServiceId(_conf.GetString("unimrcp/uri"));
+		ServiceId(_conf->GetString("unimrcp/uri"));
 
 		_iocpPtr = IocpInterruptorPtr(new IocpInterruptor());
 		_inbound->HandleInterruptor(_iocpPtr);
@@ -288,6 +273,11 @@ namespace ivrworx
 							UponTearDownReq(ptr);
 							break;
 						}
+					case MSG_MRCP_RECOGNIZE_REQ:
+						{
+							UponRecognizeReq(ptr);
+							break;
+						}
 					case MSG_PROC_SHUTDOWN_REQ:
 						{
 							shutdown_flag = TRUE;
@@ -319,7 +309,7 @@ namespace ivrworx
 	}
 
 	/** Create demo RTP termination descriptor */
-	mpf_rtp_termination_descriptor_t* rtp_descriptor_create(apr_pool_t *pool, const CnxInfo &local_info,const MediaFormat &media_format)
+	mpf_rtp_termination_descriptor_t* rtp_descriptor_create(apr_pool_t *pool, const CnxInfo &local_info,const MediaFormat &media_format, mpf_stream_direction_e direction)
 	{
 		mpf_codec_descriptor_t *codec_descriptor;
 		mpf_rtp_media_descriptor_t *media;
@@ -330,10 +320,10 @@ namespace ivrworx
 		/* create rtp local media */
 		media = (mpf_rtp_media_descriptor_t *)apr_palloc(pool,sizeof(mpf_rtp_media_descriptor_t));
 		mpf_rtp_media_descriptor_init(media);
-		apt_string_assign(&media->base.ip,local_info.iptoa(),pool);
-		media->base.port = local_info.port_ho();
-		media->base.state = MPF_MEDIA_ENABLED;
-		media->mode = STREAM_MODE_RECEIVE;
+		apt_string_assign(&media->ip,local_info.iptoa(),pool);
+		media->port = local_info.port_ho();
+		media->state = MPF_MEDIA_ENABLED;
+		media->direction = direction;
 
 		
 		/* initialize codec list */
@@ -347,7 +337,7 @@ namespace ivrworx
 			codec_descriptor = mpf_codec_list_add(&media->codec_list);
 			if(codec_descriptor) {
 				codec_descriptor->payload_type = media_format.sdp_mapping();
-				apt_string_set(&codec_descriptor->name,media_format.sdp_name_tos().c_str());
+				apt_string_assign(&codec_descriptor->name,media_format.sdp_name_tos().c_str(),pool);
 				codec_descriptor->sampling_rate = media_format.sampling_rate();
 				codec_descriptor->channel_count = 1;
 			}
@@ -421,7 +411,7 @@ namespace ivrworx
 		mrcp_message_t *mrcp_message = 
 			mrcp_application_message_create(
 			ctx->session,
-			ctx->channel,
+			ctx->synthesizer_channel,
 			SYNTHESIZER_STOP);
 
 		if(!mrcp_message) 
@@ -446,7 +436,7 @@ namespace ivrworx
 		// send MRCP request (non-blocking, asynchronous processing) 
 		//
 		ctx->last_message = mrcp_message;
-		apt_bool_t res = mrcp_application_message_send(ctx->session,ctx->channel,mrcp_message);
+		apt_bool_t res = mrcp_application_message_send(ctx->session,ctx->synthesizer_channel,mrcp_message);
 
 
 		if (!res)
@@ -458,6 +448,107 @@ namespace ivrworx
 
 		// ack will be sent when the request is confirmed from UniMRCP side	
 	
+	}
+
+	void 
+	ProcUniMrcp::UponRecognizeReq(IN IwMessagePtr msg)
+	{
+		shared_ptr<MsgMrcpRecognizeReq> req  =
+			dynamic_pointer_cast<MsgMrcpRecognizeReq> (msg);
+
+		MrcpCtxMap::iterator iter =  _mrcpCtxMap.find(req->mrcp_handle);
+		if (iter == _mrcpCtxMap.end())
+		{
+
+			LogWarn("ProcUniMrcp::UponRecognizeReq - non existent mrcph:" << req->mrcp_handle);
+			SendResponse(req, new MsgMrcpRecognizeNack());
+			return;
+		}
+
+		MrcpSessionCtxPtr ctx = (*iter).second;
+		ctx->last_user_request = req;
+
+		if (ctx->state != MRCP_ALLOCATED || ctx->recognizer_channel == NULL)
+		{
+			LogWarn("ProcUniMrcp::UponRecognizeReq - mrcph:" << ctx->mrcp_handle << " is not in allocated state.");
+			SendResponse(req, new MsgMrcpRecognizeNack());
+			return;
+		};
+
+		//
+		// create MRCP message 
+		//
+		mrcp_message_t *mrcp_message = 
+			mrcp_application_message_create(
+			ctx->session,
+			ctx->recognizer_channel,
+			RECOGNIZER_RECOGNIZE);
+
+		if(!mrcp_message) 
+		{
+			LogWarn("ProcUniMrcp::UponRecognizeReq - error(recognize):mrcp_application_message_create");
+			SendResponse(req, new MsgMrcpRecognizeNack());
+			return ;
+		}
+
+		//
+		// get/allocate generic header 
+		//
+		mrcp_generic_header_t *generic_header = (mrcp_generic_header_t *)mrcp_generic_header_prepare(mrcp_message);
+		if(!generic_header) 
+		{
+			LogWarn("ProcUniMrcp::UponRecognizeReq - error(speak):mrcp_generic_header_prepare");
+			SendResponse(req, new MsgMrcpRecognizeNack());
+			return;
+		}
+
+		
+
+		//
+		// get/allocate recognizer header 
+		//
+		mrcp_recog_header_t *recog_header = (mrcp_recog_header_t *)mrcp_resource_header_prepare(mrcp_message);
+		if(!recog_header) 
+		{
+			LogWarn("ProcUniMrcp::UponRecognizeReq - error(speak):mrcp_resource_header_prepare");
+			SendResponse(req, new MsgMrcpRecognizeNack());
+			return;
+		}
+
+		try 
+		{
+			translate_generic_params_into_message(mrcp_message,generic_header,&req->params);
+			translate_recog_params_into_message(mrcp_message,recog_header,&req->params);
+		} catch (std::exception &e)
+		{
+			LogWarn("ProcUniMrcp::UponRecognizeReq - bad param exception" << e.what());
+			SendResponse(req, new MsgMrcpRecognizeNack());
+			return;
+		}
+
+	
+		apt_string_assign_n(
+			&mrcp_message->body,
+			req->body.c_str(),
+			req->body.size(),
+			mrcp_message->pool);
+
+
+		//
+		// send MRCP request (non-blocking, asynchronous processing) 
+		//
+		ctx->last_message = mrcp_message;
+		apt_bool_t res = mrcp_application_message_send(ctx->session,ctx->recognizer_channel,mrcp_message);
+
+		if (!res)
+		{
+			LogWarn("ProcUniMrcp::UponSpeakReq - error(speak):mrcp_application_message_send");
+			SendResponse(req, new MsgMrcpRecognizeNack());
+			return;
+		}
+
+
+
 	}
 
 	void
@@ -494,7 +585,7 @@ namespace ivrworx
 		mrcp_message_t *mrcp_message = 
 			mrcp_application_message_create(
 			ctx->session,
-			ctx->channel,
+			ctx->synthesizer_channel,
 			SYNTHESIZER_SPEAK);
 
 		if(!mrcp_message) 
@@ -515,12 +606,7 @@ namespace ivrworx
 			return;
 		}
 
-		//
-		// set generic header fields 
-		//
-		apt_string_assign(&generic_header->content_type,"application/synthesis+ssml",mrcp_message->pool);
-		mrcp_generic_header_property_add(mrcp_message,GENERIC_HEADER_CONTENT_TYPE);
-
+		
 
 		//
 		// get/allocate synthesizer header 
@@ -533,27 +619,21 @@ namespace ivrworx
 			return;
 		}
 
-		
-		//
-		//
-		//
-		synth_header->voice_param.age = 28;
-		mrcp_resource_header_property_add(mrcp_message,SYNTHESIZER_HEADER_VOICE_AGE);
+		translate_generic_params_into_message(mrcp_message,generic_header,&req->params);
+		translate_synth_params_into_message(mrcp_message,synth_header,&req->params);
 
 		apt_string_assign_n(
 			&mrcp_message->body,
-			req->mrcp_xml.c_str(),
-			req->mrcp_xml.size(),
+			req->body.c_str(),
+			req->body.size(),
 			mrcp_message->pool);
-
-		
 
 	
 		//
 		// send MRCP request (non-blocking, asynchronous processing) 
 		//
 		ctx->last_message = mrcp_message;
-		apt_bool_t res = mrcp_application_message_send(ctx->session,ctx->channel,mrcp_message);
+		apt_bool_t res = mrcp_application_message_send(ctx->session,ctx->synthesizer_channel,mrcp_message);
 		
 		if (!res)
 		{
@@ -561,6 +641,8 @@ namespace ivrworx
 			SendResponse(req, new MsgMrcpSpeakReqNack());
 			return;
 		}
+
+		//SendResponse(req, new MsgMrcpSpeakAck());
 
 	}
 
@@ -575,20 +657,70 @@ namespace ivrworx
 		shared_ptr<MsgMrcpAllocateSessionReq> req  =
 			dynamic_pointer_cast<MsgMrcpAllocateSessionReq> (msg);
 
-		//
-		// create new context
-		//
-		MrcpSessionCtxPtr ctx(new MrcpSessionCtx());
-		long handle = GetNewMrcpHandle();
-		ctx->mrcp_handle = handle;
+
+
+		LogDebug("ProcUniMrcp::UponMrcpAllocateSessionReq " <<req->local_offer.body)
+
+		long handle = IW_UNDEFINED;
+
+		MrcpSessionCtxPtr ctx;
+
+		MrcpCtxMap::iterator iter =  _mrcpCtxMap.find(req->mrcp_handle);
+		if (iter != _mrcpCtxMap.end())
+		{
+			handle = req->mrcp_handle;
+			ctx = iter->second;
+			switch (req->resource)
+			{
+			case RECOGNIZER:
+				{
+					if (ctx->recognizer_channel != NULL)
+					{
+						LogWarn("ProcUniMrcp::UponMrcpAllocateSessionReq - recognizer_channel already exists");
+						SendResponse(req,new MsgMrcpAllocateSessionNack());
+						return;
+					}
+					break;
+				}
+			case SYNTHESIZER:
+				{
+					if (ctx->synthesizer_channel != NULL)
+					{
+						LogWarn("ProcUniMrcp::UponMrcpAllocateSessionReq - synthesizer_channel already exists");
+						SendResponse(req,new MsgMrcpAllocateSessionNack());
+						return;
+					}
+					break;
+				}
+			default:
+				{
+					LogWarn("ProcUniMrcp::UponMrcpAllocateSessionReq - unknown resource" <<req->resource);
+					SendResponse(req,new MsgMrcpAllocateSessionNack());
+					return;
+				}
+			}
+		} 
+		else
+		{
+			ctx = MrcpSessionCtxPtr(new MrcpSessionCtx());
+			handle = GetNewMrcpHandle();
+			ctx->mrcp_handle = handle;
+			ctx->session_handler = req->session_handler;
+		}
+
 		ctx->state = MRCP_CONNECTING;
 		ctx->last_user_request = req;
-		ctx->session_handler = req->session_handler;
 
+		if (!req->local_offer.body.empty() && ctx->session != NULL)
+		{
+			LogWarn("ProcUniMrcp::UponMrcpAllocateSessionReq - invalid local connection info");
+			SendResponse(req,new MsgMrcpAllocateSessionNack());
+		}
 
+	
 		/* create session */
-		mrcp_session_t *session = 
-			mrcp_application_session_create(_application,_conf.GetString("unimrcp/unimrcp_client_profile").c_str(), (void *)handle);
+		mrcp_session_t *session = ctx->session ? ctx->session :
+			mrcp_application_session_create(_application,_conf->GetString("unimrcp/unimrcp_client_profile").c_str(), (void *)handle);
 
 		if (!session)
 		{
@@ -599,30 +731,88 @@ namespace ivrworx
 
 		ctx->session = session;
 
-		mpf_rtp_termination_descriptor_t *rtp_descriptor = 
-			rtp_descriptor_create(session->pool,req->remote_media_data, req->codec);
+		mpf_stream_direction_e direction;
 
-		mrcp_channel_t *channel;
-		/* create synthesizer channel */
-		channel = mrcp_application_channel_create(
-			session,                     /* session, channel belongs to */
-			MRCP_SYNTHESIZER_RESOURCE,   /* MRCP resource identifier */
-			NULL /*termination*/,        /* media termination, used to terminate audio stream */
-			rtp_descriptor,              /* RTP descriptor, used to create RTP termination (NULL by default) */
-			NULL);                       /* object to associate */
+		if (req->resource == RECOGNIZER)
+			direction = STREAM_DIRECTION_SEND;
+		else	
+			direction = STREAM_DIRECTION_RECEIVE;
 
+		SdpParser p(req->local_offer.body);
+		SdpParser::Medium  m = p.first_audio_medium();
+		MediaFormat media_format = *m.list.begin(); 
+
+
+		
+		if (m.list.size() !=1)
+		{
+			LogWarn("Supporting only one codec in body");
+			SendResponse(req,new MsgMrcpAllocateSessionNack());
+			goto allocate_error;
+		}
+
+
+		mpf_rtp_termination_descriptor_t *rtp_descriptor = 	req->local_offer.body.empty() ?
+			rtp_descriptor_create(session->pool,m.connection,m.list.front(),direction):	NULL;
+
+		mrcp_channel_t *channel = NULL;
+		
+		switch (req->resource)
+		{
+		case RECOGNIZER:
+			{
+				/* create synthesizer channel */
+				channel = mrcp_application_channel_create(
+					session,                     /* session, channel belongs to */
+					MRCP_RECOGNIZER_RESOURCE,    /* MRCP resource identifier */
+					NULL /*termination*/,        /* media termination, used to terminate audio stream */
+					rtp_descriptor,              /* RTP descriptor, used to create RTP termination (NULL by default) */
+					NULL);                       /* object to associate */
+
+				ctx->recognizer_channel = channel;
+				break;
+
+			}
+		case SYNTHESIZER:
+			{
+				/* create synthesizer channel */
+				channel = mrcp_application_channel_create(
+					session,                     /* session, channel belongs to */
+					MRCP_SYNTHESIZER_RESOURCE,   /* MRCP resource identifier */
+					NULL /*termination*/,        /* media termination, used to terminate audio stream */
+					rtp_descriptor,              /* RTP descriptor, used to create RTP termination (NULL by default) */
+					NULL);                       /* object to associate */
+
+				ctx->synthesizer_channel = channel;
+				break;
+
+			}
+		default:
+			{
+				LogWarn("unknown resource" <<req->resource);
+				SendResponse(req,new MsgMrcpAllocateSessionNack());
+				goto allocate_error;
+			}
+		}
+
+		
 		/* add channel to session (non-blocking asynchronous processing) */
 		apt_bool_t res = mrcp_application_channel_add(session,channel);
 		if (!res)
 		{
 			LogWarn("error:mrcp_application_channel_add");
 			SendResponse(req,new MsgMrcpAllocateSessionNack());
-			return;
+			goto allocate_error;
 		}
 
-		ctx->channel = channel;
+		
 
 		_mrcpCtxMap[ctx->mrcp_handle] = ctx;
+		return;
+
+allocate_error:
+		if (channel)
+			mrcp_application_session_destroy(session);
 
 	}
 
@@ -679,7 +869,20 @@ namespace ivrworx
 		{
 			MsgMrcpStopSpeakAck *stopped_msg = new MsgMrcpStopSpeakAck();
 			SendResponse(ctx->last_user_request, stopped_msg);
-		}else
+		}
+		// RECOGNIZE-IN-PROGRESS
+		else if (method_name == "RECOGNIZE")
+		{
+			MsgMrcpRecognizeAck *stopped_msg = new MsgMrcpRecognizeAck();
+			SendResponse(ctx->last_user_request, stopped_msg);
+		}
+		else if (method_name == "RECOGNITION-COMPLETE")
+		{
+			MsgMrcpRecognitionCompleteEvt* stopped_msg = new MsgMrcpRecognitionCompleteEvt();
+			stopped_msg->correlation_id = olap->message->start_line.request_id;
+			SendMessage(ctx->session_handler.inbound, IwMessagePtr(stopped_msg));
+		}
+		else
 		{
 			LogWarn("Received unknown response:" << method_name <<", mrcph:" <<olap->mrcp_handle_id )
 		}
@@ -749,7 +952,7 @@ namespace ivrworx
 		MrcpHandle handle = olap->mrcp_handle_id;
 		mrcp_sig_status_code_e status = olap->status;
 
-		LogDebug("UponChnannelConnected handle:" <<  olap->mrcp_handle_id << ", status:" << olap->status);
+		LogDebug("ProcUniMrcp::onMrcpChanndelAddEvtd handle:" <<  olap->mrcp_handle_id << ", status:" << olap->status);
 
 		
 
@@ -768,8 +971,46 @@ namespace ivrworx
 		case MRCP_SIG_STATUS_CODE_SUCCESS:
 			{
 				ctx->state = MRCP_ALLOCATED;
+
+				
 				MsgMrcpAllocateSessionAck * rsp = new MsgMrcpAllocateSessionAck();
+
+				
+
+				mrcp_channel_t *channel = NULL;
+				switch (olap->channel->resource->id)
+				{
+				case MRCP_RECOGNIZER_RESOURCE:
+					{
+						
+						channel = ctx->recognizer_channel;
+						
+						
+						break;
+					}
+				case MRCP_SYNTHESIZER_RESOURCE:
+					{
+						channel = ctx->synthesizer_channel;
+						break;
+					}
+				default:{}
+				};
+
+				 CnxInfo info (
+					channel->rtp_termination_slot->descriptor->audio.remote->ip.buf,
+					channel->rtp_termination_slot->descriptor->audio.remote->port);
+
+				stringstream sdps;
+				sdps << "v=0\n"			<<
+					"o=alice 2890844526 2890844526 IN IP4 " << info.iptoa() << "\n"
+					"s=\n"			<<
+					"c=IN IP4 "	<< info.iptoa() << "\n" <<
+					"t=0 0\n"	<<
+					"m=audio "  << info.port_ho() << " RTP/AVP 0 8 97\n";
+				
 				rsp->mrcp_handle = handle;
+				
+
 				SendResponse(ctx->last_user_request,rsp);
 				break;
 			}
@@ -830,7 +1071,7 @@ namespace ivrworx
 
 		/* create default directory layout relative to root directory path */
 		apt_dir_layout_t *dir_layout = 
-			apt_default_dir_layout_create(_conf.GetString("unimrcp/unimrcp_conf_dir").c_str(),_pool);
+			apt_default_dir_layout_create(_conf->GetString("unimrcp/unimrcp_conf_dir").c_str(),_pool);
 		if(!dir_layout) {
 			LogWarn("error:apt_default_dir_layout_create");
 			goto error;
@@ -845,7 +1086,7 @@ namespace ivrworx
 
 		res = apt_log_file_open(
 			dir_layout->log_dir_path,
-			_conf.GetString("unimrcp/unimrcp_log_file").c_str(),
+			_conf->GetString("unimrcp/unimrcp_log_file").c_str(),
 			MAX_LOG_FILE_SIZE,
 			MAX_LOG_FILE_COUNT,
 			_pool);
@@ -877,57 +1118,14 @@ namespace ivrworx
 			goto error;
 		}
 
-		HANDLE ready_event = ::CreateEvent(NULL,TRUE,FALSE,NULL);
-		if (!ready_event)
-		{
-			LogSysError("::CreateEvent");
-			goto error;
-		}
-
-		 BOOL osRes = ::DuplicateHandle(
-			::GetCurrentProcess(), 
-			ready_event, 
-			::GetCurrentProcess(),
-			&dupReadyEvent, 
-			0,
-			FALSE,
-			DUPLICATE_SAME_ACCESS);
-		 if (!osRes)
-		 {
-			 ::CloseHandle(ready_event);
-			 ::CloseHandle(dupReadyEvent);
-			 LogSysError("::DuplicateHandle");
-			 goto error;
-		 }
 		
-		
-		/* asynchronous start of client stack processing */
+		/* synchronous start of client stack processing */
 		res = mrcp_client_start(_mrcpClient);
 		if(!res) {
 			LogWarn("error:mrcp_client_start");
-			::CloseHandle(ready_event);
-			::CloseHandle(dupReadyEvent);
 			goto error;
 		}
 
-
-		DWORD waitRes = ::WaitForSingleObject(ready_event,IW_MRCP_CLIENT_TIMEOUT);
-		switch (waitRes)
-		{
-		case WAIT_OBJECT_0:
-			{
-				::CloseHandle(ready_event);
-				break;
-			}
-		default:
-			{
-				LogWarn("error:mrcp_client_start");
-				::CloseHandle(ready_event);
-				::CloseHandle(dupReadyEvent);
-				goto error;
-			}
-
-		}
 
 		return API_SUCCESS;
 
