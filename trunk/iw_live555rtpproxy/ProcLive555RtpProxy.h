@@ -84,7 +84,7 @@ namespace ivrworx
 		};
 
 
-		ProcLive555RtpProxy(LpHandlePair pair, Configuration &conf);
+		ProcLive555RtpProxy(LpHandlePair pair, ConfigurationPtr conf);
 
 		virtual ~ProcLive555RtpProxy(void);
 
@@ -104,7 +104,7 @@ namespace ivrworx
 
 	private:
 
-		Configuration &_conf;
+		ConfigurationPtr _conf;
 
 		TaskScheduler *_scheduler;
 

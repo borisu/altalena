@@ -101,7 +101,7 @@ namespace ivrworx
 
 		ProcResipStack(
 			IN LpHandlePair pair, 
-			IN Configuration &conf);
+			IN ConfigurationPtr conf);
 
 		virtual ~ProcResipStack(void);
 
@@ -119,8 +119,6 @@ namespace ivrworx
 
 		virtual void UponMakeCallReq(IN IwMessagePtr req);
 
-		virtual void UponMakeCallAckReq(IN IwMessagePtr req);
-
 		virtual void UponHangupCallReq(IN IwMessagePtr req);
 
 		virtual void UponShutDownReq(IN IwMessagePtr req);
@@ -128,6 +126,8 @@ namespace ivrworx
 		virtual void UponCallOfferedAck(IN IwMessagePtr req);
 
 		virtual void UponCallOfferedNack(IN IwMessagePtr req);
+
+		virtual void UponCallConnected(IN IwMessagePtr req);
 
 		virtual void onNewSession(
 			IN ClientInviteSessionHandle s, 
@@ -194,6 +194,15 @@ namespace ivrworx
 			IN InviteSessionHandle, 
 			IN const SipMessage& msg);
 
+		/// called when response to INFO message is received 
+		virtual void onInfoSuccess(
+			IN InviteSessionHandle, 
+			IN const SipMessage& msg);
+
+		virtual void onInfoFailure(
+			IN InviteSessionHandle, 
+			IN const SipMessage& msg);
+
 		virtual void onSessionExpired(
 			IN InviteSessionHandle is);
 	
@@ -207,11 +216,11 @@ namespace ivrworx
 
 
 		//
-		// Configuration & logging
+		// ConfigurationPtr  logging
 		//
 		IwResipLogger _logger;
 
-		Configuration &_conf;
+		ConfigurationPtr _conf;
 
 		typedef map<string,Profile::SessionTimerMode> 
 		ConfSessionTimerModeMap;

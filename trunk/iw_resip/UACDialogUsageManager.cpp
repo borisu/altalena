@@ -34,7 +34,7 @@ namespace ivrworx
 #pragma warning( disable : 4267 )
 
 	UACDialogUsageManager::UACDialogUsageManager(
-		IN Configuration &conf,
+		IN ConfigurationPtr conf,
 		IN IwHandlesMap &ccu_handles_map,
 		IN ResipDialogHandlesMap &resip_handles_map,
 		IN DialogUsageManager &dum):
@@ -63,7 +63,7 @@ namespace ivrworx
 		if (iter == _iwHandlesMap.end())
 		{
 			LogDebug("UACDialogUsageManager:UponInfoReq - the call iwh:" << options_req->stack_call_handle << " ctx not found.");
-			GetCurrLightWeightProc()->SendResponse(ptr, new MsgSipCallInfoNack());
+			GetCurrRunningContext()->SendResponse(ptr, new MsgSipCallInfoNack());
 			return;
 		}
 
@@ -72,12 +72,12 @@ namespace ivrworx
 		SharedPtr<UserProfile> user_profile;
 		user_profile = SharedPtr<UserProfile>(_dum.getMasterProfile());
 
-		FreeContent fc(options_req->offer, options_req->offer_type);
+		FreeContent fc(options_req->localOffer.body, options_req->localOffer.type);
 		ctx_ptr->invite_handle->info(fc);
 
-		GetCurrLightWeightProc()->SendResponse(ptr, new MsgSipCallInfoAck());
-		
-	
+		UACAppDialogSet* uac_set = (UACAppDialogSet*)(ctx_ptr->invite_handle->getAppDialogSet().get());
+		uac_set->last_options_req = ptr;
+
 
 	}
 
@@ -93,22 +93,20 @@ namespace ivrworx
 
 		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
 
-		LogWarn("UACDialogUsageManager::onInfoSuccess rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
+		LogDebug("UACDialogUsageManager::onInfoSuccess rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
 
-		switch ((uac_set)->_orig_request->message_id)
+		if (!(uac_set)->last_options_req)
 		{
-		case SIP_CALL_INFO_REQ:
-			{
-				GetCurrLightWeightProc()->SendResponse(
-					(uac_set)->_orig_request,
-					new MsgSipCallInfoAck());
-				break;
-			}
-		default:
-			{
-				LogWarn("UACDialogUsageManager::onInfoSuccess Unknown req:"  << (uac_set)->_orig_request->message_id);
-			}
+			return;
 		}
+
+
+		GetCurrRunningContext()->SendResponse(
+			(uac_set)->last_options_req,
+			new MsgSipCallInfoAck());
+
+		(uac_set)->last_options_req.reset();
+
 	}
 
 	void UACDialogUsageManager::onInfoFailure(InviteSessionHandle is, const SipMessage& msg)
@@ -121,22 +119,16 @@ namespace ivrworx
 
 		LogWarn("UACDialogUsageManager::onInfoFailure rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
 
-		switch ((uac_set)->_orig_request->message_id)
+		if (!(uac_set)->last_options_req)
 		{
-		case SIP_CALL_INFO_REQ:
-			{
-				GetCurrLightWeightProc()->SendResponse(
-					(uac_set)->_orig_request,
-					new MsgSipCallInfoNack());
-				break;
-			}
-		default:
-			{
-				LogWarn("UACDialogUsageManager::onInfoFailure Unknown req:"  << (uac_set)->_orig_request->message_id);
-			}
+			return;
 		}
+		
+		GetCurrRunningContext()->SendResponse(
+			(uac_set)->last_options_req,
+			new MsgSipCallInfoNack());
 
-
+		(uac_set)->last_options_req.reset();
 	}
 
 
@@ -164,6 +156,7 @@ namespace ivrworx
 		_iwHandlesMap.erase(ctx_ptr->stack_handle);
 		if (ctx_ptr->uac_invite_handle.isValid())
 		{
+
 			_resipHandlesMap.erase(ctx_ptr->uac_invite_handle->getAppDialog());
 			ctx_ptr->uac_invite_handle->getAppDialogSet()->end();
 		}
@@ -197,12 +190,12 @@ namespace ivrworx
 	}
 
 	void 
-	UACDialogUsageManager::UponMakeCallAckReq(IN IwMessagePtr ptr)
+	UACDialogUsageManager::UponCallConnected(IN IwMessagePtr ptr)
 	{
 		FUNCTRACKER;
 	
-		shared_ptr<MsgMakeCallAckReq> ack_req  = 
-			shared_dynamic_cast<MsgMakeCallAckReq>(ptr);
+		shared_ptr<MsgNewCallConnected> ack_req  = 
+			shared_dynamic_cast<MsgNewCallConnected>(ptr);
 
 		IwHandlesMap::iterator iter = 
 			_iwHandlesMap.find(ack_req->stack_call_handle);
@@ -219,12 +212,12 @@ namespace ivrworx
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
 
-		if ( ctx_ptr->uac_invite_handle->isConnected() == false)
+		if (!ack_req->localOffer.body.empty())
 		{
-			LogCrit("UACDialogUsageManager::UponMakeCallAckReq - no support for sdp in ACK");
-			throw;
-		}
-
+			FreeContent contents(ack_req->localOffer);
+			ctx_ptr->uac_invite_handle->provideAnswer(contents);
+		} 
+	
 
 	}
 
@@ -243,19 +236,8 @@ namespace ivrworx
 		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
 		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
 
-		LogDebug("UACDialogUsageManager::onAnswer (GENERIC) rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
+		LogDebug("UACDialogUsageManager::onAnswer rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
 
-		if (ctx_ptr->generic_offer_answer)
-		{
-
-
-		}
-		else 
-		{
-			const SdpContents* sdp = 
-				dynamic_cast<const SdpContents*>(&body);
-
-		}
 	}
 
 	void 
@@ -273,138 +255,77 @@ namespace ivrworx
 			//
 			NameAddr name_addr(req->destination_uri.c_str());
 			SharedPtr<UserProfile> user_profile;
-			user_profile = SharedPtr<UserProfile>(_dum.getMasterProfile());
-
+			user_profile = _dum.getMasterProfile();
+			
 			
 			SharedPtr<SipMessage> invite_session;
+
 			// create context
 			//
 			SipDialogContextPtr ctx_ptr = SipDialogContextPtr(new SipDialogContext());;
 
-			if (!req->offer.empty())
+			UACAppDialogSet * uac_dialog_set = 
+				new UACAppDialogSet(_dum,ctx_ptr,ptr);
+
+			// generic offer INVITE
+			if (!req->localOffer.body.empty())
 			{
-				ctx_ptr->generic_offer_answer = TRUE;
-
-				Data free_data( req->offer );
-
-				UACAppDialogSet * uac_dialog_set = 
-					new UACAppDialogSet(_dum,ctx_ptr,ptr);
-
-				FreeContent fc(req->offer,req->offer_type);
+			
+				Data free_data(req->localOffer.body);
+				
+				FreeContent fc(req->localOffer.body,req->localOffer.type);
 
 				invite_session = _dum.makeInviteSession(
 					name_addr, 
 					user_profile,
 					&fc, 
 					uac_dialog_set); 
-
-			} 
+			}
 			else
 			{
-				//
-				// prepare sdp
-				//
-				SdpContents sdp;
-
-				unsigned long tm = ::GetTickCount();
-				unsigned long sessionId((unsigned long) tm);
-
-				SdpContents::Session::Origin origin(
-					"-", 
-					sessionId, 
-					sessionId, 
-					SdpContents::IP4, 
-					req->local_media.iptoa());
-
-				SdpContents::Session session(0, origin, "ivrworks session");
-
-				session.connection() = 
-					SdpContents::Session::Connection(SdpContents::IP4, req->local_media.iptoa());
-				session.addTime(SdpContents::Session::Time(tm, 0));
-
-				SdpContents::Session::Medium medium("audio", req->local_media.port_ho(), 0, "RTP/AVP");
-
-
-
-				const MediaFormat *dtmf_format = NULL;
-
-				string str_buffer(1024,'\0');
-
-
-				ListOfAny codecs_list;
-				_conf.GetArray("codecs",codecs_list);
-
-				for (ListOfAny::iterator conf_iter = codecs_list.begin(); 
-					conf_iter != codecs_list.end(); 
-					conf_iter++)
-				{
-
-					string conf_codec_name =  any_cast<string>(*conf_iter);
-					MediaFormat media_format = MediaFormat::GetMediaFormat(conf_codec_name);
-
-					if (MediaFormat::GetMediaType(media_format.sdp_name_tos()) == MediaFormat::MediaType_DTMF)
-					{
-						dtmf_format = &media_format;
-						continue;
-					}
-
-					medium.addFormat(media_format.sdp_mapping_tos().c_str());
-
-					str_buffer.clear();
-					str_buffer += media_format.sdp_mapping_tos() ;
-					str_buffer +=" "; 
-					str_buffer += media_format.sdp_name_tos(); 
-					str_buffer += "/"; 
-					str_buffer += media_format.sampling_rate_tos();
-
-					medium.addAttribute("rtpmap", str_buffer.c_str());
-
-				}
-
-
-
-				// dtmf format always last
-				if (dtmf_format != NULL)
-				{
-					medium.addFormat(dtmf_format->sdp_mapping_tos().c_str());
-
-					str_buffer.clear();
-					str_buffer += dtmf_format->sdp_mapping_tos();
-					str_buffer += " "; 
-					str_buffer += dtmf_format->sdp_name_tos();
-					str_buffer += "/";
-					str_buffer += dtmf_format->sampling_rate_tos();
-					medium.addAttribute("rtpmap", str_buffer.c_str());
-
-
-					str_buffer.clear();
-					str_buffer += dtmf_format->sdp_mapping_tos();
-					str_buffer += " 0-16";
-
-					medium.addAttribute("fmtp", (str_buffer).c_str());
-				}
-
-
-				medium.addAttribute("sendrecv");
-				session.addMedium(medium);
-
-				sdp.session() = session;
-
-
-
-				
 				UACAppDialogSet * uac_dialog_set = new UACAppDialogSet(_dum,ctx_ptr,ptr);
 
+				// empty invite
 				invite_session = _dum.makeInviteSession(
 					name_addr, 
 					user_profile,
-					&sdp, 
+					NULL,
 					uac_dialog_set); 
+			};
 
+			
+			for (MapOfAny::iterator i = req->optional_params.begin(); 
+				i != req->optional_params.end(); i++)
+			{
+				size_t pos = i->first.find("H_");
+				if ( pos != 0 || i->second.type() != typeid(string))
+					continue;
+				
+				string header_name  =  i->first.substr(2);
+				string header_value =  any_cast<string>(i->second);
+
+
+				
+				Headers::Type header_type  = Headers::getType(header_name.c_str(), header_name.length());
+
+				if (header_type != Headers::UNKNOWN)
+				{
+					HeaderFieldValueList hl;
+					hl.push_back(new HeaderFieldValue(header_value.c_str(), header_value.length()));
+
+					invite_session->setRawHeader(
+						&hl,
+						header_type);
+				} else
+				{
+					ExtensionHeader ext(header_name.c_str());
+					invite_session->header(ext).push_back(StringCategory(header_value.c_str()));
+
+				}
+				
+				
 			}
 			
-			
-
 			
 			_dum.send(invite_session);
 
@@ -421,7 +342,7 @@ namespace ivrworx
 		catch (BaseException &e)
 		{
 			LogWarn("Exception while issuing invite:" << e.getMessage().c_str());
-			GetCurrLightWeightProc()->SendResponse(ptr, new MsgMakeCallNack());
+			GetCurrRunningContext()->SendResponse(ptr, new MsgMakeCallNack());
 		}
 	}
 
@@ -465,7 +386,7 @@ namespace ivrworx
 		if (iter == _iwHandlesMap.end())
 		{
 			LogWarn("UACDialogUsageManager::UponBlindXferReq - iwh:" << xfer_req->stack_call_handle << " not found. Has caller disconnected already?");
-			GetCurrLightWeightProc()->SendResponse(
+			GetCurrRunningContext()->SendResponse(
 				req,
 				new MsgCallBlindXferNack());
 			return;
@@ -479,7 +400,7 @@ namespace ivrworx
 		if (!invite_handle_to_replace.isValid() || invite_handle_to_replace->isConnected() == false)
 		{
 			LogWarn("UACDialogUsageManager::UponBlindXferReq - Cannot xfer in not connected state, " << LogHandleState(ctx_ptr, invite_handle_to_replace))
-				GetCurrLightWeightProc()->SendResponse(
+				GetCurrRunningContext()->SendResponse(
 				req,
 				new MsgCallBlindXferNack());
 
@@ -492,7 +413,7 @@ namespace ivrworx
 		NameAddr name_addr(xfer_req->destination_uri.c_str());
 		invite_handle_to_replace->refer(name_addr,false);
 
-		GetCurrLightWeightProc()->SendResponse(
+		GetCurrRunningContext()->SendResponse(
 			req,
 			new MsgCallBlindXferAck());
 
@@ -512,25 +433,27 @@ namespace ivrworx
 
 		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
 
-		LogWarn("UACDialogUsageManager::onFailure rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
+		LogWarn("UACDialogUsageManager::onFailure rsh:" << is.getId() <<", reason:" << msg.getReason().c_str() << ", iwh:" << ctx_ptr->stack_handle);
 
-		switch ((uac_set)->_orig_request->message_id)
+		switch ((uac_set)->last_makecall_req->message_id)
 		{
 		case MSG_MAKE_CALL_REQ:
 			{
-				GetCurrLightWeightProc()->SendResponse(
-					(uac_set)->_orig_request,
+				GetCurrRunningContext()->SendResponse(
+					(uac_set)->last_makecall_req,
 					new MsgMakeCallNack());
 				CleanUpCall(ctx_ptr);
 				break;
 			}
 		default:
 			{
-				LogWarn("UACDialogUsageManager::onFailure Unknown req:"  << (uac_set)->_orig_request->message_id);
+				LogWarn("UACDialogUsageManager::onFailure Unknown req:"  << (uac_set)->last_makecall_req->message_id);
 			}
 		}
 
 	}
+
+	
 
 #pragma TODO ("UACDialogUsageManager::onConnected takes 4 ms - SDP inspections is taking long")
 	void 
@@ -551,6 +474,8 @@ namespace ivrworx
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
 
+		LogDebug("UACDialogUsageManager::onConnected rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
+
 		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
 
 		MsgMakeCallOk *ack = 
@@ -561,90 +486,21 @@ namespace ivrworx
 		const Uri &from_uri = msg.header(h_From).uri();
 		ack->ani = from_uri.user().c_str();
 
-		if (ctx_ptr->generic_offer_answer)
+		
+
+		if (msg.getContents())
 		{
-			if (msg.getContents())
-			{
-				ack->offer = msg.getContents()->getBodyData().c_str();
-			}
-
-			GetCurrLightWeightProc()->SendResponse(
-				uac_set->_orig_request,
-				ack);
-
-			return;
-
+			ack->remoteOffer.body = msg.getContents()->getBodyData().c_str();
+			ack->remoteOffer.type = string("") + msg.getContents()->getType().type().c_str() + "/" + msg.getContents()->getType().subType().c_str();
 		}
 
-
-		
-		const resip::SdpContents &sdp = 
-				*dynamic_cast<const SdpContents*>(msg.getContents());
-		
-		const SdpContents::Session &s = sdp.session();
-		const Data &addr_data = s.connection().getAddress();
-	
-
-		if (s.media().empty())
-		{
-			LogWarn("UACDialogUsageManager::onConnected Empty proposed medias list " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
-			CleanUpCall(ctx_ptr);
-			return;
-		}
-
-
-		
-
-		// currently we only "audio" conversation
-		list<SdpContents::Session::Medium>::const_iterator medium_iter = s.media().begin();
-		for (;medium_iter != s.media().end();medium_iter++)
-		{
-			const SdpContents::Session::Medium &curr_medium = (*medium_iter);
-			if (_stricmp("audio",curr_medium.name().c_str()) == 0)
-			{
-				break;
-			}
-		}
-
-		if (medium_iter == s.media().end())
-		{
-			LogWarn("UACDialogUsageManager::onConnected Not found audio connection " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
-			CleanUpCall(ctx_ptr);
-			return;
-		}
-
-		
-
-		const SdpContents::Session::Medium &medium = *medium_iter;
-
-		int port =	medium.port();
-		ack->remote_media = CnxInfo(addr_data.c_str(),port);
-
-		// send list of codecs to the main process
-		const list<Codec> &offered_codecs = medium.codecs();
-		for (list<Codec>::const_iterator codec_iter = offered_codecs.begin(); 
-			codec_iter != offered_codecs.end(); 
-			codec_iter++)
-		{
-
-			ack->offered_codecs.push_front(
-				MediaFormat(
-				codec_iter->getName().c_str(),
-				codec_iter->getRate(),
-				codec_iter->payloadType()));
-		}
-
-		
-
-		
-
-
-
-		GetCurrLightWeightProc()->SendResponse(
-			uac_set->_orig_request,
+		GetCurrRunningContext()->SendResponse(
+			uac_set->last_makecall_req,
 			ack);
 
-			
+		return;
+
+					
 	}
 
 	UACDialogUsageManager::~UACDialogUsageManager(void)

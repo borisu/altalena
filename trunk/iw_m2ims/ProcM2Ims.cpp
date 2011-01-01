@@ -118,7 +118,9 @@ namespace ivrworx
 		profile(NULL),
 		state(IMS_INITIAL),
 		streamer_handle(IW_UNDEFINED),
-		correlation_id(IW_UNDEFINED)
+		correlation_id(IW_UNDEFINED),
+		snd_device_type(SND_DEVICE_TYPE_FILE),
+		rcv_device_type(RCV_DEVICE_FILE_REC_ID)
 	{
 
 	}
@@ -199,7 +201,7 @@ namespace ivrworx
 		}
 	}
 
-	ProcM2Ims::ProcM2Ims(IN LpHandlePair pair, IN Configuration &conf)
+	ProcM2Ims::ProcM2Ims(IN LpHandlePair pair, IN ConfigurationPtr conf)
 		:LightweightProcess(pair, "Ims"),
 		_conf(conf),
 		_rtp_q(NULL),
@@ -211,11 +213,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		static const size_t buf_len = 1024;
-		char buf[buf_len];
-		_snprintf_s(buf,buf_len,"proto=ims;vendor=mediastreamer2;uid=%d",_processId);
-
-		ServiceId(buf);
+		ServiceId(_conf->GetString("m2ims/uri"));
 
 		_iocpPtr = IocpInterruptorPtr(new IocpInterruptor());
 		_inbound->HandleInterruptor(_iocpPtr);
@@ -290,7 +288,7 @@ namespace ivrworx
 	{
 		
 		ListOfAny codecs_list;
-		 _conf.GetArray("codecs", codecs_list);
+		 _conf->GetArray("codecs", codecs_list);
 
 		for (ListOfAny::iterator conf_iter = codecs_list.begin(); 
 			conf_iter != codecs_list.end(); 
@@ -334,12 +332,18 @@ namespace ivrworx
 		WSADATA dat;
 		if (WSAStartup(MAKEWORD(2,2),&dat)!=0)
 		{
-			LogCrit("Error starting up WIN socket.");
+			LogCrit("Error starting up WIN socket. err:" << ::WSAGetLastError());
 			return;
 		}
 
-		
 		g_iocpHandle= _iocpPtr->WinHandle();
+
+		string m2_ip = _conf->GetString("m2ims/local_ip");
+		const char * input_address_str = m2_ip.c_str();
+
+		_localInAddr = convert_hname_to_addrin(input_address_str);
+		
+		LogDebug("ProcM2Ims::real_run -  bind is done 0.0.0.0, local_ip=" << m2_ip << ", wil be used in communication protocols.");
 
 		//
 		// initialize ortp
@@ -405,7 +409,7 @@ namespace ivrworx
 
 		START_FORKING_REGION;
 
-		LogInfo("Ims process started successfully.");
+		LogDebug("Ims process started successfully.");
 		I_AM_READY;
 
 
@@ -536,24 +540,20 @@ namespace ivrworx
 		StreamingCtxPtr ctx(new StreamingCtx());
 		long handle = GetNewImsHandle();
 		ctx->streamer_handle = handle;
+		ctx->rcv_device_type = req->rcv_device_type;
 
 		//
 		// create ortp stream and initialize it with available port
 		//
 		// local port will be allocated dynamically
-		int local_port = 0;
-		ctx->stream = audio_stream_new(local_port, false /*ms_is_ipv6(req->local_media_data.iptoa()*/);
-		if (ctx->stream!=NULL)
-		{
-			ctx->port = local_port;
-	
-		} 
-		else 
+		ctx->stream = audio_stream_new(0, false /*ms_is_ipv6(req->local_media_data.iptoa()*/);
+		if (ctx->stream==NULL)
 		{
 			LogWarn("Failed to find available port");
 			goto error;
 
 		}
+		
 
 		/********************
 		*
@@ -566,38 +566,60 @@ namespace ivrworx
 		rtp_session_set_profile(rtps,profile);
 		ctx->profile = profile;
 
-		ApiErrorCode res = API_FAILURE;
-		if (req->remote_media_data.is_ip_valid() && 
-			req->remote_media_data.is_port_valid() &&
-			req->codec.get_media_type() != MediaFormat::MediaType_UNKNOWN)
 		{
-			res = RecommutateSession(ctx,req->remote_media_data, req->codec);
-			if (IW_FAILURE(res))
+			SdpParser parser(req->remote_offer.body);
+			SdpParser::Medium medium = parser.first_audio_medium();
+			MediaFormat codec = *medium.list.begin();
+
+
+			ApiErrorCode res = API_FAILURE;
+			if (medium.connection.is_ip_valid() && 
+				medium.connection.is_port_valid() &&
+				codec.get_media_type() != MediaFormat::MediaType_UNKNOWN)
 			{
-				LogDebug("ProcM2Ims::AllocatePlaybackSession - error re-commutating, imsh:" <<  handle);
-				goto error;
+				res = RecommutateSession(ctx,medium.connection,codec);
+				if (IW_FAILURE(res))
+				{
+					LogDebug("ProcM2Ims::AllocatePlaybackSession - error re-commutating, imsh:" <<  handle);
+					goto error;
+				}
+			}
+			else
+			{
+				LogDebug("ProcM2Ims::AllocatePlaybackSession - no valid info, not re-commutating, imsh:" <<  handle);
 			}
 		}
-		else
-		{
-			LogDebug("ProcM2Ims::AllocatePlaybackSession - no valid info, not re-commutating, imsh:" <<  handle);
-		}
 
+		
 		//
 		// update map and send acknowledgment
 		//
+		{
+			_streamingObjectSet[handle] = ctx;
+			ctx->session_handler	= req->session_handler;
+
+			MsgStreamAllocateSessionAck *ack = 
+				new MsgStreamAllocateSessionAck();
+
+			stringstream sdps;
+			sdps << "v=0\n"			<<
+				"o=alice 2890844526 2890844526 IN IP4 " << ::inet_ntoa(_localInAddr) << "\n"
+				"s=\n"			<<
+				"c=IN IP4 "	<< ::inet_ntoa(_localInAddr) << "\n" <<
+				"t=0 0\n"	<<
+				"m=audio "  << ctx->stream->session->rtp.loc_port << " RTP/AVP 0 8 97\n";
+
+
+			ack->streamer_handle = handle;
+			ack->local_offer.body =sdps.str();
+
+
+			ctx->state = IMS_ALLOCATED;
+			SendResponse(req,ack);
+			return;
+
+		}
 	
-		_streamingObjectSet[handle] = ctx;
-		ctx->session_handler	= req->session_handler;
-
-		MsgStreamAllocateSessionAck *ack = 
-			new MsgStreamAllocateSessionAck();
-
-		ack->streamer_handle = handle;
-		ctx->state = IMS_ALLOCATED;
-		SendResponse(req,ack);
-		return;
-
 error:
 		SendResponse(req,new MsgStreamAllocateSessionNack());
 		return;
@@ -695,6 +717,7 @@ error:
 			ms_filter_destroy(ctx->stream->rtprecv);
 			ctx->stream->rtprecv = NULL;
 		}
+
 		
 		ctx->stream->rtprecv=ms_filter_new(MS_RTP_RECV_ID);
 		if (ctx->stream->rtprecv == NULL)
@@ -702,14 +725,17 @@ error:
 			LogWarn("error:ms_filter_new MS_RTP_RECV_ID");
 			goto error;
 		}
-
 		res = ms_filter_call_method(ctx->stream->rtprecv,MS_RTP_RECV_SET_SESSION,rtps);
 		if (res < 0) 
 		{
 			LogWarn("error:ms_filter_call_method MS_RTP_RECV_SET_SESSION");
 			goto error;
 		}
+		
+			
+			
 
+		
 		/********************
 		*
 		*		Decoder 
@@ -825,15 +851,67 @@ error:
 			ctx->stream->soundread = NULL;
 		}
 
-		ctx->stream->soundread = ms_filter_new(MS_FILE_PLAYER_ID);
-		if (ctx->stream->soundread  == NULL) 
+		switch (ctx->snd_device_type)
 		{
-			LogWarn("error:ms_filter_new(MS_FILE_PLAYER_ID)");
-			goto error;
+
+		case SND_DEVICE_TYPE_FILE:
+			{
+				ctx->stream->soundread = ms_filter_new(MS_FILE_PLAYER_ID);
+				if (ctx->stream->soundread  == NULL) 
+				{
+					LogWarn("error:ms_filter_new(MS_FILE_PLAYER_ID)");
+					goto error;
+				};
+				break;
+			}
+		case SND_DEVICE_TYPE_SND_CARD_MIC:
+			{
+				MSSndCard *sc = NULL;
+				const char * card_id = NULL;
+				int tmp = -1;
+				sc = ms_snd_card_manager_get_card(ms_snd_card_manager_get(),card_id);
+				if (sc == NULL) 
+				{
+					LogWarn("error:ms_snd_card_manager_get_card");
+					goto error;
+				}
+				ctx->stream->soundread=ms_snd_card_create_reader(sc);
+				if (sc == NULL) 
+				{
+					LogWarn("error:ms_snd_card_create_reader");
+					goto error;
+				}
+
+				res = ms_filter_call_method(ctx->stream->soundread,MS_FILTER_SET_SAMPLE_RATE,&pt->clock_rate);
+				if (res<0) 
+				{
+					LogWarn("error:ms_filter_call_method(MS_FILTER_SET_SAMPLE_RATE)(SND CARD) cr:" << pt->clock_rate);
+					goto error;
+				}
+
+				tmp = 1;
+				ms_filter_call_method(ctx->stream->soundread,MS_FILTER_SET_NCHANNELS,&tmp);
+				if (res<0) 
+				{
+					LogWarn("error:ms_filter_call_method(MS_FILTER_SET_NCHANNELS)(SND CARD) ch:" << tmp);
+					goto error;
+				}
+
+				break;;
+			}
+		default:
+			{
+
+			}
 		}
 
 
+
+		
+
+
 		ctx->stream->soundread->notify = &on_file_filter_event;
+		ctx->stream->soundread->notify_ud = (void*)ctx->streamer_handle;
 
 
 
@@ -848,21 +926,85 @@ error:
 			ctx->stream->soundwrite = NULL;
 		}
 
-		ctx->stream->soundwrite=ms_filter_new(MS_FILE_REC_ID);
-		if (ctx->stream->soundwrite == NULL) 
+		switch (ctx->rcv_device_type)
 		{
-			LogWarn("error:ms_filter_new(MS_FILE_REC_ID)");
-			goto error;
+		
+		case RCV_DEVICE_WINSND_WRITE:
+			{
+				MSSndCard *sc = NULL;
+				const char * card_id = NULL;
+				int tmp = -1;
+				sc = ms_snd_card_manager_get_card(ms_snd_card_manager_get(),card_id);
+				if (sc == NULL) 
+				{
+					LogWarn("error:ms_snd_card_manager_get_card");
+					goto error;
+				}
+				ctx->stream->soundwrite=ms_snd_card_create_writer(sc);
+				if (sc == NULL) 
+				{
+					LogWarn("error:ms_snd_card_create_writer");
+					goto error;
+				}
+
+				ms_filter_call_method(ctx->stream->soundread,MS_FILTER_GET_SAMPLE_RATE,&tmp);
+				ms_filter_call_method(ctx->stream->soundwrite,MS_FILTER_SET_SAMPLE_RATE,&tmp);
+				ms_filter_call_method(ctx->stream->soundread,MS_FILTER_GET_NCHANNELS,&tmp);
+				ms_filter_call_method(ctx->stream->soundwrite,MS_FILTER_SET_NCHANNELS,&tmp);
+				break;
+
+			}
+		case RCV_DEVICE_FILE_REC_ID:
+			{
+				//we just do not open the file so it stays dummy
+				ctx->stream->soundwrite=ms_filter_new(MS_FILE_REC_ID);
+				if (ctx->stream->soundwrite == NULL) 
+				{
+					LogWarn("error:ms_filter_new(MS_FILE_REC_ID)");
+					goto error;
+				}
+
+				ms_filter_call_method_noarg(ctx->stream->soundwrite,MS_FILE_REC_CLOSE);
+				char buf[100];
+				::itoa(ctx->streamer_handle,buf,10);
+				string path = _conf->GetString("m2ims/record_dir") + "\\" + buf + ".wav";
+				res = ms_filter_call_method(ctx->stream->soundwrite,MS_FILE_REC_OPEN,(void*)path.c_str());
+				if (res<0) 
+				{
+					LogWarn("error:ms_filter_call_method(MS_FILE_REC_OPEN) name:" << path);
+					goto error;
+				}
+
+				res =  ms_filter_call_method_noarg(ctx->stream->soundwrite,MS_FILE_REC_START);
+				if (res<0) 
+				{
+					LogWarn("error:ms_filter_call_method(MS_FILE_REC_START) name:" << path);
+					goto error;
+				}
+				break;
+
+			}
+		default:
+			{
+				//we just do not open the file so it stays dummy
+				ctx->stream->soundwrite=ms_filter_new(MS_FILE_REC_ID);
+				if (ctx->stream->soundwrite == NULL) 
+				{
+					LogWarn("error:ms_filter_new(MS_FILE_REC_ID)");
+					goto error;
+				}
+			}
 		}
 
-		ctx->stream->soundread->notify_ud = (void*)ctx->streamer_handle;
+	
+		
 
 
 		/*********************************************************************
 		*
 		*	file_reader -> encoder ->  +  -> rtp_sender 
-		*                 dtmf_gen <-> |
-		*           file_recorder  <-  +  <- decoder <- rtp_receiver
+		*							   |
+		*           soundwrite	   <-  +  <- decoder <- rtp_receiver
 		*
 		***********************************************************************/
 
@@ -900,6 +1042,13 @@ error:
 // 			LogWarn("error:ms_filter_link decoder->dtmfgen");
 // 			goto error;
 // 		}
+
+		res = ms_filter_link(ctx->stream->decoder,0,ctx->stream->soundwrite,0);
+		if (res < 0) 
+		{
+			LogWarn("error:ms_filter_link decoder->soundwrite");
+			goto error;
+		}
 
 		return API_SUCCESS;
 
@@ -984,6 +1133,13 @@ error:
 			return;
 		}
 
+		if (!req->remote_offer.body.empty())
+		{
+			LogWarn("ProcM2Ims::ModifySession cnx info is invalid:" << req->remote_offer.body);
+			SendResponse(msg, new MsgStreamModifyNack());
+			return;
+		}
+
 		
 		// to prevent race conditions?
 		ApiErrorCode err = StopTicking(ctx);
@@ -993,40 +1149,56 @@ error:
 			goto error;
 		}
 
-		// update remote end for session
-		int remport  = req->remote_media_data.port_ho();
-		char *remip  = (char *)req->remote_media_data.iptoa();
 		
-		RtpSession *rtps = ctx->stream->session;
-
-		int res = rtp_session_set_remote_addr(rtps,remip,remport);
-		if (res < 0) 
 		{
-			LogWarn("error:rtp_session_set_remote_addr");
-			goto error;
+			SdpParser parser(req->remote_offer.body);
+			SdpParser::Medium medium = parser.first_audio_medium();
+
+
+			// update remote end for session
+			int remport  = medium.connection.port_ho();
+			char *remip  = (char *)medium.connection.iptoa();
+			MediaFormat codec = *medium.list.begin();
+			
+	
+			RtpSession *rtps = ctx->stream->session;
+
+			int res = rtp_session_set_remote_addr(rtps,remip,remport);
+			if (res < 0) 
+			{
+				LogWarn("error:rtp_session_set_remote_addr");
+				goto error;
+			}
+
+			LogDebug("ProcM2Ims::ModifySession imsh:" << req->streamer_handle << 
+				", remip:" << remip  << 
+				", port:"  << remport <<
+				", codec(map):" << req->codec.sdp_mapping() << 
+				", codec(name):" << req->codec.sdp_name_tos() );
+
+		
+			err = RecommutateSession(
+				ctx,
+				medium.connection,
+				codec);
+
+			if (IW_FAILURE(err))
+			{
+				LogWarn("Error recommutating imsh:" << ctx->streamer_handle);
+				goto error;
+			}
+
+			err = StartTicking(ctx);
+			if (IW_FAILURE(err))
+			{
+				LogWarn("Error attaching to ticker imsh:" << ctx->streamer_handle);
+				goto error;
+			}
+
+			SendResponse(req, new MsgStreamModifyAck());
+
+			return;
 		}
-
-		LogDebug("ProcM2Ims::ModifySession imsh:" << req->streamer_handle << 
-			", remip:" << remip  << 
-			", port:"  << remport <<
-			", codec(map):" << req->codec.sdp_mapping() << 
-			", codec(name):" << req->codec.sdp_name_tos() );
-
-		err = RecommutateSession(
-			ctx,
-			req->remote_media_data,
-			req->codec);
-
-		err = StartTicking(ctx);
-		if (IW_FAILURE(err))
-		{
-			LogWarn("Error attaching to ticker imsh:" << ctx->streamer_handle);
-			goto error;
-		}
-
-		SendResponse(req, new MsgStreamModifyAck());
-
-		return;
 
 
 error:
@@ -1046,63 +1218,6 @@ error:
 
 		shared_ptr<MsgStreamPlayReq> req  =
 			dynamic_pointer_cast<MsgStreamPlayReq> (msg);
-
-		string filename = req->file_name;
-
-		//
-		// Check if file exists
-		//
-		WIN32_FIND_DATAA FindFileData;
-		HANDLE hFind = NULL; 
-		hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);
-		if (hFind == INVALID_HANDLE_VALUE) 
-		{
-			// relative path?
-			filename = _conf.GetString("sounds_dir")+ "\\" + req->file_name;
-			hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);
-			if (hFind == INVALID_HANDLE_VALUE) 
-			{
-				LogWarn("file:" << filename << " not found.");
-				SendResponse(msg, new MsgStreamPlayNack());
-				return;
-			}
-			else
-			{
-				BOOL res = FALSE;
-				res = ::FindClose(hFind);
-				if (res == FALSE)
-				{
-					LogCrit("::CloseHandle");
-					throw;
-				}
-			}
-		} 
-		else
-		{
-			BOOL res = FALSE;
-			res = ::FindClose(hFind);
-			if (res == FALSE)
-			{
-				LogCrit("::CloseHandle");
-				throw;
-			}
-		}
-
-		
-
-		char buffer[1024];
-		buffer[0] = '\0';
-		DWORD res_len = 0;
-		res_len=::GetFullPathNameA(filename.c_str(),1024,buffer,NULL);
-		if (res_len <= 0)
-		{
-			LogSysError("::GetFullPathNameA");
-			SendResponse(msg, new MsgStreamPlayNack());
-			return;
-		}
-
-		filename = buffer;
-		LogDebug("StartPlayback:: Play file name:" << filename << ", loop:" << req->loop << ", imsh:" << req->streamer_handle);
 
 		StreamingCtxsMap::iterator iter = _streamingObjectSet.end();
 
@@ -1130,59 +1245,135 @@ error:
 			return;
 		}
 
-		res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_CLOSE);
-		if (res < 0)
+		switch (ctx->snd_device_type)
 		{
-			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_CLOSE imsh:" << req->streamer_handle);
-			SendResponse(msg, new MsgStreamPlayNack());
-			return;
+		case SND_DEVICE_TYPE_FILE:
+			{
+				string filename = req->file_name;
+
+				//
+				// Check if file exists
+				//
+				WIN32_FIND_DATAA FindFileData;
+				HANDLE hFind = NULL; 
+				hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);
+				if (hFind == INVALID_HANDLE_VALUE) 
+				{
+					// relative path?
+					filename = _conf->GetString("sounds_dir")+ "\\" + req->file_name;
+					hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);
+					if (hFind == INVALID_HANDLE_VALUE) 
+					{
+						LogWarn("file:" << filename << " not found.");
+						SendResponse(msg, new MsgStreamPlayNack());
+						return;
+					}
+					else
+					{
+						BOOL res = FALSE;
+						res = ::FindClose(hFind);
+						if (res == FALSE)
+						{
+							LogCrit("::CloseHandle");
+							throw;
+						}
+					}
+				} 
+				else
+				{
+					BOOL res = FALSE;
+					res = ::FindClose(hFind);
+					if (res == FALSE)
+					{
+						LogCrit("::CloseHandle");
+						throw;
+					}
+				}
+
+
+
+				char buffer[1024];
+				buffer[0] = '\0';
+				DWORD res_len = 0;
+				res_len=::GetFullPathNameA(filename.c_str(),1024,buffer,NULL);
+				if (res_len <= 0)
+				{
+					LogSysError("::GetFullPathNameA");
+					SendResponse(msg, new MsgStreamPlayNack());
+					return;
+				}
+
+				filename = buffer;
+				LogDebug("StartPlayback:: Play file name:" << filename << ", loop:" << req->loop << ", imsh:" << req->streamer_handle);
+
+				
+
+				res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_CLOSE);
+				if (res < 0)
+				{
+					LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_CLOSE imsh:" << req->streamer_handle);
+					SendResponse(msg, new MsgStreamPlayNack());
+					return;
+				}
+
+				res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_OPEN,(void*)filename.c_str());
+				if (res < 0)
+				{
+					LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_OPEN imsh:" << req->streamer_handle);
+					SendResponse(msg, new MsgStreamPlayNack());
+					return;
+				}
+
+				res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_START);
+				if (res < 0)
+				{
+					LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_START imsh:" << req->streamer_handle);
+					SendResponse(msg, new MsgStreamPlayNack());
+					return;
+				}
+
+				int tmp = 0;
+				res = ms_filter_call_method(ctx->stream->soundread,MS_FILTER_GET_SAMPLE_RATE, &tmp);
+				if (res < 0)
+				{
+					LogWarn("mserror:ms_filter_call_method MS_FILTER_GET_SAMPLE_RATE imsh:" << req->streamer_handle);
+					SendResponse(msg, new MsgStreamPlayNack());
+					return;
+				};
+
+				res = ms_filter_call_method(ctx->stream->soundwrite,MS_FILTER_SET_SAMPLE_RATE,&tmp);
+				if (res < 0)
+				{
+					LogWarn("mserror:ms_filter_call_method MS_FILTER_SET_SAMPLE_RATE imsh:" << req->streamer_handle);
+					SendResponse(msg, new MsgStreamPlayNack());
+					return;
+				};
+
+
+
+				int loop_param = req->loop ? 0 : -2;
+				res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_LOOP, &loop_param);
+				if (res < 0)
+				{
+					LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_LOOP, imsh:" << req->streamer_handle);
+					SendResponse(msg, new MsgStreamPlayNack());
+					return;
+				}
+
+				ctx->loop = req->loop;
+				break;
+			}
+		case SND_DEVICE_TYPE_SND_CARD_LINE:
+			{
+
+			}
+		default:
+			{
+
+			}
 		}
-
-		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_OPEN,(void*)filename.c_str());
-		if (res < 0)
-		{
-			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_OPEN imsh:" << req->streamer_handle);
-			SendResponse(msg, new MsgStreamPlayNack());
-			return;
-		}
-
-		res = ms_filter_call_method_noarg(ctx->stream->soundread,MS_FILE_PLAYER_START);
-		if (res < 0)
-		{
-			LogWarn("mserror:ms_filter_call_method_noarg MS_FILE_PLAYER_START imsh:" << req->streamer_handle);
-			SendResponse(msg, new MsgStreamPlayNack());
-			return;
-		}
-
-		int tmp = 0;
-		res = ms_filter_call_method(ctx->stream->soundread,MS_FILTER_GET_SAMPLE_RATE, &tmp);
-		if (res < 0)
-		{
-			LogWarn("mserror:ms_filter_call_method MS_FILTER_GET_SAMPLE_RATE imsh:" << req->streamer_handle);
-			SendResponse(msg, new MsgStreamPlayNack());
-			return;
-		};
-
-		res = ms_filter_call_method(ctx->stream->soundwrite,MS_FILTER_SET_SAMPLE_RATE,&tmp);
-		if (res < 0)
-		{
-			LogWarn("mserror:ms_filter_call_method MS_FILTER_SET_SAMPLE_RATE imsh:" << req->streamer_handle);
-			SendResponse(msg, new MsgStreamPlayNack());
-			return;
-		};
 
 		
-
-		int loop_param = req->loop ? 0 : -2;
-		res = ms_filter_call_method(ctx->stream->soundread,MS_FILE_PLAYER_LOOP, &loop_param);
-		if (res < 0)
-		{
-			LogWarn("mserror:ms_filter_call_method MS_FILE_PLAYER_LOOP, imsh:" << req->streamer_handle);
-			SendResponse(msg, new MsgStreamPlayNack());
-			return;
-		}
-
-		ctx->loop = req->loop;
 		
 		ApiErrorCode iw_res = API_FAILURE;
 		iw_res = StartTicking(ctx);
@@ -1297,9 +1488,23 @@ error:
 
 		if (stream->soundread)
 		{
-			ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_STOP);
-			ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_CLOSE);
-		}
+			switch (ctx->snd_device_type)
+			{
+			case SND_DEVICE_TYPE_FILE:
+				{
+					ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_STOP);
+					ms_filter_call_method_noarg(stream->soundread,MS_FILE_PLAYER_CLOSE);
+					break;
+				}
+			case SND_DEVICE_TYPE_SND_CARD_MIC:
+				{
+					break;
+				}
+			default:;
+
+			};
+			
+		};
 		
 	}
 

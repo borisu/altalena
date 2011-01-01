@@ -24,6 +24,7 @@
 #include "SipCall.h"
 
 
+
 #include <ws2tcpip.h>
 #include <stdarg.h>
 
@@ -36,6 +37,7 @@
 #include "resip/stack/InterruptableStackThread.hxx"
 #include "resip/stack/StackThread.hxx"
 #include "resip/stack/Contents.hxx"
+#include "resip/stack/ExtensionHeader.hxx"
 #include "resip/dum/ClientAuthManager.hxx"
 #include "resip/dum/ClientInviteSession.hxx"
 #include "resip/dum/ClientRegistration.hxx"
@@ -60,6 +62,9 @@
 #include "rutil/WinLeakCheck.hxx"
 #include "rutil/Data.hxx"
 #include "rutil/Subsystem.hxx"
+
+
+#include "DllHelpers.h"
 
 
 #pragma warning( pop )

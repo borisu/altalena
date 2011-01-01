@@ -1,13 +1,12 @@
 {
 	
-	"sync_log"  : true,
-	
+	"sync_log"  : false,
 	
 	"debug_level"  : "DBG",
-	"debug_outputs" : "debug,console",
+	"debug_outputs" : "syslog,console",
 	
 	"syslogd_host" : "127.0.0.1",
-	"syslogd_port" : 515,
+	"syslogd_port" : 514,
 	
 	"codecs": [
         "PCMU", 
@@ -16,6 +15,11 @@
     ],
     
     
+    "sqlite" : {
+		"uri" : "sql,sqlite"
+    },
+    
+   
     "resip" :  {
 		"resip_log" : "",
 		"uri"	: "sip,resip",
@@ -27,7 +31,6 @@
 		"sip_refresh_mode" : "prefer_local",
 		"sip_default_session_time" : 360
     },
-    
     
     "unimrcp" :   {
 		"uri" : "mrcp,unimrcp",
@@ -48,6 +51,7 @@
     
     "m2ims" :  {
 		"uri" : "stream,m2",
+		"local_ip": "$COMPUTERNAME",
 		"sounds_dir" : "sounds"
     },
     
@@ -63,7 +67,7 @@
     },
     
      "ivr" : {
-		"ivr_enabled"  : true,
+		"ivr_enabled"  : false,
 		"mrcp_enabled" : false,
 		"ims_enabled"  : false, 
 		"rtsp_enabled" : false,
@@ -75,9 +79,10 @@
 		"super_script" : "scripts\\super-mscml.lua",
 		"super_mode"   : "async",
 		
-		"h323_service" : "h.323,opal",
-		"mscml_service"  : "sip,resip",
-		"sip_service"  : "sip,resip",
+		"h323_service"     : "h.323,opal",
+		"mscml_service"    : "sip,resip",
+		"stream_service"   : "stream,m2",
+		"sip_service"	   : "sip,resip",
 		"unimrcp_service"  : "mrcp,unimrcp",
 		"rtsp_service"     : "rtsp,live555",
 		"rtpproxy_service" : "rtpproxy,live555"	

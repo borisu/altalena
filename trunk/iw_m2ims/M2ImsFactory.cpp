@@ -35,10 +35,15 @@ namespace ivrworx
 
 
 	LightweightProcess *
-	M2ImsFactory::Create(LpHandlePair pair,Configuration &conf)
+	M2ImsFactory::Create(LpHandlePair pair,ConfigurationPtr conf)
 	{
 		return new ProcM2Ims(pair, conf);
 
+	}
+
+	IW_M2IMS_API IProcFactory* GetIwFactory()
+	{
+		return new M2ImsFactory();
 	}
 
 }

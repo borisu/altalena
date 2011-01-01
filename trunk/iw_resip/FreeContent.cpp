@@ -12,6 +12,15 @@ namespace ivrworx
 		
 	}
 
+	FreeContent::FreeContent(const AbstractOffer &offer):
+	Contents(Mime("application", offer.type.c_str())),
+		_body(offer.body),
+		_type(offer.type)
+	{
+
+
+	}
+
 	EncodeStream& 
 	FreeContent::encodeParsed(EncodeStream& str) const
 	{

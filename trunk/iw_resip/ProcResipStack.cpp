@@ -87,7 +87,7 @@ namespace ivrworx
 	}
 
 	ProcResipStack::ProcResipStack(IN LpHandlePair pair, 
-		IN Configuration &conf):
+		IN ConfigurationPtr conf):
 		LightweightProcess(pair,"SipStack"),
 		_shutDownFlag(false),
 		_conf(conf),
@@ -100,7 +100,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		this->ServiceId(conf.GetString("resip/uri"));
+		this->ServiceId(_conf->GetString("resip/uri"));
 
 		Log::initialize(Log::OnlyExternal, Log::Debug, NULL, _logger);
 		SetResipLogLevel();
@@ -154,7 +154,7 @@ namespace ivrworx
 		
 
 		resip_conf_separator sep("|");
-		const string &resip_conf = _conf.GetString("resip/resip_log");
+		const string &resip_conf = _conf->GetString("resip/resip_log");
 
 		resip_conf_tokenizer tokens(resip_conf, sep);
 
@@ -205,8 +205,8 @@ namespace ivrworx
 			//
 			// Prepare SIP stack
 			//
-			const string ivr_host_str = _conf.GetString("resip/sip_host");
-			const int ivr_ip_int	= _conf.GetInt("resip/sip_port" );
+			const string ivr_host_str = _conf->GetString("resip/sip_host");
+			const int ivr_ip_int	= _conf->GetInt("resip/sip_port" );
 
 
 			CnxInfo ipAddr(
@@ -242,7 +242,7 @@ namespace ivrworx
 			_inbound->HandleInterruptor(_dumInt);
 
 
-			string uasUri = "sip:" + _conf.GetString("resip/from_id") + "@" + ipAddr.ipporttos();
+			string uasUri = "sip:" + _conf->GetString("resip/from_id") + "@" + ipAddr.ipporttos();
 			NameAddr uasAor	(uasUri.c_str());
 
 
@@ -261,7 +261,7 @@ namespace ivrworx
 
 
 
-			if (_conf.GetBool("resip/sip_session_timer_enabled"))
+			if (_conf->GetBool("resip/sip_session_timer_enabled"))
 			{
 // 				auto_ptr<KeepAliveManager> keepAlive(new resip::KeepAliveManager());
 // 				_dumMngr.setKeepAliveManager(keepAlive); 
@@ -275,7 +275,7 @@ namespace ivrworx
 				_confSessionTimerModeMap["prefer_local"]  = Profile::PreferLocalRefreshes;
 				_confSessionTimerModeMap["prefer_remote"] = Profile::PreferRemoteRefreshes;
 
-				ConfSessionTimerModeMap::iterator  i = _confSessionTimerModeMap.find(_conf.GetString("resip/sip_refresh_mode"));
+				ConfSessionTimerModeMap::iterator  i = _confSessionTimerModeMap.find(_conf->GetString("resip/sip_refresh_mode"));
 				if (i == _confSessionTimerModeMap.end())
 				{
 					LogInfo("Setting refresh mode to 'none'");
@@ -285,7 +285,7 @@ namespace ivrworx
 					LogInfo("Setting refresh mode to " << i->first);
 					_dumMngr.getMasterProfile()->setDefaultSessionTimerMode(i->second);
 
-					int sip_default_session_time = _conf.GetInt("resip/sip_default_session_time");
+					int sip_default_session_time = _conf->GetInt("resip/sip_default_session_time");
 					sip_default_session_time = sip_default_session_time < 90 ? 90 : sip_default_session_time;
 					LogInfo("sip_default_session_time:" << sip_default_session_time);
 
@@ -402,6 +402,16 @@ namespace ivrworx
 
 	}
 
+	void 
+	ProcResipStack::UponCallConnected( 
+		IN IwMessagePtr req)
+	{
+
+		FUNCTRACKER;
+		_dumUac.UponCallConnected(req);
+	}
+
+
 	void
 	ProcResipStack::UponCallOfferedAck(IwMessagePtr req)
 	{
@@ -428,13 +438,7 @@ namespace ivrworx
 		_dumUac.UponMakeCallReq(req);
 	}
 
-	void
-	ProcResipStack::UponMakeCallAckReq(IwMessagePtr req)
-	{
-		FUNCTRACKER;
 
-		_dumUac.UponMakeCallAckReq(req);
-	}
 
 	
 	bool 
@@ -460,6 +464,11 @@ namespace ivrworx
 			case MSG_CALL_SUBSCRIBE_REQ:
 				{
 					UponSubscribeToIncomingReq(msg);
+					break;
+				}
+			case MSG_CALL_CONNECTED:
+				{
+					UponCallConnected(msg);
 					break;
 				}
 			case SIP_CALL_INFO_REQ:
@@ -498,11 +507,6 @@ namespace ivrworx
 			case MSG_MAKE_CALL_REQ:
 				{
 					UponMakeCallReq(msg);
-					break;
-				}
-			case MSG_MAKE_CALL_ACK:
-				{
-					UponMakeCallAckReq(msg);
 					break;
 				}
 			default:
@@ -571,9 +575,14 @@ namespace ivrworx
 			} // try-catch
 		} // while
 
-		for (IwHandlesMap::iterator iter = _iwHandlesMap.begin(); iter != _iwHandlesMap.end() ; ++iter)
+		IwHandlesMap::iterator iter = _iwHandlesMap.begin();
+		while (iter != _iwHandlesMap.end())
 		{
+			// cannot use iterators in usual manner 
+			// as FinalizeContext removes the context 
+			// from the collection
 			FinalizeContext((*iter).second);
+			iter = _iwHandlesMap.begin();
 		}
 
 		ShutdownStack();
@@ -694,6 +703,7 @@ namespace ivrworx
 		_dumUas.onConnectedConfirmed(is,msg);
 	}
 
+
 	void 
 	ProcResipStack::onReceivedRequest(
 		IN ServerOutOfDialogReqHandle ood, 
@@ -743,6 +753,25 @@ namespace ivrworx
 			LogDebug("ProcResipStack::onTerminated rsh:" << is.getId() << ", iwh:" << ctx->stack_handle);
 			FinalizeContext(ctx);
 		} 
+	}
+
+	/// called when response to INFO message is received 
+	void 
+	ProcResipStack::onInfoSuccess(
+		IN InviteSessionHandle is, 
+		IN const SipMessage& msg)
+	{
+		FUNCTRACKER;
+		_dumUac.onInfoSuccess(is,msg);
+	}
+
+	void 
+	ProcResipStack::onInfoFailure(
+		IN InviteSessionHandle is, 
+		IN const SipMessage& msg)
+	{
+		FUNCTRACKER;
+		_dumUac.onInfoFailure(is,msg);
 	}
 
 	void 
@@ -896,8 +925,8 @@ namespace ivrworx
 			MsgSipCallInfoReq *info_req = 
 				new MsgSipCallInfoReq();
 
-			info_req->offer = msg.getContents()->getBodyData().c_str();
-			info_req->offer_type = msg.getContents()->getType().type().c_str();
+			info_req->remoteOffer.body = msg.getContents()->getBodyData().c_str();
+			info_req->remoteOffer.type = string("") + msg.getContents()->getType().type().c_str() + "/" + msg.getContents()->getType().subType().c_str();;
 
 			ctx_ptr->call_handler_inbound->Send(IwMessagePtr(info_req));
 			is->acceptNIT();

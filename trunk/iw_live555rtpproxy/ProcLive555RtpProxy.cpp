@@ -25,25 +25,6 @@
 namespace ivrworx
 {
 
-static in_addr 
-convert_hname_to_addrin(const char *name)
-{
-	hostent *phe = ::gethostbyname(name);
-	if (phe == NULL)
-	{
-		DWORD last_error = ::GetLastError();
-		cerr << "::gethostbyname returned error for host:" << name << ", le:" << last_error;
-		throw configuration_exception();
-	}
-
-
-	// take only first result
-	struct in_addr addr;
-	addr.s_addr = *(u_long *) phe->h_addr;
-
-	return addr;
-}
-
 
 ProcLive555RtpProxy::RtpConnection::RtpConnection()
 :connection_id(NULL),
@@ -122,7 +103,7 @@ reschedule:
 }
 
 
-ProcLive555RtpProxy::ProcLive555RtpProxy(LpHandlePair pair, Configuration &conf):
+ProcLive555RtpProxy::ProcLive555RtpProxy(LpHandlePair pair, ConfigurationPtr conf):
 LightweightProcess(pair,"ProcLive555RtpProxy"),
 _conf(conf),
 _env(NULL),
@@ -130,7 +111,7 @@ _scheduler(NULL),
 _stopChar('\0')
 {
 
-	ServiceId(_conf.GetString("live555rtpproxy/uri"));
+	ServiceId(_conf->GetString("live555rtpproxy/uri"));
 	
 }
 
@@ -140,16 +121,16 @@ ProcLive555RtpProxy::InitSockets()
 	FUNCTRACKER;
 
 	
-	int base_port	 = _conf.GetInt("live555rtpproxy/rtp_proxy_base_port");
+	int base_port	 = _conf->GetInt("live555rtpproxy/rtp_proxy_base_port");
 	LogDebug("ProcLive555RtpProxy::InitSockets rtp_proxy_base_port=" << base_port);
 
-	int top_port	 = _conf.GetInt("live555rtpproxy/rtp_proxy_top_port");
+	int top_port	 = _conf->GetInt("live555rtpproxy/rtp_proxy_top_port");
 	LogDebug("ProcLive555RtpProxy::InitSockets rtp_proxy_top_port=" << top_port);
 
-	unsigned int num_of_conns = _conf.GetInt("live555rtpproxy/rtp_proxy_num_of_connections");
+	unsigned int num_of_conns = _conf->GetInt("live555rtpproxy/rtp_proxy_num_of_connections");
 	LogDebug("ProcLive555RtpProxy::InitSockets rtp_proxy_num_of_connections=" << num_of_conns);
 
-	string rtp_ip = _conf.GetString("live555rtpproxy/rtp_proxy_ip");
+	string rtp_ip = _conf->GetString("live555rtpproxy/rtp_proxy_ip");
 	LogDebug("ProcLive555RtpProxy::InitSockets rtp_proxy_ip=" << rtp_ip);
 
 	const char * input_address_str = rtp_ip.c_str();
@@ -305,31 +286,42 @@ ProcLive555RtpProxy::UponAllocateReq(IwMessagePtr msg)
 
 	MsgRtpProxyAck* ack = new MsgRtpProxyAck();
 	ack->rtp_proxy_handle = candidate->connection_id;
-	ack->local_media = candidate->local_cnx_ino;
+
+	stringstream str;
+	str <<  "v=0"				<< endl
+		<<  "o=live555proxy "   << candidate->connection_id << " " << candidate->connection_id << "IN IP4 " << candidate->local_cnx_ino.iptoa() << endl
+		<<  "s=live555proxy "	<< endl
+		<<  "c=IN IP4" << candidate->local_cnx_ino.iptoa() << endl << endl;
+
+	ack->offer.type = "application/sdp";
+	ack->offer.body = str.str();
 
 	candidate->state = CONNECTION_STATE_ALLOCATED;
-	
 
-	if (req->remote_media.is_ip_valid() && 
-		req->remote_media.is_port_valid())
+	SdpParser p(req->offer.body);
+	SdpParser::Medium m = p.first_audio_medium();
+	MediaFormat media_format = *m.list.begin();
+
+	
+	if (m.connection.is_ip_valid() && 
+		m.connection.is_port_valid())
 	{
-		candidate->remote_cnx_ino = req->remote_media;
+		candidate->remote_cnx_ino = m.connection;
 
 		candidate->live_rtp_socket->changeDestinationParameters(
-			req->remote_media.inaddr(),
-			req->remote_media.port_ho(),225);
+			m.connection.inaddr(),
+			m.connection.port_ho(),225);
 
 		candidate->live_rtcp_socket->changeDestinationParameters(
-			req->remote_media.inaddr(),
-			req->remote_media.port_ho() + 1,225);
+			m.connection.inaddr(),
+			m.connection.port_ho() + 1,225);
 	}
 
-	if (req->media_format != MediaFormat::UNKNOWN)
-	{
-		candidate->media_format = req->media_format; 
-	}
 	
-	LogDebug("ProcLive555RtpProxy::UponAllocateReq allocated rtph:" << candidate->connection_id << " local:" << candidate->local_cnx_ino << ", remote:" << req->remote_media.ipporttos() << ", media format:" << req->media_format.sdp_name_tos());
+	candidate->media_format = media_format; 
+	
+	
+	LogDebug("ProcLive555RtpProxy::UponAllocateReq allocated rtph:" << candidate->connection_id );
 	SendResponse(req, ack);
 	
 }
@@ -412,25 +404,31 @@ ProcLive555RtpProxy::UponModifyReq(IwMessagePtr msg)
 
 	RtpConnectionPtr conn = iter->second;
 
-	if (req->media_format.get_media_type() != MediaFormat::MediaType_UNKNOWN)
+	SdpParser p(req->offer.body);
+	SdpParser::Medium m = p.first_audio_medium();
+	MediaFormat media_format = *m.list.begin();
+
+	
+
+	if (media_format.get_media_type() != MediaFormat::MediaType_UNKNOWN)
 	{
-		conn->media_format = req->media_format;
+		conn->media_format = media_format;
 	}
 	
 
-	if (req->remote_media.is_ip_valid() && req->remote_media.is_port_valid())
+	if (m.connection.is_ip_valid() &&m.connection.is_port_valid())
 	{
-		int port_ho = req->remote_media.port_ho();
+		int port_ho = m.connection.port_ho();
 
-		conn->remote_cnx_ino = req->remote_media;
+		conn->remote_cnx_ino = m.connection;
 		conn->live_rtp_socket->changeDestinationParameters(
-			req->remote_media.inaddr(),
+			m.connection.inaddr(),
 			Port(port_ho),
 			255);
 
 		// should be passed in message
 		conn->live_rtcp_socket->changeDestinationParameters(
-			req->remote_media.inaddr(),
+			m.connection.inaddr(),
 			Port(port_ho + 1),
 			255);
 	}

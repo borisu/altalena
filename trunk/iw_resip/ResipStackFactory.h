@@ -22,12 +22,17 @@
 #include "Configuration.h"
 #include "LightweightProcess.h"
 
-
 // wrapper class to hide dependencies
+
+#ifdef _DLL_IW_RESIP // assume this is defined when we build the DLL
+#define IW_RESIP_API  __declspec( dllexport)
+#else
+#define IW_RESIP_API  __declspec( dllimport)
+#endif
 
 namespace ivrworx
 {
-	class ResipStackFactory :
+	class ResipStackFactory:
 		public IProcFactory
 	{
 	public:
@@ -36,8 +41,9 @@ namespace ivrworx
 
 		LightweightProcess *Create(
 			IN LpHandlePair stack_pair, 
-			IN Configuration &conf);
+			IN ConfigurationPtr conf);
 	};
-	
+
+	IW_RESIP_API IProcFactory* GetIwFactory();
 
 }

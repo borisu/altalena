@@ -62,8 +62,7 @@ namespace ivrworx
 	}
 
 	SipDialogContext::SipDialogContext():
-	stack_handle(IW_UNDEFINED),
-	generic_offer_answer(FALSE)
+	stack_handle(IW_UNDEFINED)
 	{
 
 	}

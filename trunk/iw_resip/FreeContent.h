@@ -8,7 +8,11 @@ namespace ivrworx
 		public Contents
 	{
 	public:
+
 		FreeContent(const string &body, const string &type);
+
+		FreeContent(const AbstractOffer &offer);
+
 		virtual ~FreeContent(void);
 
 		virtual EncodeStream& encodeParsed(EncodeStream& str) const;
