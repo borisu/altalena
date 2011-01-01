@@ -28,7 +28,7 @@ namespace ivrworx
 	{
 	public:
 
-		Live555RtspSession(ScopedForking &forking, Configuration &conf);
+		Live555RtspSession(ScopedForking &forking, ConfigurationPtr conf);
 
 		virtual ~Live555RtspSession(void);
 

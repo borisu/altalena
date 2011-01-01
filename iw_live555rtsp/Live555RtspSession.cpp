@@ -23,7 +23,7 @@
 
 namespace ivrworx
 {
-	Live555RtspSession::Live555RtspSession(ScopedForking &forking, Configuration &conf):
+	Live555RtspSession::Live555RtspSession(ScopedForking &forking, ConfigurationPtr conf):
 	RtspSession(forking,conf,IW_UNDEFINED)
 	{
 		
@@ -37,7 +37,7 @@ namespace ivrworx
 
 		if (_rtspProcPair.inbound)
 		{
-			GetCurrLightWeightProc()->Shutdown(Seconds(5),_rtspProcPair);
+			GetCurrRunningContext()->Shutdown(Seconds(5),_rtspProcPair);
 		}
 	}
 
@@ -61,7 +61,7 @@ namespace ivrworx
 
 		_forking.fork(new ProcLive555Rtsp(_conf,rtsp_proc_pair));
 
-		ApiErrorCode res = GetCurrLightWeightProc()->WaitTillReady(Seconds(5),_rtspProcPair);
+		ApiErrorCode res = GetCurrRunningContext()->WaitTillReady(Seconds(5),_rtspProcPair);
 
 
 		return res;

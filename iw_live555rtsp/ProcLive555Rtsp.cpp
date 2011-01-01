@@ -31,7 +31,7 @@ namespace ivrworx
 		return ::InterlockedExchangeAdd(&rtsph_counter,1);
 	}
 	
-	ProcLive555Rtsp::ProcLive555Rtsp(Configuration &conf,LpHandlePair pair):
+	ProcLive555Rtsp::ProcLive555Rtsp(ConfigurationPtr conf,LpHandlePair pair):
 	LightweightProcess(pair,"ProcLive555Rtsp"),
 	_conf(conf),
 	_rtspClient(NULL),
@@ -341,6 +341,9 @@ namespace ivrworx
 		_rtspClient = 
 			createClient(*_env,1,"RtspClient");
 
+		SdpParser p(req->offer.body);
+		SdpParser::Medium audio_medium = p.first_audio_medium();
+
 		
 		char* sdpDescription
 			= getSDPDescriptionFromURL(
@@ -383,11 +386,12 @@ namespace ivrworx
 		MediaSubsession *curr_subsession = NULL;
 		MediaSubsession *subsession_candidate = NULL;
 
+		MediaFormat &media_format = (*audio_medium.list.begin());
 		// find if there is an appropriate codec
 		while ((curr_subsession = iter.next()) != NULL) 
 		{
 			if (strcmp(curr_subsession->mediumName(),"audio") == 0 &&
-				req->media_format.sdp_name_tos() == curr_subsession->codecName() )
+				media_format.sdp_name_tos() == curr_subsession->codecName() )
 			{
 				LogDebug("ProcLive555Rtsp::SetupSession - chosen :" << curr_subsession->controlPath());
 				subsession_candidate = curr_subsession;
@@ -397,14 +401,14 @@ namespace ivrworx
 
 		if (curr_subsession == NULL)
 		{
-			LogWarn("ProcLive555Rtsp::SetupSession - This session has no media subsessions with needed codec:" << req->media_format.sdp_name_tos());
+			LogWarn("ProcLive555Rtsp::SetupSession - This session has no media subsessions with needed codec:" << media_format.sdp_name_tos());
 			SendResponse(msg, new MsgRtspSetupSessionNack());
 			return;
 		}
 
 		
 		// setting port will indicate that this session is in use
-		subsession_candidate->setClientPortNum(req->local_cnx_info.port_ho());
+		subsession_candidate->setClientPortNum(audio_medium.connection.port_ho());
 		Boolean res = setupStreams(_rtspClient,session,False,_env);
 		if (res == False)
 		{
@@ -415,6 +419,8 @@ namespace ivrworx
 		_session = session;
 		MsgRtspSetupSessionAck *ack = new MsgRtspSetupSessionAck();
 		ack->rtsp_handle = _rtspHandle;
+		ack->offer.type = "application/sdp";
+		ack->offer.body = curr_subsession->savedSDPLines();
 
 		SendResponse(msg, ack);
 

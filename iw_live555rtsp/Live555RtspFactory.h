@@ -19,18 +19,26 @@
 
 #pragma once
 
+#ifdef _DLL_IW_LIVE555RTSP // assume this is defined when we build the DLL
+#define IW_LIVE555RTSP_API  __declspec( dllexport)
+#else
+#define IW_LIVE555RTSP_API  __declspec( dllimport)
+#endif
+
 namespace ivrworx
 {
-	class RtspFactory:
+	class IW_LIVE555RTSP_API RtspFactory:
 		public IProcFactory
 	{
 	public:
 
 		RtspFactory(void);
 
-		LightweightProcess *Create(LpHandlePair pair, Configuration &conf);
+		LightweightProcess *Create(LpHandlePair pair, ConfigurationPtr conf);
 
 		virtual ~RtspFactory(void);
 	};
+
+	IW_LIVE555RTSP_API IProcFactory* GetIwFactory();
 	
 }
