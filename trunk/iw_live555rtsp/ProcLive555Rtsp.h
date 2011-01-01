@@ -37,7 +37,7 @@ namespace ivrworx
 	{
 	public:
 
-		ProcLive555Rtsp(Configuration &conf,LpHandlePair pair);
+		ProcLive555Rtsp(ConfigurationPtr conf,LpHandlePair pair);
 
 		void real_run();
 
@@ -55,7 +55,7 @@ namespace ivrworx
 
 	private:
 
-		Configuration &_conf;
+		ConfigurationPtr _conf;
 
 		TaskScheduler *_scheduler;
 

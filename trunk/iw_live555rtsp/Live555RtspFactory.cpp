@@ -32,9 +32,14 @@ namespace ivrworx
 	}
 
 	LightweightProcess * 
-	RtspFactory::Create(ivrworx::LpHandlePair pair, ivrworx::Configuration &conf)
+	RtspFactory::Create(ivrworx::LpHandlePair pair, ivrworx::ConfigurationPtr conf)
 	{
 		return new ProcLive555Rtsp(conf,pair);
+	}
+
+	IW_LIVE555RTSP_API IProcFactory* GetIwFactory()
+	{
+		return new RtspFactory();
 	}
 
 };
