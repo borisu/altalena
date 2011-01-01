@@ -20,9 +20,15 @@
 #include "LightweightProcess.h"
 #include "Configuration.h"
 
+#ifdef _DLL_IW_SQLLITE // assume this is defined when we build the DLL
+#define IW_SQLLITE_API  __declspec( dllexport)
+#else
+#define IW_SQLLITE_API  __declspec( dllimport)
+#endif
+
 namespace ivrworx
 {
-	class SqlFactory :
+	class IW_SQLLITE_API SqlFactory :
 		public IProcFactory
 	{
 	public:
@@ -30,9 +36,11 @@ namespace ivrworx
 
 		virtual ~SqlFactory(void);
 
-		LightweightProcess *Create(LpHandlePair pair, Configuration &conf);
+		LightweightProcess *Create(LpHandlePair pair, ConfigurationPtr conf);
 
 	};
+
+	IW_SQLLITE_API IProcFactory* GetIwFactory();
 
 }
 
