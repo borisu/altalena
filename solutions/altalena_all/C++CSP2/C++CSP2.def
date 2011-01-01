@@ -1,0 +1,504 @@
+LIBRARY	C++CSP2
+
+EXPORTS
+	?enable@SkipGuard@csp@@MAE_NPAVProcess@internal@2@@Z
+	?disable@SkipGuard@csp@@MAE_NPAVProcess@internal@2@@Z
+	?activate@SkipGuard@csp@@MAEXXZ
+	?enable@RelTimeoutGuard@csp@@MAE_NPAVProcess@internal@2@@Z
+	?addTimeoutAlt@Primitive@internal@csp@@KAPAVProcess@23@PAT_LARGE_INTEGER@@PAV423@@Z
+	?CurrentTime@csp@@YAXQAT_LARGE_INTEGER@@@Z
+	?disable@RelTimeoutGuard@csp@@MAE_NPAVProcess@internal@2@@Z
+	?removeTimeout@Primitive@internal@csp@@KA_NPAVProcess@23@@Z
+	?activate@RelTimeoutGuard@csp@@MAEXXZ
+	?enable@TimeoutGuard@csp@@MAE_NPAVProcess@internal@2@@Z
+	?disable@TimeoutGuard@csp@@MAE_NPAVProcess@internal@2@@Z
+	?activate@TimeoutGuard@csp@@MAEXXZ
+	??0Alternative@csp@@QAE@QAPAVGuard@1@I@Z
+	??1Alternative@csp@@QAE@XZ
+	?priSelect@Alternative@csp@@QAEIXZ
+	?reschedule@Primitive@internal@csp@@KAXXZ
+	?currentProcess@Primitive@internal@csp@@KAPAVProcess@23@XZ
+	?altEnabling@Primitive@internal@csp@@KAXPAVProcess@23@@Z
+	?AtomicPut@internal@csp@@YAXPCII@Z
+	?altShouldWait@Primitive@internal@csp@@KA_NPAVProcess@23@@Z
+	?AtomicCompareAndSwap@internal@csp@@YAIPCIII@Z
+	?altFinish@Primitive@internal@csp@@KAXPAVProcess@23@@Z
+	?fairSelect@Alternative@csp@@QAEIXZ
+	?sameSelect@Alternative@csp@@QAEIXZ
+	?replaceGuard@Alternative@csp@@QAEPAVGuard@2@IPAV32@@Z
+	??$AtomicPut4Bytes@I@internal@csp@@YAXPCII@Z
+	?Start_CPPCSP@csp@@YAXXZ
+	?originalThreadKernelData@KernelData@Kernel@internal@csp@@0PAV1234@A
+	?AllocateThreadKernel@Kernel@internal@csp@@CAPAV123@XZ
+	?CreateInitialProcess@Process@internal@csp@@CAPAV123@XZ
+	?GetKernel@internal@csp@@YAPAVKernel@12@XZ
+	?CurrentThreadId@csp@@YAPAXXZ
+	??0__InitialProcess@internal@csp@@QAE@PAVKernel@12@PAX@Z
+	??_7__InitialProcess@internal@csp@@6B@
+	??_R4__InitialProcess@internal@csp@@6B@
+	
+	??_R3__InitialProcess@internal@csp@@8
+	??_R2__InitialProcess@internal@csp@@8
+	??_R1A@?0A@EA@__InitialProcess@internal@csp@@8
+	??_R1A@?0A@EA@Process@internal@csp@@8
+	??_R0?AVProcess@internal@csp@@@8
+	??_R3Process@internal@csp@@8
+	??_R2Process@internal@csp@@8
+	??0Process@internal@csp@@QAE@PAVKernel@12@PAXI@Z
+	??_7Process@internal@csp@@6B@
+	??_R4Process@internal@csp@@6B@
+	??1Process@internal@csp@@UAE@XZ
+	?runProcess@__InitialProcess@internal@csp@@UAEXXZ
+	?endProcess@__InitialProcess@internal@csp@@UAEXXZ
+	??1__InitialProcess@internal@csp@@UAE@XZ
+	?initNewThread@Kernel@internal@csp@@AAEXXZ
+	?End_CPPCSP@csp@@YAXXZ
+	?DestroyThreadKernel@Kernel@internal@csp@@CAXXZ
+	?destroyInThread@Kernel@internal@csp@@AAEXXZ
+	?SleepFor@csp@@YAXABT_LARGE_INTEGER@@@Z
+	?Seconds@csp@@YA?AT_LARGE_INTEGER@@N@Z
+	?addTimeoutNoAlt@TimeoutQueue@internal@csp@@QAEPAVProcess@23@PAV423@PBT_LARGE_INTEGER@@@Z
+	?_addTimeout@TimeoutQueue@internal@csp@@CAPAVProcess@23@PAPAV423@PAV423@PBT_LARGE_INTEGER@@@Z
+	?getTimeoutQueue@Kernel@internal@csp@@AAEPAVTimeoutQueue@23@XZ
+	?currentProcess@Kernel@internal@csp@@AAEPAVProcess@23@XZ
+	?reschedule@Kernel@internal@csp@@AAEXXZ
+	?SleepUntil@csp@@YAXABT_LARGE_INTEGER@@@Z
+	?CurrentTime@csp@@YA?AT_LARGE_INTEGER@@XZ
+	?CurrentTime@csp@@YAXQAT_LARGE_INTEGER@@@Z
+	?MicroSeconds@csp@@YAXJQAT_LARGE_INTEGER@@@Z
+	?MilliSeconds@csp@@YAXJQAT_LARGE_INTEGER@@@Z
+	?Seconds@csp@@YAXNQAT_LARGE_INTEGER@@@Z
+	?GetSeconds@csp@@YANABT_LARGE_INTEGER@@@Z
+	?GetMilliSeconds@csp@@YAHABT_LARGE_INTEGER@@@Z
+	?originalThreadKernelData@KernelData@Kernel@internal@csp@@0PAV1234@A
+	?deadlocked@KernelData@Kernel@internal@csp@@0_NA
+	?ThreadsRunning@?$_AtomicProcessQueue@V?$MutexAndEvent@VOSBlockingMutex@internal@csp@@$00@internal@csp@@@internal@csp@@0IC
+	?ThreadsRunning@?$_AtomicProcessQueue@V?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@@internal@csp@@0IC
+	?ThreadsRunning@?$_AtomicProcessQueue@V?$Condition@$00@internal@csp@@@internal@csp@@0IC
+	?waitFP_calls@?$_AtomicProcessQueue@V?$MutexAndEvent@VOSBlockingMutex@internal@csp@@$00@internal@csp@@@internal@csp@@2IC
+	?waitFP_calls@?$_AtomicProcessQueue@V?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@@internal@csp@@2IC
+	?waitFP_calls@?$_AtomicProcessQueue@V?$Condition@$00@internal@csp@@@internal@csp@@2IC
+	?ThreadFunc@Kernel@internal@csp@@SAXPAX@Z
+	?currentProcess@Kernel@internal@csp@@AAEPAVProcess@23@XZ
+	?initNewThread@Kernel@internal@csp@@AAEXXZ
+	?destroyInThread@Kernel@internal@csp@@AAEXXZ
+	?CurrentThreadId@csp@@YAPAXXZ
+	?getProcessPtr@TestInfo@internal@csp@@KAPAVProcess@23@PAVCSProcess@3@@Z
+	?GetKernel@internal@csp@@YAPAVKernel@12@XZ
+	?AllocateThreadKernel@Kernel@internal@csp@@CAPAV123@XZ
+	??0Kernel@internal@csp@@QAE@XZ
+	?RecordBlock@KernelData@Kernel@internal@csp@@CA_NPAV1234@@Z
+	?claim@PureSpinMutex@internal@csp@@QAEXXZ
+	?spin@Primitive@internal@csp@@KAXH@Z
+	?tryClaim@PureSpinMutex@internal@csp@@QAE_NXZ
+	?_AtomicCompareAndSwap@internal@csp@@YAPAXPCRAXPAX1@Z
+	?release@PureSpinMutex@internal@csp@@QAEXXZ
+	??0KernelData@Kernel@internal@csp@@AAE@XZ
+	??0TimeoutQueue@internal@csp@@QAE@XZ
+	?init@KernelData@Kernel@internal@csp@@AAEXPAX@Z
+	?pushScheduleFunction@Kernel@internal@csp@@AAEXP6A_NPAVKernelData@123@@Z@Z
+	?pushAddProcessFunction@Kernel@internal@csp@@AAEXP6A_NPAVKernelData@123@PAVProcess@23@1@Z@Z
+	?pushInitThreadFunction@Kernel@internal@csp@@AAEXP6AXPAV123@@Z@Z
+	?pushDestroyThreadFunction@Kernel@internal@csp@@AAEXP6AXPAV123@@Z@Z
+	??1TimeoutQueue@internal@csp@@QAE@XZ
+	??0?$FunctionStack@P6A_NPAVKernelData@Kernel@internal@csp@@@Z@internal@csp@@QAE@XZ
+	??1?$FunctionStack@P6A_NPAVKernelData@Kernel@internal@csp@@@Z@internal@csp@@QAE@XZ
+	??0?$FunctionStack@P6A_NPAVKernelData@Kernel@internal@csp@@PAVProcess@34@1@Z@internal@csp@@QAE@XZ
+	??1?$FunctionStack@P6A_NPAVKernelData@Kernel@internal@csp@@PAVProcess@34@1@Z@internal@csp@@QAE@XZ
+	??0?$FunctionStack@P6AXPAVKernel@internal@csp@@@Z@internal@csp@@QAE@XZ
+	??1?$FunctionStack@P6AXPAVKernel@internal@csp@@@Z@internal@csp@@QAE@XZ
+	??1KernelData@Kernel@internal@csp@@QAE@XZ
+	?DestroyThreadKernel@Kernel@internal@csp@@CAXXZ
+	??1Kernel@internal@csp@@QAE@XZ
+	?InitNewThread@Kernel@internal@csp@@CAXPAV123@@Z
+	?DestroyInThread@Kernel@internal@csp@@CAXPAV123@@Z
+	?ReSchedule@Kernel@internal@csp@@CA_NPAVKernelData@123@@Z
+	__TI3?AVDeadlockError@csp@@
+	?ContextSwitch@internal@csp@@YAXPAPAX0@Z
+	??_R0?AVDeadlockException@internal@csp@@@8
+	__CTA3?AVDeadlockError@csp@@
+	__CT??_R0?AVDeadlockError@csp@@@8??0DeadlockError@csp@@QAE@ABV01@@Z68
+	??_R0?AVDeadlockError@csp@@@8
+	__CT??_R0?AVCPPCSPError@csp@@@8??0CPPCSPError@csp@@QAE@ABV01@@Z44
+	??_R0?AVCPPCSPError@csp@@@8
+	??0CPPCSPError@csp@@QAE@ABV01@@Z
+	??_7CPPCSPError@csp@@6B@
+	??_R4CPPCSPError@csp@@6B@
+	??_R3CPPCSPError@csp@@8
+	??_R2CPPCSPError@csp@@8
+	??_R1A@?0A@EA@CPPCSPError@csp@@8
+	
+	?what@CPPCSPError@csp@@UBEPBDXZ
+	??1CPPCSPError@csp@@UAE@XZ
+	?haveTimeouts@TimeoutQueue@internal@csp@@QBE_NXZ
+	?soonestTimeout@TimeoutQueue@internal@csp@@QBE?AT_LARGE_INTEGER@@XZ
+	?Seconds@csp@@YA?AT_LARGE_INTEGER@@N@Z
+	?Seconds@csp@@YAXNQAT_LARGE_INTEGER@@@Z
+	?checkTimeouts@TimeoutQueue@internal@csp@@QAEXXZ
+	?freeProcessChain@Primitive@internal@csp@@KAXPAVProcess@23@0@Z
+	?freeProcessMaybe@Primitive@internal@csp@@KAXPAVProcess@23@@Z
+	?freeProcessNoAlt@Primitive@internal@csp@@KAXPAVProcess@23@@Z
+	?AtomicCompareAndSwap@internal@csp@@YAIPCIII@Z
+	?_findTimeouts@TimeoutQueue@internal@csp@@AAEXPAVProcess@23@PAPAV423@1_N@Z
+	?CurrentTime@csp@@YAXQAT_LARGE_INTEGER@@@Z
+	??_7DeadlockError@csp@@6B@
+	??_R4DeadlockError@csp@@6B@
+	??_R3DeadlockError@csp@@8
+	??_R2DeadlockError@csp@@8
+	??_R1A@?0A@EA@DeadlockError@csp@@8
+	??_R1CM@?0A@EN@Primitive@internal@csp@@8
+	??_R0?AVPrimitive@internal@csp@@@8
+	??_R3Primitive@internal@csp@@8
+	??_R2Primitive@internal@csp@@8
+	??_R1A@?0A@EA@Primitive@internal@csp@@8
+	
+	
+	??1DeadlockError@csp@@UAE@XZ
+	
+	??0DeadlockError@csp@@QAE@ABV01@@Z
+	?AddProcess@Kernel@internal@csp@@CA_NPAVKernelData@123@PAVProcess@23@1@Z
+	??0?$_AtomicProcessQueue@V?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@@internal@csp@@QAE@XZ
+	?AtomicIncrement@internal@csp@@YAIPCI@Z
+	??1?$_AtomicProcessQueue@V?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@@internal@csp@@QAE@XZ
+	?AtomicDecrement@internal@csp@@YAIPCI@Z
+	?pushFunction@?$FunctionStack@P6A_NPAVKernelData@Kernel@internal@csp@@@Z@internal@csp@@QAEXP6A_NPAVKernelData@Kernel@23@@Z@Z
+	?pushFunction@?$FunctionStack@P6A_NPAVKernelData@Kernel@internal@csp@@PAVProcess@34@1@Z@internal@csp@@QAEXP6A_NPAVKernelData@Kernel@23@PAVProcess@23@1@Z@Z
+	?pushFunction@?$FunctionStack@P6AXPAVKernel@internal@csp@@@Z@internal@csp@@QAEXP6AXPAVKernel@23@@Z@Z
+	??0?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@QAE@XZ
+	??0PureSpinMutex@internal@csp@@QAE@XZ
+	??1?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@QAE@XZ
+	??1PureSpinMutex@internal@csp@@QAE@XZ
+	??$AtomicPut@X@internal@csp@@YAXPCRAXPAX@Z
+	?_AtomicPut@internal@csp@@YAXPCRAXPAX@Z
+	??$AtomicPut4Bytes@PAX@internal@csp@@YAXPCRAXPAX@Z
+	?popHead@?$_AtomicProcessQueue@V?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@@internal@csp@@QAEPAVProcess@23@PAT_LARGE_INTEGER@@@Z
+	?pushProcess@?$_AtomicProcessQueue@V?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@@internal@csp@@QAEXPAVProcess@23@@Z
+	?pushChain@?$_AtomicProcessQueue@V?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@@internal@csp@@QAEXPAVProcess@23@0@Z
+	?claim@?$_AtomicProcessQueue@V?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@@internal@csp@@AAEXXZ
+	?release@?$_AtomicProcessQueue@V?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@@internal@csp@@AAEXXZ
+	?releaseWaitClaim@?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@QAE_NPBT_LARGE_INTEGER@@IPCI@Z
+	?signal@?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@QAEXIPCI@Z
+	?claim@?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@QAEXXZ
+	?release@?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@QAEXXZ
+	?releaseWait@?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@QAE_NPBT_LARGE_INTEGER@@IPCI@Z
+	?GetMilliSeconds@csp@@YAHABT_LARGE_INTEGER@@@Z
+	__TI1?AVDeadlockException@internal@csp@@
+	__CTA1?AVDeadlockException@internal@csp@@
+	__CT??_R0?AVDeadlockException@internal@csp@@@81
+	?blocksMutex@KernelData@Kernel@internal@csp@@0VPureSpinMutex@34@A
+	?GetKernel@internal@csp@@YAPAVKernel@12@XZ
+	?reschedule@Kernel@internal@csp@@AAEXPAVProcess@23@@Z
+	?reschedule@Kernel@internal@csp@@AAEXXZ
+	?ThreadFunc@Kernel@internal@csp@@SAXPAX@Z
+	?Thread_Yield@csp@@YAXXZ
+	?CPPCSP_Yield@csp@@YAXXZ
+	?currentProcess@Kernel@internal@csp@@AAEPAVProcess@23@XZ
+	?addProcessChain@Kernel@internal@csp@@AAEXPAVProcess@23@0@Z
+	??0ThreadCSProcess@csp@@IAE@I@Z
+	?CurrentThreadId@csp@@YAPAXXZ
+	??_R4ThreadCSProcess@csp@@6B@
+	??_R0?AVThreadCSProcess@csp@@@8
+	??_R3ThreadCSProcess@csp@@8
+	??_R2ThreadCSProcess@csp@@8
+	??_R1A@?0A@EA@ThreadCSProcess@csp@@8
+	??_R1A@?0A@EN@Process@internal@csp@@8
+	??_R0?AVProcess@internal@csp@@@8
+	??_R3Process@internal@csp@@8
+	??_R2Process@internal@csp@@8
+	??_R1A@?0A@EA@Process@internal@csp@@8
+	??_R1DI@?0A@EN@Primitive@internal@csp@@8
+	??_R0?AVPrimitive@internal@csp@@@8
+	??_R3Primitive@internal@csp@@8
+	??_R2Primitive@internal@csp@@8
+	??_R1A@?0A@EA@Primitive@internal@csp@@8
+	
+	
+	??0Process@internal@csp@@QAE@PAVKernel@12@PAXI@Z
+	??_7Process@internal@csp@@6B@
+	??_R4Process@internal@csp@@6B@
+	??1Process@internal@csp@@UAE@XZ
+	
+	??1ThreadCSProcess@csp@@MAE@XZ
+	?resign@BarrierEnd@csp@@QAEXXZ
+	?runProcess@ThreadCSProcess@csp@@EAEXXZ
+	?enroll@BarrierEnd@csp@@QAEXXZ
+	?endProcess@ThreadCSProcess@csp@@EAEXXZ
+	?RunInThisThread@csp@@YAXPAVCSProcess@1@@Z
+	??_R0?AVOutOfResourcesException@csp@@@8
+	??0ScopedBarrierEnd@csp@@QAE@ABV?$Mobile@VBarrierEnd@csp@@@1@@Z
+	??1ScopedBarrierEnd@csp@@QAE@XZ
+	?sync@ScopedBarrierEnd@csp@@QAEXXZ
+	?sync@BarrierEnd@csp@@QAEXXZ
+	__TI3?AVBarrierError@csp@@
+	__CTA3?AVBarrierError@csp@@
+	__CT??_R0?AVBarrierError@csp@@@8??0BarrierError@csp@@QAE@ABV01@@Z44
+	??_R0?AVBarrierError@csp@@@8
+	__CT??_R0?AVCPPCSPError@csp@@@8??0CPPCSPError@csp@@QAE@ABV01@@Z44
+	??_R0?AVCPPCSPError@csp@@@8
+	??0BarrierError@csp@@QAE@PBD@Z
+	
+	??_R4BarrierError@csp@@6B@
+	??_R3BarrierError@csp@@8
+	??_R2BarrierError@csp@@8
+	??_R1A@?0A@EA@BarrierError@csp@@8
+	??_R1A@?0A@EA@CPPCSPError@csp@@8
+	??_R3CPPCSPError@csp@@8
+	??_R2CPPCSPError@csp@@8
+	
+	
+	??_7CPPCSPError@csp@@6B@
+	??_R4CPPCSPError@csp@@6B@
+	??1CPPCSPError@csp@@UAE@XZ
+	?what@CPPCSPError@csp@@UBEPBDXZ
+	??1BarrierError@csp@@UAE@XZ	
+	
+	??0CPPCSPError@csp@@QAE@ABV01@@Z
+	??0BarrierError@csp@@QAE@ABV01@@Z
+	??0Barrier@csp@@QAE@XZ
+	??_7Barrier@csp@@6B@
+	??_R4Barrier@csp@@6B@
+	??_R0?AVBarrier@csp@@@8
+	??_R3Barrier@csp@@8
+	??_R2Barrier@csp@@8
+	??_R1A@?0A@EA@Barrier@csp@@8
+	??_R1A@?0A@EN@BarrierBase@internal@csp@@8
+	??_R0?AVBarrierBase@internal@csp@@@8
+	??_R3BarrierBase@internal@csp@@8
+	??_R2BarrierBase@internal@csp@@8
+	??_R1A@?0A@EA@BarrierBase@internal@csp@@8
+	
+	
+	??1BarrierBase@internal@csp@@MAE@XZ
+	??_7BarrierBase@internal@csp@@6B@
+	??_R4BarrierBase@internal@csp@@6B@
+	
+	
+	
+	?enroll@Barrier@csp@@EAEPAXXZ
+	?halfEnroll@Barrier@csp@@EAEXXZ
+	?completeEnroll@Barrier@csp@@EAEPAXXZ
+	?resign@Barrier@csp@@EAEXPAX@Z
+	?sync@Barrier@csp@@EAEXPAX@Z
+	?end@Barrier@csp@@QAE?AV?$Mobile@VBarrierEnd@csp@@@2@XZ
+	??0BarrierEnd@csp@@QAE@PAVBarrierBase@internal@1@PAX@Z
+	?enrolledEnd@Barrier@csp@@QAE?AV?$Mobile@VBarrierEnd@csp@@@2@XZ
+	
+	??0BarrierBase@internal@csp@@QAE@XZ
+	??1Barrier@csp@@UAE@XZ
+	?Run@csp@@YAXABVParallelHelper@1@@Z
+	?Run@csp@@YAXABVSequentialHelper@1@@Z
+	?RunInThisThread@csp@@YAXABVParallelHelperOneThread@1@@Z
+	?RunInThisThread@csp@@YAXABVSequentialHelperOneThread@1@@Z
+	?Run@csp@@YAXABVParallelHelperOneThread@1@@Z
+	?Run@csp@@YAXABVSequentialHelperOneThread@1@@Z
+	?process@ParallelHelper@csp@@UBEPAVCSProcess@2@XZ
+	?process@SequentialHelper@csp@@UBEPAVCSProcess@2@XZ
+	?process@ParallelHelperOneThread@csp@@UBEPAVCSProcess@2@XZ
+	?process@SequentialHelperOneThread@csp@@UBEPAVCSProcess@2@XZ
+	?Run@csp@@YAXPAVThreadCSProcess@1@@Z
+	?fork@ScopedForking@csp@@QAEXPAVThreadCSProcess@2@@Z
+	?forkInThisThread@ScopedForking@csp@@QAEXPAVCSProcess@2@@Z
+	?forkInThisThread@ScopedForking@csp@@QAEXABVParallelHelperOneThread@2@@Z
+	?forkInThisThread@ScopedForking@csp@@QAEXABVSequentialHelperOneThread@2@@Z
+	?fork@ScopedForking@csp@@QAEXABVRunHelper@2@@Z
+	?fork@ScopedForking@csp@@QAEXABVParallelHelper@2@@Z
+	?currentProcess@Primitive@internal@csp@@KAPAVProcess@23@XZ
+	?currentThread@Primitive@internal@csp@@KAPAXXZ
+	?getThreadId@Primitive@internal@csp@@KAPAXPAVProcess@23@@Z
+	?freeProcessChain@Primitive@internal@csp@@KAXPAVProcess@23@0@Z
+	?freeProcessNoAlt@Primitive@internal@csp@@KAXPAVProcess@23@@Z
+	?reschedule@Primitive@internal@csp@@KAXXZ
+	?yield@Primitive@internal@csp@@KAXXZ
+	?spin@Primitive@internal@csp@@KAXH@Z
+	?ContextSwitch@internal@csp@@YAXPAPAX0@Z
+	?startInNewThread@ThreadCSProcess@csp@@AAEXXZ
+	__TI2?AVOutOfResourcesException@csp@@
+	__CTA2?AVOutOfResourcesException@csp@@
+	__CT??_R0?AVOutOfResourcesException@csp@@@8??0OutOfResourcesException@csp@@QAE@ABV01@@Z44
+	??_7OutOfResourcesException@csp@@6B@
+	??_R4OutOfResourcesException@csp@@6B@
+	??_R3OutOfResourcesException@csp@@8
+	??_R2OutOfResourcesException@csp@@8
+	??_R1A@?0A@EA@OutOfResourcesException@csp@@8
+	
+	
+	??1OutOfResourcesException@csp@@UAE@XZ
+	?what@OutOfResourcesException@csp@@UBEPBDXZ
+	
+	??0Kernel@internal@csp@@QAE@PAV012@PAVProcess@12@@Z
+	??0KernelData@Kernel@internal@csp@@AAE@XZ
+	??0TimeoutQueue@internal@csp@@QAE@XZ
+	?init@KernelData@Kernel@internal@csp@@AAEXPAX@Z
+	??1TimeoutQueue@internal@csp@@QAE@XZ
+	??0?$FunctionStack@P6A_NPAVKernelData@Kernel@internal@csp@@@Z@internal@csp@@QAE@XZ
+	??1?$FunctionStack@P6A_NPAVKernelData@Kernel@internal@csp@@@Z@internal@csp@@QAE@XZ
+	??0?$FunctionStack@P6A_NPAVKernelData@Kernel@internal@csp@@PAVProcess@34@1@Z@internal@csp@@QAE@XZ
+	??1?$FunctionStack@P6A_NPAVKernelData@Kernel@internal@csp@@PAVProcess@34@1@Z@internal@csp@@QAE@XZ
+	??0?$FunctionStack@P6AXPAVKernel@internal@csp@@@Z@internal@csp@@QAE@XZ
+	??1?$FunctionStack@P6AXPAVKernel@internal@csp@@@Z@internal@csp@@QAE@XZ
+	??1KernelData@Kernel@internal@csp@@QAE@XZ
+	??4?$FunctionStack@P6A_NPAVKernelData@Kernel@internal@csp@@@Z@internal@csp@@QAEAAV012@ABV012@@Z
+	??4?$FunctionStack@P6A_NPAVKernelData@Kernel@internal@csp@@PAVProcess@34@1@Z@internal@csp@@QAEAAV012@ABV012@@Z
+	??4?$FunctionStack@P6AXPAVKernel@internal@csp@@@Z@internal@csp@@QAEAAV012@ABV012@@Z
+	??0OutOfResourcesException@csp@@QAE@ABV01@@Z
+	?startInThisThread@CSProcess@csp@@AAEXXZ
+	?addTimeoutAlt@Primitive@internal@csp@@KAPAVProcess@23@PAT_LARGE_INTEGER@@PAV423@@Z
+	?addTimeoutAlt@TimeoutQueue@internal@csp@@QAEPAVProcess@23@PAV423@PBT_LARGE_INTEGER@@@Z
+	?_addTimeout@TimeoutQueue@internal@csp@@CAPAVProcess@23@PAPAV423@PAV423@PBT_LARGE_INTEGER@@@Z
+	?removeTimeout@TimeoutQueue@internal@csp@@QAE_NPAVProcess@23@@Z
+	?getTimeoutQueue@Kernel@internal@csp@@AAEPAVTimeoutQueue@23@XZ
+	?removeTimeout@Primitive@internal@csp@@KA_NPAVProcess@23@@Z
+	??0?$_AtomicProcessQueue@V?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@@internal@csp@@QAE@XZ
+	?ThreadsRunning@?$_AtomicProcessQueue@V?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@@internal@csp@@0IC
+	?AtomicIncrement@internal@csp@@YAIPCI@Z
+	??1?$_AtomicProcessQueue@V?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@@internal@csp@@QAE@XZ
+	?AtomicDecrement@internal@csp@@YAIPCI@Z
+	??0?$Mobile@VBarrierEnd@csp@@@csp@@QAE@QAVBarrierEnd@1@@Z
+	??0?$Mobile@VBarrierEnd@csp@@@csp@@QAE@ABV01@@Z
+	??1?$Mobile@VBarrierEnd@csp@@@csp@@QAE@XZ
+	?blank@?$Mobile@VBarrierEnd@csp@@@csp@@QAEXXZ
+	??B?$Mobile@VBarrierEnd@csp@@@csp@@QBE_NXZ
+	??4?$Mobile@VBarrierEnd@csp@@@csp@@QAEXABV01@@Z
+	??C?$Mobile@VBarrierEnd@csp@@@csp@@QBEPAVBarrierEnd@1@XZ
+	??0?$_InterThreadBarrier@VPureSpinMutex@internal@csp@@@internal@csp@@QAE@XZ
+	??0PureSpinMutex@internal@csp@@QAE@XZ
+	?sync@?$_InterThreadBarrier@VPureSpinMutex@internal@csp@@@internal@csp@@QAEIQAVData@123@@Z
+	?addProcessToQueueAtHead@Primitive@internal@csp@@KAXPCRAVProcess@23@0PAV423@@Z
+	?enroll@?$_InterThreadBarrier@VPureSpinMutex@internal@csp@@@internal@csp@@QAEPAVData@123@XZ
+	?claim@PureSpinMutex@internal@csp@@QAEXXZ
+	?end@PureSpinMutex@internal@csp@@QAEAAV123@XZ
+	?tryClaim@PureSpinMutex@internal@csp@@QAE_NXZ
+	?_AtomicCompareAndSwap@internal@csp@@YAPAXPCRAXPAX1@Z
+	?release@PureSpinMutex@internal@csp@@QAEXXZ
+	?halfEnroll@?$_InterThreadBarrier@VPureSpinMutex@internal@csp@@@internal@csp@@QAEXXZ
+	?completeEnroll@?$_InterThreadBarrier@VPureSpinMutex@internal@csp@@@internal@csp@@QAEPAVData@123@XZ
+	?resign@?$_InterThreadBarrier@VPureSpinMutex@internal@csp@@@internal@csp@@QAE_NQAVData@123@@Z
+	??1?$_InterThreadBarrier@VPureSpinMutex@internal@csp@@@internal@csp@@QAE@XZ
+	?AtomicGet@internal@csp@@YAIPCI@Z
+	??1PureSpinMutex@internal@csp@@QAE@XZ
+	??0?$_HelperProcess@VParallelHelper@csp@@@csp@@QAE@ABVParallelHelper@1@@Z
+	??_7?$_HelperProcess@VParallelHelper@csp@@@csp@@6B@
+	??_R4?$_HelperProcess@VParallelHelper@csp@@@csp@@6B@
+	??_R0?AV?$_HelperProcess@VParallelHelper@csp@@@csp@@@8
+	??_R3?$_HelperProcess@VParallelHelper@csp@@@csp@@8
+	??_R2?$_HelperProcess@VParallelHelper@csp@@@csp@@8
+	??_R1A@?0A@EA@?$_HelperProcess@VParallelHelper@csp@@@csp@@8
+	??_R1A@?0A@EA@CSProcess@csp@@8
+	??_R0?AVCSProcess@csp@@@8
+	??_R3CSProcess@csp@@8
+	??_R2CSProcess@csp@@8
+	
+	
+	??0CSProcess@csp@@IAE@I@Z
+	??_7CSProcess@csp@@6B@
+	??_R4CSProcess@csp@@6B@
+	
+	
+	
+	??1CSProcess@csp@@UAE@XZ
+	??0ParallelHelper@csp@@QAE@ABV01@@Z
+	??_7ParallelHelper@csp@@6B@
+	??_R4ParallelHelper@csp@@6B@
+	??_R0?AVParallelHelper@csp@@@8
+	??_R3ParallelHelper@csp@@8
+	??_R2ParallelHelper@csp@@8
+	??_R1A@?0A@EA@ParallelHelper@csp@@8
+	??_R1A@?0A@EA@RunHelper@csp@@8
+	??_R0?AVRunHelper@csp@@@8
+	??_R3RunHelper@csp@@8
+	??_R2RunHelper@csp@@8
+	
+	
+	??1RunHelper@csp@@UAE@XZ
+	??_7RunHelper@csp@@6B@
+	??_R4RunHelper@csp@@6B@
+	
+	
+	
+	
+	??1ParallelHelper@csp@@UAE@XZ
+	??0RunHelper@csp@@QAE@ABV01@@Z
+	?run@?$_HelperProcess@VParallelHelper@csp@@@csp@@MAEXXZ
+	??0?$_HelperProcess@VSequentialHelper@csp@@@csp@@QAE@ABVSequentialHelper@1@@Z
+	??_7?$_HelperProcess@VSequentialHelper@csp@@@csp@@6B@
+	??_R4?$_HelperProcess@VSequentialHelper@csp@@@csp@@6B@
+	??_R0?AV?$_HelperProcess@VSequentialHelper@csp@@@csp@@@8
+	??_R3?$_HelperProcess@VSequentialHelper@csp@@@csp@@8
+	??_R2?$_HelperProcess@VSequentialHelper@csp@@@csp@@8
+	??_R1A@?0A@EA@?$_HelperProcess@VSequentialHelper@csp@@@csp@@8
+	
+	
+	??0SequentialHelper@csp@@QAE@ABV01@@Z
+	??_7SequentialHelper@csp@@6B@
+	??_R4SequentialHelper@csp@@6B@
+	??_R0?AVSequentialHelper@csp@@@8
+	??_R3SequentialHelper@csp@@8
+	??_R2SequentialHelper@csp@@8
+	??_R1A@?0A@EA@SequentialHelper@csp@@8
+	
+	
+	
+	??1SequentialHelper@csp@@UAE@XZ
+	?run@?$_HelperProcess@VSequentialHelper@csp@@@csp@@MAEXXZ
+	??0?$_HelperProcessThisThread@VParallelHelperOneThread@csp@@@csp@@QAE@ABVParallelHelperOneThread@1@@Z
+	??_7?$_HelperProcessThisThread@VParallelHelperOneThread@csp@@@csp@@6B@
+	??_R4?$_HelperProcessThisThread@VParallelHelperOneThread@csp@@@csp@@6B@
+	??_R0?AV?$_HelperProcessThisThread@VParallelHelperOneThread@csp@@@csp@@@8
+	??_R3?$_HelperProcessThisThread@VParallelHelperOneThread@csp@@@csp@@8
+	??_R2?$_HelperProcessThisThread@VParallelHelperOneThread@csp@@@csp@@8
+	??_R1A@?0A@EA@?$_HelperProcessThisThread@VParallelHelperOneThread@csp@@@csp@@8
+	
+	
+	??0ParallelHelperOneThread@csp@@QAE@ABV01@@Z
+	??_7ParallelHelperOneThread@csp@@6B@
+	??_R4ParallelHelperOneThread@csp@@6B@
+	??_R0?AVParallelHelperOneThread@csp@@@8
+	??_R3ParallelHelperOneThread@csp@@8
+	??_R2ParallelHelperOneThread@csp@@8
+	??_R1A@?0A@EA@ParallelHelperOneThread@csp@@8
+	
+	
+	
+	??1ParallelHelperOneThread@csp@@UAE@XZ
+	?run@?$_HelperProcessThisThread@VParallelHelperOneThread@csp@@@csp@@MAEXXZ
+	??0?$_HelperProcessThisThread@VSequentialHelperOneThread@csp@@@csp@@QAE@ABVSequentialHelperOneThread@1@@Z
+	??_7?$_HelperProcessThisThread@VSequentialHelperOneThread@csp@@@csp@@6B@
+	??_R4?$_HelperProcessThisThread@VSequentialHelperOneThread@csp@@@csp@@6B@
+	??_R0?AV?$_HelperProcessThisThread@VSequentialHelperOneThread@csp@@@csp@@@8
+	??_R3?$_HelperProcessThisThread@VSequentialHelperOneThread@csp@@@csp@@8
+	??_R2?$_HelperProcessThisThread@VSequentialHelperOneThread@csp@@@csp@@8
+	??_R1A@?0A@EA@?$_HelperProcessThisThread@VSequentialHelperOneThread@csp@@@csp@@8
+	
+	
+	??0SequentialHelperOneThread@csp@@QAE@ABV01@@Z
+	??_7SequentialHelperOneThread@csp@@6B@
+	??_R4SequentialHelperOneThread@csp@@6B@
+	??_R0?AVSequentialHelperOneThread@csp@@@8
+	??_R3SequentialHelperOneThread@csp@@8
+	??_R2SequentialHelperOneThread@csp@@8
+	??_R1A@?0A@EA@SequentialHelperOneThread@csp@@8
+	
+	
+	
+	??1SequentialHelperOneThread@csp@@UAE@XZ
+	?run@?$_HelperProcessThisThread@VSequentialHelperOneThread@csp@@@csp@@MAEXXZ
+	
+	??1BarrierEnd@csp@@QAE@XZ
+	
+	
+	
+	
+	??1?$_HelperProcess@VParallelHelper@csp@@@csp@@UAE@XZ
+	??1?$_HelperProcess@VSequentialHelper@csp@@@csp@@UAE@XZ
+	??1?$_HelperProcessThisThread@VParallelHelperOneThread@csp@@@csp@@UAE@XZ
+	??1?$_HelperProcessThisThread@VSequentialHelperOneThread@csp@@@csp@@UAE@XZ
+	??0?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@QAE@XZ
+	??1?$MutexAndEvent@VPureSpinMutex@internal@csp@@$00@internal@csp@@QAE@XZ
+	?syncWholeThread@?$_InterThreadBarrier@VPureSpinMutex@internal@csp@@@internal@csp@@AAE_NABQAVProcess@23@PAI@Z
+	?AtomicPut@internal@csp@@YAXPCII@Z
+	?getNextProcess@Primitive@internal@csp@@KAPAVProcess@23@PAV423@@Z
+	??$AtomicGet4Bytes@I@internal@csp@@YAIPCI@Z
+	??$AtomicPut4Bytes@I@internal@csp@@YAXPCII@Z
+	??$AtomicPut@X@internal@csp@@YAXPCRAXPAX@Z
+	?_AtomicPut@internal@csp@@YAXPCRAXPAX@Z
+	??$AtomicPut4Bytes@PAX@internal@csp@@YAXPCRAXPAX@Z
