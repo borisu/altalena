@@ -15,6 +15,14 @@ creates sipcall object
 || type || type ||
 || H_XXX || XXX header will be added to the SIP message ||
 
+
+== `:waitfordtmf(...)` ==
+
+|| *named parameter* || *description* ||
+|| pattern || pattern to collect (?=[1..9] \+\* - has usual meaning) ||
+|| interdigittimeout || timeout between each digits||
+
+
 ===example 1===
 Makes call to the destination, the INVITE sent is empty the call should be answered lately. 
 
