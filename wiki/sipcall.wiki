@@ -19,7 +19,7 @@ creates sipcall object
 == `:waitfordtmf(...)` ==
 
 || *named parameter* || *description* ||
-|| pattern || pattern to collect (?=[1..9] \+\* - has usual meaning) ||
+|| pattern || pattern to collect (?=[1..9] `+` and `*` - has usual meaning) ||
 || interdigittimeout || timeout between each digits||
 
 
