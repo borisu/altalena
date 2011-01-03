@@ -2,7 +2,7 @@
 
 = Introduction =
 
-The project was compiled and tested on Windows XP SP2 and Vista machines. Though the OS and IDE is proprietary, the project itself uses only open source third party libraries.
+ The project was compiled and on Vista and Windows 7 machines. Using it windows versions prior to Vista is impossible due to extensive usage of TLS storage by logging infrastructure and KentCSP++ kernel. One may read on more ont the [http://www.nynaeve.net/?p=187|here]. Though the OS and IDE is proprietary, the project itself uses only open source third party libraries.
 
 Please report any problem to [mailto:borisusun@gmail.com borisusun], if you are experiencing problems compiling the project on other windows version, or you are interested to port it to a different platform.
 
