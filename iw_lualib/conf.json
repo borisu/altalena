@@ -1,0 +1,102 @@
+{
+	
+	"sync_log"  : true,
+	"debug_level"  : "DBG",
+	"debug_outputs" : "debug,console",
+	"syslogd_host" : "127.0.0.1",
+	"syslogd_port" : 514,
+	"default_boot_time" : 15000,
+	
+	"modules":[
+	   "iw_resip.dll",
+	   "iw_live555rtpproxy.dll",
+	   "iw_live555rtsp.dll",
+	   "iw_m2ims.dll",
+	   "iw_sqlite.dll",
+	   "iw_unimrcp.dll"
+	],
+	
+	"codecs": [
+        "PCMU", 
+        "PCMA",
+        "SPEEX" 
+    ],
+    
+    
+    "sqlite" : {
+		"uri" : "sql,sqlite"
+    },
+    
+   
+    "resip" :  {
+		"resip_log" : "",
+		"uri"	: "sip,resip",
+		"from_id" : "ivrworx",
+		"from_display_name": "ivrworx",
+		"sip_host": "$COMPUTERNAME",
+		"sip_port": 5060,
+		"sip_session_timer_enabled" : true,
+		"sip_refresh_mode" : "prefer_local",
+		"sip_default_session_time" : 360
+    },
+    
+    "unimrcp" :   {
+		"uri" : "mrcp,unimrcp",
+		"unimrcp_conf_dir": "./unimrcp",
+		"unimrcp_client_profile": "nss2",
+		"unimrcp_log_file": "unimrcpclient"
+    },
+    
+    "live555rtpproxy" :  {
+		"uri"	: "rtpproxy,live555",
+		"rtp_proxy_base_port" : 6000,
+		"rtp_proxy_top_port" : 7000,
+		"rtp_proxy_num_of_connections" : 100,
+		"rtp_proxy_ip" : "$COMPUTERNAME"
+    },
+    
+      
+    "m2ims" :  {
+		"uri" : "stream,m2",
+		"local_ip": "$COMPUTERNAME",
+		"sounds_dir" : "sounds",
+		"record_dir" : "c:\\recording"
+    },
+    
+    
+    "opal" : {
+		"uri" : "h.323,opal",
+		 "ani" : "ivrworx",
+		 "no-h323"      : "",
+		 "t-trace"      : "no-trace",
+		 "o-output"     : "no-output",
+		 "h323-listen"  : "tcp$*:1720",
+		 "u"		    : "ivrworx"	
+    },
+    
+     "ivr" : {
+		"ivr_enabled"  : false,
+		"mrcp_enabled" : false,
+		"ims_enabled"  : false, 
+		"rtsp_enabled" : false,
+		
+		"ring_timeout" : 20, 
+		
+		"script_file"  : "scripts\\test-dev.lua",
+		"precompile"   : false,
+		"super_script" : "scripts\\super-mscml.lua",
+		"super_mode"   : "async",
+		
+		"h323_service"     : "h.323,opal",
+		"mscml_service"    : "sip,resip",
+		"stream_service"   : "stream,m2",
+		"sip_service"	   : "sip,resip",
+		"unimrcp_service"  : "mrcp,unimrcp",
+		"rtsp_service"     : "rtsp,live555",
+		"rtpproxy_service" : "rtpproxy,live555",
+		"mrcp_service"	   : "mrcp,unimrcp"
+    }
+    
+    
+    
+}
