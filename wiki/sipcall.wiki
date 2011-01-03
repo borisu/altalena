@@ -9,7 +9,7 @@ creates sipcall object
 || *named parameter* || *description* ||
 || dest || destination ||
 || timeout || client side timeout ||
-|| sdp || sdp string to offer (may be used insted of offer/type)||
+|| sdp || sdp string to offer (may be used instead of offer/type)||
 || remoteoffer || raw remote offer ||
 || localoffer || raw local offer ||
 || type || type ||
@@ -19,7 +19,7 @@ creates sipcall object
 == `:waitfordtmf(...)` ==
 
 || *named parameter* || *description* ||
-|| pattern || pattern to collect (?=[1..9] `+` and `*` - has usual meaning) ||
+|| pattern || pattern to collect (`?=[1..9]` `+` and `*` - has usual meaning) ||
 || interdigittimeout || timeout between each digits||
 
 
