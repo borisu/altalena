@@ -135,3 +135,10 @@ a=fmtp:101 0-11
 caller:makecall{dest="sip:24001@192.168.150.142", timeout=15, sdp=localoffer}
 caller:blindxfer{dest="sip:24001@192.168.150.144"}
 }}}
+
+== `:sendinfo(...)` ==
+sends INFO 
+|| *named parameter* || *description* ||
+|| offer|| body of INFO ||
+|| type || type of body INFO ||
+|| async || if true waits and returns response ||
