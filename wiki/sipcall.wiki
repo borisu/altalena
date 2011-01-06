@@ -17,7 +17,7 @@ creates sipcall object
 || type || type ||
 || H_XXX || XXX header will be added to the SIP message ||
 
-===example 1===
+===example 1 - Make call (empty INVITE) ===
 Makes call to the destination, the INVITE sent is empty the call should be answered lately. 
 
 {{{
@@ -39,7 +39,7 @@ caller:answer{sdp=localoffer}
 }}}
 
 
-===example 2 B2B proxy===
+===example 2 - B2B proxy===
 {{{
 local leg1 = sipcall:new()
 local leg2 = sipcall:new()
@@ -64,7 +64,7 @@ wrapper method
 || timeout || timeout to wait for next DTMF signal ||
 || pattern || lua pattern to match for all gathered digits ||
 
-=== example 1 gathering digits===
+=== example 1 - Gathering digits===
 {{{
 local caller = sipcall:new()
 
@@ -113,7 +113,7 @@ Xfers the call (REFER)
 || *named parameter* || *description* ||
 || dest || xfer destination ||
 
-=== example 1 blind xfer===
+=== example 1 - Blind xfer===
 {{{
 local caller = sipcall:new()
 
