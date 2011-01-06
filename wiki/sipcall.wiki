@@ -19,8 +19,16 @@ creates sipcall object
 == `:waitfordtmf(...)` ==
 
 || *named parameter* || *description* ||
-|| pattern || pattern to collect (`?=[1..9]` `+` and `*` - has usual meaning) ||
-|| interdigittimeout || timeout between each digits||
+|| timeout || timeout to wait for next DTMF signal ||
+
+
+== `:gatherdigits(...)` ==
+
+wrapper method 
+|| *named parameter* || *description* ||
+|| timeout || timeout to wait for next DTMF signal ||
+|| pattern || lua pattern to match for all gathered digits ||
+
 
 
 ===example 1===
