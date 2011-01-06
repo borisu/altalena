@@ -1,4 +1,6 @@
-Encapsulates SIP 
+<wiki:toc max_depth="3" />
+
+Encapsulates SIP call functionality
 
 == `:new(...)` ==
 _ctor_
