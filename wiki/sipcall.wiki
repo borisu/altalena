@@ -87,3 +87,15 @@ caller:makecall{dest="sip:24001@192.168.150.144", timeout=15, sdp=localoffer}
 res, dtmf = caller:gatherdigits{pattern="%d#", timeout=15}
 l:loginfo(res.."=res".."signal="..dtmf)
 }}}
+
+== `:cleandtmfbuffer(...)` ==
+
+cleans dtmf buffer 
+
+== `:ani(...)` ==
+
+return ANI of the call (user part of From: header)
+
+== `:dnis(...)` ==
+
+return DNIS of the call (user part of To: header)
