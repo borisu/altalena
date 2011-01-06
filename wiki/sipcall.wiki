@@ -107,3 +107,31 @@ Hangs up the call
 == `:waitforhangup(...)` ==
 
 Waits for remote party to hang
+
+== `:blindxfer(...)` ==
+Xfers the call (REFER)
+|| *named parameter* || *description* ||
+|| dest || xfer destination ||
+
+=== example 1 blind xfer===
+{{{
+local caller = sipcall:new()
+
+
+localoffer = [[v=0
+o=ivrworx 123456 654321 IN IP4 10.0.0.1
+s=A conversation
+c=IN IP4 10.0.0.1
+t=0 0
+m=audio 6000 RTP/AVP 0 8 101
+a=rtpmap:0 PCMU/8000/1
+a=rtpmap:8 PCMA/8000/1
+a=rtpmap:101 telephone-event/8000/1
+a=fmtp:101 0-11
+
+]]
+
+
+caller:makecall{dest="sip:24001@192.168.150.142", timeout=15, sdp=localoffer}
+caller:blindxfer{dest="sip:24001@192.168.150.144"}
+}}}
