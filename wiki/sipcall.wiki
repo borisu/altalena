@@ -17,22 +17,6 @@ creates sipcall object
 || type || type ||
 || H_XXX || XXX header will be added to the SIP message ||
 
-
-== `:waitfordtmf(...)` ==
-
-|| *named parameter* || *description* ||
-|| timeout || timeout to wait for next DTMF signal ||
-
-
-== `:gatherdigits(...)` ==
-
-wrapper method 
-|| *named parameter* || *description* ||
-|| timeout || timeout to wait for next DTMF signal ||
-|| pattern || lua pattern to match for all gathered digits ||
-
-
-
 ===example 1===
 Makes call to the destination, the INVITE sent is empty the call should be answered lately. 
 
@@ -65,4 +49,41 @@ leg2:makecall{dest="sip:6095@192.168.150.3", sdp=leg1:remoteoffer(), timeout=15}
 
 leg1:answer{sdp=leg2:remoteoffer()}
 
+}}}
+
+== `:waitfordtmf(...)` ==
+
+|| *named parameter* || *description* ||
+|| timeout || timeout to wait for next DTMF signal ||
+
+
+== `:gatherdigits(...)` ==
+
+wrapper method 
+|| *named parameter* || *description* ||
+|| timeout || timeout to wait for next DTMF signal ||
+|| pattern || lua pattern to match for all gathered digits ||
+
+=== example 1 gathering digits===
+{{{
+local caller = sipcall:new()
+
+
+localoffer = [[v=0
+o=ivrworx 123456 654321 IN IP4 10.0.0.1
+s=A conversation
+c=IN IP4 10.0.0.1
+t=0 0
+m=audio 6000 RTP/AVP 0 8 101
+a=rtpmap:0 PCMU/8000/1
+a=rtpmap:8 PCMA/8000/1
+a=rtpmap:101 telephone-event/8000/1
+a=fmtp:101 0-11
+
+]]
+
+
+caller:makecall{dest="sip:24001@192.168.150.144", timeout=15, sdp=localoffer}
+res, dtmf = caller:gatherdigits{pattern="%d#", timeout=15}
+l:loginfo(res.."=res".."signal="..dtmf)
 }}}
