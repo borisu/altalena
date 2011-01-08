@@ -142,3 +142,35 @@ sends INFO
 || offer|| body of INFO ||
 || type || type of body INFO ||
 || async || if true waits and returns response ||
+
+== `:accept(...)` ==
+accepts incoming SIP call
+
+|| *named parameter* || *description* ||
+|| service || stack identifier ||
+|| timeout || time to waitin for incoming call ||
+
+=== example : Accepting the call ===
+
+{{{
+local caller  = sipcall:new()
+
+
+
+localoffer = [[v=0
+o=ivrworx 123456 654321 IN IP4 10.0.0.1
+s=A conversation
+c=IN IP4 10.0.0.1
+t=0 0
+m=audio 6000 RTP/AVP 0 8 101
+a=rtpmap:0 PCMU/8000/1
+a=rtpmap:8 PCMA/8000/1
+a=rtpmap:101 telephone-event/8000/1
+a=fmtp:101 0-11
+
+]]
+
+
+caller:accept{service="sip,resip", timeout=600}
+caller:answer{sdp=localoffer} 
+}}}
