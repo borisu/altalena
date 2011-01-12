@@ -13,12 +13,12 @@ creates streamer object
 || rcv|| type of receiving device (see table below for possible values)||
 || snd|| type of device generating audio stream (see table below for possible values)||
 
-|| sending device id || description || 
+|| *sending device id* || *description* || 
 || SND_DEVICE_TYPE_FILE || file || 
 || SND_DEVICE_TYPE_SND_CARD_MIC || default line-in || 
 
 
-|| receiving device id || description || 
+|| *receiving device id* || *description* || 
 || RCV_DEVICE_NONE || none || 
 || RCV_DEVICE_FILE_REC_ID || wav file || 
 || RCV_DEVICE_WINSND_WRITE || default output ||
