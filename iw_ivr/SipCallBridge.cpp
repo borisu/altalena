@@ -20,6 +20,7 @@
 #include "StdAfx.h"
 #include "BridgeMacros.h"
 #include "SipCallBridge.h"
+#include "LuaStaticApi.h"
 
 
 namespace ivrworx
@@ -39,6 +40,7 @@ Luna<sipcall>::RegType sipcall::methods[] = {
 	method(sipcall, waitforinfo),
 	method(sipcall, remoteoffer),
 	method(sipcall, localoffer),
+	method(sipcall, accept),
 	{0,0}
 };
 
@@ -56,6 +58,69 @@ _call(call)
 sipcall::~sipcall(void)
 {
 	_call.reset();
+}
+
+int
+sipcall::accept(lua_State *L)
+{
+	FUNCTRACKER;
+
+	int timeout = 15;
+	BOOL paramres = GetTableNumberParam(L,-1,&timeout,"timeout",15);
+
+	string service;
+	paramres = GetTableStringParam(L,-1,service,"service");
+	if (paramres == FALSE)
+	{
+		lua_pushnumber (L, API_WRONG_PARAMETER);
+		return 1;
+	}
+
+	
+	LpHandlePtr service_handle = ivrworx::GetHandle(service);
+	if (!service_handle)
+	{
+		return API_UNKNOWN_DESTINATION;
+	}
+
+	DECLARE_NAMED_HANDLE(listener_handle);
+	if (IW_FAILURE(SubscribeToIncomingCalls(service_handle,listener_handle)))
+	{
+		return API_SERVER_FAILURE;
+	}
+
+	
+	//
+	// Message Loop
+	// 
+	ApiErrorCode res = API_SUCCESS;
+	IwMessagePtr msg = listener_handle->Wait(Seconds(timeout),res);
+
+	if (IW_FAILURE(res))
+		return res;
+
+	switch (msg->message_id)
+	{
+	case MSG_CALL_OFFERED:
+		{
+
+			shared_ptr<MsgCallOfferedReq> call_offered = 
+				shared_polymorphic_cast<MsgCallOfferedReq> (msg);
+
+			_call.reset(new SipMediaCall(*CTX_FIELD(_forking),call_offered));
+		}
+	default:
+		{
+			return API_UNKNOWN_RESPONSE;
+
+		}
+	}
+
+	
+
+	return API_SUCCESS;
+
+
 }
 
 
@@ -170,7 +235,13 @@ sipcall::blindxfer(lua_State *L)
 		return 1;
 	}
 
-	LUA_STRING_PARAM(L,dest,-1);
+	string dest;
+	BOOL paramres = GetTableStringParam(L,-1,dest,"dest");
+	if (paramres == FALSE)
+	{
+		lua_pushnumber (L, API_WRONG_PARAMETER);
+		return 1;
+	}
 
 	ApiErrorCode res = _call->BlindXfer(dest);
 	lua_pushnumber (L, res);
@@ -213,25 +284,25 @@ sipcall::waitfordtmf(lua_State *L)
 	}
 
 
-	LUA_INT_PARAM(L,timeout,-1);
+	int timeout = 3;
+	if (GetTableNumberParam(L,-1,&timeout,"timeout",3000))
+	{
+		timeout *= 1000;
+	}
+
+	
 
 	LogDebug("sipcall::waitfordtmf iwh:" << _call->StackCallHandle() << ", timeout:" << timeout);
 
+	ApiErrorCode res = API_SUCCESS;
+	
 	string signal;
-#pragma TODO ("CSP++ Does not handle correctly the large timeouts")
-#pragma warning (suppress:4244)
-	ApiErrorCode res = 	_call->WaitForDtmf(signal, MilliSeconds(timeout));
-
-	lua_pushnumber (L, res);
-	if (IW_SUCCESS(res))
-	{
-		lua_pushstring(L, signal.c_str());
-	} 
-	else
-	{
-		lua_pushnil(L);
-	}
-
+	
+	res = 	_call->WaitForDtmf(signal, MilliSeconds(timeout));
+	
+	lua_pushnumber(L, res);
+	lua_pushstring(L, signal.c_str());
+	
 	return 2;
 
 }
@@ -283,10 +354,12 @@ sipcall::waitforinfo(lua_State *L)
 		return 1;
 	}
 
-	ApiErrorCode res = _call->WaitForInfo();
+	AbstractOffer remote_offer;
+	ApiErrorCode res = _call->WaitForInfo(remote_offer);
 
 	lua_pushnumber (L, res);
-	return 1;
+	lua_pushstring(L, remote_offer.body.c_str());
+	return 2;
 }
 
 int
@@ -363,16 +436,22 @@ sipcall::sendinfo(lua_State *L)
 		return 1;
 	}
 
-	LUA_STRING_PARAM(L,type,-2);
-	LUA_STRING_PARAM(L,body,-1);
+	AbstractOffer offer;
+	GetTableStringParam(L,-1,offer.body,"offer");
+	GetTableStringParam(L,-1,offer.type,"type");
 
-	throw;
+	bool async = false;
+	GetTableBoolParam(L,-1,&async,"async");
+
+	
 
 
-// 	ApiErrorCode res = _call->SendInfo(body,type);
-// 	lua_pushnumber (L, res);
-// 
-// 	return 1;
+ 	AbstractOffer remote_offer;
+	ApiErrorCode res = _call->SendInfo(offer,remote_offer,async);
+ 	lua_pushnumber (L, res);
+	lua_pushstring(L, remote_offer.body.c_str());
+ 
+ 	return 2;
 
 }
 

@@ -33,6 +33,9 @@ namespace ivrworx
 
 		virtual ~sipcall(void);
 
+
+		int accept(lua_State *L);
+
 		int answer(lua_State *L);
 		int cleandtmfbuffer(lua_State *L);
 		int waitfordtmf(lua_State *L);

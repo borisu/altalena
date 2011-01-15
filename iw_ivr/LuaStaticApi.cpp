@@ -140,7 +140,7 @@ namespace ivrworx
 	}
 
 
-	#define CTX_FIELD(F) (dynamic_cast<Context*>(GetCurrRunningContext()->GetAppData()))->F
+	
 
 	ApiErrorCode 
 	GetConfiguredServiceHandle(OUT HandleId &handleId, IN const string& serviceUri, ConfigurationPtr conf)
