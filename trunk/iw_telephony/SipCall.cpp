@@ -47,7 +47,7 @@ SipMediaCall::~SipMediaCall()
 }
 
 ApiErrorCode
-SipMediaCall::WaitForInfo()
+SipMediaCall::WaitForInfo(IN AbstractOffer &remoteOffer)
 {
 	FUNCTRACKER;
 
@@ -71,13 +71,17 @@ SipMediaCall::WaitForInfo()
 		return API_HANGUP;
 	}
 
+	shared_ptr<MsgSipCallInfoReq> ack = 
+		dynamic_pointer_cast<MsgSipCallInfoReq>(response);
+	remoteOffer = ack->remoteOffer;
+
 	return API_SUCCESS;
 
 }
 
 
 ApiErrorCode
-SipMediaCall::SendInfo(const AbstractOffer &offer)
+SipMediaCall::SendInfo(IN const AbstractOffer &offer, OUT AbstractOffer &remoteOffer, IN bool async)
 {
 	FUNCTRACKER;
 
@@ -89,23 +93,40 @@ SipMediaCall::SendInfo(const AbstractOffer &offer)
 
 	
 	IwMessagePtr response = NULL_MSG;
-	ApiErrorCode res = GetCurrRunningContext()->DoRequestResponseTransaction(
-		_stackHandleId,
-		IwMessagePtr(msg),
-		response,
-		Seconds(10),
-		"SIP SendInfo TXN");
 
+	ApiErrorCode res = API_SUCCESS;
+	if (async)
+	{
+		res = GetCurrRunningContext()->DoRequestResponseTransaction(
+			_stackHandleId,
+			IwMessagePtr(msg),
+			response,
+			Seconds(10),
+			"SIP SendInfo TXN");
+
+	} else
+	{
+		res = GetCurrRunningContext()->SendMessage(
+			_stackHandleId,
+			IwMessagePtr(msg));
+	}
+	
 	if (res != API_SUCCESS)
 	{
 		LogWarn("SipMediaCall::SendInfo - sending info option (check that stack is up)" << res);
 		return res;
 	}
 
+	if (async)
+		return res;
+
 	switch (response->message_id)
 	{
 	case SIP_CALL_INFO_ACK:
 		{
+			shared_ptr<MsgSipCallInfoAck> ack = 
+				dynamic_pointer_cast<MsgSipCallInfoAck>(response);
+			remoteOffer = ack->remoteOffer;
 			break;
 		}
 	case SIP_CALL_INFO_NACK:
@@ -142,7 +163,7 @@ SipMediaCall::UponActiveObjectEvent(IwMessagePtr ptr)
 		}
 	default:
 		{
-			ActiveObject::UponActiveObjectEvent(ptr);
+			GenericOfferAnswerSession::UponActiveObjectEvent(ptr);
 		}
 	}
 

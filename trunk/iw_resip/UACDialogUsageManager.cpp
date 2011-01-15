@@ -100,10 +100,18 @@ namespace ivrworx
 			return;
 		}
 
+		MsgSipCallInfoAck * ack = new MsgSipCallInfoAck();
+
+		if (msg.getContents())
+		{
+			ack->remoteOffer.body = msg.getContents()->getBodyData().c_str();
+			ack->remoteOffer.type = string("") + msg.getContents()->getType().type().c_str() + "/" + msg.getContents()->getType().subType().c_str();
+		}
+
 
 		GetCurrRunningContext()->SendResponse(
 			(uac_set)->last_options_req,
-			new MsgSipCallInfoAck());
+			ack);
 
 		(uac_set)->last_options_req.reset();
 

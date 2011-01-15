@@ -78,9 +78,9 @@ namespace ivrworx
 		SipMediaCall(IN ScopedForking &forking,
 			 IN shared_ptr<MsgCallOfferedReq> offered_msg);
 
-		virtual ApiErrorCode SendInfo(const AbstractOffer &offer);
+		virtual ApiErrorCode SendInfo(IN const AbstractOffer &offer, OUT AbstractOffer &response, IN bool async);
 
-		virtual ApiErrorCode WaitForInfo();
+		virtual ApiErrorCode WaitForInfo(OUT AbstractOffer &offer);
 
 		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
 

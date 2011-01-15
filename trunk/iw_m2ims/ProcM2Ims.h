@@ -66,6 +66,8 @@ namespace ivrworx
 
 		RcvDeviceType rcv_device_type;
 
+		PayloadType *pt;
+
 	};
 
 	typedef 
@@ -99,7 +101,8 @@ namespace ivrworx
 		virtual ApiErrorCode RecommutateSession(
 			IN StreamingCtxPtr ctx, 
 			IN const CnxInfo &remoteInfo, 
-			IN const MediaFormat &mediaFormat);
+			IN const PayloadType *mediaFormat,
+			IN int idx);
 
 		virtual void StartPlayback(IwMessagePtr msg);
 
@@ -122,6 +125,8 @@ namespace ivrworx
 
 		void InitCodecs();
 
+		void NegotiateCodec(IN const MediaFormatsList &list, OUT PayloadType **t,OUT int *idx); 
+
 		void CleanUpResources();
 
 		MSTicker *_ticker;
@@ -131,14 +136,6 @@ namespace ivrworx
 		typedef	
 		map<StreamerHandle, StreamingCtxPtr> StreamingCtxsMap;
 		StreamingCtxsMap _streamingObjectSet;
-
-		typedef
-		map<string, PayloadType*> PayloadTypeMap;
-		PayloadTypeMap _payloadTypeMap;
-
-		typedef 
-		map<string, int> PayloadIndexMap;
-		PayloadIndexMap _payloadIndexMap;
 
 		ConfigurationPtr _conf;
 
@@ -153,6 +150,10 @@ namespace ivrworx
 		HANDLE _rtpWorkerShutdownEvt;
 
 		HANDLE _rtpWorkerHandle;
+
+		string _rtpMapPostfix;
+
+		string _codecsListPostfix;
 
 	};
 

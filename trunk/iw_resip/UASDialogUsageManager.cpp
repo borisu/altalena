@@ -166,7 +166,7 @@ namespace ivrworx
 #pragma TODO("UASDialogUsageManager::onOffer takes 7 ms - SDP parsing is taking long (almost 4 ms)")
 
 	void 
-	UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp)      
+	UASDialogUsageManager::onOffer(InviteSessionHandle is, const SipMessage& msg, const Contents& body)      
 	{
 		FUNCTRACKER;
 
@@ -189,58 +189,19 @@ namespace ivrworx
 
 		LogDebug("UASDialogUsageManager::onOffer - " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 
-		const SdpContents::Session &s = sdp.session();
-		const Data &addr_data = s.connection().getAddress();
-		const string &addr = addr_data.c_str();
-
-
 		// keep alive session with the same sdp version number
-		if (is->isAccepted() && 
-			(sdp.session().origin().getVersion() == s.origin().getVersion()))
+		if (is->isAccepted())
 		{
 			LogDebug("UASDialogUsageManager::onOffer - Session timer keep-alive " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
  			is->provideAnswer(is->getLocalSdp());
 			return;
 		}
 
-		if (s.media().empty())
-		{
-			LogWarn("UASDialogUsageManager::onOffer - Empty medias list " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
-			HangupCall(ctx_ptr);
-			return;
-		}
-
-		// currently we support only "audio" conversation
-		list<SdpContents::Session::Medium>::const_iterator iter = s.media().begin();
-		for (;iter != s.media().end();iter++)
-		{
-			const SdpContents::Session::Medium &curr_medium = (*iter);
-			if (_stricmp("audio",curr_medium.name().c_str()) == 0)
-			{
-				break;
-			}
-
-		}
-
-		if (iter == s.media().end())
-		{
-			LogWarn("UASDialogUsageManager::onOffer - Not found audio connection " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
-			HangupCall(ctx_ptr);
-			return;
-		}
-
-		const SdpContents::Session::Medium &medium = *iter;
-
-		int port =	medium.port();
 
 		DECLARE_NAMED_HANDLE_PAIR(call_handler_pair);
-
 		
 		// keep alive or hold and reinvite are not accepted currently
-		if (is->isAccepted()		  ||
-			addr == "0.0.0.0"		  || 
-			medium.exists("sendonly") || 
-			medium.exists("inactive"))
+		if (is->isAccepted())
 		{
 			LogWarn("UASDialogUsageManager::onOffer - In-dialog body is not supported, rejecting body" << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 			is->reject(488);
@@ -248,8 +209,8 @@ namespace ivrworx
 		}
 
 		MsgCallOfferedReq *offered = new MsgCallOfferedReq();
-		offered->remoteOffer.body = sdp.getBodyData().c_str();
-		offered->remoteOffer.type = "application/sdp";
+		offered->remoteOffer.body = msg.getContents()->getBodyData().c_str();
+		offered->remoteOffer.type = string("") + msg.getContents()->getType().type().c_str() + "/" + msg.getContents()->getType().subType().c_str();
 		offered->stack_call_handle	= ctx_ptr->stack_handle;
 		offered->call_handler_inbound = call_handler_pair;
 
@@ -261,16 +222,14 @@ namespace ivrworx
 		offered->ani = from_uri.user().c_str();
 
 		
-		if (offered->is_indialog || 
-			offered->invite_type == ivrworx::OFFER_TYPE_HOLD ||
-			offered->invite_type == ivrworx::OFFER_TYPE_RESUME)
+		if (_eventsHandle) 
 		{
-			ctx_ptr->call_handler_inbound->Send(offered);
-		} 
-		else
-		{
-			_eventsHandle->Send(offered);
+			
+			ApiErrorCode res = _eventsHandle->Send(offered);
+			if (IW_FAILURE(res))
+				_eventsHandle.reset();
 		}
+		
 		
 
 		ctx_ptr->call_handler_inbound = call_handler_pair.inbound;

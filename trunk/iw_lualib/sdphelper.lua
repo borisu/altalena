@@ -546,8 +546,8 @@ end
 
 
 
-
-local remoteoffer = [[v=0
+--[[
+local remoteoffer = \[\[v=0
  o=jdoe 2890844526 2890842807 IN IP4 10.47.16.5
  s=SDP Seminar
  i=A Seminar on the session description protocol
@@ -560,9 +560,9 @@ local remoteoffer = [[v=0
  a=rtpmap:0 PCMU/8000/1
  m=video 51372 RTP/AVP 99
  a=rtpmap:99 h263-1998/90000
-  ]]
+  \]\]
 
-local localoffer = [[v=0
+local localoffer = \[\[v=0
 o=mhandley 2890844526 2890842807 IN IP4 126.16.64.4
 s=Sd seminar
 i=A seminar on the session description protocol
@@ -587,7 +587,7 @@ m=video 2232 RTP H261
 m=whiteboard 32416 UDP WB
 a=orient:portrait
 
-]]
+\]\]
 
 
 
@@ -610,6 +610,6 @@ print("=================================================")
 print(convert_sdp(nsdp))
 
 
-
+--]]
 
 
