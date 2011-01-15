@@ -206,21 +206,35 @@ namespace ivrworx
 	}
 
 
-	struct SdpParserImpl : 	public SdpContents{
+	struct SdpParserImpl : 	public SdpContents
+	{
 
-		string rawsdp; 
+		SdpParserImpl(HeaderFieldValue *hfv)
+			:SdpContents(hfv,Mime("application","sdp")){};
+
+		shared_ptr<HeaderFieldValue> hf_value;
 
 	};
 
 
 	 
-	SdpParser::SdpParser(const string &sdp):
-	_impl(new SdpParserImpl())
+	SdpParser::SdpParser(const string &sdp)
 	{
-		_impl->rawsdp = sdp;
+		// this is trick to ensure hfv makes an internal copy
+		HeaderFieldValue temp(sdp.c_str(),sdp.size());
+		HeaderFieldValue *value =  new HeaderFieldValue (temp);
+
 		
+		_impl.reset(new SdpParserImpl(value));
+
+		// value should also be deleted!!!
+		// sdp parser doe not own it
+		_impl->hf_value.reset(value);
+
+
 	}
 
+	
 
 	SdpParser::Medium
 	SdpParser::first_audio_medium()
@@ -228,7 +242,7 @@ namespace ivrworx
 		SdpParser::Medium res;
 
 		const SdpContents::Session &s = _impl->session();
-		
+
 		if (!s.media().empty())
 		{
 			const Data &addr_data = s.connection().getAddress();
@@ -257,8 +271,7 @@ namespace ivrworx
 					codec_iter++)
 				{
 
-					res.list.push_front(
-						MediaFormat(
+					res.list.push_back(MediaFormat(
 						codec_iter->getName().c_str(),
 						codec_iter->getRate(),
 						codec_iter->payloadType()));

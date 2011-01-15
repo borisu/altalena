@@ -21,9 +21,13 @@ s = streamer:new();
 s:allocate{rcv=iw.RCV_DEVICE_NONE, snd=iw.SND_DEVICE_TYPE_FILE}
 
 caller = sipcall:new();
-caller:makecall{dest="sip:24001@192.168.150.3", timeout=60,sdp=s:localoffer()}
+caller:makecall{dest="sip:24001@10.0.0.1:5062", timeout=60,sdp=s:localoffer()}
+
+
 s:modify{sdp=caller:remoteoffer()}
-s:play{file="C:\Windows\Media\tada.wav"}
+
+
+s:play{file="C:\\oldphone-mono-8000.wav", loop=true}
 	
 
 res, dtmf = caller:gatherdigits{pattern="%d#", timeout=15}
