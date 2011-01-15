@@ -33,10 +33,8 @@ namespace ivrworx
 		virtual ~streamer(void);
 
 		int allocate(lua_State *L);
-		int allocate0(lua_State *L);
 		int modify(lua_State *L);
 		int play(lua_State *L);
-		int bindtomike(lua_State *L){throw;};
 		int localoffer(lua_State *L);
 		int remoteoffer(lua_State *L);
 

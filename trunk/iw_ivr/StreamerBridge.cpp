@@ -103,8 +103,6 @@ namespace ivrworx
 			return 1;
 
 		}
-
-		
 		
 		ApiErrorCode res  = API_SERVER_FAILURE;
 			_streamingSessionPtr->ModifyConnection(offer);

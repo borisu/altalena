@@ -22,6 +22,8 @@
 #include "LuaTable.h"
 #include "IvrDllApi.h"
 
+#define CTX_FIELD(F) (dynamic_cast<Context*>(GetCurrRunningContext()->GetAppData()))->F
+
 namespace ivrworx
 {
 	class IW_IVR_API Context : 
