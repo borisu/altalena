@@ -598,7 +598,7 @@ namespace ivrworx
 		const Contents& body)
 	{
 		FUNCTRACKER;
-		InviteSessionHandler::onOffer(h,msg,body);
+		_dumUas.onOffer(h,msg,body);
 	}
 
 	// generic answer 
@@ -719,9 +719,10 @@ namespace ivrworx
 		FUNCTRACKER;
 		
 		IwStackHandle ixhandle = ctx_ptr->stack_handle;
-		ctx_ptr->call_handler_inbound->Send(new MsgCallHangupEvt());
 
-		
+		if (ctx_ptr && ctx_ptr->call_handler_inbound)
+			ctx_ptr->call_handler_inbound->Send(new MsgCallHangupEvt());
+
 		_iwHandlesMap.erase(ctx_ptr->stack_handle);
 
 		if (ctx_ptr->uas_invite_handle.isValid())

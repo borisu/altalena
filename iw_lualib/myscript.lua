@@ -1,88 +1,45 @@
 require "ivrworx"
 
-iw=assert(ivrworx)
+local l		  = assert(iw.LOGGER, "assert:iw.LOGGER")
+local caller  = sipcall:new()
 
 
-local function success(x,y)
-	if (x==nil or type(x) ~= "number" or x ~= iw.API_SUCCESS) then 
-		print(y);
-		error(y); 
-	end;
-	return x;
-end
+localoffer = [[v=0
+o=ivrworx 123456 654321 IN IP4 192.168.100.51
+s=A conversation
+c=IN IP4 192.168.100.51
+t=0 0
+m=audio 6000 RTP/AVP 0 8 101
+a=rtpmap:0 PCMU/8000/1
+a=rtpmap:8 PCMA/8000/1
+a=rtpmap:101 telephone-event/8000/1
+a=fmtp:101 0-11
 
-local function getopt(arg, options)
-    local opt, optind = {}, 1
-    local waiting
+]]
 
-    for _,v in ipairs(arg) do
-        if waiting then
-            -- short option waiting for a value
-            opt[waiting] = v
-            optind = optind + 1
-            waiting = nil
-        elseif v == "-" then
-            break
-        elseif v:sub(1, 1) == "-" then
-            optind = optind + 1
-            if v == "--" then
-                break
-            elseif v:sub(1, 2) == "--" then
-                -- long option
-                local x = v:find("=", 1, true)
-                if x then
-                    opt[v:sub(3, x-1)] = v:sub(x+1)
-                else
-                    opt[v:sub(3)] = true
-                end
-            else
-                -- short option
-                local j, l = 2, #v
-                while (j <= l) do
-                    local t = v:sub(j, j)
-                    local x = options:find(t, 1, true)
-                    if t == ":" then
-                        io.stderr:write(arg[0],": invalid option --'", t, "'\n")
-                        opt["?"] = true
-                    elseif x then
-                        if options:sub(x+1, x+1) == ":" then
-                            local w = v:sub(j+1)
-                            if #w > 0 then
-                                opt[t] = w
-                                j = l
-                            else
-                                waiting = t
-                            end
-                        else
-                            opt[t] = true
-                        end
-                    else
-                        io.stderr:write(arg[0],": invalid option --'", t, "'\n")
-                        opt["?"] = true
-                    end
-                    j = j + 1
-                end
-            end
-        else
-            break
-        end
-    end
+s = streamer:new();
+s:allocate{rcv=iw.RCV_DEVICE_NONE, snd=iw.SND_DEVICE_TYPE_FILE}
 
-    if waiting ~= nil then
-        io.stderr:write(arg[0],": option requires an argument -- '",waiting,"'\n")
-        opt[":"] = true
-    end
+caller = sipcall:new();
+caller:makecall{dest="sip:24001@192.168.150.3", timeout=60,sdp=s:localoffer()}
+s:modify{sdp=caller:remoteoffer()}
+s:play{file="C:\Windows\Media\tada.wav"}
+	
 
-    return opt, optind
-end
+res, dtmf = caller:gatherdigits{pattern="%d#", timeout=15}
+l:loginfo(res.."=res".."signal="..dtmf)
+
+caller:hangup();
+
+iw.sleep(5000);
+os.exit(0);
 
 
-local argtable = assert(getopt(arg,"conf"), "assert:no-conf-parse")
-local conffile = assert(argtable.conf,"assert:no-conf")
 
 
-success(iw.init(conffile), "assert:iw.init")
-local l = assert(iw.LOGGER, "assert:iw.LOGGER")
+
+
+os.exit(0);
 
 
 ---
@@ -91,12 +48,18 @@ local l = assert(iw.LOGGER, "assert:iw.LOGGER")
 str = streamer:new();
 
 local leg1 = sipcall:new()
+local leg2 = sipcall:new()
 
 
-leg1:makecall{dest="sip:24001@192.168.150.3", timeout=15, offer="kokoko", type="crazy"}
+leg1:makecall{dest="sip:24001@192.168.150.3", timeout=15}
 leg2:makecall{dest="sip:6095@192.168.150.3", sdp=leg1:remoteoffer(), timeout=15}
 
-leg1:answer{sdp=leg2:remoteoffer()}
+xsdp = leg2:remoteoffer();
+
+leg1:answer{type="sdp", offer=xsdp}
+leg1:waitfordtmf{pattern="[?+]#" , interdigittimeout=3, timeout=5}
+
+--leg1:sendinfo{offer="crazyinfo", type="crazytype"}
 
 iw.sleep(10000);
 

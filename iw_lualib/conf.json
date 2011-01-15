@@ -7,22 +7,19 @@
 	"syslogd_port" : 514,
 	"default_boot_time" : 15000,
 	
-	"modules":[
-	   "iw_resip.dll",
-	   "iw_live555rtpproxy.dll",
-	   "iw_live555rtsp.dll",
-	   "iw_m2ims.dll",
-	   "iw_sqlite.dll",
-	   "iw_unimrcp.dll"
+	"xmodelus":[
+	 "iw_sqlite.dll",
+	 "iw_live555rtpproxy.dll",
+	 "iw_live555rtsp.dll",
+	 "iw_unimrcp.dll"
 	],
 	
-	"codecs": [
-        "PCMU", 
-        "PCMA",
-        "SPEEX" 
-    ],
-    
-    
+	"modules":[
+	   "iw_resip.dll",
+	   "iw_m2ims.dll"
+	],
+	
+   
     "sqlite" : {
 		"uri" : "sql,sqlite"
     },
@@ -33,7 +30,7 @@
 		"uri"	: "sip,resip",
 		"from_id" : "ivrworx",
 		"from_display_name": "ivrworx",
-		"sip_host": "$COMPUTERNAME",
+		"sip_host": "192.168.100.44",
 		"sip_port": 5060,
 		"sip_session_timer_enabled" : true,
 		"sip_refresh_mode" : "prefer_local",

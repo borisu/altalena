@@ -69,7 +69,9 @@ public:
 
 	virtual void onAnswer(InviteSessionHandle, const SipMessage& msg, const SdpContents& sdp){FUNCTRACKER;};
 
-	virtual void onOffer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp){FUNCTRACKER;};      
+	virtual void onOffer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp){FUNCTRACKER;};    
+
+	virtual void onOffer(InviteSessionHandle is, const SipMessage& msg, const Contents& body){FUNCTRACKER;};   
 
 	virtual void onEarlyMedia(ClientInviteSessionHandle, const SipMessage& msg, const SdpContents& sdp){FUNCTRACKER;};
 

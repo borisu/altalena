@@ -53,7 +53,7 @@ namespace ivrworx
 
 		virtual void onNewSession(ServerInviteSessionHandle sis, InviteSession::OfferAnswerType oat, const SipMessage& msg);
 
-		virtual void onOffer(InviteSessionHandle is, const SipMessage& msg, const SdpContents& sdp);
+		virtual void onOffer(InviteSessionHandle h, const SipMessage& msg, const Contents& body);
 
 		virtual void onReceivedRequest(ServerOutOfDialogReqHandle ood, const SipMessage& request);
 

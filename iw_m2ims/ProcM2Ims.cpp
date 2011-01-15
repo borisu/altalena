@@ -120,7 +120,8 @@ namespace ivrworx
 		streamer_handle(IW_UNDEFINED),
 		correlation_id(IW_UNDEFINED),
 		snd_device_type(SND_DEVICE_TYPE_FILE),
-		rcv_device_type(RCV_DEVICE_FILE_REC_ID)
+		rcv_device_type(RCV_DEVICE_FILE_REC_ID),
+		pt(NULL)
 	{
 
 	}
@@ -218,13 +219,6 @@ namespace ivrworx
 		_iocpPtr = IocpInterruptorPtr(new IocpInterruptor());
 		_inbound->HandleInterruptor(_iocpPtr);
 
-
-		_payloadTypeMap["PCMA"]  = &payload_type_pcma8000;
-		_payloadTypeMap["PCMU"]  = &payload_type_pcmu8000;
-		_payloadTypeMap["SPEEX"] = &payload_type_speex_nb;
-		
-		
-
 	}
 
 	ProcM2Ims::~ProcM2Ims(void)
@@ -282,47 +276,83 @@ namespace ivrworx
 			
 	}
 
+	void 
+	ProcM2Ims::NegotiateCodec(IN const MediaFormatsList &offer, OUT PayloadType **t, OUT int *idx)
+	{
+		for (MediaFormatsList::const_iterator iter = offer.begin(); iter != offer.end(); ++iter)
+		{
+			for (int i=0; i<RTP_PROFILE_MAX_PAYLOADS; ++i)
+			{
+				PayloadType *curr = _avProfile->payload[i];
+				if (curr == NULL)
+					continue;
+
+				char *x =curr->mime_type;
+
+				if ((*iter).sdp_name_tos() == x)
+				{
+					*t = curr;
+					*idx = i;
+					return;
+				} // if
+			}// for
+		}// for
+	}// func 
+
+	
+
+	
 
 	void
 	ProcM2Ims::InitCodecs()
 	{
 		
-		ListOfAny codecs_list;
-		 _conf->GetArray("codecs", codecs_list);
+		rtp_profile_set_payload(_avProfile,0,&payload_type_pcmu8000);
+		rtp_profile_set_payload(_avProfile,1,&payload_type_lpc1016);
+		rtp_profile_set_payload(_avProfile,3,&payload_type_gsm);
+		rtp_profile_set_payload(_avProfile,7,&payload_type_lpc);
+		rtp_profile_set_payload(_avProfile,4,&payload_type_g7231);
+		rtp_profile_set_payload(_avProfile,8,&payload_type_pcma8000);
+		rtp_profile_set_payload(_avProfile,10,&payload_type_l16_stereo);
+		rtp_profile_set_payload(_avProfile,11,&payload_type_l16_mono);
+		rtp_profile_set_payload(_avProfile,18,&payload_type_g729);
+		rtp_profile_set_payload(_avProfile,31,&payload_type_h261);
+		rtp_profile_set_payload(_avProfile,32,&payload_type_mpv);
+		rtp_profile_set_payload(_avProfile,34,&payload_type_h263);
 
-		for (ListOfAny::iterator conf_iter = codecs_list.begin(); 
-			conf_iter != codecs_list.end(); 
-			conf_iter++)
+		DWORD time = ::GetTickCount();
+
+		stringstream rtmmaps;
+		stringstream codecss;
+		
+
+		// build sdp
+		
+		
+		for (int i=0; i<RTP_PROFILE_MAX_PAYLOADS; ++i)
 		{
+			PayloadType *curr = _avProfile->payload[i];
+			if (curr == NULL)
+				continue;
+					
+			char *x =payload_type_get_rtpmap(curr);
+
+			codecss << " " << i;
+			rtmmaps << "a=rtpmap:" << i << " " << x << "\r\n"; 
+
 			
-			string conf_codec_name =  any_cast<string>(*conf_iter);
-			MediaFormat media_format = MediaFormat::GetMediaFormat(conf_codec_name);
 
-			PayloadTypeMap::iterator ms_map_iter = _payloadTypeMap.find(media_format.sdp_name_tos());
-			if (ms_map_iter == _payloadTypeMap.end())
-			{
-				LogWarn("ProcM2Ims::InitCodecs media format not supported :" << media_format);
-				continue;
-			}
-
-			if (_payloadIndexMap.find(media_format.sdp_name_tos()) != _payloadIndexMap.end())
-			{
-				LogWarn("ProcM2Ims::InitCodecs media format appeared twice (not registering):" << media_format);
-				continue;
-			}
-
-			rtp_profile_set_payload(
-				_avProfile,
-				media_format.sdp_mapping(),
-				(*ms_map_iter).second
-				);
-
-			_payloadIndexMap[media_format.sdp_name_tos()] = media_format.sdp_mapping();
-
-			LogDebug("Ims added media format :" << media_format);
+			//ortp_free(x);
+			
 		}
 
+		_rtpMapPostfix = rtmmaps.str();
+		_codecsListPostfix = codecss.str();
+
+		
+			
 	}
+
 
 	void
 	ProcM2Ims::real_run()
@@ -465,54 +495,61 @@ namespace ivrworx
 				}
 			}
 
-
-			ApiErrorCode err_code = API_SUCCESS;
-			IwMessagePtr ptr =  _inbound->Wait(Seconds(0), err_code);
-
-			switch (ptr->message_id)
+			try
 			{
-			case MSG_STREAM_ALLOCATE_SESSION_REQ:
-				{
-					AllocatePlaybackSession(ptr);
-					break;
-				}
-			case MSG_STREAM_MODIFY_REQ:
-				{
-					ModifySession(ptr);
-					break;
-				}
-			case MSG_STREAM_PLAY_REQUEST:
-				{
-					StartPlayback(ptr);
-					break;
-				}
-			case MSG_STREAM_STOP_PLAY_REQ:
-				{
-					StopPlayback(ptr);
-					break;
-				}
+				ApiErrorCode err_code = API_SUCCESS;
+				IwMessagePtr ptr =  _inbound->Wait(Seconds(0), err_code);
 
-			case MSG_STREAM_TEARDOWN_REQ:
+				switch (ptr->message_id)
 				{
-					TearDown(ptr);
-					break;
-				}
-			case MSG_PROC_SHUTDOWN_REQ:
-				{
-					shutdown_flag = TRUE;
-					SendResponse(ptr,new MsgShutdownAck());
-					break;
-				}
-			default:
-				{
-					BOOL oob_res = HandleOOBMessage(ptr);
-					if (oob_res == FALSE)
+				case MSG_STREAM_ALLOCATE_SESSION_REQ:
 					{
-						LogCrit("Received unknown OOB msg:" << ptr->message_id);
-						throw;
-					}// if
-				}// default
-			}// switch
+						AllocatePlaybackSession(ptr);
+						break;
+					}
+				case MSG_STREAM_MODIFY_REQ:
+					{
+						ModifySession(ptr);
+						break;
+					}
+				case MSG_STREAM_PLAY_REQUEST:
+					{
+						StartPlayback(ptr);
+						break;
+					}
+				case MSG_STREAM_STOP_PLAY_REQ:
+					{
+						StopPlayback(ptr);
+						break;
+					}
+
+				case MSG_STREAM_TEARDOWN_REQ:
+					{
+						TearDown(ptr);
+						break;
+					}
+				case MSG_PROC_SHUTDOWN_REQ:
+					{
+						shutdown_flag = TRUE;
+						SendResponse(ptr,new MsgShutdownAck());
+						break;
+					}
+				default:
+					{
+						BOOL oob_res = HandleOOBMessage(ptr);
+						if (oob_res == FALSE)
+						{
+							LogWarn("Received unknown OOB msg:" << ptr->message_id);
+						}// if
+					}// default
+				}// switch
+
+			}
+			catch (std::exception e)
+			{
+				LogWarn("ProcM2Ims::real_run - exception:" << e.what());
+			}
+			
 		}// while
 
 		TearDownAllSessions();
@@ -529,7 +566,10 @@ namespace ivrworx
 	ProcM2Ims::AllocatePlaybackSession(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
+
+		PayloadType *pt = NULL;
+		int idx			= -1;
+		stringstream sdps;
 
 		shared_ptr<MsgStreamAllocateSessionReq> req  =
 			dynamic_pointer_cast<MsgStreamAllocateSessionReq> (msg);
@@ -566,60 +606,93 @@ namespace ivrworx
 		rtp_session_set_profile(rtps,profile);
 		ctx->profile = profile;
 
+		if (req->offer.body.size() != 0 && req->offer.type == "application/sdp")
 		{
-			SdpParser parser(req->remote_offer.body);
+			SdpParser parser(req->offer.body);
 			SdpParser::Medium medium = parser.first_audio_medium();
-			MediaFormat codec = *medium.list.begin();
 
-
-			ApiErrorCode res = API_FAILURE;
-			if (medium.connection.is_ip_valid() && 
-				medium.connection.is_port_valid() &&
-				codec.get_media_type() != MediaFormat::MediaType_UNKNOWN)
+			if (!medium.connection.is_valid() || medium.list.empty())
 			{
-				res = RecommutateSession(ctx,medium.connection,codec);
-				if (IW_FAILURE(res))
-				{
-					LogDebug("ProcM2Ims::AllocatePlaybackSession - error re-commutating, imsh:" <<  handle);
-					goto error;
-				}
+				LogDebug("ProcM2Ims::AllocatePlaybackSession - error parsing sdp, imsh:" <<  handle);
+				goto error;
+			}
+
+			
+			NegotiateCodec(medium.list,&pt,&idx);
+			if (pt == NULL)
+			{
+				LogDebug("ProcM2Ims::AllocatePlaybackSession - error negotiating, imsh:" <<  handle);
+				goto error;
 			}
 			else
 			{
-				LogDebug("ProcM2Ims::AllocatePlaybackSession - no valid info, not re-commutating, imsh:" <<  handle);
+				ctx->pt = pt;
+			}
+				
+			ApiErrorCode res = RecommutateSession(ctx,medium.connection,pt,idx);
+			if (IW_FAILURE(res))
+			{
+				LogDebug("ProcM2Ims::AllocatePlaybackSession - error re-commutating, imsh:" <<  handle);
+				goto error;
 			}
 		}
+		else
+		{
+			LogDebug("ProcM2Ims::AllocatePlaybackSession - no valid info, not re-commutating, imsh:" <<  handle);
+		}
+		
 
 		
 		//
 		// update map and send acknowledgment
 		//
+		
+		_streamingObjectSet[handle] = ctx;
+		ctx->session_handler	= req->session_handler;
+
+		MsgStreamAllocateSessionAck *ack = 
+			new MsgStreamAllocateSessionAck();
+
+		DWORD time = ::GetTickCount();
+
+		
+		if (pt == NULL)
 		{
-			_streamingObjectSet[handle] = ctx;
-			ctx->session_handler	= req->session_handler;
-
-			MsgStreamAllocateSessionAck *ack = 
-				new MsgStreamAllocateSessionAck();
-
-			stringstream sdps;
-			sdps << "v=0\n"			<<
-				"o=alice 2890844526 2890844526 IN IP4 " << ::inet_ntoa(_localInAddr) << "\n"
-				"s=\n"			<<
-				"c=IN IP4 "	<< ::inet_ntoa(_localInAddr) << "\n" <<
-				"t=0 0\n"	<<
-				"m=audio "  << ctx->stream->session->rtp.loc_port << " RTP/AVP 0 8 97\n";
-
-
-			ack->streamer_handle = handle;
-			ack->local_offer.body =sdps.str();
-
-
-			ctx->state = IMS_ALLOCATED;
-			SendResponse(req,ack);
-			return;
+			// prepare sdp with all supported codecs
+			sdps << "v=0\r\n"			<<
+				"o=m2streamer " << time << " " << time <<" IN IP4 " << ::inet_ntoa(_localInAddr) << "\r\n"
+				"s=\r\n"			<<
+				"c=IN IP4 "	<< ::inet_ntoa(_localInAddr) << "\r\n" <<
+				"t=0 0\r\n"	<<
+				"m=audio "  << ctx->stream->session->rtp.loc_port << " RTP/AVP"   <<  _codecsListPostfix  << "\r\n"
+				<< _rtpMapPostfix 
+				<< "\r\n";
+		}
+		else
+		{
+			// prepare sdp with negotiated codec only
+			sdps << "v=0\r\n"			<<
+				"o=m2streamer " << time << " " << time <<" IN IP4 " << ::inet_ntoa(_localInAddr) << "\r\n"
+				"s=\r\n"			<<
+				"c=IN IP4 "	<< ::inet_ntoa(_localInAddr) << "\r\n" <<
+				"t=0 0\r\n"	<<
+				"m=audio "  << ctx->stream->session->rtp.loc_port << " RTP/AVP"   << idx << "\r\n"
+				<< "a=rtpmap:" << idx << " " << pt->mime_type << "\r\n"
+				<< "\r\n";
 
 		}
+
 	
+
+		ack->streamer_handle  = handle;
+		ack->offer.body = sdps.str();
+		ack->offer.type = "application/sdp";
+
+
+		ctx->state = IMS_ALLOCATED;
+		SendResponse(req,ack);
+		return;
+
 error:
 		SendResponse(req,new MsgStreamAllocateSessionNack());
 		return;
@@ -631,7 +704,7 @@ error:
 	ProcM2Ims::StartTicking(StreamingCtxPtr ctx)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
+		
 
 		if (ctx->state == IMS_TICKING)
 		{
@@ -666,10 +739,11 @@ error:
 	ProcM2Ims::RecommutateSession(
 		IN StreamingCtxPtr ctx, 
 		IN const CnxInfo &remoteInfo, 
-		IN const MediaFormat &mediaFormat)
+		IN const PayloadType *mediaFormat,
+		IN int idx)
 	{
 		
-		IX_PROFILE_FUNCTION();
+		
 
 		StopTicking(ctx);
 
@@ -687,10 +761,10 @@ error:
 		}
 
 		// update session payload type
-		res = rtp_session_set_payload_type(rtps,mediaFormat.sdp_mapping());
+		res = rtp_session_set_payload_type(rtps,idx);
 		if (res < 0) 
 		{
-			LogWarn("error:rtp_session_set_payload_type " << mediaFormat.sdp_mapping_tos());
+			LogWarn("error:rtp_session_set_payload_type " << idx);
 			goto error;
 		}
 
@@ -754,10 +828,10 @@ error:
 			ctx->stream->decoder = NULL;
 		}
 
-		PayloadType *pt = rtp_profile_get_payload(_avProfile,mediaFormat.sdp_mapping());
+		PayloadType *pt = rtp_profile_get_payload(_avProfile,idx);
 		if (pt==NULL)
 		{
-			LogWarn("error:rtp_profile_get_payload " << mediaFormat.sdp_mapping_tos());
+			LogWarn("error:rtp_profile_get_payload " << idx);
 			goto error;
 		}
 
@@ -1062,7 +1136,7 @@ error:
 	ProcM2Ims::StopTicking(StreamingCtxPtr ctx)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
+		
 
 		if (ctx->state != IMS_TICKING)
 		{
@@ -1106,10 +1180,14 @@ error:
 	{
 
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
 
+		SdpParser::Medium medium;
+		StreamingCtxPtr ctx;
+		
 		shared_ptr<MsgStreamModifyReq> req  =
 			dynamic_pointer_cast<MsgStreamModifyReq> (msg);
+
+		LogDebug("ProcM2Ims::ModifySession imsh:" << req->streamer_handle);
 
 		StreamingCtxsMap::iterator iter = 
 			_streamingObjectSet.find(req->streamer_handle);
@@ -1117,30 +1195,47 @@ error:
 		if (iter == _streamingObjectSet.end())
 		{
 			LogWarn("ProcM2Ims::ModifySession invalid imsh:" << req->streamer_handle);
-			SendResponse(msg, new MsgStreamModifyNack());
-			return;
+			goto error;
 		}
 
-		StreamingCtxPtr ctx		= iter->second;
-
-
-		// to ensure that we using the same mapping take from the table
-		PayloadIndexMap::iterator payload_iter =  _payloadIndexMap.find(req->codec.sdp_name_tos());
-		if (payload_iter == _payloadIndexMap.end())
+		ctx	= iter->second;
+		if (ctx->pt != NULL)
 		{
-			LogWarn("ProcM2Ims::ModifySession unsupported media:" << req->codec);
-			SendResponse(msg, new MsgStreamModifyNack());
-			return;
+			LogWarn("ProcM2Ims::ModifySession sessions parameters were set already imsh:" << req->streamer_handle);
+			goto error;
 		}
 
-		if (!req->remote_offer.body.empty())
+		if (ctx->pt == NULL && req->offer.body.empty())
 		{
-			LogWarn("ProcM2Ims::ModifySession cnx info is invalid:" << req->remote_offer.body);
-			SendResponse(msg, new MsgStreamModifyNack());
-			return;
+			LogWarn("ProcM2Ims::ModifySession sdp is invalid");
+			goto error;
 		}
 
-		
+		{
+			SdpParser parser(req->offer.body);
+			medium = parser.first_audio_medium();
+
+			if (!medium.connection.is_valid() || medium.list.empty())
+			{
+				LogWarn("erro parsing sdp imsh:" << ctx->streamer_handle);
+				goto error;
+			}
+		}
+
+		// update remote end for session
+		int remport  = medium.connection.port_ho();
+		char *remip  = (char *)medium.connection.iptoa();
+
+		int idx = -1;
+		PayloadType *pt = NULL;
+		NegotiateCodec(medium.list,&pt,&idx);
+		if (pt == NULL)
+		{
+			LogWarn("Error negotiating codecs");
+			goto error;
+		}
+		ctx->pt = pt;
+
 		// to prevent race conditions?
 		ApiErrorCode err = StopTicking(ctx);
 		if (IW_FAILURE(err))
@@ -1149,60 +1244,39 @@ error:
 			goto error;
 		}
 
-		
+		RtpSession *rtps = ctx->stream->session;
+
+		int res = rtp_session_set_remote_addr(rtps,remip,remport);
+		if (res < 0) 
 		{
-			SdpParser parser(req->remote_offer.body);
-			SdpParser::Medium medium = parser.first_audio_medium();
-
-
-			// update remote end for session
-			int remport  = medium.connection.port_ho();
-			char *remip  = (char *)medium.connection.iptoa();
-			MediaFormat codec = *medium.list.begin();
-			
-	
-			RtpSession *rtps = ctx->stream->session;
-
-			int res = rtp_session_set_remote_addr(rtps,remip,remport);
-			if (res < 0) 
-			{
-				LogWarn("error:rtp_session_set_remote_addr");
-				goto error;
-			}
-
-			LogDebug("ProcM2Ims::ModifySession imsh:" << req->streamer_handle << 
-				", remip:" << remip  << 
-				", port:"  << remport <<
-				", codec(map):" << req->codec.sdp_mapping() << 
-				", codec(name):" << req->codec.sdp_name_tos() );
-
-		
-			err = RecommutateSession(
-				ctx,
-				medium.connection,
-				codec);
-
-			if (IW_FAILURE(err))
-			{
-				LogWarn("Error recommutating imsh:" << ctx->streamer_handle);
-				goto error;
-			}
-
-			err = StartTicking(ctx);
-			if (IW_FAILURE(err))
-			{
-				LogWarn("Error attaching to ticker imsh:" << ctx->streamer_handle);
-				goto error;
-			}
-
-			SendResponse(req, new MsgStreamModifyAck());
-
-			return;
+			LogWarn("error:rtp_session_set_remote_addr");
+			goto error;
 		}
 
+		err = RecommutateSession(
+			ctx,
+			CnxInfo(remip,remport),
+			pt,
+			idx);
+
+		if (IW_FAILURE(err))
+		{
+			LogWarn("Error recommutating imsh:" << ctx->streamer_handle);
+			goto error;
+		}
+
+		err = StartTicking(ctx);
+		if (IW_FAILURE(err))
+		{
+			LogWarn("Error attaching to ticker imsh:" << ctx->streamer_handle);
+			goto error;
+		}
+
+		SendResponse(req, new MsgStreamModifyAck());
+
+		return;
 
 error:
-
 		SendResponse(req, new MsgStreamModifyNack());
 
 	}
@@ -1214,7 +1288,7 @@ error:
 	{
 
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
+		
 
 		shared_ptr<MsgStreamPlayReq> req  =
 			dynamic_pointer_cast<MsgStreamPlayReq> (msg);
@@ -1398,7 +1472,7 @@ error:
 	ProcM2Ims::UponPlaybackStopped(ImsOverlapped *ovlp)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
+		
 
 		auto_ptr<ImsOverlapped> args = auto_ptr<ImsOverlapped>(ovlp);
 		
@@ -1429,7 +1503,7 @@ error:
 	ProcM2Ims::TearDown(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
+		
 
 		shared_ptr<MsgStreamTearDownReq> req  =
 			dynamic_pointer_cast<MsgStreamTearDownReq> (msg);
@@ -1459,7 +1533,7 @@ error:
 	ProcM2Ims::TearDown(StreamingCtxPtr ctx)
 	{
 		FUNCTRACKER;
-		IX_PROFILE_FUNCTION();
+		
 
 		AudioStream *stream = ctx->stream;
 
