@@ -661,7 +661,7 @@ namespace ivrworx
 			// prepare sdp with all supported codecs
 			sdps << "v=0\r\n"			<<
 				"o=m2streamer " << time << " " << time <<" IN IP4 " << ::inet_ntoa(_localInAddr) << "\r\n"
-				"s=\r\n"			<<
+				"s=m2session\r\n"			<<
 				"c=IN IP4 "	<< ::inet_ntoa(_localInAddr) << "\r\n" <<
 				"t=0 0\r\n"	<<
 				"m=audio "  << ctx->stream->session->rtp.loc_port << " RTP/AVP"   <<  _codecsListPostfix  << "\r\n"
@@ -673,11 +673,11 @@ namespace ivrworx
 			// prepare sdp with negotiated codec only
 			sdps << "v=0\r\n"			<<
 				"o=m2streamer " << time << " " << time <<" IN IP4 " << ::inet_ntoa(_localInAddr) << "\r\n"
-				"s=\r\n"			<<
+				"s=m2session\r\n"			<<
 				"c=IN IP4 "	<< ::inet_ntoa(_localInAddr) << "\r\n" <<
 				"t=0 0\r\n"	<<
 				"m=audio "  << ctx->stream->session->rtp.loc_port << " RTP/AVP"   << idx << "\r\n"
-				<< "a=rtpmap:" << idx << " " << pt->mime_type << "\r\n"
+				<< "a=rtpmap:" << idx << " " << pt->mime_type
 				<< "\r\n";
 
 		}
@@ -844,7 +844,7 @@ error:
 
 		if (pt->send_fmtp!=NULL) 
 		{
-			res = ms_filter_call_method(ctx->stream->encoder,MS_FILTER_ADD_FMTP, (void*)pt->send_fmtp);
+			res = ms_filter_call_method(ctx->stream->decoder,MS_FILTER_ADD_FMTP, (void*)pt->send_fmtp);
 			if (res < 0) 
 			{
 				LogWarn("error:ms_filter_call_method decoder send_fmtp MS_FILTER_ADD_FMTP");
@@ -913,6 +913,34 @@ error:
 			goto error;
 		}
 
+		res = ms_filter_call_method(ctx->stream->encoder,MS_FILTER_SET_SAMPLE_RATE,&pt->clock_rate);
+// 		if (res < 0) 
+// 		{
+// 			LogWarn("error:ms_filter_call_method(ctx->stream->encoder,MS_FILTER_SET_SAMPLE_RATE");
+// 			goto error;
+// 	
+		if (pt->normal_bitrate>0){
+			res = ms_filter_call_method(ctx->stream->encoder,MS_FILTER_SET_BITRATE,&pt->normal_bitrate);
+// 			if (res < 0) 
+// 			{
+// 				LogWarn("error:ms_filter_call_method(ctx->stream->encoder,MS_FILTER_SET_BITRATE");
+// 				goto error;
+// 				
+		}
+
+		if (pt->send_fmtp!=NULL) 
+		{
+			res = ms_filter_call_method(ctx->stream->encoder,MS_FILTER_ADD_FMTP, (void*)pt->send_fmtp);
+			if (res < 0) 
+			{
+				LogWarn("error:ms_filter_call_method(ctx->stream->encoder,MS_FILTER_ADD_FMTP");
+				goto error;
+			}
+		}
+			
+			
+		
+
 
 		/********************
 		*
@@ -936,13 +964,14 @@ error:
 					LogWarn("error:ms_filter_new(MS_FILE_PLAYER_ID)");
 					goto error;
 				};
+
 				break;
 			}
 		case SND_DEVICE_TYPE_SND_CARD_MIC:
 			{
 				MSSndCard *sc = NULL;
 				const char * card_id = NULL;
-				int tmp = -1;
+				
 				sc = ms_snd_card_manager_get_card(ms_snd_card_manager_get(),card_id);
 				if (sc == NULL) 
 				{
@@ -963,23 +992,20 @@ error:
 					goto error;
 				}
 
-				tmp = 1;
+				int tmp = 1;
 				ms_filter_call_method(ctx->stream->soundread,MS_FILTER_SET_NCHANNELS,&tmp);
 				if (res<0) 
 				{
 					LogWarn("error:ms_filter_call_method(MS_FILTER_SET_NCHANNELS)(SND CARD) ch:" << tmp);
 					goto error;
 				}
-
-				break;;
+				break;
 			}
 		default:
 			{
 
 			}
 		}
-
-
 
 		
 
@@ -1334,7 +1360,7 @@ error:
 				if (hFind == INVALID_HANDLE_VALUE) 
 				{
 					// relative path?
-					filename = _conf->GetString("sounds_dir")+ "\\" + req->file_name;
+					filename = _conf->GetString("m2ims/sounds_dir")+ "\\" + req->file_name;
 					hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);
 					if (hFind == INVALID_HANDLE_VALUE) 
 					{
@@ -1414,6 +1440,11 @@ error:
 					SendResponse(msg, new MsgStreamPlayNack());
 					return;
 				};
+
+				if (tmp != ctx->pt->clock_rate)
+				{
+					LogWarn("clock rates of payload and wav file are different pt:" << ctx->pt->clock_rate << " file:" << tmp << " imsh:" << req->streamer_handle);
+				}
 
 				res = ms_filter_call_method(ctx->stream->soundwrite,MS_FILTER_SET_SAMPLE_RATE,&tmp);
 				if (res < 0)

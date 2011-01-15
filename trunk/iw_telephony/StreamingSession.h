@@ -71,11 +71,7 @@ namespace ivrworx
 		  streamer_handle(IW_UNDEFINED),
 			  correlation_id(IW_UNDEFINED){}
 
-		  AbstractOffer remote_offer;
-
-		  AbstractOffer local_offer;
-
-		  MediaFormat codec;
+		  AbstractOffer offer;
 
 		  LpHandlePair session_handler;
 

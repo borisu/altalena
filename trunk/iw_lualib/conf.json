@@ -30,7 +30,7 @@
 		"uri"	: "sip,resip",
 		"from_id" : "ivrworx",
 		"from_display_name": "ivrworx",
-		"sip_host": "192.168.100.44",
+		"sip_host": "$COMPUTERNAME",
 		"sip_port": 5060,
 		"sip_session_timer_enabled" : true,
 		"sip_refresh_mode" : "prefer_local",

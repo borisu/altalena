@@ -37,6 +37,7 @@ namespace ivrworx
 		int play(lua_State *L);
 		int localoffer(lua_State *L);
 		int remoteoffer(lua_State *L);
+		int stop(lua_State *L);
 
 
 		static const char className[];

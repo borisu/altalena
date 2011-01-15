@@ -222,7 +222,7 @@ StreamingSession::Allocate(IN const AbstractOffer &remote_end,
 	DECLARE_NAMED_HANDLE_PAIR(session_handler_pair);
 
 	MsgStreamAllocateSessionReq *msg = new MsgStreamAllocateSessionReq();
-	msg->remote_offer = remote_end;
+	msg->offer = remote_end;
 	msg->session_handler = session_handler_pair;
 	msg->rcv_device_type = rcvDeviceType;
 	msg->snd_device_type = sndDeviceType;
@@ -250,7 +250,7 @@ StreamingSession::Allocate(IN const AbstractOffer &remote_end,
 			shared_ptr<MsgStreamAllocateSessionAck> ack = 
 				shared_polymorphic_cast<MsgStreamAllocateSessionAck>(response);
 			_streamingSessionHandle	= ack->streamer_handle;
-			_localOffer = ack->local_offer;
+			_localOffer = ack->offer;
 			
 
 			StartActiveObjectLwProc(_forking,session_handler_pair,"Stream Session handler");
@@ -298,7 +298,7 @@ StreamingSession::ModifyConnection(IN const AbstractOffer &remote_end)
 	DECLARE_NAMED_HANDLE_PAIR(session_handler_pair);
 
 	MsgStreamModifyReq *msg = new MsgStreamModifyReq();
-	msg->remote_offer = remote_end;
+	msg->offer = remote_end;
 	msg->streamer_handle = _streamingSessionHandle;
 	
 
