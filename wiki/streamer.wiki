@@ -24,6 +24,14 @@ creates streamer object
 || RCV_DEVICE_WINSND_WRITE || default output ||
 
 
+== `:play(...)` ==
+
+
+|| *named parameter* || *description* ||
+|| file || flename to play (if open with SND_DEVICE_TYPE_FILE) ||
+|| loop || the file will be played in loop||
+|| sync || if true the function will exit upon eof (cannot be used with loop = true||
+
 ===example 1===
 Makes call to the destination, the INVITE sent is empty the call should be answered lately. 
 
