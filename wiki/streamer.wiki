@@ -47,6 +47,11 @@ returns raw remote offer
 
 returns raw local offer 
 
+== `:modify(...)` ==
+
+|| *named parameter* || *description* ||
+|| sdp || remote offer (modifies destination of the streaming)||
+
 ===example 1===
 Makes call to the destination, the INVITE sent is empty the call should be answered lately. 
 
