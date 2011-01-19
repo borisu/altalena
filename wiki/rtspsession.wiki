@@ -2,6 +2,9 @@
 
 rtsp session
 
+
+Currently RTSP stream may be sent only to source of RTSP request. Use rtpproxy to overcome the limtation
+
 == `:new(...)` ==
 _ctor_
 creates rtspsession object
