@@ -1,13 +1,31 @@
-#summary One-sentence summary of this page.
+<wiki:toc max_depth="3" />
 
-= Introduction =
+rtsp session
 
-Add your content here.
+== `:new(...)` ==
+_ctor_
+creates rtspsession object
+
+== `:setup(...)` ==
+sends SETUP command
+
+|| *named parameter* || *description* ||
+|| url|| rtsp url||
+|| sdp || client side offer  ||
 
 
-= Details =
+== `:play(...)` ==
+sends PLAY command
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+|| *named parameter* || *description* ||
+|| starttime||start time RTSP paramater||
+|| duration|| duration RTSP parameter ||
+|| scale|| scale RTSP parameter ||
+
+
+== `:pause(...)` ==
+sends PAUSE command
+
+
+== `:teardown(...)` ==
+sends TEARDOWN command
