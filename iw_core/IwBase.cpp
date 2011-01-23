@@ -106,16 +106,7 @@ namespace ivrworx
 	{
 		
 		unsigned long ia = inet_addr(host_name);
-		if (ia == INADDR_NONE || ia == INADDR_ANY)
-		{
-			throw std::exception("Invalid ip address supplied to CnxInfo ctor");
-		}
-		//else
-		//{
-		//	addr.sin_addr.S_un.S_addr = htonl( 0x7F000001 );
-		//}
 
-		
 		addr.sin_addr.S_un.S_addr = ia;
 		addr.sin_family = AF_INET;
 		addr.sin_port = ::htons(p_port);
