@@ -1,0 +1,32 @@
+<wiki:toc max_depth="3" />
+
+rtpproxy session. Currently only half duplex mode is supported.
+
+
+== `:new(...)` ==
+_ctor_
+creates rtpproxyobject
+
+== `:allocate(...)` ==
+allocates rtp connenction
+
+|| *named parameter* || *description* ||
+|| sdp || remote side offer (this is used to build local offer) ||
+
+
+== `:modify(...)` ==
+modify rtp destination of the connection
+
+|| *named parameter* || *description* ||
+|| sdp || remote side offer (this is used to build local offer) ||
+
+
+== `:bridge(...)` ==
+bridges the rtp streams
+
+|| *named parameter* || *description* ||
+|| other || other connection object to half duplex ||
+
+
+== `:teardown(...)` ==
+deallocates the connection 
