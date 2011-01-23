@@ -152,11 +152,6 @@ namespace ivrworx
 			IN InviteSessionHandle, 
 			IN const SipMessage &msg);
 
-		virtual void onOffer(
-			IN InviteSessionHandle is, 
-			IN const SipMessage& msg, 
-			IN const SdpContents& sdp);
-
 		// generic offer/answer
 		virtual void onOffer(
 			InviteSessionHandle h, 

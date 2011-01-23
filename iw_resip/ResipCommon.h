@@ -59,6 +59,8 @@ namespace ivrworx
 	{
 		SipDialogContext();
 
+		BOOL isUac();
+
 		InviteSessionHandle invite_handle;
 
 		ServerInviteSessionHandle uas_invite_handle;
