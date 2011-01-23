@@ -67,6 +67,12 @@ namespace ivrworx
 
 	}
 
+	BOOL
+	SipDialogContext::isUac()
+	{
+		return uac_invite_handle.get() !=  NULL;
+	}
+
 	
 }
 

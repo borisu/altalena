@@ -597,8 +597,26 @@ namespace ivrworx
 		const SipMessage& msg, 
 		const Contents& body)
 	{
-		FUNCTRACKER;
-		_dumUas.onOffer(h,msg,body);
+		FUNCTRACKER
+
+		ResipDialogHandlesMap::iterator iter 
+			= _resipHandlesMap.find(h->getAppDialog());
+		if (iter == _resipHandlesMap.end())
+		{
+			LogWarn("Dialog not found");
+			return;
+		}
+
+		if ((iter->second)->isUac())
+		{
+			_dumUac.onOffer(h,msg,body);
+		}
+		else
+		{
+			_dumUas.onOffer(h,msg,body);
+		}
+
+		
 	}
 
 	// generic answer 
@@ -675,21 +693,6 @@ namespace ivrworx
 		FUNCTRACKER;
 		_dumUac.onFailure(is,msg);
 
-	}
-
-	void 
-	ProcResipStack::onOffer(
-		IN InviteSessionHandle is, 
-		IN const SipMessage& msg, 
-		IN const SdpContents& sdp)
-	{
-		FUNCTRACKER;
-		
-		// On offer is actually called when first SDP is received
-		// it may be in first invite sent to UAS, or in response to 
-		// empty invite sent by UAC, in this case it is not correct 
-		// to send it to uas dum. This case is not handled.
-		_dumUas.onOffer(is,msg,sdp);
 	}
 
 	/// called when ACK (with out an answer) is received for initial invite (UAS)

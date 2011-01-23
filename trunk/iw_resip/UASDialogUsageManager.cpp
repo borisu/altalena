@@ -174,7 +174,7 @@ namespace ivrworx
 		if (ctx_iter == _resipHandlesMap.end())
 		{
 			LogCrit("UASDialogUsageManager::onOffer - without created context, rsh:" << is.getId());
-			throw;
+			return;
 		}
 
 		if (!_eventsHandle)
