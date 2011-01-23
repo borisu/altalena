@@ -262,6 +262,13 @@ ProcLive555RtpProxy::UponAllocateReq(IwMessagePtr msg)
 	shared_ptr<MsgRtpProxyAllocateReq> req = 
 		dynamic_pointer_cast<MsgRtpProxyAllocateReq>(msg);
 
+	if (!req || req->offer.body.empty())
+	{
+		LogWarn("ProcLive555RtpProxy::UponAllocateReq - must supply sdp");
+		SendResponse(req, new MsgRtpProxyNack());
+		return;
+	}
+
 	RtpConnectionPtr candidate;
 
 	RtpConnectionsMap::iterator iter = _connectionsMap.begin();
@@ -283,31 +290,26 @@ ProcLive555RtpProxy::UponAllocateReq(IwMessagePtr msg)
 		return;
 	}
 
-
-	MsgRtpProxyAck* ack = new MsgRtpProxyAck();
-	ack->rtp_proxy_handle = candidate->connection_id;
-
-	stringstream str;
-	str <<  "v=0"				<< endl
-		<<  "o=live555proxy "   << candidate->connection_id << " " << candidate->connection_id << "IN IP4 " << candidate->local_cnx_ino.iptoa() << endl
-		<<  "s=live555proxy "	<< endl
-		<<  "c=IN IP4" << candidate->local_cnx_ino.iptoa() << endl << endl;
-
-	ack->offer.type = "application/sdp";
-	ack->offer.body = str.str();
-
 	candidate->state = CONNECTION_STATE_ALLOCATED;
 
 	SdpParser p(req->offer.body);
 	SdpParser::Medium m = p.first_audio_medium();
-	MediaFormat media_format = *m.list.begin();
 
-	
+	if (m.list.empty())
+	{
+		LogWarn("ProcLive555RtpProxy::UponAllocateReq - must supply sdp with codec list");
+		SendResponse(req, new MsgRtpProxyNack());
+		return;
+	}
+
+	candidate->remote_cnx_ino = m.connection;
+	candidate->media_format = *m.list.begin(); 
+
+
 	if (m.connection.is_ip_valid() && 
 		m.connection.is_port_valid())
 	{
-		candidate->remote_cnx_ino = m.connection;
-
+		
 		candidate->live_rtp_socket->changeDestinationParameters(
 			m.connection.inaddr(),
 			m.connection.port_ho(),225);
@@ -317,9 +319,23 @@ ProcLive555RtpProxy::UponAllocateReq(IwMessagePtr msg)
 			m.connection.port_ho() + 1,225);
 	}
 
-	
-	candidate->media_format = media_format; 
-	
+	DWORD time = ::GetTickCount();
+
+	stringstream str;
+	str <<  "v=0\r\n"
+		<<  "o=live555proxy "   << time << " " << time << " IN IP4 " << candidate->local_cnx_ino.iptoa() << "\r\n"
+		<<  "s=live555proxy\r\n"
+		<<  "c=IN IP4 " << candidate->local_cnx_ino.iptoa() << "\r\n"
+		<<  "t=0 0\r\n"
+		<<  "m=audio " << candidate->local_cnx_ino.port_ho() << " RTP/AVP";
+
+	m.append_codec_list(str) ; str << "\r\n"; 
+	m.append_rtp_map(str) ; str << "\r\n\r\n";
+
+	MsgRtpProxyAck* ack = new MsgRtpProxyAck();
+	ack->rtp_proxy_handle = candidate->connection_id;
+	ack->offer.type = "application/sdp";
+	ack->offer.body = str.str();
 	
 	LogDebug("ProcLive555RtpProxy::UponAllocateReq allocated rtph:" << candidate->connection_id );
 	SendResponse(req, ack);
@@ -402,6 +418,7 @@ ProcLive555RtpProxy::UponModifyReq(IwMessagePtr msg)
 
 	}
 
+
 	RtpConnectionPtr conn = iter->second;
 
 	SdpParser p(req->offer.body);
@@ -416,7 +433,7 @@ ProcLive555RtpProxy::UponModifyReq(IwMessagePtr msg)
 	}
 	
 
-	if (m.connection.is_ip_valid() &&m.connection.is_port_valid())
+	if (m.connection.is_ip_valid() && m.connection.is_port_valid())
 	{
 		int port_ho = m.connection.port_ho();
 

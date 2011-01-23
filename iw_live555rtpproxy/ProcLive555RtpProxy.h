@@ -72,14 +72,15 @@ namespace ivrworx
 			CnxInfo local_cnx_ino;
 			CnxInfo remote_cnx_ino;
 
+			MediaFormat media_format;
+
 			RtpConnectionPtr source_conn;
 			SimpleRTPSource* source;
 			
 			RtpConnectionPtr destination_conn;
 			SimpleRTPSink* sink;
 
-			MediaFormat media_format;
-			
+		
 			
 		};
 
