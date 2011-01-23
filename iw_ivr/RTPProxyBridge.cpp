@@ -18,38 +18,39 @@
 */
 #include "StdAfx.h"
 #include "RTPProxyBridge.h"
+#include "BridgeMacros.h"
 
 
 namespace ivrworx
 {
-	const char RTPProxyBridge::className[] = "RTPProxyBridge";
-	Luna<RTPProxyBridge>::RegType RTPProxyBridge::methods[] = {
-		method(RTPProxyBridge, allocate),
-		method(RTPProxyBridge, teardown),
-		method(RTPProxyBridge, localcnx),
+	const char rtpproxy::className[] = "rtpproxy";
+	Luna<rtpproxy>::RegType rtpproxy::methods[] = {
+		method(rtpproxy, allocate),
+		method(rtpproxy, teardown),
+		method(rtpproxy, modify),
+		method(rtpproxy, bridge),
+		method(rtpproxy, localoffer),
+		method(rtpproxy, remoteoffer),
 		{0,0}
 	};
 
-	RTPProxyBridge::RTPProxyBridge(lua_State *L)
+	rtpproxy::rtpproxy(lua_State *L)
 	{
 	}
 
-	RTPProxyBridge::RTPProxyBridge(RtpProxySessionPtr rtpProxySession):
+	rtpproxy::rtpproxy(RtpProxySessionPtr rtpProxySession):
 	_rtpProxySession(rtpProxySession)
 	{
 	}
 
-	RTPProxyBridge::~RTPProxyBridge(void)
+	rtpproxy::~rtpproxy(void)
 	{
 		
-
-
-
 	}
 
 	// Lua interface
 	int 
-	RTPProxyBridge::allocate(lua_State *L)
+	rtpproxy::allocate(lua_State *L)
 	{
 		if (!_rtpProxySession)
 		{
@@ -57,14 +58,46 @@ namespace ivrworx
 			return 1;
 		};
 
-		ApiErrorCode res  = _rtpProxySession->Allocate();
+		AbstractOffer offer;
+		offer.type = "application/sdp";
+		BOOL paramres = GetTableStringParam(L,-1,offer.body,"sdp");
+		if (paramres == FALSE)
+		{
+			lua_pushnumber (L, API_WRONG_PARAMETER);
+			return 1;
+		}
+
+		ApiErrorCode res  = _rtpProxySession->Allocate(offer);
+		lua_pushnumber (L, res);
+
+		return 1;
+	}
+
+	int 
+	rtpproxy::bridge(lua_State *L)
+	{
+		if (!_rtpProxySession)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		};
+
+		rtpproxy *other = NULL;
+		BOOL paramres = GetLunaUserData<rtpproxy>(L,-1,&other,"other");
+		if (paramres == FALSE)
+		{
+			lua_pushnumber (L, API_WRONG_PARAMETER);
+			return 1;
+		}
+
+		ApiErrorCode res  = _rtpProxySession->Bridge(*(other->_rtpProxySession));
 		lua_pushnumber (L, res);
 
 		return 1;
 	}
 	
 	int 
-	RTPProxyBridge::teardown(lua_State *L)
+	rtpproxy::teardown(lua_State *L)
 	{
 		if (!_rtpProxySession)
 		{
@@ -80,56 +113,59 @@ namespace ivrworx
 	}
 
 	int 
-	RTPProxyBridge::modify(lua_State *L)
+	rtpproxy::modify(lua_State *L)
 	{
-// 		if (!_rtpProxySession)
-// 		{
-// 			lua_pushnumber (L, API_WRONG_STATE);
-// 			return 1;
-// 		};
-// 
-// 		CnxInfoBridge *a = 
-// 			static_cast<CnxInfoBridge*>(lua_touserdata(L, -2));
-// 		if (a == NULL)
-// 		{
-// 			lua_pushnumber (L, API_WRONG_PARAMETER);
-// 			return 1;
-// 		};
-// 
-// 		MediaFormatBridge *media_format = 
-// 			static_cast<MediaFormatBridge*>(lua_touserdata(L, -1));
-// 		if (a == NULL)
-// 		{
-// 			lua_pushnumber (L, API_WRONG_PARAMETER);
-// 			return 1;
-// 		};
-// 
-// 
-// 		throw;
 
-		
-// 		ApiErrorCode res  = _rtpProxySession->Modify(a->_cnxInfo, media_format->_mediaFormat);
-// 		lua_pushnumber (L, res);
+		if (!_rtpProxySession)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		};
+
+		AbstractOffer offer;
+		offer.type = "application/sdp";
+		BOOL paramres = GetTableStringParam(L,-1,offer.body,"sdp");
+		if (paramres == FALSE)
+		{
+			lua_pushnumber (L, API_WRONG_PARAMETER);
+			return 1;
+		}
+
+
+		ApiErrorCode res  = _rtpProxySession->Modify(offer);
+		lua_pushnumber (L, res);
 
 		return 1;
 
 	}
 
 	int
-	RTPProxyBridge::localcnx(lua_State *L)
+	rtpproxy::remoteoffer(lua_State *L)
 	{
 		FUNCTRACKER;
-
 		if (!_rtpProxySession)
 		{
 			lua_pushnumber (L, API_WRONG_STATE);
 			return 1;
 		}
 
-		throw;
+		lua_pushstring(L, _rtpProxySession->RemoteOffer().body.c_str());
+		return 1;
 
-// 		Luna<CnxInfoBridge>::PushObject(L, new CnxInfoBridge(_rtpProxySession->LocalCnxInfo()));
-// 		return 1;
+	}
+
+	int 
+	rtpproxy::localoffer(lua_State *L)
+	{
+		FUNCTRACKER;
+		if (!_rtpProxySession)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		lua_pushstring(L, _rtpProxySession->LocalOffer().body.c_str());
+		return 1;
 
 	}
 
