@@ -19,7 +19,7 @@
 
 #include "StdAfx.h"
 #include "ProcLive555Rtsp.h"
-#include "Live555RtspSession.h"
+
 
 namespace ivrworx
 {
@@ -37,11 +37,8 @@ namespace ivrworx
 	_rtspClient(NULL),
 	_session(NULL)
 	{
-		static const size_t buf_len = 1024;
-		char buf[buf_len];
-		_snprintf_s(buf,buf_len,"proto=rtsp;vendor=live555;uid=%d",_processId);
-
-		ServiceId(buf);
+		
+		ServiceId(_conf->GetString("live555rtsp/uri"));
 
 		// currently it is thread per client so we generate the 
 		// handle only once
@@ -57,6 +54,8 @@ namespace ivrworx
 	ProcLive555Rtsp::real_run()
 	{
 		FUNCTRACKER;
+
+		LogWarn("This version of RTSP is synchronous, don't use from multiple clients");
 
 		_scheduler	=	BasicTaskScheduler::createNew();
 		_env  =	IwUsageEnvironment::createNew(*_scheduler);
@@ -344,6 +343,13 @@ namespace ivrworx
 		SdpParser p(req->offer.body);
 		SdpParser::Medium audio_medium = p.first_audio_medium();
 
+		if (!audio_medium.connection.is_valid() || audio_medium.list.empty())
+		{
+			LogWarn("ProcLive555Rtsp::SetupSession - invalid suggested offer:" << req->offer.body);
+			SendResponse(msg, new MsgRtspSetupSessionNack());
+			return;
+		}
+
 		
 		char* sdpDescription
 			= getSDPDescriptionFromURL(
@@ -381,23 +387,49 @@ namespace ivrworx
 
 		char *singleMedium="audio";
 
-		// Then, setup the "RTPSource"s for the session:
-		MediaSubsessionIterator iter(*session);
+		
+		
+
 		MediaSubsession *curr_subsession = NULL;
 		MediaSubsession *subsession_candidate = NULL;
+		MediaFormat media_format;
 
-		MediaFormat &media_format = (*audio_medium.list.begin());
-		// find if there is an appropriate codec
-		while ((curr_subsession = iter.next()) != NULL) 
+		for(MediaFormatsList::iterator it=audio_medium.list.begin(); it!= audio_medium.list.end(); it++)
 		{
-			if (strcmp(curr_subsession->mediumName(),"audio") == 0 &&
-				media_format.sdp_name_tos() == curr_subsession->codecName() )
+			MediaFormat media_format = (*it);
+			// Then, setup the "RTPSource"s for the session:
+			MediaSubsessionIterator iter(*session);
+
+			// find if there is an appropriate codec
+			while ((curr_subsession = iter.next()) != NULL) 
 			{
-				LogDebug("ProcLive555Rtsp::SetupSession - chosen :" << curr_subsession->controlPath());
-				subsession_candidate = curr_subsession;
+
+				if (strcmp(curr_subsession->mediumName(),"audio") != 0)
+					continue;
+
+				bool match;
+				if (curr_subsession->codecName() != NULL && string("") != curr_subsession->codecName())
+				{
+					match = media_format.sdp_name_tos() == curr_subsession->codecName();
+				} 
+				else 
+				{
+					// rtsp live555 server I have tested with worked only with static payload
+					// without even codec name
+					match = media_format.sdp_mapping() == curr_subsession->rtpPayloadFormat();
+				}
+				if (match)
+				{
+					LogDebug("ProcLive555Rtsp::SetupSession - chosen :" << curr_subsession->controlPath());
+					subsession_candidate = curr_subsession;
+					break;
+				}
+
+			} // while
+
+			if (curr_subsession)
 				break;
-			}
-		} // while
+		}
 
 		if (curr_subsession == NULL)
 		{
@@ -406,9 +438,11 @@ namespace ivrworx
 			return;
 		}
 
-		
+
 		// setting port will indicate that this session is in use
 		subsession_candidate->setClientPortNum(audio_medium.connection.port_ho());
+//		subsession_candidate->connectionEndpointName(audio_medium.connection.iaddr_ho());
+		
 		Boolean res = setupStreams(_rtspClient,session,False,_env);
 		if (res == False)
 		{
@@ -416,11 +450,28 @@ namespace ivrworx
 			SendResponse(msg, new MsgRtspSetupSessionNack());
 		}
 
+		
+
 		_session = session;
 		MsgRtspSetupSessionAck *ack = new MsgRtspSetupSessionAck();
 		ack->rtsp_handle = _rtspHandle;
 		ack->offer.type = "application/sdp";
-		ack->offer.body = curr_subsession->savedSDPLines();
+
+		
+		DWORD time = ::GetTickCount();
+		stringstream sdps;
+			// prepare sdp with negotiated codec only
+		sdps << "v=0\r\n"<<
+				"o=live " << time << " " << time <<" IN IP4 " << subsession_candidate->connectionEndpointName() << "\r\n"
+				"s=live\r\n"			<<
+				"c=IN IP4 "	<< subsession_candidate->connectionEndpointName() << "\r\n" <<
+				"t=0 0\r\n"	<<
+				"m=audio "  <<  subsession_candidate->serverPortNum << " RTP/AVP "   << (int)curr_subsession->rtpPayloadFormat() << "\r\n"
+				//"a=rtpmap:" << (int)curr_subsession->rtpPayloadFormat() << " " << curr_subsession->codecName() <<
+				"\r\n";
+		
+		ack->offer.body = sdps.str();
+		
 
 		SendResponse(msg, ack);
 
