@@ -143,6 +143,7 @@ GenericOfferAnswerSession::MakeCall(IN const string   &destination_uri,
 
 	if (_callState != CALL_STATE_UNKNOWN)
 	{
+		LogWarn("GenericOfferAnswerSession::MakeCall - wrong state");
 		return API_FAILURE;
 	}
 

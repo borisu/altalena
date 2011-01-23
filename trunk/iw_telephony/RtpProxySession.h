@@ -124,8 +124,6 @@ namespace ivrworx
 
 		virtual ~RtpProxySession(void);
 
-		virtual ApiErrorCode Allocate();
-
 		virtual ApiErrorCode Allocate(const AbstractOffer &remoteOffer);
 
 		virtual ApiErrorCode TearDown();

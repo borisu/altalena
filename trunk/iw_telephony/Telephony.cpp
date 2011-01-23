@@ -142,7 +142,7 @@ namespace ivrworx
 			mapping_s = string(buffer);
 		}
 
-		sdp_a   += "a=rtpmap:" + sdp_mapping_tos() + " "  + sdp_name_tos() + "/" + sampling_rate_tos() + "\r\n";
+		sdp_a   += "a=rtpmap:" + sdp_mapping_tos() + " "  + sdp_name_tos() + "/" + sampling_rate_tos() ;
 
 	}
 
@@ -216,6 +216,24 @@ namespace ivrworx
 
 	};
 
+	void
+	SdpParser::Medium::append_codec_list(stringstream &str)
+	{
+		for (MediaFormatsList::iterator iter = this->list.begin(); iter!=this->list.end(); iter++)
+		{
+			str << " " << iter->sdp_mapping();
+		}
+	}
+
+	void
+	SdpParser::Medium::append_rtp_map(stringstream &str)
+	{
+		for (MediaFormatsList::iterator iter = this->list.begin(); iter!=this->list.end(); iter++)
+		{
+			str << iter->get_sdp_a() << "\r\n";
+		}
+	}
+
 
 	 
 	SdpParser::SdpParser(const string &sdp)
@@ -225,7 +243,16 @@ namespace ivrworx
 		HeaderFieldValue *value =  new HeaderFieldValue (temp);
 
 		
-		_impl.reset(new SdpParserImpl(value));
+		try
+		{
+			_impl.reset(new SdpParserImpl(value));
+		} 
+		catch (exception e)
+		{
+			LogWarn("SdpParser::SdpParser - error parsing e:" << e.what() <<  ", sdp:" << sdp);
+			return;
+		}
+		
 
 		// value should also be deleted!!!
 		// sdp parser doe not own it
@@ -240,6 +267,9 @@ namespace ivrworx
 	SdpParser::first_audio_medium()
 	{
 		SdpParser::Medium res;
+
+		if (!_impl)
+			return res;
 
 		const SdpContents::Session &s = _impl->session();
 
