@@ -23,10 +23,9 @@
 
 namespace ivrworx
 {
-	RtspSession::RtspSession(ScopedForking &forking, ConfigurationPtr conf,HandleId rtspServiceHandleId):
+	RtspSession::RtspSession(ScopedForking &forking,HandleId rtspServiceHandleId):
 	_forking(forking),
 	_rtspHandle(IW_UNDEFINED),
-	_conf(conf),
 	_rtspServiceHandleId(rtspServiceHandleId)
 	{
 		
@@ -46,6 +45,18 @@ namespace ivrworx
 		return _rtspHandle;
 	}
 
+	AbstractOffer
+	RtspSession::RemoteOffer()
+	{
+		return _remoteOffer;
+	}
+
+	AbstractOffer
+	RtspSession::LocalOffer()
+	{
+		return _localOffer;
+	}
+
 
 	ApiErrorCode 
 	RtspSession::Setup(IN const string &rtsp_url, IN const AbstractOffer &offer)
@@ -55,8 +66,11 @@ namespace ivrworx
 
 		LogDebug("RtspSession::Setup - rtsp_url:" << rtsp_url << ", rtsh:" <<  _rtspHandle);
 
+		_localOffer = offer;
+
 		MsgRtspSetupSessionReq *msg = new MsgRtspSetupSessionReq();
 		msg->offer = offer;
+		msg->request_url = rtsp_url;
 		
 		IwMessagePtr response = NULL_MSG;
 		ApiErrorCode res = GetCurrRunningContext()->DoRequestResponseTransaction(
@@ -82,6 +96,7 @@ namespace ivrworx
 					shared_polymorphic_cast<MsgRtspSetupSessionAck>(response);
 
 				_rtspHandle	= ack->rtsp_handle;
+				_remoteOffer = ack->offer;
 
 				LogDebug("RtspSession::Setup - RTSP session allocated successfully, rtsph:" << _rtspHandle);
 

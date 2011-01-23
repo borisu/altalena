@@ -35,13 +35,7 @@ namespace ivrworx
 		TearDown();
 	}
 
-	ApiErrorCode 
-	RtpProxySession::Allocate()
-	{
-		FUNCTRACKER;
-
-		return Allocate(AbstractOffer());
-	}
+	
 
 	ApiErrorCode 
 	RtpProxySession::Allocate(const AbstractOffer &remoteOffer)
@@ -139,12 +133,18 @@ namespace ivrworx
 		
 
 		IwMessagePtr response = NULL_MSG;
-		GetCurrRunningContext()->DoRequestResponseTransaction(
+		ApiErrorCode res = GetCurrRunningContext()->DoRequestResponseTransaction(
 			_rtpProxyHandleId,
 			IwMessagePtr(req),
 			response,
 			MilliSeconds(GetCurrRunningContext()->TransactionTimeout()),
 			"Modify RTP Connection TXN");
+
+		if (res != API_SUCCESS)
+		{
+			LogWarn("RtpProxySession::Modify - Error modifying rtp connection " << res);
+			return res;
+		}
 
 		switch (response->message_id)
 		{

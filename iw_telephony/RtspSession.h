@@ -186,7 +186,7 @@ namespace ivrworx
 	{
 	public:
 
-		RtspSession(ScopedForking &forking, ConfigurationPtr conf,HandleId rtspHandleId);
+		RtspSession(ScopedForking &forking,HandleId rtspHandleId);
 
 		virtual ~RtspSession(void);
 	
@@ -200,6 +200,10 @@ namespace ivrworx
 
 		virtual RtspHandle SessionHandle();
 
+		virtual AbstractOffer RemoteOffer();
+
+		virtual AbstractOffer LocalOffer();
+
 	protected:
 
 		RtspHandle _rtspHandle;
@@ -208,8 +212,13 @@ namespace ivrworx
 
 		ScopedForking &_forking;
 
-		ConfigurationPtr _conf;
+		AbstractOffer _localOffer;
+
+		AbstractOffer _remoteOffer;
 
 	};
+
+	typedef shared_ptr<RtspSession> 
+    RtspSessionPtr; 
 
 }

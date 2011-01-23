@@ -139,11 +139,15 @@ class SdpParserImpl;
 class IW_TELEPHONY_API SdpParser
 {
 public:
-	struct Medium
+	struct IW_TELEPHONY_API Medium
 	{
 		CnxInfo connection;
 
 		MediaFormatsList list;
+
+		void append_rtp_map(stringstream &str);
+
+		void append_codec_list(stringstream &str);
 
 	};
 
