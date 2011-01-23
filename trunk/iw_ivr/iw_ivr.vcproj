@@ -409,6 +409,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\RtspBridge.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\RtspBridge.h"
+				>
+			</File>
+			<File
 				RelativePath=".\SipCallBridge.cpp"
 				>
 			</File>

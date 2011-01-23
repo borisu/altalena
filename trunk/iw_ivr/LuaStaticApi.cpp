@@ -28,6 +28,7 @@
 #include "StreamerBridge.h"
 #include "LuaTable.h"
 #include "MrcpBridge.h"
+#include "RtspBridge.h"
 
 namespace ivrworx
 {
@@ -121,10 +122,11 @@ namespace ivrworx
 
 
 		
-		Luna<RTPProxyBridge>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateRtpProxy);
+		Luna<rtpproxy>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateRtpProxy);
 		Luna<sipcall>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateSip);
 		Luna<streamer>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateStreamer);
 		Luna<MrcpBridge>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateMrcp);
+		Luna<rtspsession>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateRtspSession);
 
 
 		//
@@ -214,7 +216,24 @@ namespace ivrworx
 		RtpProxySessionPtr media_call_ptr =
 			RtpProxySessionPtr(new RtpProxySession(service_handle_id));
 
-		Luna<RTPProxyBridge>::PushObject(L, new RTPProxyBridge(media_call_ptr));
+		Luna<rtpproxy>::PushObject(L, new rtpproxy(media_call_ptr));
+
+		return 1;
+	}
+
+	int
+	LuaCreateRtspSession(lua_State *L)
+	{
+		HandleId service_handle_id = IW_UNDEFINED;
+		if (IW_FAILURE(GetConfiguredServiceHandle(service_handle_id, "ivr/rtsp_service",  CTX_FIELD(_conf))))
+		{
+			return 0;
+		}
+
+		RtspSessionPtr media_call_ptr =
+			RtspSessionPtr(new RtspSession(*(CTX_FIELD(_forking)), service_handle_id));
+
+		Luna<rtspsession>::PushObject(L, new rtspsession(media_call_ptr));
 
 		return 1;
 	}

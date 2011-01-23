@@ -39,14 +39,11 @@
 #include "SipCall.h"
 #include "RtpProxySession.h"
 #include "MrcpSession.h"
-
-
- // ("MUST REDUCE EXPLICIT PROVIDER DEPENDENCIES")
-
-
-#include "SqliteSession.h"
 #include "RtspSession.h"
-#include "Live555RtspSession.h"
+
+
+
+
 
 
 extern "C"

@@ -32,6 +32,7 @@ namespace ivrworx
 		method(streamer, modify),
 		method(streamer, localoffer),
 		method(streamer, remoteoffer),
+		method(streamer, stop),
 		{0,0}
 	};
 
@@ -48,6 +49,22 @@ namespace ivrworx
 
 	streamer::~streamer(void)
 	{
+	}
+
+	int streamer::stop(lua_State *L)
+	{
+		if (!_streamingSessionPtr)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		ApiErrorCode res = _streamingSessionPtr->StopPlay();
+
+		lua_pushnumber (L, res);
+
+		return 1;
+
 	}
 
 	int 

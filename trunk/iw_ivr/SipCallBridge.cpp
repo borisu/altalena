@@ -191,10 +191,7 @@ sipcall::makecall(lua_State *L)
 	
 
 	int timeout = 15;
-	paramres = GetTableNumberParam(L,-1,&timeout,"timeout",15);
-	if (paramres == FALSE)
-		goto error_param;
-	
+	GetTableNumberParam(L,-1,&timeout,"timeout",15);
 
 	
 	paramres = GetTableStringParam(L,-1,offer.body,"sdp");

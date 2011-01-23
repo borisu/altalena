@@ -22,22 +22,25 @@
 
 namespace ivrworx
 {
-	class RTPProxyBridge
+	class rtpproxy
 	{
 	public:
-		RTPProxyBridge(lua_State *L);
-		RTPProxyBridge(RtpProxySessionPtr rtpProxySession);
+		rtpproxy(lua_State *L);
+		rtpproxy(RtpProxySessionPtr rtpProxySession);
 
-		virtual ~RTPProxyBridge();
+		virtual ~rtpproxy();
 		
 		// Lua interface
 		int allocate(lua_State *L);
 		int teardown(lua_State *L);
 		int modify(lua_State *L);
-		int localcnx(lua_State *L);
+		int bridge(lua_State *L);
+		int localoffer(lua_State *L);
+		int remoteoffer(lua_State *L);
+		
 
 		static const char className[];
-		static Luna<RTPProxyBridge>::RegType methods[];
+		static Luna<rtpproxy>::RegType methods[];
 
 		private:
 

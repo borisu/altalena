@@ -54,5 +54,7 @@ namespace ivrworx
 	int LuaCreateRtpProxy(lua_State *L);
 
 	int LuaCreateStreamer( lua_State *L);
+
+	int LuaCreateRtspSession( lua_State *L);
 }
 
