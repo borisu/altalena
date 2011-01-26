@@ -652,6 +652,8 @@ namespace ivrworx
 	ProcUniMrcp::UponMrcpAllocateSessionReq(IwMessagePtr msg)
 	{
 		FUNCTRACKER;
+
+		MediaFormat media_format;
 		
 
 		shared_ptr<MsgMrcpAllocateSessionReq> req  =
@@ -740,10 +742,23 @@ namespace ivrworx
 
 		SdpParser p(req->local_offer.body);
 		SdpParser::Medium  m = p.first_audio_medium();
-		MediaFormat media_format = *m.list.begin(); 
+		if (!m.connection.is_valid())
+		{
+			LogWarn("ProcUniMrcp::UponMrcpAllocateSessionReq - Wrong sdp");
+			SendResponse(req,new MsgMrcpAllocateSessionNack());
+			goto allocate_error;
+		}
 
-
+		media_format = *m.list.begin(); 
 		
+		if (media_format.get_media_type() == MediaFormat::MediaType_UNKNOWN)
+		{
+			LogWarn("ProcUniMrcp::UponMrcpAllocateSessionReq - Wrong sdp - media format");
+			SendResponse(req,new MsgMrcpAllocateSessionNack());
+			goto allocate_error;
+		}
+
+
 		if (m.list.size() !=1)
 		{
 			LogWarn("Supporting only one codec in body");
@@ -751,9 +766,11 @@ namespace ivrworx
 			goto allocate_error;
 		}
 
+		ctx->media_format = media_format;
 
-		mpf_rtp_termination_descriptor_t *rtp_descriptor = 	req->local_offer.body.empty() ?
-			rtp_descriptor_create(session->pool,m.connection,m.list.front(),direction):	NULL;
+		mpf_rtp_termination_descriptor_t *rtp_descriptor = 	req->local_offer.body.empty() ? 
+									NULL:
+									rtp_descriptor_create(session->pool,m.connection,m.list.front(),direction);
 
 		mrcp_channel_t *channel = NULL;
 		
@@ -789,7 +806,7 @@ namespace ivrworx
 			}
 		default:
 			{
-				LogWarn("unknown resource" <<req->resource);
+				LogWarn("ProcUniMrcp::UponMrcpAllocateSessionReq - unknown resource" <<req->resource);
 				SendResponse(req,new MsgMrcpAllocateSessionNack());
 				goto allocate_error;
 			}
@@ -804,8 +821,6 @@ namespace ivrworx
 			SendResponse(req,new MsgMrcpAllocateSessionNack());
 			goto allocate_error;
 		}
-
-		
 
 		_mrcpCtxMap[ctx->mrcp_handle] = ctx;
 		return;
@@ -996,17 +1011,36 @@ allocate_error:
 				default:{}
 				};
 
-				 CnxInfo info (
-					channel->rtp_termination_slot->descriptor->audio.remote->ip.buf,
-					channel->rtp_termination_slot->descriptor->audio.remote->port);
+				mpf_rtp_media_descriptor_t *remote_desc =  
+					channel->rtp_termination_slot->descriptor->audio.remote;
 
-				stringstream sdps;
-				sdps << "v=0\n"			<<
-					"o=alice 2890844526 2890844526 IN IP4 " << info.iptoa() << "\n"
-					"s=\n"			<<
-					"c=IN IP4 "	<< info.iptoa() << "\n" <<
-					"t=0 0\n"	<<
-					"m=audio "  << info.port_ho() << " RTP/AVP 0 8 97\n";
+				CnxInfo info(
+					remote_desc->ip.buf,
+					remote_desc->port);
+
+				 DWORD time = ::GetTickCount(); 
+
+				// we assume that server agrred for the sinlge codec suggested
+			    stringstream sdps;
+				sdps << "v=0\r\n"
+					 << "o=mrcp " << time << " " << time <<" IN IP4 " << info.iptoa() << "\r\n"
+					 << "s=mrcp\r\n"	
+					 << "c=IN IP4 "	<< info.iptoa() << "\r\n" 
+					 << "t=0 0\r\n"	
+					 << "m=audio "  << info.port_ho() << " RTP/AVP " << ctx->media_format.get_media_type()<<  "\r\n"
+					 << ctx->media_format.get_sdp_a() << "\n\r";
+
+// 				for(int i=0; i<remote_desc->codec_list.descriptor_arr->nelts; i++) {
+// 					mpf_codec_descriptor_t *descriptor1 = &APR_ARRAY_IDX(remote_desc->codec_list.descriptor_arr,i,mpf_codec_descriptor_t);
+// 					if(descriptor1->enabled == FALSE) {
+// 						/* this descriptor has been already disabled, process only enabled ones */
+// 						continue;
+// 					}
+// 
+// 					/* check whether this is a named event descriptor */
+// 					if(mpf_event_descriptor_check(descriptor1) == TRUE) {
+// 					}
+// 				}
 				
 				rsp->mrcp_handle = handle;
 				

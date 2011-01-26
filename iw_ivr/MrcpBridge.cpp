@@ -4,38 +4,37 @@
 
 namespace ivrworx
 {
-	const char MrcpBridge::className[] = "MrcpBridge";
-	Luna<MrcpBridge>::RegType MrcpBridge::methods[] = {
-		method(MrcpBridge, allocate),
-		method(MrcpBridge, modify),
-		method(MrcpBridge, stopspeak),
-		method(MrcpBridge, speak),
-		method(MrcpBridge, teardown),
-		method(MrcpBridge, localcnx),
-		method(MrcpBridge, remotecnx),
-		method(MrcpBridge, recognize),
-		method(MrcpBridge, waitforrecogresult),
+	const char mrcpsession::className[] = "mrcpsession";
+	Luna<mrcpsession>::RegType mrcpsession::methods[] = {
+		method(mrcpsession, allocate),
+		method(mrcpsession, stopspeak),
+		method(mrcpsession, speak),
+		method(mrcpsession, teardown),
+		method(mrcpsession, localoffer),
+		method(mrcpsession, remoteoffer),
+		method(mrcpsession, recognize),
+		method(mrcpsession, waitforrecogresult),
 		{0,0}
 	};
 
-	MrcpBridge::MrcpBridge(MrcpSessionPtr mrcp_session):
+	mrcpsession::mrcpsession(MrcpSessionPtr mrcp_session):
 	_mrcpSession(mrcp_session)
 	{
 
 	}
 
-	MrcpBridge::MrcpBridge(lua_State *L)
+	mrcpsession::mrcpsession(lua_State *L)
 	{
 
 	}
 
-	MrcpBridge::~MrcpBridge(void)
+	mrcpsession::~mrcpsession(void)
 	{
 		
 	}
 
 	int 
-	MrcpBridge::remotecnx(lua_State *L)
+	mrcpsession::remoteoffer(lua_State *L)
 	{
 		FUNCTRACKER;
 
@@ -45,18 +44,17 @@ namespace ivrworx
 			return 1;
 		}
 
-		MrcpResource temp = RECOGNIZER;
-		GetTableEnumParam<MrcpResource>(L,-1,&temp,"resource_int");
+		MrcpResource resource = RECOGNIZER;
+		GetTableEnumParam<MrcpResource>(L,-1,&resource,"resource");
 
-		throw;
 
-// 		Luna<CnxInfoBridge>::PushObject(L, new CnxInfoBridge(_mrcpSession->RemoteMedia(temp)));
-// 		return 1;
+		lua_pushstring(L, _mrcpSession->RemoteOffer(resource).body.c_str());
+		return 1;
 
 	}
 
 	int 
-	MrcpBridge::localcnx(lua_State *L)
+	mrcpsession::localoffer(lua_State *L)
 	{
 		FUNCTRACKER;
 
@@ -66,43 +64,56 @@ namespace ivrworx
 			return 1;
 		};
 
-		MrcpResource temp = UKNOWN_MRCP_RESOURCE;
-		GetTableEnumParam<MrcpResource>(L,-1,&temp,"resource_int");
+		MrcpResource resource = UKNOWN_MRCP_RESOURCE;
+		BOOL paramres = GetTableEnumParam<MrcpResource>(L,-1,&resource,"resource_int");
+		if (paramres == FALSE)
+		{
+			lua_pushnumber (L, API_WRONG_PARAMETER);
+			return 1;
+		}
 
-		throw;
 
-
-// 		Luna<CnxInfoBridge>::PushObject(L, new CnxInfoBridge( _mrcpSession->LocalMedia(temp)));
-// 		return 1;
+		lua_pushstring(L, _mrcpSession->LocalOffer(resource).body.c_str());
+		return 1;
 
 	}
 
 	
 	int 
-	MrcpBridge::allocate(lua_State *L)
+	mrcpsession::allocate(lua_State *L)
 	{
-// 		if (!_mrcpSession)
-// 		{
-// 			lua_pushnumber (L, API_WRONG_STATE);
-// 			return 1;
-// 		}
-// 
-// 		CnxInfoBridge *cnx_info = NULL;
-// 		GetLunaUserData<CnxInfoBridge>(L,-1,&cnx_info,"localcnx_ut");
-// 
-// 		string format;
-// 		GetTableStringParam(L,-1,format,"format_str");
-// 		MediaFormat f = MediaFormat::GetMediaFormat(format);
-// 
-// 		
-// 		MrcpResource temp = RECOGNIZER;
-// 		GetTableEnumParam<MrcpResource>(L,-1,&temp,"resource_int");
-// 
-// 		int secs  = 15;
-// 		GetTableNumberParam<int>(L,-1,&secs,"timeout");
-// 
-// // 		ApiErrorCode res  = _mrcpSession->Allocate(temp, cnx_info->_cnxInfo, f, Seconds(secs));
-// // 		lua_pushnumber (L, res);
+		if (!_mrcpSession)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		string url;
+		GetTableStringParam(L,-1,url,"url");
+
+		AbstractOffer offer;
+		offer.type = "application/sdp";
+		BOOL paramres = GetTableStringParam(L,-1,offer.body,"sdp");
+		if (paramres == FALSE)
+		{
+			lua_pushnumber (L, API_WRONG_PARAMETER);
+			return 1;
+		}
+
+		
+		MrcpResource temp = RECOGNIZER;
+		GetTableEnumParam<MrcpResource>(L,-1,&temp,"resource");
+		if (paramres == FALSE)
+		{
+			lua_pushnumber (L, API_WRONG_PARAMETER);
+			return 1;
+		}
+
+		int secs  = 15;
+		GetTableNumberParam<int>(L,-1,&secs,"timeout",15);
+
+		ApiErrorCode res  = _mrcpSession->Allocate(temp, offer, Seconds(secs));
+		lua_pushnumber (L, res);
 
 		return 1;
 
@@ -110,7 +121,7 @@ namespace ivrworx
 	}
 
 	int 
-	MrcpBridge::waitforrecogresult(lua_State *L)
+	mrcpsession::waitforrecogresult(lua_State *L)
 	{
 		if (!_mrcpSession)
 		{
@@ -129,7 +140,7 @@ namespace ivrworx
 	}
 
 	int 
-	MrcpBridge::recognize(lua_State *L)
+	mrcpsession::recognize(lua_State *L)
 	{
 		if (!_mrcpSession)
 		{
@@ -152,29 +163,21 @@ namespace ivrworx
 		ApiErrorCode res  = _mrcpSession->Recognize(p, body,Seconds(secs),sync);
 		lua_pushnumber (L, res);
 
-		
-
+	
 		return 1;
 
-
 	}
 
+	
 	int 
-	MrcpBridge::modify(lua_State *L)
+	mrcpsession::stopspeak(lua_State *L)
 	{
 		return 0;
 
 	}
 
 	int 
-	MrcpBridge::stopspeak(lua_State *L)
-	{
-		return 0;
-
-	}
-
-	int 
-	MrcpBridge::speak(lua_State *L)
+	mrcpsession::speak(lua_State *L)
 	{FUNCTRACKER;
 
 	if (!_mrcpSession)
@@ -189,21 +192,30 @@ namespace ivrworx
 	GetTableStringParam(L,-1,sentence,"sentence");
 
 	string rawbody;
-	GetTableStringParam(L,-1,rawbody,"raw_body");
+	GetTableStringParam(L,-1,rawbody,"rawbody");
+
+	if (sentence.empty() && rawbody.empty())
+	{
+		lua_pushnumber (L, API_WRONG_PARAMETER);
+		return 1;
+	}
 
 	MrcpParams p;
 	FillTable(L,-1,p);
 
+
+	
 	stringstream mrcp_body;
 	if (!sentence.empty())
 	{
+		p["content_type"] = string("application/synthesis+ssml");
 		mrcp_body 
-			<< "<?xml version=\"1.0\"?>									" << endl 
-			<< "	<speak>												" << endl
-			<< "		<paragraph>										" << endl
-			<< "			<sentence>" << sentence << "</sentence>		" << endl
-			<< "		</paragraph>									" << endl
-			<< "	</speak>											" << endl;	
+			<< "<?xml version=\"1.0\"?>"	 											<< endl 
+			<< "<speak version=\"1.0\" xml:lang=\"en-US\" xmlns=\"http://www.w3.org/2001/10/synthesis\">"  << endl
+			<< " <p>"																    << endl
+			<< "   <s>"<<sentence<<"</s>"												<< endl
+			<< " </p>"																	<< endl
+			<< "</speak>"																<< endl;	
 	} else
 	{
 		mrcp_body << rawbody;
@@ -219,7 +231,7 @@ namespace ivrworx
 	}
 
 	int 
-	MrcpBridge::teardown(lua_State *L)
+	mrcpsession::teardown(lua_State *L)
 	{
 		return 0;
 

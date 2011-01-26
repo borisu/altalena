@@ -23,28 +23,27 @@
 
 namespace ivrworx
 {
-	class MrcpBridge
+	class mrcpsession
 	{
 	public:
 
-		MrcpBridge(MrcpSessionPtr mrcpSession);
-		MrcpBridge(lua_State *L);
-		virtual ~MrcpBridge(void);
+		mrcpsession(MrcpSessionPtr mrcpSession);
+		mrcpsession(lua_State *L);
+		virtual ~mrcpsession(void);
 		
 		
 		int allocate(lua_State *L);
-		int modify(lua_State *L);
 		int stopspeak(lua_State *L);
 		int speak(lua_State *L);
 		int teardown(lua_State *L);
-		int localcnx(lua_State *L);
-		int remotecnx(lua_State *L);
+		int localoffer(lua_State *L);
+		int remoteoffer(lua_State *L);
 		int recognize(lua_State *L);
 		int waitforrecogresult(lua_State *L);
 
 
 		static const char className[];
-		static Luna<MrcpBridge>::RegType methods[];
+		static Luna<mrcpsession>::RegType methods[];
 
 	private:
 		MrcpSessionPtr _mrcpSession;
