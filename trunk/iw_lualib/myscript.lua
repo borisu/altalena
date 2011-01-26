@@ -17,27 +17,34 @@ a=rtpmap:0 PCMU/8000
 -- set up first media call
 --
 r1 = rtpproxy:new();
-r1:allocate{sdp=dummyoffer};
-caller1 = sipcall:new();
-caller1:makecall{dest="sip:24001@192.168.100.164",sdp=r1:localoffer()} 
-r1:modify{sdp=caller1:remoteoffer()}
+success(r1:allocate{sdp=dummyoffer});
+m = mrcpsession:new();
+success(m:allocate{resource=iw.SYNTHESIZER, sdp=r1:localoffer()});
 
---
--- set up second media call
---
-r2 = rtpproxy:new()
-r2:allocate{sdp=dummyoffer};
-caller2 = sipcall:new()
-caller2:makecall{dest="sip:24002@192.168.150.144",sdp=r2:localoffer()} 
-r2:modify{sdp=caller2:remoteoffer()}
+r2 = rtpproxy:new();
+success(r2:allocate{sdp=dummyoffer});
+caller = sipcall:new();
+success(caller:makecall{dest="sip:24001@192.168.150.3", sdp=r2:localoffer()}); 
+success(r2:modify{sdp=caller:remoteoffer()})
+
 
 --
 -- half duplex the calls
 --
-r1:bridge{other=r2}
+sreq=[[
+<?xml version="1.0"?>								
+<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">  
+ <p>														    
+   <s>Hello World</s>								
+ </p>															
+</speak>]]																
 
-caller1:waitforhangup();
-caller2:hangup();
+success(r1:bridge{other=r2})
+iw.sleep(1000);
+success(m:speak{sentence="Hello World Borkis!"});
+
+caller:waitforhangup();
+
 
 
 

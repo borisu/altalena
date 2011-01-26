@@ -39,6 +39,8 @@ namespace ivrworx
 
 		mpf_rtp_termination_descriptor_t *rtp_desc;
 
+		MediaFormat media_format;
+
 	};
 
 	typedef 

@@ -9,7 +9,6 @@
 	
 	"xmodelus":[
 	 "iw_sqlite.dll",
-	 "iw_live555rtpproxy.dll",
 	 "iw_live555rtsp.dll",
 	 "iw_unimrcp.dll",
 	 
@@ -18,6 +17,7 @@
 	],
 	
 	"modules":[
+	   "iw_unimrcp.dll",
 	   "iw_live555rtpproxy.dll",
 	   "iw_resip.dll"
 	],

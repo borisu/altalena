@@ -125,7 +125,7 @@ namespace ivrworx
 		Luna<rtpproxy>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateRtpProxy);
 		Luna<sipcall>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateSip);
 		Luna<streamer>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateStreamer);
-		Luna<MrcpBridge>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateMrcp);
+		Luna<mrcpsession>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateMrcp);
 		Luna<rtspsession>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateRtspSession);
 
 
@@ -179,7 +179,7 @@ namespace ivrworx
 		MrcpSessionPtr call_ptr 
 			(new MrcpSession(*(CTX_FIELD(_forking)),service_handle_id));
 
-		Luna<MrcpBridge>::PushObject(L,new MrcpBridge(call_ptr));
+		Luna<mrcpsession>::PushObject(L,new mrcpsession(call_ptr));
 
 		return 1;
 
