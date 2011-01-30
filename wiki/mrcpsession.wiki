@@ -25,4 +25,25 @@ sends RECOGNIZE request to MRCP server
 
 || *named parameter* || *description* ||
 || grammar|| grammar put in body of request (may be uri, or any other body type) ||
-|| sync || wait for recognition result
+|| sync || wait for recognition result ||
+
+One may add different MRCP headers to the message
+
+|| *named parameter*|| *type*
+||jump_size|| number ||
+||kill_on_barge_in|| boolean ||
+||speaker_profile|| string ||
+||completion_cause|| number ||
+||completion_reason|| string ||
+||voice_param|| TBD ||
+||prosody_param|| TBD ||
+||speech_marker|| string ||
+||speech_language|| string ||
+||fetch_hint|| string ||
+||audio_fetch_hint|| string ||
+||failed_uri|| string ||
+||failed_uri_cause|| string ||
+||speak_restart|| boolean  ||
+||speak_length|| TBD ||
+||load_lexicon|| boolean ||
+||lexicon_search_order|| string ||
