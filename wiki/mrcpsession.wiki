@@ -29,7 +29,7 @@ sends RECOGNIZE request to MRCP server
 
 One may add different MRCP headers to the message
 
-|| *named parameter*|| *type*
+|| *named parameter*|| *type* ||
 ||jump_size|| number ||
 ||kill_on_barge_in|| boolean ||
 ||speaker_profile|| string ||
