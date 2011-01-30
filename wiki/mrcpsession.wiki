@@ -117,3 +117,6 @@ Sends MRCP speak request.
 ||speak_length|| TBD ||
 ||load_lexicon|| boolean ||
 ||lexicon_search_order|| string ||
+
+== `:stopspeak(...)` ==
+Sends MRCP STOP SPEAK request.
