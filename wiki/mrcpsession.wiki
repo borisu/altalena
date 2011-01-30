@@ -97,6 +97,12 @@ local offer
 == `:speak(...)` ==
 Sends MRCP speak request.
 
+|| *named parameter* || *description* ||
+|| sentence || sentence to say ||
+|| rawbody|| full body  ||
+|| sync || wait for completion flag  ||
+
+
 ===synthesize parameters===
 
 || *named parameter*|| *type* ||
