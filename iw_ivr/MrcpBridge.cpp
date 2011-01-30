@@ -132,7 +132,9 @@ namespace ivrworx
 		int secs  = 15;
 		GetTableNumberParam<int>(L,-1,&secs,"timeout");
 
-		ApiErrorCode res  = _mrcpSession->WaitForRecogResult(Seconds(secs));
+		string answer;
+
+		ApiErrorCode res  = _mrcpSession->WaitForRecogResult(Seconds(secs),answer);
 		lua_pushnumber (L, res);
 
 		return 1;
@@ -165,11 +167,14 @@ namespace ivrworx
 		MrcpParams p;
 		FillTable(L,-1,p);
 
-		ApiErrorCode res  = _mrcpSession->Recognize(p, body,Seconds(secs),sync);
+		string answer;
+		ApiErrorCode res  = _mrcpSession->Recognize(p, body,Seconds(secs),sync,answer);
+
 		lua_pushnumber (L, res);
+		lua_pushstring(L, answer.c_str());
 
 	
-		return 1;
+		return 2;
 
 	}
 
@@ -177,7 +182,16 @@ namespace ivrworx
 	int 
 	mrcpsession::stopspeak(lua_State *L)
 	{
-		return 0;
+		if (!_mrcpSession)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+		
+		ApiErrorCode res  = _mrcpSession->StopSpeak();
+		lua_pushnumber (L, res);
+
+		return 1;
 
 	}
 
