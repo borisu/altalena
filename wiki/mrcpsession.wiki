@@ -1,13 +1,28 @@
-#summary One-sentence summary of this page.
+<wiki:toc max_depth="3" />
 
-= Introduction =
-
-Add your content here.
+mrcpsession. MRCP protocol implementation
 
 
-= Details =
+== `:new(...)` ==
+_ctor_
+creates mrcpsession object
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+== `:allocate(...)` ==
+allocates mrcp session
+
+|| *named parameter* || *description* ||
+|| sdp || local side offer ||
+|| resource || MRCP resource identifier see the table below ||
+|| timeout || timeout for resource allocation ||
+
+|| *resource id* || *description *||
+|| SYNTHESIZER || MRCP synthesizer ||
+|| RECOGNIZER || MRCP recognizer||
+
+
+==   `:recognize(...)` ==
+sends RECOGNIZE request to MRCP server
+
+|| *named parameter* || *description* ||
+|| grammar|| grammar put in body of request (may be uri, or any other body type) ||
+|| sync || wait for recognition result
