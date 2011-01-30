@@ -45,6 +45,58 @@ One may add different MRCP headers to the message
 || set_cookie || string || 
 || set_cookie2 || string || 
 
+=== recognize params ===
+|| *named parameter*|| *type* ||
+|| confidence_threshold || number || 
+|| sensitivity_level || number || 
+|| speed_vs_accuracy || number || 
+|| n_best_list_length || number || 
+|| no_input_timeout || number || 
+|| recognition_timeout || number || 
+|| waveform_uri || string || 
+|| completion_cause || number || 
+|| recognizer_context_block || string || 
+|| start_input_timers || boolean || 
+|| speech_complete_timeout || number || 
+|| speech_incomplete_timeout || number || 
+|| dtmf_interdigit_timeout || number || 
+|| dtmf_term_timeout ||number  || 
+|| dtmf_term_char || string || 
+|| failed_uri || string || 
+|| failed_uri_cause || number || 
+|| save_waveform || string || 
+|| new_audio_channel || bool || 
+|| speech_language || string || 
+|| input_type || string || 
+|| input_waveform_uri || string || 
+|| completion_reason || string || 
+|| media_type || string || 
+|| ver_buffer_utterance || boolean || 
+|| recognition_mode || string || 
+|| cancel_if_queue || boolean || 
+|| hotword_max_duration || number || 
+|| hotword_min_duration || number || 
+|| interpret_text || string || 
+|| dtmf_buffer_time || boolean || 
+|| clear_dtmf_buffer || boolean || 
+|| early_no_match || boolean || 
+
+
+==   `:remoteoffer(...)` ==
+remote offer
+
+|| *named parameter* || *description* ||
+|| resource|| channel resource id (see the table above)||
+
+==   `:localoffer(...)` ==
+local offer
+
+|| *named parameter* || *description* ||
+|| resource|| channel resource id (see the table above)||
+
+== `:speak(...)` ==
+Sends MRCP speak request.
+
 ===synthesize parameters===
 
 || *named parameter*|| *type* ||
@@ -65,15 +117,3 @@ One may add different MRCP headers to the message
 ||speak_length|| TBD ||
 ||load_lexicon|| boolean ||
 ||lexicon_search_order|| string ||
-
-==   `:remoteoffer(...)` ==
-remote offer
-
-|| *named parameter* || *description* ||
-|| resource|| channel resource id (see the table above)||
-
-==   `:localoffer(...)` ==
-local offer
-
-|| *named parameter* || *description* ||
-|| resource|| channel resource id (see the table above)||
