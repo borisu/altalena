@@ -65,7 +65,7 @@ namespace ivrworx
 		};
 
 		MrcpResource resource = UKNOWN_MRCP_RESOURCE;
-		BOOL paramres = GetTableEnumParam<MrcpResource>(L,-1,&resource,"resource_int");
+		BOOL paramres = GetTableEnumParam<MrcpResource>(L,-1,&resource,"resource");
 		if (paramres == FALSE)
 		{
 			lua_pushnumber (L, API_WRONG_PARAMETER);
@@ -149,10 +149,15 @@ namespace ivrworx
 		}
 
 		int secs  = 15;
-		GetTableNumberParam(L,-1,&secs,"timeout");
+		GetTableNumberParam(L,-1,&secs,"timeout",15);
 
 		string body;
-		GetTableStringParam(L,-1,body,"body");
+		GetTableStringParam(L,-1,body,"grammar");
+		if (body.empty())
+		{
+			lua_pushnumber (L, API_WRONG_PARAMETER);
+			return 1;
+		}
 
 		bool sync;
 		GetTableBoolParam(L,-1,&sync,"sync");
@@ -178,55 +183,56 @@ namespace ivrworx
 
 	int 
 	mrcpsession::speak(lua_State *L)
-	{FUNCTRACKER;
-
-	if (!_mrcpSession)
 	{
-		lua_pushnumber (L, API_WRONG_STATE);
+		FUNCTRACKER;
+
+		if (!_mrcpSession)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		bool sync = false;
+		string sentence;
+		GetTableBoolParam(L,-1,&sync,"sync",false);
+		GetTableStringParam(L,-1,sentence,"sentence");
+
+		string rawbody;
+		GetTableStringParam(L,-1,rawbody,"rawbody");
+
+		if (sentence.empty() && rawbody.empty())
+		{
+			lua_pushnumber (L, API_WRONG_PARAMETER);
+			return 1;
+		}
+
+		MrcpParams p;
+		FillTable(L,-1,p);
+
+
+		
+		stringstream mrcp_body;
+		if (!sentence.empty())
+		{
+			p["content_type"] = string("application/synthesis+ssml");
+			mrcp_body 
+				<< "<?xml version=\"1.0\"?>"	 											<< endl 
+				<< "<speak version=\"1.0\" xml:lang=\"en-US\" xmlns=\"http://www.w3.org/2001/10/synthesis\">"  << endl
+				<< " <p>"																    << endl
+				<< "   <s>"<<sentence<<"</s>"												<< endl
+				<< " </p>"																	<< endl
+				<< "</speak>"																<< endl;	
+		} else
+		{
+			mrcp_body << rawbody;
+		}
+		
+
+
+		ApiErrorCode res =_mrcpSession->Speak(p,mrcp_body.str(),sync);
+
+		lua_pushnumber (L, res);
 		return 1;
-	}
-
-	bool sync = false;
-	string sentence;
-	GetTableBoolParam(L,-1,&sync,"sync",false);
-	GetTableStringParam(L,-1,sentence,"sentence");
-
-	string rawbody;
-	GetTableStringParam(L,-1,rawbody,"rawbody");
-
-	if (sentence.empty() && rawbody.empty())
-	{
-		lua_pushnumber (L, API_WRONG_PARAMETER);
-		return 1;
-	}
-
-	MrcpParams p;
-	FillTable(L,-1,p);
-
-
-	
-	stringstream mrcp_body;
-	if (!sentence.empty())
-	{
-		p["content_type"] = string("application/synthesis+ssml");
-		mrcp_body 
-			<< "<?xml version=\"1.0\"?>"	 											<< endl 
-			<< "<speak version=\"1.0\" xml:lang=\"en-US\" xmlns=\"http://www.w3.org/2001/10/synthesis\">"  << endl
-			<< " <p>"																    << endl
-			<< "   <s>"<<sentence<<"</s>"												<< endl
-			<< " </p>"																	<< endl
-			<< "</speak>"																<< endl;	
-	} else
-	{
-		mrcp_body << rawbody;
-	}
-	
-
-
-	ApiErrorCode res =_mrcpSession->Speak(p,mrcp_body.str(),sync);
-
-	lua_pushnumber (L, res);
-	return 1;
 
 	}
 

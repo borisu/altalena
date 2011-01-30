@@ -661,7 +661,7 @@ namespace ivrworx
 
 
 
-		LogDebug("ProcUniMrcp::UponMrcpAllocateSessionReq " <<req->local_offer.body)
+		LogDebug("ProcUniMrcp::UponMrcpAllocateSessionReq " <<req->offer.body)
 
 		long handle = IW_UNDEFINED;
 
@@ -713,7 +713,7 @@ namespace ivrworx
 		ctx->state = MRCP_CONNECTING;
 		ctx->last_user_request = req;
 
-		if (!req->local_offer.body.empty() && ctx->session != NULL)
+		if (!req->offer.body.empty() && ctx->session != NULL)
 		{
 			LogWarn("ProcUniMrcp::UponMrcpAllocateSessionReq - invalid local connection info");
 			SendResponse(req,new MsgMrcpAllocateSessionNack());
@@ -740,7 +740,7 @@ namespace ivrworx
 		else	
 			direction = STREAM_DIRECTION_RECEIVE;
 
-		SdpParser p(req->local_offer.body);
+		SdpParser p(req->offer.body);
 		SdpParser::Medium  m = p.first_audio_medium();
 		if (!m.connection.is_valid())
 		{
@@ -759,16 +759,16 @@ namespace ivrworx
 		}
 
 
-		if (m.list.size() !=1)
+		if (m.list.size() > 1)
 		{
 			LogWarn("Supporting only one codec in body");
-			SendResponse(req,new MsgMrcpAllocateSessionNack());
-			goto allocate_error;
+// 			SendResponse(req,new MsgMrcpAllocateSessionNack());
+// 			goto allocate_error;
 		}
 
 		ctx->media_format = media_format;
 
-		mpf_rtp_termination_descriptor_t *rtp_descriptor = 	req->local_offer.body.empty() ? 
+		mpf_rtp_termination_descriptor_t *rtp_descriptor = 	req->offer.body.empty() ? 
 									NULL:
 									rtp_descriptor_create(session->pool,m.connection,m.list.front(),direction);
 
@@ -888,8 +888,22 @@ allocate_error:
 		// RECOGNIZE-IN-PROGRESS
 		else if (method_name == "RECOGNIZE")
 		{
-			MsgMrcpRecognizeAck *stopped_msg = new MsgMrcpRecognizeAck();
-			SendResponse(ctx->last_user_request, stopped_msg);
+			IwMessage *response = NULL;
+			if (olap->message->start_line.status_code <= 401) 
+			{
+				MsgMrcpRecognizeAck *ack = new MsgMrcpRecognizeAck(); 
+				ack->response_error_code = olap->message->start_line.status_code;
+				response = ack;
+			}
+			else
+			{
+				MsgMrcpRecognizeNack *nack = new MsgMrcpRecognizeNack(); 
+				nack->response_error_code = olap->message->start_line.status_code;
+				response = nack;
+			};
+
+			
+			SendResponse(ctx->last_user_request, response);
 		}
 		else if (method_name == "RECOGNITION-COMPLETE")
 		{
@@ -1020,31 +1034,42 @@ allocate_error:
 
 				 DWORD time = ::GetTickCount(); 
 
-				// we assume that server agrred for the sinlge codec suggested
-			    stringstream sdps;
-				sdps << "v=0\r\n"
-					 << "o=mrcp " << time << " " << time <<" IN IP4 " << info.iptoa() << "\r\n"
-					 << "s=mrcp\r\n"	
-					 << "c=IN IP4 "	<< info.iptoa() << "\r\n" 
-					 << "t=0 0\r\n"	
-					 << "m=audio "  << info.port_ho() << " RTP/AVP " << ctx->media_format.get_media_type()<<  "\r\n"
-					 << ctx->media_format.get_sdp_a() << "\n\r";
+				BOOL found = FALSE;
+				for(int i=0; i<remote_desc->codec_list.descriptor_arr->nelts; i++) {
+					mpf_codec_descriptor_t *descriptor1 = &APR_ARRAY_IDX(remote_desc->codec_list.descriptor_arr,i,mpf_codec_descriptor_t);
+					if(descriptor1->enabled == FALSE) {
+						/* this descriptor has been already disabled, process only enabled ones */
+						continue;
+					}
 
-// 				for(int i=0; i<remote_desc->codec_list.descriptor_arr->nelts; i++) {
-// 					mpf_codec_descriptor_t *descriptor1 = &APR_ARRAY_IDX(remote_desc->codec_list.descriptor_arr,i,mpf_codec_descriptor_t);
-// 					if(descriptor1->enabled == FALSE) {
-// 						/* this descriptor has been already disabled, process only enabled ones */
-// 						continue;
-// 					}
-// 
-// 					/* check whether this is a named event descriptor */
-// 					if(mpf_event_descriptor_check(descriptor1) == TRUE) {
-// 					}
-// 				}
+					apt_str_t name;
+					name.buf = (char*)ctx->media_format.sdp_name_tos().c_str();
+					name.length = ctx->media_format.sdp_name_tos().length();
+
+					found = apt_string_compare(&descriptor1->name,&name);
+					if (found)
+						break;
+				}
+
+				if (!found)
+				{
+					LogWarn("ProcUniMrcp::onMrcpChanndelAddEvt - suggested codec was not found in remote answer:" <<ctx->media_format.sdp_name_tos());
+				}
+
+				// we assume that server agrred for the sinlge codec suggested
+				stringstream sdps;
+				sdps << "v=0\r\n"
+					<< "o=mrcp " << time << " " << time <<" IN IP4 " << info.iptoa() << "\r\n"
+					<< "s=mrcp\r\n"	
+					<< "c=IN IP4 "	<< info.iptoa() << "\r\n" 
+					<< "t=0 0\r\n"	
+					<< "m=audio "  << info.port_ho() << " RTP/AVP " << ctx->media_format.sdp_mapping()<<  "\r\n"
+					<< ctx->media_format.get_sdp_a() << "\r\n";
+
 				
 				rsp->mrcp_handle = handle;
+				rsp->offer.body = sdps.str();
 				
-
 				SendResponse(ctx->last_user_request,rsp);
 				break;
 			}
