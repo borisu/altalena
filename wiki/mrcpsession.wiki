@@ -127,7 +127,7 @@ Sends MRCP speak request.
 == `:stopspeak(...)` ==
 Sends MRCP STOP SPEAK request.
 
-==   `:waitforrecog(...)==
+== `:waitforrecog(...)`==
 waits for recognition result
 || *named parameter*|| *type* ||
 ||timeout|| timeout ||
@@ -187,4 +187,3 @@ l:loginfo("=== RECOGNIZED END ===");
 
 caller:waitforhangup();
 }}}
-
