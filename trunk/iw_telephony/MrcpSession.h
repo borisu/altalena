@@ -68,7 +68,10 @@ namespace ivrworx
 	class IW_TELEPHONY_API MrcpMixin 
 	{
 	public :
-		MrcpMixin():mrcp_handle(IW_UNDEFINED),correlation_id(IW_UNDEFINED){};
+		MrcpMixin():
+		   mrcp_handle(IW_UNDEFINED),
+		   correlation_id(IW_UNDEFINED), 
+		  response_error_code(IW_UNDEFINED){};
 
 		MrcpHandle mrcp_handle;
 
@@ -76,7 +79,11 @@ namespace ivrworx
 
 		MrcpParams params;
 
+		AbstractOffer offer;
+
 		string body;
+
+		int response_error_code;
 	};		
 
 
@@ -88,8 +95,6 @@ namespace ivrworx
 		MsgMrcpAllocateSessionReq():
 		  MsgRequest(MSG_MRCP_ALLOCATE_SESSION_REQ, 
 			  NAME(MSG_MRCP_ALLOCATE_SESSION_REQ)){};
-
-		  AbstractOffer local_offer;
 
 		  LpHandlePair session_handler;
 
@@ -107,8 +112,6 @@ namespace ivrworx
 		  IwMessage(MSG_MRCP_ALLOCATE_SESSION_ACK, 
 			  NAME(MSG_MRCP_ALLOCATE_SESSION_ACK))
 			  {};
-
-		  AbstractOffer remote_offer;
 
 	};
 
@@ -130,11 +133,6 @@ namespace ivrworx
 		MsgMrcpModifyReq():
 		  MsgRequest(MSG_MRCP_MODIFY_REQ, 
 			  NAME(MSG_MRCP_MODIFY_REQ)){};
-
-		  AbstractOffer offer;
-
-		  int playback_handle;
-
 
 	};
 
@@ -294,6 +292,8 @@ namespace ivrworx
 		MsgMrcpRecognizeAck():
 		  MsgResponse(MSG_MRCP_RECOGNIZE_ACK, 
 			  NAME(MSG_MRCP_RECOGNIZE_ACK)){};
+
+		  
 
 	};
 

@@ -301,9 +301,9 @@ MrcpSession::Recognize(IN const MrcpParams &p,
 		Seconds(15),
 		"Recognize MRCP TXN");
 
-	if (IW_FAILURE(res) || response->message_id != MSG_MRCP_RECOGNIZE_ACK)
+	if (IW_FAILURE(res))
 	{
-		LogDebug("Error sending recognize request to mrcp, mrcph:" << _mrcpSessionHandle);
+		LogWarn("Error sending recognize request to mrcp, mrcph:" << _mrcpSessionHandle);
 		return res;
 	}
 
@@ -328,7 +328,10 @@ MrcpSession::Recognize(IN const MrcpParams &p,
 		}
 	case MSG_MRCP_RECOGNIZE_NACK:
 		{
-			LogDebug("MrcpSession::Recognize - Error allocating Mrcp session.");
+			shared_ptr<MsgMrcpRecognizeNack> nack = 
+				shared_polymorphic_cast<MsgMrcpRecognizeNack>(response);
+
+			LogWarn("MrcpSession::Recognize - Error allocating Mrcp session , mrcph:" << _mrcpSessionHandle << " error:" << nack->response_error_code);
 			res = API_SERVER_FAILURE;
 			break;
 		}
@@ -366,12 +369,12 @@ MrcpSession::Allocate(IN MrcpResource rsc,
 	DECLARE_NAMED_HANDLE_PAIR(session_handler_pair);
 
 	MsgMrcpAllocateSessionReq *msg = new MsgMrcpAllocateSessionReq();
-	msg->local_offer		= localOffer;
+	msg->offer		= localOffer;
 	msg->session_handler	= session_handler_pair;
 	msg->resource			= rsc;
 	msg->mrcp_handle		= _mrcpSessionHandle;
 
-	_localOffers[rsc] = msg->local_offer;
+	_localOffers[rsc] = msg->offer;
 
 	IwMessagePtr response = NULL_MSG;
 	ApiErrorCode res = GetCurrRunningContext()->DoRequestResponseTransaction(
@@ -401,7 +404,7 @@ MrcpSession::Allocate(IN MrcpResource rsc,
 				_mrcpSessionHandle	  = ack->mrcp_handle;
 			}
 
-			_remoteOffers[rsc] = ack->remote_offer;
+			_remoteOffers[rsc] = ack->offer;
 
 			LogDebug("MrcpSession::Allocate - Mrcp session allocated successfully, mrcp handle=[" << _mrcpSessionHandle << "]");
 

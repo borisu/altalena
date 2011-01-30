@@ -417,6 +417,7 @@ sipcall::answer(lua_State *L)
 	return 1;
 
 error_param:
+	LogWarn("sipcall::answer - API_WRONG_PARAMETER");
 	lua_pushnumber (L, API_WRONG_PARAMETER);
 	return 1;
 }
