@@ -30,6 +30,20 @@ sends RECOGNIZE request to MRCP server
 One may add different MRCP headers to the message
 
 ===generic parameters===
+|| *named parameter*|| *type* ||
+|| proxy_sync_id || string || 
+|| accept_charset || string || 
+|| content_type || string || 
+|| content_id || string || 
+|| content_base || string || 
+|| content_encoding || string || 
+|| content_location || string || 
+|| cache_control || string || 
+|| logging_tag || string || 
+|| accept || string || 
+|| fetch_timeout || number || 
+|| set_cookie || string || 
+|| set_cookie2 || string || 
 
 ===synthesize parameters===
 
