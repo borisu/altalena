@@ -65,3 +65,15 @@ One may add different MRCP headers to the message
 ||speak_length|| TBD ||
 ||load_lexicon|| boolean ||
 ||lexicon_search_order|| string ||
+
+==   `:remoteoffer(...)` ==
+remote offer
+
+|| *named parameter* || *description* ||
+|| resource|| channel resource id (see the table above)||
+
+==   `:localoffer(...)` ==
+local offer
+
+|| *named parameter* || *description* ||
+|| resource|| channel resource id (see the table above)||
