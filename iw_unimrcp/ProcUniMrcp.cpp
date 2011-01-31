@@ -909,6 +909,9 @@ allocate_error:
 		{
 			MsgMrcpRecognitionCompleteEvt* stopped_msg = new MsgMrcpRecognitionCompleteEvt();
 			stopped_msg->correlation_id = olap->message->start_line.request_id;
+			stopped_msg->body = (olap->message->body.buf != NULL && olap->message->body.length > 0) ? 
+				string(olap->message->body.buf, olap->message->body.length):"";
+
 			SendMessage(ctx->session_handler.inbound, IwMessagePtr(stopped_msg));
 		}
 		else

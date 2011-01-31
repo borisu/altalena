@@ -237,35 +237,47 @@ MrcpSession::UponActiveObjectEvent(IwMessagePtr ptr)
 }
 
 ApiErrorCode 
-MrcpSession::WaitForRecogResult(IN Time timeout)
+MrcpSession::WaitForRecogResult(IN Time timeout, OUT string &answer)
 {
 	ApiErrorCode res = API_SUCCESS;
 	IwMessagePtr response;
 
-	while  (true)
+	
+	int handle_index = IW_UNDEFINED;
+	res = GetCurrRunningContext()->WaitForTxnResponse(
+		list_of(_recognitionStoppedHandle)(_hangupHandle),
+		handle_index,
+		response, 
+		timeout);
+
+	if (handle_index == 1)
 	{
-		int handle_index = IW_UNDEFINED;
-		res = GetCurrRunningContext()->WaitForTxnResponse(
-			list_of(_recognitionStoppedHandle)(_hangupHandle),
-			handle_index,
-			response, 
-			timeout);
-
-		if (handle_index == 1)
-		{
-			return API_HANGUP;
-		}
-
-		if (IW_FAILURE(res))
-		{
-			return res;
-		}
-
-		return API_SUCCESS;
-
-#pragma TODO("Must implement correlation id check !!!")
-
+		return API_HANGUP;
 	}
+
+	if (IW_FAILURE(res))
+	{
+		return res;
+	}
+
+	switch (response->message_id)
+	{
+	case MSG_MRCP_RECOGNITION_COMPLETE_EVT:
+		{
+			shared_ptr<MsgMrcpRecognitionCompleteEvt> recog_evt = 
+				dynamic_pointer_cast<MsgMrcpRecognitionCompleteEvt>(response);
+			answer = recog_evt->body;
+			break;
+		}
+	default:
+		{
+			LogWarn("MrcpSession::WaitForRecogResult - unknown response res:" << response->message_id);
+			res = API_UNKNOWN_RESPONSE;
+			break;
+		}
+	}
+
+	
 
 	return res;
 
@@ -277,7 +289,8 @@ ApiErrorCode
 MrcpSession::Recognize(IN const MrcpParams &p,
 					   IN const string &body,
 					   IN Time timeout, 
-					   IN BOOL sync)
+					   IN BOOL sync, 
+					   OUT string& answer)
 {
 	FUNCTRACKER;
 
@@ -344,7 +357,7 @@ MrcpSession::Recognize(IN const MrcpParams &p,
 	if (IW_FAILURE(res))
 		return res;
 
-	return WaitForRecogResult(timeout);
+	return WaitForRecogResult(timeout, answer);
 
 }
 
