@@ -390,10 +390,12 @@ namespace ivrworx
 			IN const MrcpParams &p,
 			IN const string &body,
 			IN Time timeout, 
-			IN BOOL sync = TRUE);
+			IN BOOL sync, 
+			OUT string& answer);
 
 		virtual ApiErrorCode WaitForRecogResult(
-			IN Time timeout);
+			IN Time timeout,
+			OUT string &answer);
 
 		virtual ApiErrorCode DefineGrammar(
 			IN const MrcpParams &p,
