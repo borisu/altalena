@@ -1,6 +1,8 @@
 <wiki:toc max_depth="3" />
 
-mrcpsession. MRCP protocol implementation
+mrcpsession. MRCP protocol implementation.
+
+current mrcp implementation is built with UniMRCP stack. Please see UniMRCP configuration guide before running MRCP functionality.  The template configuration are packaged with ivrworx installer.
 
 
 == `:new(...)` ==
@@ -149,12 +151,12 @@ recog = mrcpsession:new();
 success(recog:allocate{resource=iw.RECOGNIZER, sdp=caller:remoteoffer()});
 success(caller:answer{sdp = recog:remoteoffer{resource=iw.RECOGNIZER}})
 
---synth = mrcpsession:new();
---success(synth:allocate{resource=iw.SYNTHESIZER, sdp=caller:remoteoffer()});
+synth = mrcpsession:new();
+success(synth:allocate{resource=iw.SYNTHESIZER, sdp=caller:remoteoffer()});
 
 
 iw.sleep(1000);
---success(synth:speak{sentence="Please choose red pill, or blue pill"});
+success(synth:speak{sentence="Please choose red pill, or blue pill"});
 
 pillgrammar=[[
 <?xml version="1.0" encoding="UTF-8"?>
