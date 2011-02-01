@@ -76,7 +76,7 @@ cppcsp.h(167) : warning C4005: '_WIN32_WINNT' : macro redefinition
 #endif
 }}}
 
- # build 'iw_run' project 
+ # build 'iw_lualib' project 
 
 =Start= 
 
