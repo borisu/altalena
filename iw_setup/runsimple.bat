@@ -1,1 +1,1 @@
-lua5.1.exe --conf=conf.json myscript.lua 
+lua5.1.exe myscript.lua --conf=conf.json  
