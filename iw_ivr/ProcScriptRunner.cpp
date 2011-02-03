@@ -24,7 +24,6 @@
 #include "ConfBridge.h"
 #include "SipCallBridge.h"
 #include "RTPProxyBridge.h"
-#include "ls_sqlite3.h"
 #include "LuaRestoreStack.h"
 #include "StreamerBridge.h"
 
