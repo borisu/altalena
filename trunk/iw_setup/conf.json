@@ -1,0 +1,115 @@
+{
+	"__" : "==================================",
+	"__" : "ivrworx configuration file",
+	"__" : "==================================",
+
+
+	"__" : "VALUES:", 
+	"__" : "true|false",
+	"__" : "DESCRIPTION:",
+	"__" : "Current logging infrastructure may work by logging messages",
+	"__" : "in the same thread or by offloading it to another thread",
+	"__" : "second approach is more efficient but may cause message to",
+	"__" : "appear out of order",
+	"sync_log"  : true,
+
+	"__" : "VALUES:", 
+	"__" : "OFF|INF|WRN|CRT|DBG|TRC",
+	"__" : "DESCRIPTION:",
+	"__" : "Debug level. Trace level must be run with special libraries.",
+	"debug_level"  : "INF",
+
+	"__" : "VALUES:", 
+	"__" : "comma separated - debug|console|syslog ",
+	"__" : "DESCRIPTION:",
+	"__" : "debug -> debugview, console->console, syslog -> syslog server",
+	"debug_outputs" : "console",
+
+	"__" : "VALUES:", 
+	"__" : "ip address",
+	"__" : "DESCRIPTION:",
+	"__" : "ip address of syslog server",
+	"syslogd_host" : "127.0.0.1",
+
+	"__" : "VALUES:", 
+	"__" : "port",
+	"__" : "DESCRIPTION:",
+	"__" : "port of syslog server",
+	"syslogd_port" : 514,
+
+	"__" : "VALUES:", 
+	"__" : "timeout in ms",
+	"__" : "DESCRIPTION:",
+	"__" : "max time for ivrworx to load each implementation module",
+	"default_boot_time" : 15000,
+	
+	
+	"__" : "VALUES:", 
+	"__" : "array of dll names",
+	"__" : "DESCRIPTION:",
+	"__" : "List of implementation modules to load",
+	"modules":[
+		"iw_live555rtsp.dll",	   
+		"iw_live555rtpproxy.dll",
+	   	"iw_resip.dll",
+		"iw_m2ims.dll",
+		"iw_unimrcp.dll"	   
+	],
+
+	"__" : "VALUES:", 
+	"__" : "service:service uri",
+	"__" : "DESCRIPTION:",
+	"__" : "pairs of predefined telephony service and their implementation uri's",
+	"__" : "uri is simple string with which each module registers itself",
+	"ivr" : {
+		"stream_service"   : "stream,m2",
+		"sip_service"	   : "sip,resip",
+		"unimrcp_service"  : "mrcp,unimrcp",
+		"rtsp_service"     : "rtsp,live555",
+		"rtpproxy_service" : "rtpproxy,live555",
+		"mrcp_service"	   : "mrcp,unimrcp"
+	},
+
+	"__" : "-----------------------", 
+	"__" : "implementation modules",
+	"__" : "-----------------------", 
+	"live555rtsp" :{
+			"uri" : "rtsp,live555"
+	},
+	    
+	"resip" :  {
+		"resip_log" : "",
+		"uri"	: "sip,resip",
+		"from_id" : "ivrworx",
+		"from_display_name": "ivrworx",
+		"sip_host": "$COMPUTERNAME",
+		"sip_port": 5060,
+		"sip_session_timer_enabled" : true,
+		"sip_refresh_mode" : "prefer_local",
+		"sip_default_session_time" : 360
+	},
+
+	"unimrcp" :   {
+		"uri" : "mrcp,unimrcp",
+		"unimrcp_conf_dir": "./unimrcp",
+		"unimrcp_client_profile": "nss2",
+		"unimrcp_log_file": "unimrcpclient"
+	},
+
+	"live555rtpproxy" :  {
+		"uri"	: "rtpproxy,live555",
+		"rtp_proxy_base_port" : 6000,
+		"rtp_proxy_top_port" : 7000,
+		"rtp_proxy_num_of_connections" : 100,
+		"rtp_proxy_ip" : "$COMPUTERNAME",
+		"default_static_payloads":"0 8 18"
+	},
+
+
+	"m2ims" :  {
+		"uri" : "stream,m2",
+		"local_ip": "$COMPUTERNAME",
+		"sounds_dir" : "sounds",
+		"record_dir" : "recording"
+	}
+}
