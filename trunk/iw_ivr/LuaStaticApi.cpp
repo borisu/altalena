@@ -23,7 +23,6 @@
 #include "ConfBridge.h"
 #include "SipCallBridge.h"
 #include "RTPProxyBridge.h"
-#include "ls_sqlite3.h"
 #include "LuaRestoreStack.h"
 #include "StreamerBridge.h"
 #include "LuaTable.h"
@@ -129,15 +128,7 @@ namespace ivrworx
 		Luna<rtspsession>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateRtspSession);
 
 
-		//
-		// register sql library
-		//
-		if (!luaopen_luasql_sqlite3(L))
-		{
-			LogWarn("ProcScriptRunner::real_run - cannot register sql library");
-			return FALSE;
-		};
-
+	
 		return TRUE;
 	}
 

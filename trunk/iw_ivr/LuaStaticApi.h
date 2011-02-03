@@ -45,8 +45,6 @@ namespace ivrworx
 
 	int LuaFork(lua_State *L);
 
-	int LuaCreateMscml(lua_State *L);
-
 	int LuaCreateSip(lua_State *L);
 
 	int LuaCreateMrcp(lua_State *L);

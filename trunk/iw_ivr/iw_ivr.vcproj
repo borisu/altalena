@@ -340,22 +340,6 @@
 				RelativePath=".\Luna.h"
 				>
 			</File>
-			<Filter
-				Name="luacore"
-				>
-				<Filter
-					Name="luasqldrver"
-					>
-					<File
-						RelativePath=".\ls_sqlite3.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\ls_sqlite3.h"
-						>
-					</File>
-				</Filter>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="bridges"
