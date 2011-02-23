@@ -123,6 +123,10 @@ namespace ivrworx
 
 		virtual void UponShutDownReq(IN IwMessagePtr req);
 
+		virtual void UponRegisterReq(IN IwMessagePtr req);
+
+		virtual void UponUnRegisterReq(IN IwMessagePtr req);
+
 		virtual void UponCallOfferedAck(IN IwMessagePtr req);
 
 		virtual void UponCallOfferedNack(IN IwMessagePtr req);

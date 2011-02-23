@@ -43,6 +43,10 @@ public:
 
 	virtual void UponMakeCallReq(IN IwMessagePtr request);
 
+	virtual void UponRegisterReq(IN IwMessagePtr request);
+
+	virtual void UponUnRegisterReq(IN IwMessagePtr request);
+
 	virtual void UponBlindXferReq(IN IwMessagePtr req);
 
 	virtual void UponCallConnected(IN IwMessagePtr request);
@@ -85,6 +89,17 @@ public:
 		IN const SipMessage& msg, 
 		IN const Contents& body);
 
+	virtual void onSuccess(
+		IN ClientRegistrationHandle h, 
+		IN const SipMessage& response);
+
+	virtual void onFailure(
+		IN ClientRegistrationHandle h, 
+		IN const SipMessage& msg);
+
+	virtual void onRemoved(
+		IN ClientRegistrationHandle h, 
+		IN const SipMessage& response);
 
 private:
 

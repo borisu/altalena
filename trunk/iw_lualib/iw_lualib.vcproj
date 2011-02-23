@@ -27,7 +27,7 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
-				CommandLine="echo on&#x0D;&#x0A;&#x0D;&#x0A;echo Copying mediastreamer2 libs&#x0D;&#x0A;copy ..\mediastreamer2-antisip-4.3.3-rc2\oRTP\build\win32native\$(ConfigurationName)\*.dll $(TargetDir)&#x0D;&#x0A;copy ..\mediastreamer2-antisip-4.3.3-rc2\mediastreamer2\build\win32native\$(ConfigurationName)\*.dll $(TargetDir)&#x0D;&#x0A;copy ..\mediastreamer2-antisip-4.3.3-rc2\win32-bin\lib\*.dll $(TargetDir)&#x0D;&#x0A;&#x0D;&#x0A;echo Copying unimrcp libs&#x0D;&#x0A;copy ..\unimrcp-deps\libs\sofia-sip\win32\pthread\*.dll $(TargetDir)&#x0D;&#x0A;copy ..\unimrcp-deps\libs\apr\$(ConfigurationName)\*.dll $(TargetDir)&#x0D;&#x0A;copy ..\unimrcp-deps\libs\apr-util\$(ConfigurationName)\*.dll $(TargetDir)&#x0D;&#x0A;copy ..\unimrcp-deps\libs\sofia-sip\win32\libsofia-sip-ua\$(ConfigurationName)\*.dll $(TargetDir)&#x0D;&#x0A;copy ..\unimrcp-deps\libs\apr-util\Debug\$(ConfigurationName)\*.dll $(TargetDir)&#x0D;&#x0A;&#x0D;&#x0A;copy *.lua $(TargetDir)&#x0D;&#x0A;copy *.json $(TargetDir)&#x0D;&#x0A;copy  ..\lua5.1\bin\* $(TargetDir)&#x0D;&#x0A;REM copy unimrcp  $(TargetDir)&#x0D;&#x0A;"
+				CommandLine="echo on&#x0D;&#x0A;&#x0D;&#x0A;echo. 2&gt;outputs.txt&#x0D;&#x0A;&#x0D;&#x0A;&#x0D;&#x0A;echo Copying mediastreamer2 libs&#x0D;&#x0A;copy ..\mediastreamer2-antisip-4.3.3-rc2\oRTP\build\win32native\$(ConfigurationName)\*.dll $(TargetDir)&#x0D;&#x0A;copy ..\mediastreamer2-antisip-4.3.3-rc2\mediastreamer2\build\win32native\$(ConfigurationName)\*.dll $(TargetDir)&#x0D;&#x0A;copy ..\mediastreamer2-antisip-4.3.3-rc2\win32-bin\lib\*.dll $(TargetDir)&#x0D;&#x0A;&#x0D;&#x0A;echo Copying unimrcp libs&#x0D;&#x0A;copy ..\unimrcp-deps\libs\sofia-sip\win32\pthread\*.dll $(TargetDir)&#x0D;&#x0A;copy ..\unimrcp-deps\libs\apr\$(ConfigurationName)\*.dll $(TargetDir)&#x0D;&#x0A;copy ..\unimrcp-deps\libs\apr-util\$(ConfigurationName)\*.dll $(TargetDir)&#x0D;&#x0A;copy ..\unimrcp-deps\libs\sofia-sip\win32\libsofia-sip-ua\$(ConfigurationName)\*.dll $(TargetDir)&#x0D;&#x0A;copy ..\unimrcp-deps\libs\apr-util\Debug\$(ConfigurationName)\*.dll $(TargetDir)&#x0D;&#x0A;&#x0D;&#x0A;copy *.lua $(TargetDir)&#x0D;&#x0A;copy *.json $(TargetDir)&#x0D;&#x0A;copy  ..\lua5.1\bin\* $(TargetDir)&#x0D;&#x0A;REM copy unimrcp  $(TargetDir)&#x0D;&#x0A;"
 				Outputs="$(ProjectDir)\outputs.txt"
 			/>
 			<Tool
@@ -75,6 +75,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				EmbedManifest="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"

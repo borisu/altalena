@@ -55,6 +55,10 @@ namespace ivrworx
 		int remoteoffer(lua_State *L);
 		int localoffer(lua_State *L);
 
+		// register is a reserved word in C/C++ 
+		int register_(lua_State *L);
+		int unregister(lua_State *L);
+
 		static const char className[];
 		static Luna<sipcall>::RegType methods[];
 

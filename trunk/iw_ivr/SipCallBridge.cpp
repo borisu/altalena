@@ -41,6 +41,8 @@ Luna<sipcall>::RegType sipcall::methods[] = {
 	method(sipcall, remoteoffer),
 	method(sipcall, localoffer),
 	method(sipcall, accept),
+	method(sipcall, register_),
+	method(sipcall, unregister),
 	{0,0}
 };
 
@@ -167,6 +169,82 @@ sipcall::localoffer(lua_State *L)
 
 	lua_pushstring(L, _call->LocalOffer().body.c_str());
 	return 1;
+}
+
+int
+sipcall::register_(lua_State *L)
+{
+	FUNCTRACKER;
+
+	if (!_call)
+	{
+		lua_pushnumber (L, API_WRONG_STATE);
+		return 1;
+	}
+
+	string registrar;
+	string realm;
+	string username;
+	string password;
+	string contacts;
+	list<string> contactslist;
+	vector<string> strs;
+
+	
+	BOOL paramres = GetTableStringParam(L,-1,registrar,"registrar");
+	if (paramres == FALSE)
+		goto error_param;
+
+	paramres = GetTableStringParam(L,-1,username,"username");
+	if (paramres == FALSE)
+		goto error_param;
+
+	
+	GetTableStringParam(L,-1,contacts,"contacts");
+
+	split(strs, contacts, is_any_of(","));
+	std::copy(strs.begin(), strs.end(), contactslist.begin());
+	
+	GetTableStringParam(L,-1,realm,"realm");
+	GetTableStringParam(L,-1,password,"password");
+
+	int timeout = 15;
+	GetTableNumberParam(L,-1,&timeout,"timeout",15);
+	
+
+	ApiErrorCode res = 
+		_call->StartRegistration(contactslist,username,password,registrar,realm,Seconds(timeout));
+
+
+	lua_pushnumber (L, res);
+	return 1;
+
+
+
+
+error_param:
+	lua_pushnumber (L, API_WRONG_PARAMETER);
+	return 1;
+}
+
+int
+sipcall::unregister(lua_State *L)
+{
+	FUNCTRACKER;
+
+	if (!_call)
+	{
+		lua_pushnumber (L, API_WRONG_STATE);
+		return 1;
+	}
+
+	ApiErrorCode res = 
+		_call->StopRegistration();
+
+
+	lua_pushnumber (L, res);
+	return 1;
+
 }
 
 int

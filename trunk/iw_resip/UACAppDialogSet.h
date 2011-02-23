@@ -49,6 +49,8 @@ namespace ivrworx
 
 		IwMessagePtr last_options_req;
 
+		IwMessagePtr last_registration_req;
+
 
 	};
 

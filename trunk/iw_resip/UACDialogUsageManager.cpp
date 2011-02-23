@@ -48,6 +48,127 @@ namespace ivrworx
 	}
 
 	void 
+	UACDialogUsageManager::onSuccess(
+		IN ClientRegistrationHandle h, 
+		IN const SipMessage& response)
+	{
+		FUNCTRACKER;
+		UACAppDialogSet* uac_set = 
+			(UACAppDialogSet*)(h->getAppDialogSet().get());
+
+		if (!uac_set->last_registration_req)
+			return;
+		
+		MsgSipCallRegisterAck* ack = new MsgSipCallRegisterAck();
+		ack->registration_id = uac_set->_ptr->stack_handle;
+
+		
+
+		GetCurrRunningContext()->SendResponse(uac_set->last_registration_req,
+			ack);
+
+		uac_set->last_registration_req.reset();
+
+	}
+
+	void 
+	UACDialogUsageManager::onFailure(
+		IN ClientRegistrationHandle h, 
+		IN const SipMessage& msg)
+	{
+		FUNCTRACKER;
+
+		UACAppDialogSet* uac_set = 
+			(UACAppDialogSet*)(h->getAppDialogSet().get());
+
+		GetCurrRunningContext()->SendResponse(uac_set->last_registration_req,
+			new MsgSipCallRegisterNack());
+
+		_iwHandlesMap.erase(uac_set->_ptr->stack_handle);
+
+		
+
+	}
+
+	void 
+	UACDialogUsageManager::onRemoved(
+		IN ClientRegistrationHandle h, 
+		IN const SipMessage& response)
+	{
+		FUNCTRACKER;
+
+		UACAppDialogSet* uac_set = 
+			(UACAppDialogSet*)(h->getAppDialogSet().get());
+
+		_iwHandlesMap.erase(uac_set->_ptr->stack_handle);
+
+	}
+
+	void 
+	UACDialogUsageManager::UponUnRegisterReq(IN IwMessagePtr ptr)
+	{
+		FUNCTRACKER;
+
+		shared_ptr<MsgSipCallUnRegisterReq> unreg_req = 
+			dynamic_pointer_cast<MsgSipCallUnRegisterReq>(ptr);
+
+		IwHandlesMap::iterator iter = _iwHandlesMap.find(unreg_req->registration_id);
+		if (iter == _iwHandlesMap.end())
+		{
+			LogDebug("UACDialogUsageManager::UponRegisterReq - the call iwh:" << unreg_req->registration_id << " already unregistered");
+			return;
+		}
+
+		SipDialogContextPtr ctx_ptr = (*iter).second;
+		_iwHandlesMap.erase(ctx_ptr->stack_handle);
+
+		
+
+	
+		
+	}
+
+	void 
+	UACDialogUsageManager::UponRegisterReq(IN IwMessagePtr ptr)
+	{
+		FUNCTRACKER;
+
+		shared_ptr<MsgSipCallRegisterReq> reg_req = 
+			dynamic_pointer_cast<MsgSipCallRegisterReq>(ptr);
+
+		// create context
+		//
+		SipDialogContextPtr ctx_ptr = SipDialogContextPtr(new SipDialogContext());
+		ctx_ptr->stack_handle = GenerateCallHandle();
+
+		UACAppDialogSet *uac_dialog_set = 
+			new UACAppDialogSet(_dum,ctx_ptr,ptr);
+
+		
+
+
+		NameAddr addr(reg_req ->registrar.c_str());
+		SharedPtr<UserProfile> &bp = _dum.getMasterUserProfile();
+		SharedPtr<UserProfile> up (new UserProfile(bp));
+
+		
+
+		up->setDefaultMaxRegistrationTime(reg_req->max_registration_time);
+		up->setDefaultRegistrationRetryTime(reg_req->registration_retry_time);
+		up->setDigestCredential(reg_req->realm.c_str(),reg_req->username.c_str(), reg_req->password.c_str());
+		
+
+		SharedPtr<SipMessage> msg =  _dum.makeRegistration(addr,up,uac_dialog_set);
+		_iwHandlesMap[ctx_ptr->stack_handle]= ctx_ptr;
+		
+
+		
+
+		_dum.send(msg);
+
+	}
+
+	void 
 	UACDialogUsageManager::UponInfoReq(IN IwMessagePtr ptr)
 	{
 		FUNCTRACKER;
