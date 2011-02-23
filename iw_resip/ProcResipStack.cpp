@@ -438,9 +438,23 @@ namespace ivrworx
 		_dumUac.UponMakeCallReq(req);
 	}
 
+	void
+	ProcResipStack::UponRegisterReq(IN IwMessagePtr req)
+	{
+		FUNCTRACKER;
+
+		_dumUac.UponRegisterReq(req);
+	}
+
+	void
+	ProcResipStack::UponUnRegisterReq(IN IwMessagePtr req)
+	{
+		FUNCTRACKER;
+
+		_dumUac.UponUnRegisterReq(req);
+	}
 
 
-	
 	bool 
 	ProcResipStack::ProcessApplicationMessages()
 	{
@@ -507,6 +521,12 @@ namespace ivrworx
 			case MSG_MAKE_CALL_REQ:
 				{
 					UponMakeCallReq(msg);
+					break;
+				}
+
+			case SIP_CALL_REGISTER_REQ:
+				{
+					UponRegisterReq(msg);
 					break;
 				}
 			default:

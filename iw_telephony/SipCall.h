@@ -29,7 +29,17 @@ namespace ivrworx
 	{
 		SIP_CALL_INFO_REQ = SIP_MSG_BASE,
 		SIP_CALL_INFO_ACK,
-		SIP_CALL_INFO_NACK
+		SIP_CALL_INFO_NACK,
+		SIP_CALL_SUBSCRIBE_REQ,
+		SIP_CALL_SUBSCRIBE_ACK,
+		SIP_CALL_SUBSCRIBE_NACK,
+		SIP_CALL_UNSUBSCRIBE_REQ,
+		SIP_CALL_UNSUBSCRIBE_EVT,
+		SIP_CALL_REGISTER_REQ,
+		SIP_CALL_REGISTER_ACK,
+		SIP_CALL_REGISTER_NACK,
+		SIP_CALL_UNREGISTER_REQ,
+		SIP_CALL_UNREGISTER_EVT
 
 	};
 
@@ -63,6 +73,101 @@ namespace ivrworx
 
 	};
 
+	class IW_TELEPHONY_API RegistrationMixin
+	{
+	public:
+		RegistrationMixin():
+		  registration_id(IW_UNDEFINED){};
+
+		HandleId registration_id;
+
+	};
+
+	class IW_TELEPHONY_API MsgSipCallSubscribeReq:
+		public MsgVoipCallMixin, public MsgRequest, public RegistrationMixin
+	{
+	public:
+		MsgSipCallSubscribeReq():
+		  MsgRequest(SIP_CALL_SUBSCRIBE_REQ, 
+			  NAME(SIP_CALL_SUBSCRIBE_REQ)){}
+
+	};
+
+	class IW_TELEPHONY_API MsgSipCallSubscribeAck:
+		public MsgVoipCallMixin, public MsgResponse, public RegistrationMixin
+	{
+	public:
+		MsgSipCallSubscribeAck():
+		  MsgResponse(SIP_CALL_SUBSCRIBE_ACK, 
+			  NAME(SIP_CALL_SUBSCRIBE_ACK)){}
+
+	};
+
+	class IW_TELEPHONY_API MsgSipCallSubscribeNack:
+		public MsgVoipCallMixin, public MsgResponse, public RegistrationMixin
+	{
+	public:
+		MsgSipCallSubscribeNack():
+		  MsgResponse(SIP_CALL_SUBSCRIBE_NACK, 
+			  NAME(SIP_CALL_SUBSCRIBE_NACK)){}
+
+	};
+
+
+	class IW_TELEPHONY_API MsgSipCallRegisterReq:
+		public MsgVoipCallMixin, public MsgRequest, public RegistrationMixin
+	{
+	public:
+		MsgSipCallRegisterReq():
+		  MsgRequest(SIP_CALL_REGISTER_REQ, 
+			  NAME(SIP_CALL_REGISTER_REQ)){};
+
+		  std::list<string> contacts;
+
+		  string username;
+
+		  string password;
+
+		  string registrar;
+
+		  string realm;
+
+		  int max_registration_time;
+
+		  int registration_retry_time;
+
+	};
+
+	class IW_TELEPHONY_API MsgSipCallRegisterAck:
+		public MsgVoipCallMixin, public MsgResponse, public RegistrationMixin
+	{
+	public:
+		MsgSipCallRegisterAck():
+		  MsgResponse(SIP_CALL_REGISTER_ACK, 
+			  NAME(SIP_CALL_REGISTER_ACK)){}
+
+	};
+
+	class IW_TELEPHONY_API MsgSipCallRegisterNack:
+		public MsgVoipCallMixin, public MsgResponse, public RegistrationMixin
+	{
+	public:
+		MsgSipCallRegisterNack():
+		  MsgResponse(SIP_CALL_REGISTER_NACK, 
+			  NAME(SIP_CALL_REGISTER_NACK)){}
+
+	};
+
+	class IW_TELEPHONY_API MsgSipCallUnRegisterReq:
+		public MsgVoipCallMixin, public MsgRequest, public RegistrationMixin
+	{
+	public:
+		MsgSipCallUnRegisterReq():
+		  MsgRequest(SIP_CALL_UNREGISTER_REQ, 
+			  NAME(SIP_CALL_UNREGISTER_REQ)){};
+	 
+	};
+
 	class SipMediaCall;
 
 	typedef
@@ -82,6 +187,16 @@ namespace ivrworx
 
 		virtual ApiErrorCode WaitForInfo(OUT AbstractOffer &offer);
 
+		virtual ApiErrorCode StartRegistration(
+			IN const list<string> &contacts, 
+			IN const string &username, 
+			IN const string &password, 
+			IN const string &registrar, 
+			IN const string &realm,
+			IN csp::Time timeout);
+
+		virtual ApiErrorCode StopRegistration();
+
 		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
 
 		virtual ~SipMediaCall(void);
@@ -89,6 +204,10 @@ namespace ivrworx
 	private:
 
 		LpHandlePtr _infosChannel;
+
+		LpHandlePtr _registrationChannel;
+
+		HandleId _registrationId;
 
 	};
 

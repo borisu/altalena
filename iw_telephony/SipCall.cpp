@@ -28,14 +28,16 @@ namespace ivrworx
 
 
 SipMediaCall::SipMediaCall(IN ScopedForking &forking, IN HandleId handle_id):
-	GenericOfferAnswerSession(forking, handle_id)
+	GenericOfferAnswerSession(forking, handle_id),
+	_registrationId(IW_UNDEFINED)
 {
 	FUNCTRACKER;
 }
 
 SipMediaCall::SipMediaCall(IN ScopedForking &forking,
 		   IN shared_ptr<MsgCallOfferedReq> offered_msg):
-	 GenericOfferAnswerSession(forking, offered_msg->source.handle_id, offered_msg)
+	GenericOfferAnswerSession(forking, offered_msg->source.handle_id, offered_msg),
+	_registrationId(IW_UNDEFINED)
 {
 	FUNCTRACKER;
 
@@ -77,6 +79,93 @@ SipMediaCall::WaitForInfo(IN AbstractOffer &remoteOffer)
 
 	return API_SUCCESS;
 
+}
+
+ApiErrorCode
+SipMediaCall::StopRegistration()
+{
+	FUNCTRACKER;
+
+	LogDebug("SipMediaCall::StopRegistration");
+
+	if (_registrationId == IW_UNDEFINED)
+	{
+		return API_WRONG_STATE;
+	}
+
+	MsgSipCallUnRegisterReq *msg = new MsgSipCallUnRegisterReq();
+	msg->registration_id  = _registrationId;
+
+	_registrationId = IW_UNDEFINED;
+	
+
+	IwMessagePtr response = NULL_MSG;
+	ApiErrorCode res = API_SUCCESS;
+
+	res = GetCurrRunningContext()->SendMessage(
+		_stackHandleId,
+		IwMessagePtr(msg));
+
+	return res;
+}
+
+ApiErrorCode
+SipMediaCall::StartRegistration(const list<string> &contacts, 
+								const string &username, 
+								const string &password, 
+								const string &registrar, 
+								const string &realm, 
+								csp::Time timeout)
+{
+	FUNCTRACKER;
+
+	LogDebug("SipMediaCall::StartRegistration username:" << username);
+
+	if (_registrationId != IW_UNDEFINED)
+	{
+		return API_WRONG_STATE;
+	}
+
+	MsgSipCallRegisterReq *msg = new MsgSipCallRegisterReq();
+	msg->contacts  = contacts;
+	msg->registrar = registrar;
+	msg->username  = username;
+	msg->password  = password;
+	msg->realm	   = realm;
+
+
+	IwMessagePtr response = NULL_MSG;
+	ApiErrorCode res = API_SUCCESS;
+	
+	res = GetCurrRunningContext()->DoRequestResponseTransaction(
+		_stackHandleId,
+		IwMessagePtr(msg),
+		response,
+		timeout,
+		"SIP Register TXN");
+
+	if (res != API_SUCCESS)
+	{
+		LogWarn("SipMediaCall::StartRegistration - failure" << res);
+		return res;
+	}
+
+	switch (response->message_id)
+	{
+		case SIP_CALL_REGISTER_ACK:
+			{
+				shared_ptr<MsgSipCallRegisterAck> ack = 
+					dynamic_pointer_cast<MsgSipCallRegisterAck>(response);
+
+				_registrationId = ack->registration_id;
+			}
+	default:
+		{
+			return API_SERVER_FAILURE;
+		}
+	}
+
+	return res;
 }
 
 
