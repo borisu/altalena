@@ -71,6 +71,7 @@
 				AdditionalDependencies="ws2_32.lib Winmm.lib ws2_32.lib Iphlpapi.lib libboost_thread-vc80-mt-gd-1_34_1.lib Mqrt.lib "
 				LinkIncremental="2"
 				AdditionalLibraryDirectories=""
+				GenerateManifest="true"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"

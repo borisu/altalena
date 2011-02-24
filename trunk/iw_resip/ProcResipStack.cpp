@@ -529,6 +529,11 @@ namespace ivrworx
 					UponRegisterReq(msg);
 					break;
 				}
+			case SIP_CALL_UNREGISTER_REQ:
+				{
+					UponUnRegisterReq(msg);
+					break;
+				}
 			default:
 				{ 
 					if (HandleOOBMessage(msg) == FALSE)
@@ -617,7 +622,13 @@ namespace ivrworx
 		const SipMessage& msg, 
 		const Contents& body)
 	{
-		FUNCTRACKER
+		FUNCTRACKER;
+
+		LogDebug("UASDialogUsageManager::onNewSession - valid:" << h.isValid() << " id " << h.getId())  ;
+		h->getAppDialog();
+		LogDebug("UASDialogUsageManager::onNewSession - exit" );
+		
+		
 
 		ResipDialogHandlesMap::iterator iter 
 			= _resipHandlesMap.find(h->getAppDialog());
@@ -705,6 +716,34 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 		_dumUas.onNewSession(sis,oat,msg);
+	}
+
+	void 
+	ProcResipStack::onFailure(
+		IN ClientRegistrationHandle h, 
+		IN const SipMessage& msg)
+	{
+		FUNCTRACKER;
+		_dumUac.onFailure(h,msg);
+
+	}
+
+	void 
+	ProcResipStack::onSuccess(
+		IN ClientRegistrationHandle h, 
+		IN const SipMessage& response)
+	{
+		FUNCTRACKER;
+		_dumUac.onSuccess(h,response);
+	}
+
+	void 
+	ProcResipStack::onFailure(
+		IN ClientOutOfDialogReqHandle h, 
+		IN const SipMessage& errorResponse)
+	{
+		FUNCTRACKER;
+		_dumUac.onFailure(h,errorResponse);
 	}
 
 	void 

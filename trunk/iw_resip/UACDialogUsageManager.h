@@ -69,6 +69,10 @@ public:
 		IN ClientInviteSessionHandle, 
 		IN const SipMessage& msg);
 
+	virtual void onFailure(
+		IN ClientOutOfDialogReqHandle h, 
+		IN const SipMessage& errorResponse);
+
 	virtual void CleanUpCall(
 		IN SipDialogContextPtr ctx_ptr);
 

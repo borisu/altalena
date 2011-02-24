@@ -67,6 +67,8 @@ namespace ivrworx
 
 		ClientInviteSessionHandle uac_invite_handle;
 
+		ClientRegistrationHandle  uac_register_handle;
+
 		LpHandlePtr call_handler_inbound;
 
 		IwStackHandle stack_handle;

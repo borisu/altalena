@@ -60,6 +60,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				GenerateManifest="true"
 				ModuleDefinitionFile="C++CSP2.def"
 				GenerateMapFile="true"
 				MapFileName="C++CSP2.map"
