@@ -133,6 +133,18 @@ namespace ivrworx
 
 		virtual void UponCallConnected(IN IwMessagePtr req);
 
+		virtual void onSuccess(
+			IN ClientRegistrationHandle h, 
+			IN const SipMessage& response);
+
+		virtual void onFailure(
+			IN ClientOutOfDialogReqHandle h, 
+			IN const SipMessage& errorResponse);
+
+		virtual void onFailure(
+			IN ClientRegistrationHandle h, 
+			IN const SipMessage& msg);
+
 		virtual void onNewSession(
 			IN ClientInviteSessionHandle s, 
 			IN InviteSession::OfferAnswerType oat, 

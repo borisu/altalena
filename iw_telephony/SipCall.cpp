@@ -158,6 +158,7 @@ SipMediaCall::StartRegistration(const list<string> &contacts,
 					dynamic_pointer_cast<MsgSipCallRegisterAck>(response);
 
 				_registrationId = ack->registration_id;
+				break;
 			}
 	default:
 		{

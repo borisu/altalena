@@ -66,7 +66,7 @@
 				OutputFile="$(OutDir)/lua5.1.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../lib"
-				GenerateManifest="false"
+				GenerateManifest="true"
 				ModuleDefinitionFile="../src/lua5.1.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/lua5.1.pdb"

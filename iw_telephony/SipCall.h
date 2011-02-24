@@ -120,7 +120,9 @@ namespace ivrworx
 	public:
 		MsgSipCallRegisterReq():
 		  MsgRequest(SIP_CALL_REGISTER_REQ, 
-			  NAME(SIP_CALL_REGISTER_REQ)){};
+			  NAME(SIP_CALL_REGISTER_REQ)),
+			  max_registration_time(IW_UNDEFINED), 
+			  registration_retry_time(IW_UNDEFINED){};
 
 		  std::list<string> contacts;
 

@@ -41,7 +41,7 @@ Luna<sipcall>::RegType sipcall::methods[] = {
 	method(sipcall, remoteoffer),
 	method(sipcall, localoffer),
 	method(sipcall, accept),
-	method(sipcall, register_),
+	method(sipcall, startregister),
 	method(sipcall, unregister),
 	{0,0}
 };
@@ -172,7 +172,7 @@ sipcall::localoffer(lua_State *L)
 }
 
 int
-sipcall::register_(lua_State *L)
+sipcall::startregister(lua_State *L)
 {
 	FUNCTRACKER;
 
@@ -200,11 +200,16 @@ sipcall::register_(lua_State *L)
 		goto error_param;
 
 	
-	GetTableStringParam(L,-1,contacts,"contacts");
+	paramres = GetTableStringParam(L,-1,contacts,"contacts");
+	if (paramres != FALSE)
+	{
+		split(strs, contacts, is_any_of(","));
 
-	split(strs, contacts, is_any_of(","));
-	std::copy(strs.begin(), strs.end(), contactslist.begin());
-	
+		contactslist.resize(strs.size());
+		std::copy(strs.begin(), strs.end(), contactslist.begin());
+	}
+
+
 	GetTableStringParam(L,-1,realm,"realm");
 	GetTableStringParam(L,-1,password,"password");
 

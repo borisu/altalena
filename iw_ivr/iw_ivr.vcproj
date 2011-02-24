@@ -63,6 +63,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				GenerateManifest="true"
 				GenerateDebugInformation="true"
 			/>
 			<Tool

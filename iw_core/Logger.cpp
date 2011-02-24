@@ -649,8 +649,7 @@ error:
 			log_function, 
 			MAX_LENGTH);
 
-		LogTrace(_funcname << " Enters -->");
-
+		COND_LOG(LOG_LEVEL_TRACE,_funcname << " Enters -->")
 	}
 
 	LoggerTracker::~LoggerTracker()
@@ -660,7 +659,7 @@ error:
 			return;
 		}
 
-		LogTrace(_funcname << " <-- Exits");
+		COND_LOG(LOG_LEVEL_TRACE,_funcname << " <-- Exits");
 
 	}
 

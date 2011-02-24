@@ -47,6 +47,27 @@ namespace ivrworx
 
 	}
 
+
+	void 
+	UACDialogUsageManager::onFailure(
+			IN ClientOutOfDialogReqHandle h, 
+			IN const SipMessage& errorResponse)
+	{
+		FUNCTRACKER;
+
+// 		UACAppDialogSet* uac_set = 
+// 			(UACAppDialogSet*)(h->getAppDialogSet().get());
+// 
+// 		if (uac_set && uac_set->last_registration_req)
+// 		{
+// 			GetCurrRunningContext()->SendResponse(uac_set->last_registration_req,
+// 				new MsgSipCallRegisterNack());
+// 
+// 			_iwHandlesMap.erase(uac_set->_ptr->stack_handle);
+// 
+// 		}
+	}
+
 	void 
 	UACDialogUsageManager::onSuccess(
 		IN ClientRegistrationHandle h, 
@@ -56,13 +77,13 @@ namespace ivrworx
 		UACAppDialogSet* uac_set = 
 			(UACAppDialogSet*)(h->getAppDialogSet().get());
 
+		uac_set->_ptr->uac_register_handle = h;
+
 		if (!uac_set->last_registration_req)
 			return;
 		
 		MsgSipCallRegisterAck* ack = new MsgSipCallRegisterAck();
 		ack->registration_id = uac_set->_ptr->stack_handle;
-
-		
 
 		GetCurrRunningContext()->SendResponse(uac_set->last_registration_req,
 			ack);
@@ -120,6 +141,12 @@ namespace ivrworx
 		}
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
+
+		if (ctx_ptr->uac_register_handle.isValid())
+		{
+			ctx_ptr->uac_register_handle->removeMyBindings(true);
+		}
+		
 		_iwHandlesMap.erase(ctx_ptr->stack_handle);
 
 		
@@ -140,11 +167,11 @@ namespace ivrworx
 		//
 		SipDialogContextPtr ctx_ptr = SipDialogContextPtr(new SipDialogContext());
 		ctx_ptr->stack_handle = GenerateCallHandle();
+		
 
 		UACAppDialogSet *uac_dialog_set = 
 			new UACAppDialogSet(_dum,ctx_ptr,ptr);
-
-		
+		uac_dialog_set->last_registration_req = reg_req;
 
 
 		NameAddr addr(reg_req ->registrar.c_str());
@@ -152,10 +179,18 @@ namespace ivrworx
 		SharedPtr<UserProfile> up (new UserProfile(bp));
 
 		
+		if (reg_req->max_registration_time != IW_UNDEFINED)
+			up->setDefaultMaxRegistrationTime(reg_req->max_registration_time);
+		else
+			up->setDefaultMaxRegistrationTime(1);
 
-		up->setDefaultMaxRegistrationTime(reg_req->max_registration_time);
-		up->setDefaultRegistrationRetryTime(reg_req->registration_retry_time);
+		if (reg_req->max_registration_time != IW_UNDEFINED)
+			up->setDefaultRegistrationRetryTime(reg_req->registration_retry_time);
+		else
+			up->setDefaultMaxRegistrationTime(180);
+
 		up->setDigestCredential(reg_req->realm.c_str(),reg_req->username.c_str(), reg_req->password.c_str());
+
 		
 
 		SharedPtr<SipMessage> msg =  _dum.makeRegistration(addr,up,uac_dialog_set);

@@ -67,6 +67,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="ws2_32.lib "
+				GenerateManifest="true"
 				GenerateDebugInformation="true"
 				EnableCOMDATFolding="0"
 			/>

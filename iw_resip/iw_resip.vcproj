@@ -44,7 +44,7 @@
 				Optimization="0"
 				EnableFiberSafeOptimizations="false"
 				AdditionalIncludeDirectories="..\resiprocate\resiprocate;..\iw_core;..\iw_telephony"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_DLL_IW_RESIP"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_DLL_IW_RESIP;TRACE_FUNC_CALLS"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -67,6 +67,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="ws2_32.lib  Iphlpapi.lib Winmm.lib"
+				GenerateManifest="true"
 				GenerateDebugInformation="true"
 			/>
 			<Tool
