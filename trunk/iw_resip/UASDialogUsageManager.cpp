@@ -120,7 +120,7 @@ namespace ivrworx
 		sis->provisional(180);
 
 		// prepare dialog context
-		SipDialogContextPtr ctx_ptr(new SipDialogContext());
+		SipDialogContextPtr ctx_ptr(new SipDialogContext(FALSE));
 		ctx_ptr->uas_invite_handle = sis;
 		ctx_ptr->stack_handle = GenerateCallHandle();
 

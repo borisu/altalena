@@ -165,7 +165,7 @@ namespace ivrworx
 
 		// create context
 		//
-		SipDialogContextPtr ctx_ptr = SipDialogContextPtr(new SipDialogContext());
+		SipDialogContextPtr ctx_ptr = SipDialogContextPtr(new SipDialogContext(TRUE));
 		ctx_ptr->stack_handle = GenerateCallHandle();
 		
 
@@ -426,7 +426,7 @@ namespace ivrworx
 
 			// create context
 			//
-			SipDialogContextPtr ctx_ptr = SipDialogContextPtr(new SipDialogContext());;
+			SipDialogContextPtr ctx_ptr = SipDialogContextPtr(new SipDialogContext(TRUE));;
 
 			UACAppDialogSet * uac_dialog_set = 
 				new UACAppDialogSet(_dum,ctx_ptr,ptr);
