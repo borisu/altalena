@@ -187,8 +187,12 @@ caller:answer{sdp=localoffer}
 starts registration
 
 || *named parameter* || *description* ||
-|| registrar|| registrar URI||
+|| registrar|| registrar URI and To: example "sip:1234@example.com"||
 || timeout || client side timeout ||
 || username|| user name||
 || password || password ||
 || realm || realm  ||
+
+== `:unregister(...)` ==
+
+stops registration
