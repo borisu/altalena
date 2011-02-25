@@ -181,3 +181,14 @@ a=fmtp:101 0-11
 caller:accept{service="sip,resip", timeout=600}
 caller:answer{sdp=localoffer} 
 }}}
+
+== `:startregister(...)` ==
+
+starts registration
+
+|| *named parameter* || *description* ||
+|| registrar|| registrar URI||
+|| timeout || client side timeout ||
+|| username|| user name||
+|| password || password ||
+|| realm || realm  ||
