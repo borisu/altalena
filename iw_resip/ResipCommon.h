@@ -57,7 +57,7 @@ namespace ivrworx
 	struct SipDialogContext :
 		public noncopyable
 	{
-		SipDialogContext();
+		SipDialogContext(BOOL isUac);
 
 		BOOL isUac();
 
@@ -76,6 +76,8 @@ namespace ivrworx
 		AbstractOffer local_media_offer;
 
 		AbstractOffer remote_media_offer;
+
+		BOOL is_uac;
 
 	};
 

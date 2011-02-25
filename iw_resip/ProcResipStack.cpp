@@ -624,12 +624,6 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		LogDebug("UASDialogUsageManager::onNewSession - valid:" << h.isValid() << " id " << h.getId())  ;
-		h->getAppDialog();
-		LogDebug("UASDialogUsageManager::onNewSession - exit" );
-		
-		
-
 		ResipDialogHandlesMap::iterator iter 
 			= _resipHandlesMap.find(h->getAppDialog());
 		if (iter == _resipHandlesMap.end())
