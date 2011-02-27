@@ -77,6 +77,8 @@ namespace ivrworx
 
 		AbstractOffer remote_media_offer;
 
+		SharedPtr<UserProfile> user_profile;
+
 		BOOL is_uac;
 
 	};

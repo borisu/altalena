@@ -134,7 +134,7 @@ GenericOfferAnswerSession::ResetState(CallState state, const char *state_str)
 ApiErrorCode
 GenericOfferAnswerSession::MakeCall(IN const string   &destination_uri, 
 	IN const AbstractOffer &offer,
-	IN const MapOfAny &key_value_map,
+	IN OUT MapOfAny &key_value_map,
 	IN csp::Time	  ring_timeout)
 {
 	FUNCTRACKER;
@@ -160,7 +160,7 @@ GenericOfferAnswerSession::MakeCall(IN const string   &destination_uri,
 	msg->optional_params		= key_value_map;
 
 	_localOffer					= offer;
-	
+
 	ApiErrorCode res = API_SUCCESS;
 	
 	// wait for ok or nack

@@ -178,6 +178,8 @@ namespace ivrworx
 		SharedPtr<UserProfile> &bp = _dum.getMasterUserProfile();
 		SharedPtr<UserProfile> up (new UserProfile(bp));
 
+		ctx_ptr->user_profile = up;
+
 		
 		if (reg_req->max_registration_time != IW_UNDEFINED)
 			up->setDefaultMaxRegistrationTime(reg_req->max_registration_time);
@@ -190,6 +192,7 @@ namespace ivrworx
 			up->setDefaultMaxRegistrationTime(180);
 
 		up->setDigestCredential(reg_req->realm.c_str(),reg_req->username.c_str(), reg_req->password.c_str());
+		up->setDefaultFrom(addr);
 
 		
 
@@ -419,7 +422,7 @@ namespace ivrworx
 			//
 			NameAddr name_addr(req->destination_uri.c_str());
 			SharedPtr<UserProfile> user_profile;
-			user_profile = _dum.getMasterProfile();
+
 			
 			
 			SharedPtr<SipMessage> invite_session;
@@ -430,6 +433,29 @@ namespace ivrworx
 
 			UACAppDialogSet * uac_dialog_set = 
 				new UACAppDialogSet(_dum,ctx_ptr,ptr);
+
+			MapOfAny::iterator param_iter = req->optional_params.find("registration_id");
+				 
+			if (param_iter != req->optional_params.end())
+			{
+
+				int registration_id = any_cast<int>(param_iter->second);
+				IwHandlesMap::iterator iter = _iwHandlesMap.find(registration_id);
+				if (iter == _iwHandlesMap.end())
+				{
+					LogWarn("UACDialogUsageManager::UponMakeCallReq - cannot find specified registration id" << registration_id);
+					GetCurrRunningContext()->SendResponse(ptr, new MsgMakeCallNack());
+					return;
+				}
+
+				SipDialogContextPtr ctx_ptr = iter->second;
+				user_profile = ctx_ptr->user_profile;
+
+			} 
+			else 
+			{
+				user_profile = _dum.getMasterProfile();
+			}
 
 			// generic offer INVITE
 			if (!req->localOffer.body.empty())

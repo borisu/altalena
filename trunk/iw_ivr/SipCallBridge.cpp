@@ -210,7 +210,10 @@ sipcall::startregister(lua_State *L)
 	}
 
 
-	GetTableStringParam(L,-1,realm,"realm");
+	paramres = GetTableStringParam(L,-1,realm,"realm");
+	if (paramres == FALSE)
+		goto error_param;
+
 	GetTableStringParam(L,-1,password,"password");
 
 	int timeout = 15;

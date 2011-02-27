@@ -197,6 +197,11 @@ namespace ivrworx
 			IN const string &realm,
 			IN csp::Time timeout);
 
+		virtual ApiErrorCode MakeCall(IN const string   &destination_uri, 
+			IN const AbstractOffer &offer,
+			IN OUT MapOfAny &key_value_map,
+			IN csp::Time	  ring_timeout);
+
 		virtual ApiErrorCode StopRegistration();
 
 		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
