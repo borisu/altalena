@@ -193,6 +193,27 @@ starts registration
 || password || password ||
 || realm || realm  ||
 
+{{{
+c1 = sipcall:new();
+
+res = c1:startregister{registrar="sip:1000@192.168.100.241:5060", 
+			username="1000", 
+			password="1234",
+			realm="192.168.100.241",
+			timeout=15};
+
+l:loginfo("c1:startregister res = " .. res);
+assert(res==iw.API_SUCCESS)
+
+res = c1:makecall{dest="sip:90547720193@192.168.100.241"}  
+l:loginfo("c1:makecall res = " .. res);
+assert(res==iw.API_SUCCESS)
+
+
+
+iw.sleep(10000)
+}}}
+
 == `:unregister(...)` ==
 
 stops registration
