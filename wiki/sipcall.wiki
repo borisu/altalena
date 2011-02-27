@@ -205,7 +205,7 @@ res = c1:startregister{registrar="sip:1000@192.168.100.241:5060",
 l:loginfo("c1:startregister res = " .. res);
 assert(res==iw.API_SUCCESS)
 
-res = c1:makecall{dest="sip:90547720193@192.168.100.241"}  
+res = c1:makecall{dest="sip:907723154123@192.168.100.241"}  
 l:loginfo("c1:makecall res = " .. res);
 assert(res==iw.API_SUCCESS)
 
