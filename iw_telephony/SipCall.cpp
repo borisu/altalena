@@ -81,6 +81,23 @@ SipMediaCall::WaitForInfo(IN AbstractOffer &remoteOffer)
 
 }
 
+ApiErrorCode 
+SipMediaCall::MakeCall(IN const string   &destination_uri, 
+							  IN const AbstractOffer &offer,
+							  IN OUT MapOfAny &key_value_map,
+							  IN csp::Time	  ring_timeout)
+{
+	
+	
+	if (_registrationId  != IW_UNDEFINED)
+	{
+		key_value_map["registration_id"] = _registrationId;
+
+	}
+	return GenericOfferAnswerSession::MakeCall(destination_uri, offer, key_value_map, ring_timeout);
+
+}
+
 ApiErrorCode
 SipMediaCall::StopRegistration()
 {

@@ -391,7 +391,7 @@ namespace ivrworx
 		virtual ApiErrorCode MakeCall(
 			IN const string   &destinationUri, 
 			IN const AbstractOffer  &localOffer,
-			IN const MapOfAny &keyValueMap,
+			IN OUT  MapOfAny &keyValueMap,
 			IN csp::Time	  ringTimeout);
 
 		virtual ApiErrorCode Answer(
