@@ -26,9 +26,7 @@ creates streamer object
 
 == `:play(...)` ==
 
-WAV file MUST be in the same sampling rate (PCM) as RTP stream. In case of error you might see the following log line
-
-
+WAV file MUST be in the same sampling rate (PCM) as RTP stream. In case of error you might see the following log line:
  clock rates of payload and wav file are different pt:8000 file:44100 imsh:7000000
 
 
