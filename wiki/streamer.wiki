@@ -35,8 +35,7 @@ WAV file MUST be in the same sampling rate (PCM) as RTP stream. In case of error
 || loop || the file will be played in loop||
 || sync || if true the function will exit upon eof (cannot be used with loop = true||
 
-*relative filepaths are taken from "m2ims/sounds_dir" configura
-tion value.
+Relative filepaths are taken from "m2ims/sounds_dir" configuration value.
 
 == `:stop()` ==
 
