@@ -217,3 +217,45 @@ iw.sleep(10000)
 == `:unregister(...)` ==
 
 stops registration
+
+== `:reoffer(...)` ==
+
+sends reoffer (re-invite) request
+
+|| *named parameter* || *description* ||
+|| timeout || client side timeout ||
+|| sdp || sdp string to offer (may be used instead of offer/type)||
+|| offer || offer ||
+|| type || type type ||
+|| H_XXX || XXX header will be added to the SIP message ||
+
+
+example
+{{{
+require "ivrworx"
+
+local l	= assert(iw.LOGGER, "assert:iw.LOGGER")
+
+l:loginfo("Hello World!");
+
+c = sipcall:new();
+
+
+localoffer = [[v=0
+o=ivrworx 123456 654321 IN IP4 10.0.0.1
+s=A conversation
+c=IN IP4 10.0.0.1
+t=0 0
+m=audio 6000 RTP/AVP 0 8 101
+a=rtpmap:0 PCMU/8000/1
+a=rtpmap:8 PCMA/8000/1
+a=rtpmap:101 telephone-event/8000/1
+a=fmtp:101 0-11
+
+]]
+
+
+c:makecall{dest="sip:24001@192.168.150.3", timeout=15, sdp=localoffer}
+c:reoffer{timeout=15, sdp=localoffer}
+c:hangup();
+}}}
