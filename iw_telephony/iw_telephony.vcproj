@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\resiprocate\resiprocate;..\iw_core"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_IW_TELEPHONY_API"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_IW_TELEPHONY_API;TRACE_FUNC_CALLS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"

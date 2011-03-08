@@ -69,7 +69,7 @@
 				GenerateManifest="true"
 				ModuleDefinitionFile="../src/lua5.1.def"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/lua5.1.pdb"
+				ProgramDatabaseFile="$(OutDir)/lua5.1.exe.pdb"
 				SubSystem="2"
 				ImportLibrary="../lib/lua5.1.lib"
 				TargetMachine="1"

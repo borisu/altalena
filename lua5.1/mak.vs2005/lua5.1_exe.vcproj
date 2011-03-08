@@ -70,7 +70,7 @@
 				AdditionalLibraryDirectories="../lib"
 				GenerateManifest="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/lua5.1.pdb"
+				ProgramDatabaseFile="$(OutDir)/lua5.1.exel.pdb"
 				SubSystem="1"
 				EntryPointSymbol="mainCRTStartup"
 				TargetMachine="1"

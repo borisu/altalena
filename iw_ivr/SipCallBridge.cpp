@@ -83,13 +83,16 @@ sipcall::accept(lua_State *L)
 	LpHandlePtr service_handle = ivrworx::GetHandle(service);
 	if (!service_handle)
 	{
-		return API_UNKNOWN_DESTINATION;
+		
+		lua_pushnumber (L, API_UNKNOWN_DESTINATION);
+		return 1;
 	}
 
 	DECLARE_NAMED_HANDLE(listener_handle);
 	if (IW_FAILURE(SubscribeToIncomingCalls(service_handle,listener_handle)))
 	{
-		return API_SERVER_FAILURE;
+		lua_pushnumber (L, API_FAILURE);
+		return 1;
 	}
 
 	
@@ -111,17 +114,18 @@ sipcall::accept(lua_State *L)
 				shared_polymorphic_cast<MsgCallOfferedReq> (msg);
 
 			_call.reset(new SipMediaCall(*CTX_FIELD(_forking),call_offered));
+			break;
 		}
 	default:
 		{
-			return API_UNKNOWN_RESPONSE;
-
+			lua_pushnumber (L, API_UNKNOWN_RESPONSE);
+			return 1;
 		}
 	}
 
-	
 
-	return API_SUCCESS;
+	lua_pushnumber (L, API_SUCCESS);
+	return 1;
 
 
 }

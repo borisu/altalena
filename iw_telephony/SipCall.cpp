@@ -45,6 +45,7 @@ SipMediaCall::SipMediaCall(IN ScopedForking &forking,
 
 SipMediaCall::~SipMediaCall()
 {
+	FUNCTRACKER;
 
 }
 
