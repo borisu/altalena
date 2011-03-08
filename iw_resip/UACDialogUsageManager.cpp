@@ -405,6 +405,23 @@ namespace ivrworx
 
 		LogDebug("UACDialogUsageManager::onAnswer rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
 
+		if (ctx_ptr->last_reoffer_req)
+		{
+			MsgCallReofferAck *ok = new MsgCallReofferAck();
+
+			if (msg.getContents())
+			{
+				ok->remoteOffer.body = msg.getContents()->getBodyData().c_str();
+				ok->remoteOffer.type = string("") + msg.getContents()->getType().type().c_str() + "/" + msg.getContents()->getType().subType().c_str();
+			}
+
+			GetCurrRunningContext()->SendResponse(
+				ctx_ptr->last_reoffer_req,
+				ok);
+
+			ctx_ptr->last_reoffer_req.reset();
+		} 
+
 	}
 
 	void 
@@ -564,6 +581,7 @@ namespace ivrworx
 
 	}
 
+	
 	void
 	UACDialogUsageManager::UponBlindXferReq(IwMessagePtr req)
 	{
@@ -668,28 +686,43 @@ namespace ivrworx
 
 		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
 
-		MsgMakeCallOk *ack = 
-			new MsgMakeCallOk();
-
-		ack->stack_call_handle = ctx_ptr->stack_handle;
-
-		const Uri &from_uri = msg.header(h_From).uri();
-		ack->ani = from_uri.user().c_str();
-
-		
-
-		if (msg.getContents())
+		if (ctx_ptr->last_reoffer_req)
 		{
-			ack->remoteOffer.body = msg.getContents()->getBodyData().c_str();
-			ack->remoteOffer.type = string("") + msg.getContents()->getType().type().c_str() + "/" + msg.getContents()->getType().subType().c_str();
+			MsgCallReofferAck *ok = new MsgCallReofferAck();
+
+			if (msg.getContents())
+			{
+				ok->remoteOffer.body = msg.getContents()->getBodyData().c_str();
+				ok->remoteOffer.type = string("") + msg.getContents()->getType().type().c_str() + "/" + msg.getContents()->getType().subType().c_str();
+			}
+
+			GetCurrRunningContext()->SendResponse(
+				ctx_ptr->last_reoffer_req,
+				ok);
+
+			ctx_ptr->last_reoffer_req.reset();
+		} 
+		else
+		{
+			MsgMakeCallOk *ok = new MsgMakeCallOk();
+
+			ok->stack_call_handle = ctx_ptr->stack_handle;
+
+			const Uri &from_uri = msg.header(h_From).uri();
+			ok->ani = from_uri.user().c_str();
+
+			if (msg.getContents())
+			{
+				ok->remoteOffer.body = msg.getContents()->getBodyData().c_str();
+				ok->remoteOffer.type = string("") + msg.getContents()->getType().type().c_str() + "/" + msg.getContents()->getType().subType().c_str();
+			}
+
+			GetCurrRunningContext()->SendResponse(
+				uac_set->last_makecall_req,
+				ok);
 		}
 
-		GetCurrRunningContext()->SendResponse(
-			uac_set->last_makecall_req,
-			ack);
-
 		return;
-
 					
 	}
 

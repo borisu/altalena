@@ -79,6 +79,8 @@ namespace ivrworx
 
 		SharedPtr<UserProfile> user_profile;
 
+		IwMessagePtr last_reoffer_req;
+
 		BOOL is_uac;
 
 	};

@@ -21,6 +21,7 @@
 #include "ProcResipStack.h"
 #include "UASAppDialogSetFactory.h"
 #include "UASDialogUsageManager.h"
+#include "FreeContent.h"
 
 
 
@@ -367,6 +368,38 @@ namespace ivrworx
 	}
 
 	void 
+	ProcResipStack::UponReofferReq(IN IwMessagePtr req)
+	{
+		FUNCTRACKER;
+
+		shared_ptr<MsgCallReofferReq> roff_req = 
+			dynamic_pointer_cast<MsgCallReofferReq>(req);
+
+		IwHandlesMap::iterator iter = _iwHandlesMap.find(roff_req->stack_call_handle);
+		if (iter == _iwHandlesMap.end())
+		{
+			LogWarn("ProcResipStack::UponReofferReq - iwh:" << roff_req->stack_call_handle << " not found. Has caller disconnected already?");
+			GetCurrRunningContext()->SendResponse(
+				req,
+				new MsgCallReofferNack());
+			return;
+		}
+
+		SipDialogContextPtr ctx_ptr = (*iter).second;
+
+		ctx_ptr->last_reoffer_req = roff_req;
+
+		Data free_data(roff_req->localOffer.body);
+
+		FreeContent fc(roff_req->localOffer.body,roff_req->localOffer.type);
+
+		
+		ctx_ptr->invite_handle->provideOffer(fc);
+
+
+	}
+
+	void 
 	ProcResipStack::UponHangupCallReq(IwMessagePtr ptr)
 	{
 		FUNCTRACKER;
@@ -534,6 +567,11 @@ namespace ivrworx
 					UponUnRegisterReq(msg);
 					break;
 				}
+			case MSG_CALL_REOFFER_REQ:
+				{
+					UponReofferReq(msg);
+					break;
+				}
 			default:
 				{ 
 					if (HandleOOBMessage(msg) == FALSE)
@@ -614,8 +652,7 @@ namespace ivrworx
 
 	}
 
-	// generic auto answer
-	// generic offer
+	// You should only override the following method if genericOfferAnswer is true
 	void 
 	ProcResipStack::onOffer(
 		InviteSessionHandle h, 
@@ -644,7 +681,10 @@ namespace ivrworx
 		
 	}
 
-	// generic answer 
+	/// called when an answer is received - has nothing to do with user
+	/// answering the call 
+	// ...	
+	// You should only override the following method if genericOfferAnswer is true 
 	void 
 	ProcResipStack::onAnswer(
 		InviteSessionHandle h, 

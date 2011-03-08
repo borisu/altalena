@@ -59,6 +59,8 @@ namespace ivrworx
 		int startregister(lua_State *L);
 		int unregister(lua_State *L);
 
+		int reoffer(lua_State *L);
+
 		static const char className[];
 		static Luna<sipcall>::RegType methods[];
 

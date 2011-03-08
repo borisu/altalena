@@ -121,7 +121,7 @@ namespace ivrworx
 
 		}
 		
-		ApiErrorCode res  = API_SERVER_FAILURE;
+		ApiErrorCode res  = 
 			_streamingSessionPtr->ModifyConnection(offer);
 
 		lua_pushnumber (L, res);

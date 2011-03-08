@@ -133,6 +133,8 @@ namespace ivrworx
 
 		virtual void UponCallConnected(IN IwMessagePtr req);
 
+		virtual void UponReofferReq(IN IwMessagePtr req);
+
 		virtual void onSuccess(
 			IN ClientRegistrationHandle h, 
 			IN const SipMessage& response);

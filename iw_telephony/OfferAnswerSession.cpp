@@ -129,7 +129,87 @@ GenericOfferAnswerSession::ResetState(CallState state, const char *state_str)
 	LogDebug("GenericOfferAnswerSession::ResetState iwh:" << _iwCallHandle << ", transition from state:" << _callState << " to state:" << state << ", " << state_str);
 	_callState = state;
 }
+ApiErrorCode 
+GenericOfferAnswerSession::ReOffer(
+							 IN const AbstractOffer  &localOffer,
+							 IN OUT  MapOfAny &keyValueMap,
+							 IN csp::Time	  ringTimeout)
+{
+	FUNCTRACKER;
 
+	LogDebug("GenericOfferAnswerSession::ReOffer offer:\n" << localOffer.body);
+
+	if (localOffer.body.empty())
+	{
+		return API_WRONG_PARAMETER;
+	}
+
+	if (_callState != CALL_STATE_CONNECTED)
+	{
+		return API_WRONG_STATE;
+	}
+
+	CALL_RESET_STATE(CALL_STATE_IN_DIALOG_OFFERED);
+
+	IwMessagePtr response = NULL_MSG;
+
+	MsgCallReofferReq *msg		= new MsgCallReofferReq();
+	msg->localOffer			    = localOffer;
+	msg->stack_call_handle		= _iwCallHandle;
+	msg->optional_params		= keyValueMap;
+
+	ApiErrorCode res = API_SUCCESS;
+
+	// wait for ok or nack
+	res = GetCurrRunningContext()->DoRequestResponseTransaction(
+		_stackHandleId,
+		IwMessagePtr(msg),
+		response,
+		ringTimeout,
+		"GenericOfferAnswerSession::ReOffer TXN");
+
+
+	if (res == API_TIMEOUT)
+	{
+		// just to be sure that timeout-ed call
+		// eventually gets hanged up
+		LogWarn("GenericOfferAnswerSession::ReOffer - Timeout.");
+		HangupCall();
+		return API_TIMEOUT;
+	}
+
+	if (IW_FAILURE(res))
+	{
+		LogWarn("GenericOfferAnswerSession::ReOffer - failure res:" << res);
+		HangupCall();
+		return API_SERVER_FAILURE;
+	}
+
+
+	switch (response->message_id)
+	{
+	case MSG_CALL_REOFFER_ACK:
+		{
+			_localOffer		= localOffer;
+			break;
+		}
+	default:
+		{
+			CALL_RESET_STATE(CALL_STATE_CONNECTED);
+			return API_SERVER_FAILURE;
+		}
+	}
+
+	shared_ptr<MsgCallReofferAck> make_call_ok = 
+		dynamic_pointer_cast<MsgCallReofferAck>(response);
+
+	_remoteOffer = make_call_ok->remoteOffer;
+	
+	CALL_RESET_STATE(CALL_STATE_CONNECTED);
+	
+	return res;
+
+}
 
 ApiErrorCode
 GenericOfferAnswerSession::MakeCall(IN const string   &destination_uri, 
