@@ -20,6 +20,12 @@ namespace ivrworx
 		MSG_MAKE_CALL_OK,
 		MSG_MAKE_CALL_ACK,
 		MSG_MAKE_CALL_NACK,
+
+		MSG_CALL_REOFFER_REQ,
+		MSG_CALL_REOFFER_ACK,
+		MSG_CALL_REOFFER_NACK,
+
+		
 		MSG_HANGUP_CALL_REQ,
 
 		MSG_CALL_BLIND_XFER_REQ,
@@ -316,6 +322,34 @@ namespace ivrworx
 
 	};
 
+
+	class IW_TELEPHONY_API MsgCallReofferReq:
+		public MsgVoipCallMixin,public IwMessage
+	{
+	public:
+		MsgCallReofferReq():IwMessage(MSG_CALL_REOFFER_REQ, 
+			NAME(MSG_CALL_REOFFER_REQ)){}
+
+	};
+
+	class IW_TELEPHONY_API MsgCallReofferAck:
+		public MsgVoipCallMixin,public IwMessage
+	{
+	public:
+		MsgCallReofferAck():IwMessage(MSG_CALL_REOFFER_ACK, 
+			NAME(MSG_CALL_REOFFER_ACK)){}
+
+	};
+
+	class IW_TELEPHONY_API MsgCallReofferNack:
+		public MsgVoipCallMixin,public IwMessage
+	{
+	public:
+		MsgCallReofferNack():IwMessage(MSG_CALL_REOFFER_NACK, 
+			NAME(MSG_CALL_REOFFER_NACK)){}
+
+	};
+
 #define CALL_RESET_STATE(X) ResetState(X,#X)
 
 	enum CallState
@@ -390,6 +424,11 @@ namespace ivrworx
 
 		virtual ApiErrorCode MakeCall(
 			IN const string   &destinationUri, 
+			IN const AbstractOffer  &localOffer,
+			IN OUT  MapOfAny &keyValueMap,
+			IN csp::Time	  ringTimeout);
+
+		virtual ApiErrorCode ReOffer(
 			IN const AbstractOffer  &localOffer,
 			IN OUT  MapOfAny &keyValueMap,
 			IN csp::Time	  ringTimeout);

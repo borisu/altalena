@@ -43,6 +43,7 @@ Luna<sipcall>::RegType sipcall::methods[] = {
 	method(sipcall, accept),
 	method(sipcall, startregister),
 	method(sipcall, unregister),
+	method(sipcall, reoffer),
 	{0,0}
 };
 
@@ -248,6 +249,48 @@ sipcall::unregister(lua_State *L)
 
 	ApiErrorCode res = 
 		_call->StopRegistration();
+
+
+	lua_pushnumber (L, res);
+	return 1;
+
+}
+
+int
+sipcall::reoffer(lua_State *L)
+{
+	FUNCTRACKER;
+
+	if (!_call)
+	{
+		lua_pushnumber (L, API_WRONG_STATE);
+		return 1;
+	}
+
+	MapOfAny freemap;
+	AbstractOffer offer;
+	string dest;
+
+
+	int timeout = 15;
+	GetTableNumberParam(L,-1,&timeout,"timeout",15);
+
+
+	BOOL paramres = GetTableStringParam(L,-1,offer.body,"sdp");
+	if (paramres == FALSE)
+	{
+		GetTableStringParam(L,-1,offer.body,"offer");
+		GetTableStringParam(L,-1,offer.type,"type");
+	}
+	else
+	{
+		offer.type = "sdp";
+	}
+
+	FillTable(L,-1,freemap);
+
+	ApiErrorCode res = 
+		_call->ReOffer(offer,freemap,Seconds(timeout));
 
 
 	lua_pushnumber (L, res);
