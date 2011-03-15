@@ -135,6 +135,9 @@ waits for recognition result
 ||timeout|| timeout ||
 
 == example:simple ==
+
+Pay attention that caller will receive traffic from port different then sending to. That may be a problem with some clients as linphone, as they correct SDP data thinking the NAT is involved
+
 {{{
 require "ivrworx"
 
