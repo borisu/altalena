@@ -93,11 +93,7 @@ namespace ivrworx
 		_shutDownFlag(false),
 		_conf(conf),
 		_stack(NULL, resip::DnsStub::EmptyNameserverList, &_si),
-		_stackThread(_stack,_si),
-		_dumMngr(_stack),
-		_dumUas(_conf,_iwHandlesMap,_resipHandlesMap,_dumMngr),
-		_dumUac(_conf,_iwHandlesMap,_resipHandlesMap,_dumMngr)
-
+		_stackThread(_stack,_si)
 	{
 		FUNCTRACKER;
 
@@ -201,7 +197,11 @@ namespace ivrworx
 
 		try 
 		{
-			
+
+			_dumMngr.reset( new IwDialogUsageManager(_stack));
+			_dumUas.reset( new UASDialogUsageManager(_conf,_iwHandlesMap,_resipHandlesMap,*_dumMngr));
+			_dumUac.reset( new UACDialogUsageManager(_conf,_iwHandlesMap,_resipHandlesMap,*_dumMngr));
+
 			
 			//
 			// Prepare SIP stack
@@ -239,7 +239,7 @@ namespace ivrworx
 			//
 			// Prepare interruptor
 			//
-			_dumInt = ResipInterruptorPtr(new ResipInterruptor(&_dumMngr));
+			_dumInt = ResipInterruptorPtr(new ResipInterruptor(_dumMngr.get()));
 			_inbound->HandleInterruptor(_dumInt);
 
 
@@ -247,29 +247,29 @@ namespace ivrworx
 			NameAddr uasAor	(uasUri.c_str());
 
 
-			_dumMngr.setMasterProfile(SharedPtr<MasterProfile>(new MasterProfile()));
+			_dumMngr->setMasterProfile(SharedPtr<MasterProfile>(new MasterProfile()));
 
 			auto_ptr<ClientAuthManager> uasAuth (new ClientAuthManager());
-			_dumMngr.setClientAuthManager(uasAuth);
+			_dumMngr->setClientAuthManager(uasAuth);
 			
 
-			_dumMngr.getMasterProfile()->setDefaultFrom(uasAor);
-			_dumMngr.getMasterProfile()->setDefaultRegistrationTime(70);
+			_dumMngr->getMasterProfile()->setDefaultFrom(uasAor);
+			_dumMngr->getMasterProfile()->setDefaultRegistrationTime(70);
 
-			_dumMngr.getMasterProfile()->addSupportedMethod(INFO);
-			_dumMngr.getMasterProfile()->addSupportedMimeType(INFO,Mime("application","dtmf-relay"));
-			_dumMngr.getMasterProfile()->addSupportedMimeType(INFO,Mime("application","mediaservercontrol+xml"));
+			_dumMngr->getMasterProfile()->addSupportedMethod(INFO);
+			_dumMngr->getMasterProfile()->addSupportedMimeType(INFO,Mime("application","dtmf-relay"));
+			_dumMngr->getMasterProfile()->addSupportedMimeType(INFO,Mime("application","mediaservercontrol+xml"));
 
 
 
 			if (_conf->GetBool("resip/sip_session_timer_enabled"))
 			{
 // 				auto_ptr<KeepAliveManager> keepAlive(new resip::KeepAliveManager());
-// 				_dumMngr.setKeepAliveManager(keepAlive); 
-// 				_dumMngr.getMasterProfile()->setKeepAliveTimeForDatagram(30);
-// 				_dumMngr.getMasterProfile()->setKeepAliveTimeForStream(30);
+// 				_dumMngr->setKeepAliveManager(keepAlive); 
+// 				_dumMngr->getMasterProfile()->setKeepAliveTimeForDatagram(30);
+// 				_dumMngr->getMasterProfile()->setKeepAliveTimeForStream(30);
 
-				_dumMngr.getMasterProfile()->addSupportedOptionTag(Token(Symbols::Timer));
+				_dumMngr->getMasterProfile()->addSupportedOptionTag(Token(Symbols::Timer));
 
 				_confSessionTimerModeMap["prefer_uac"]	  = Profile::PreferCallerRefreshes;
 				_confSessionTimerModeMap["prefer_uas"]	  = Profile::PreferCalleeRefreshes;
@@ -284,27 +284,27 @@ namespace ivrworx
 				else
 				{
 					LogInfo("Setting refresh mode to " << i->first);
-					_dumMngr.getMasterProfile()->setDefaultSessionTimerMode(i->second);
+					_dumMngr->getMasterProfile()->setDefaultSessionTimerMode(i->second);
 
 					int sip_default_session_time = _conf->GetInt("resip/sip_default_session_time");
 					sip_default_session_time = sip_default_session_time < 90 ? 90 : sip_default_session_time;
 					LogInfo("sip_default_session_time:" << sip_default_session_time);
 
-					_dumMngr.getMasterProfile()->setDefaultSessionTime(sip_default_session_time);
+					_dumMngr->getMasterProfile()->setDefaultSessionTime(sip_default_session_time);
 
 				}
 
 			}
 
-			_dumMngr.setClientRegistrationHandler(this);
-			_dumMngr.setInviteSessionHandler(this);
-			_dumMngr.addClientSubscriptionHandler("refer",this);
-			_dumMngr.addOutOfDialogHandler(OPTIONS, this);
+			_dumMngr->setClientRegistrationHandler(this);
+			_dumMngr->setInviteSessionHandler(this);
+			_dumMngr->addClientSubscriptionHandler("refer",this);
+			_dumMngr->addOutOfDialogHandler(OPTIONS, this);
 			
 
 
 			auto_ptr<AppDialogSetFactory> uas_dsf(new UASAppDialogSetFactory());
-			_dumMngr.setAppDialogSetFactory(uas_dsf);
+			_dumMngr->setAppDialogSetFactory(uas_dsf);
 			
 
 			LogInfo("UAS started on " << ipAddr.ipporttos());
@@ -345,7 +345,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUas.UponSubscribeToIncomingReq(req);
+		_dumUas->UponSubscribeToIncomingReq(req);
 
 	}
 
@@ -354,7 +354,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUac.UponInfoReq(req);
+		_dumUac->UponInfoReq(req);
 
 	}
 
@@ -363,7 +363,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUac.UponBlindXferReq(req);
+		_dumUac->UponBlindXferReq(req);
 
 	}
 
@@ -404,7 +404,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUac.UponHangupReq(ptr);
+		_dumUac->UponHangupReq(ptr);
 		
 		
 	}
@@ -421,11 +421,21 @@ namespace ivrworx
 
 		_shutDownFlag = true;
 
- 		_dumMngr.forceShutdown(NULL);
+		_iwHandlesMap.clear();
+		_resipHandlesMap.clear();
+
+ 		_dumMngr->forceShutdown(NULL);
+		if (_dumInt)_dumInt->Destroy();
+
+		_dumUac.reset();
+		_dumUas.reset();
+		_dumMngr.reset();
+
 		_stackThread.shutdown();
 		_stackThread.join();
 		_stack.shutdown();
-		if (_dumInt)_dumInt->Destroy();
+		
+
 	}
 
 	void
@@ -441,7 +451,7 @@ namespace ivrworx
 	{
 
 		FUNCTRACKER;
-		_dumUac.UponCallConnected(req);
+		_dumUac->UponCallConnected(req);
 	}
 
 
@@ -450,7 +460,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUas.UponCallOfferedAck(req);
+		_dumUas->UponCallOfferedAck(req);
 
 	}
 
@@ -459,7 +469,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUas.UponCallOfferedNack(req);
+		_dumUas->UponCallOfferedNack(req);
 
 	}
 
@@ -468,7 +478,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUac.UponMakeCallReq(req);
+		_dumUac->UponMakeCallReq(req);
 	}
 
 	void
@@ -476,7 +486,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUac.UponRegisterReq(req);
+		_dumUac->UponRegisterReq(req);
 	}
 
 	void
@@ -484,7 +494,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		_dumUac.UponUnRegisterReq(req);
+		_dumUac->UponUnRegisterReq(req);
 	}
 
 
@@ -611,10 +621,10 @@ namespace ivrworx
 				// ***
 
 				// taken from DumThread
-				std::auto_ptr<Message> msg(_dumMngr.mFifo.getNext(60000));  // Only need to wake up to see if we are shutdown
+				std::auto_ptr<Message> msg(_dumMngr->mFifo.getNext(60000));  // Only need to wake up to see if we are shutdown
 				if (msg.get())
 				{
-					_dumMngr.internalProcess(msg);
+					_dumMngr->internalProcess(msg);
 					continue;
 				} 
 
@@ -671,11 +681,11 @@ namespace ivrworx
 
 		if ((iter->second)->isUac())
 		{
-			_dumUac.onOffer(h,msg,body);
+			_dumUac->onOffer(h,msg,body);
 		}
 		else
 		{
-			_dumUas.onOffer(h,msg,body);
+			_dumUas->onOffer(h,msg,body);
 		}
 
 		
@@ -697,7 +707,7 @@ namespace ivrworx
 		// it may be in first OK sent to UAC, or in ACK response to 
 		// empty invite sent by UAS, in this case it is not correct 
 		// to send it to uac dum. This case is not handled.
-		_dumUac.onAnswer(h,msg,body);
+		_dumUac->onAnswer(h,msg,body);
 	}
 
 	void 
@@ -729,7 +739,7 @@ namespace ivrworx
 		IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
-		_dumUac.onNewSession(s,oat,msg);
+		_dumUac->onNewSession(s,oat,msg);
 	}
 
 	void 
@@ -738,7 +748,7 @@ namespace ivrworx
 		IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
-		_dumUac.onConnected(is,msg);
+		_dumUac->onConnected(is,msg);
 	}
 
 
@@ -749,7 +759,7 @@ namespace ivrworx
 		IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
-		_dumUas.onNewSession(sis,oat,msg);
+		_dumUas->onNewSession(sis,oat,msg);
 	}
 
 	void 
@@ -758,7 +768,7 @@ namespace ivrworx
 		IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
-		_dumUac.onFailure(h,msg);
+		_dumUac->onFailure(h,msg);
 
 	}
 
@@ -768,7 +778,7 @@ namespace ivrworx
 		IN const SipMessage& response)
 	{
 		FUNCTRACKER;
-		_dumUac.onSuccess(h,response);
+		_dumUac->onSuccess(h,response);
 	}
 
 	void 
@@ -777,14 +787,14 @@ namespace ivrworx
 		IN const SipMessage& errorResponse)
 	{
 		FUNCTRACKER;
-		_dumUac.onFailure(h,errorResponse);
+		_dumUac->onFailure(h,errorResponse);
 	}
 
 	void 
 	ProcResipStack::onFailure(IN ClientInviteSessionHandle is, IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
-		_dumUac.onFailure(is,msg);
+		_dumUac->onFailure(is,msg);
 
 	}
 
@@ -796,7 +806,7 @@ namespace ivrworx
 	{
 
 		FUNCTRACKER;
-		_dumUas.onConnectedConfirmed(is,msg);
+		_dumUas->onConnectedConfirmed(is,msg);
 	}
 
 
@@ -806,7 +816,7 @@ namespace ivrworx
 		IN const SipMessage& request)
 	{
 		FUNCTRACKER;
-		_dumUas.onReceivedRequest(ood,request);
+		_dumUas->onReceivedRequest(ood,request);
 	}
 
 	void 
@@ -859,7 +869,7 @@ namespace ivrworx
 		IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
-		_dumUac.onInfoSuccess(is,msg);
+		_dumUac->onInfoSuccess(is,msg);
 	}
 
 	void 
@@ -868,7 +878,7 @@ namespace ivrworx
 		IN const SipMessage& msg)
 	{
 		FUNCTRACKER;
-		_dumUac.onInfoFailure(is,msg);
+		_dumUac->onInfoFailure(is,msg);
 	}
 
 	void 
