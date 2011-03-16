@@ -298,9 +298,11 @@ namespace ivrworx
 	{
 	public:
 		MsgCallSubscribeReq():IwMessage(MSG_CALL_SUBSCRIBE_REQ, 
-			NAME(MSG_CALL_SUBSCRIBE_REQ)){}
+			NAME(MSG_CALL_SUBSCRIBE_REQ)),once(TRUE){}
 
 		LpHandlePtr listener_handle;
+
+		BOOL once;
 
 	};
 

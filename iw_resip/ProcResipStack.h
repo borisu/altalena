@@ -261,11 +261,11 @@ namespace ivrworx
 
 		ResipInterruptorPtr _dumInt;
 
-		IwDialogUsageManager _dumMngr;
+		shared_ptr<IwDialogUsageManager> _dumMngr;
 
-		UASDialogUsageManager _dumUas;
+		shared_ptr<UASDialogUsageManager> _dumUas;
 
-		UACDialogUsageManager _dumUac;
+		shared_ptr<UACDialogUsageManager> _dumUac;
 
 		LpHandlePtr _listener;
 

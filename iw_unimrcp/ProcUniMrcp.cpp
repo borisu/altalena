@@ -654,6 +654,7 @@ namespace ivrworx
 		FUNCTRACKER;
 
 		MediaFormat media_format;
+		MediaFormatsList::iterator mfiter;
 		
 
 		shared_ptr<MsgMrcpAllocateSessionReq> req  =
@@ -749,9 +750,22 @@ namespace ivrworx
 			goto allocate_error;
 		}
 
-		media_format = *m.list.begin(); 
+
+		// find first supported codec
+
+		mfiter = m.list.begin();
+		for (; mfiter != m.list.end(); mfiter++)
+		{
+			MediaFormat &curr_format = *mfiter; 
+			if (curr_format.get_media_type() != MediaFormat::MediaType_DTMF)
+			{
+				media_format = curr_format;
+				break;
+			}
+		}
+
 		
-		if (media_format.get_media_type() == MediaFormat::MediaType_UNKNOWN)
+		if (mfiter == m.list.end())
 		{
 			LogWarn("ProcUniMrcp::UponMrcpAllocateSessionReq - Wrong sdp - media format");
 			SendResponse(req,new MsgMrcpAllocateSessionNack());
@@ -759,11 +773,10 @@ namespace ivrworx
 		}
 
 
+
 		if (m.list.size() > 1)
 		{
-			LogWarn("Supporting only one codec in body");
-// 			SendResponse(req,new MsgMrcpAllocateSessionNack());
-// 			goto allocate_error;
+			LogWarn("Supporting only one codec in body, codec chosen:" << media_format.get_sdp_a());
 		}
 
 		ctx->media_format = media_format;
@@ -1037,6 +1050,9 @@ allocate_error:
 
 				 DWORD time = ::GetTickCount(); 
 
+				mpf_codec_descriptor_t *dtmf_descriptor = NULL;
+				string dtmf_str = "telephone-event";
+
 				BOOL found = FALSE;
 				for(int i=0; i<remote_desc->codec_list.descriptor_arr->nelts; i++) {
 					mpf_codec_descriptor_t *descriptor1 = &APR_ARRAY_IDX(remote_desc->codec_list.descriptor_arr,i,mpf_codec_descriptor_t);
@@ -1045,18 +1061,38 @@ allocate_error:
 						continue;
 					}
 
-					apt_str_t name;
-					name.buf = (char*)ctx->media_format.sdp_name_tos().c_str();
-					name.length = ctx->media_format.sdp_name_tos().length();
+					if (!dtmf_descriptor)
+					{
+						apt_str_t dtmf_name;
+						dtmf_name.buf = (char*)dtmf_str.c_str();
+						dtmf_name.length = dtmf_str.length();
 
-					found = apt_string_compare(&descriptor1->name,&name);
-					if (found)
+						// found DTMF string ?
+						if (apt_string_compare(&descriptor1->name,&dtmf_name))
+						{
+							dtmf_descriptor = descriptor1;
+						}
+					}
+
+					if (!found)
+					{
+						apt_str_t name;
+						name.buf = (char*)ctx->media_format.sdp_name_tos().c_str();
+						name.length = ctx->media_format.sdp_name_tos().length();
+
+						found = apt_string_compare(&descriptor1->name,&name);
+					}
+					
+					if (found && dtmf_descriptor)
 						break;
 				}
 
 				if (!found)
 				{
 					LogWarn("ProcUniMrcp::onMrcpChanndelAddEvt - suggested codec was not found in remote answer:" <<ctx->media_format.sdp_name_tos());
+					MsgMrcpAllocateSessionNack * rsp = new MsgMrcpAllocateSessionNack();
+					SendResponse(ctx->last_user_request,rsp);
+					break;
 				}
 
 				// we assume that server agrred for the sinlge codec suggested
@@ -1066,10 +1102,18 @@ allocate_error:
 					<< "s=mrcp\r\n"	
 					<< "c=IN IP4 "	<< info.iptoa() << "\r\n" 
 					<< "t=0 0\r\n"	
-					<< "m=audio "  << info.port_ho() << " RTP/AVP " << ctx->media_format.sdp_mapping()<<  "\r\n"
-					<< ctx->media_format.get_sdp_a() << "\r\n";
-
-				
+					<< "m=audio "  << info.port_ho() << " RTP/AVP " << ctx->media_format.sdp_mapping();
+					if (dtmf_descriptor)
+						sdps << " " << (int)dtmf_descriptor->payload_type;
+				sdps <<  "\r\n";
+				sdps << ctx->media_format.get_sdp_a() << "\r\n";
+				if (dtmf_descriptor)
+				{
+					sdps << "a=rtpmap:" << (int)dtmf_descriptor->payload_type<< " "<< dtmf_str << "/" << dtmf_descriptor->sampling_rate << "\r\n";
+					sdps << "a=fmtp:"   << (int)dtmf_descriptor->payload_type<< " 0-15" << "\r\n";
+				}
+					
+		
 				rsp->mrcp_handle = handle;
 				rsp->offer.body = sdps.str();
 				

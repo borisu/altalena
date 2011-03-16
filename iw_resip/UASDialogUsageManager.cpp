@@ -225,9 +225,8 @@ namespace ivrworx
 		if (_eventsHandle) 
 		{
 			
-			ApiErrorCode res = _eventsHandle->Send(offered);
-			if (IW_FAILURE(res))
-				_eventsHandle.reset();
+			_eventsHandle->Send(offered);
+			_eventsHandle.reset();
 		}
 		
 		
