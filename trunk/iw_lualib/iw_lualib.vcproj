@@ -122,7 +122,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;IW_LUALIB_EXPORTS"
+				AdditionalIncludeDirectories="..\lua5.1\include;..\iw_core;..\iw_telephony;..\iw_ivr"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;IW_LUALIB_EXPORTS;LUA_BUILD_AS_DLL;LUA_LIB"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
@@ -140,6 +141,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies=" libboost_thread-vc80-mt-gd-1_34_1.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="2"
