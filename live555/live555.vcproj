@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\iw_core;.\live\UsageEnvironment\include;.\live\BasicUsageEnvironment\include;.\live\groupsock\include;.\live\liveMedia\include"
+				AdditionalIncludeDirectories=".\live\UsageEnvironment\include;.\live\BasicUsageEnvironment\include;.\live\groupsock\include;.\live\liveMedia\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_USE_32BIT_TIME_T"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -103,9 +103,10 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				AdditionalIncludeDirectories=".\live\UsageEnvironment\include;.\live\BasicUsageEnvironment\include;.\live\groupsock\include;.\live\liveMedia\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_USE_32BIT_TIME_T"
 				RuntimeLibrary="2"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
