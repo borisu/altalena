@@ -1442,7 +1442,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:ivrworx2"
         "ProductCode" = "8:{EFC3A7E7-8C6C-4FDF-B899-E06A8466661F}"
-        "PackageCode" = "8:{2D2F0663-C3A7-44C6-82CC-84DE9F18869A}"
+        "PackageCode" = "8:{C78C76E4-9B7A-4EA8-944D-888ED10FBA8B}"
         "UpgradeCode" = "8:{F16F682B-850C-47C3-A02B-110A9C926B76}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
@@ -2140,6 +2140,7 @@
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
+                "ExcludeFilter" = "8:*.lib"
                 }
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_4048C408938C4F7AA153673437A02C86"
@@ -2169,7 +2170,6 @@
                 "ExcludeFilters"
                 {
                 "ExcludeFilter" = "8:*.lib"
-                "ExcludeFilter" = "8:*.exp"
                 }
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_45ECF5558BDC4E369DAD980DE813DF59"
@@ -2254,6 +2254,7 @@
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
+                "ExcludeFilter" = "8:*.lib"
                 }
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_60CBB4B3AEF544CD9611E98B4C3BF537"
@@ -2422,6 +2423,7 @@
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
+                "ExcludeFilter" = "8:*.lib"
                 }
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_AD2A867B739F4F18840E564486751A64"
@@ -2450,6 +2452,7 @@
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
+                "ExcludeFilter" = "8:*.lib"
                 }
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_B4F769B7058446B786C586933C0C7A56"
@@ -2478,6 +2481,7 @@
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
+                "ExcludeFilter" = "8:*.lib"
                 }
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C13DF73A638D4F448AB8EEDBA0513A5B"
@@ -2506,6 +2510,7 @@
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
+                "ExcludeFilter" = "8:*.lib"
                 }
             }
         }
