@@ -149,9 +149,9 @@
 				OutputFile="$(OutDir)/lua5.1.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../lib"
-				GenerateManifest="false"
+				GenerateManifest="true"
 				ModuleDefinitionFile="../src/lua5.1.def"
-				GenerateDebugInformation="false"
+				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -163,6 +163,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				EmbedManifest="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"

@@ -117,9 +117,7 @@ EXPORTS
 	?ContextSwitch@internal@csp@@YAXPAPAX0@Z
 	??_R0?AVDeadlockException@internal@csp@@@8
 	__CTA3?AVDeadlockError@csp@@
-	__CT??_R0?AVDeadlockError@csp@@@8??0DeadlockError@csp@@QAE@ABV01@@Z68
 	??_R0?AVDeadlockError@csp@@@8
-	__CT??_R0?AVCPPCSPError@csp@@@8??0CPPCSPError@csp@@QAE@ABV01@@Z44
 	??_R0?AVCPPCSPError@csp@@@8
 	??0CPPCSPError@csp@@QAE@ABV01@@Z
 	??_7CPPCSPError@csp@@6B@
@@ -146,7 +144,6 @@ EXPORTS
 	??_R3DeadlockError@csp@@8
 	??_R2DeadlockError@csp@@8
 	??_R1A@?0A@EA@DeadlockError@csp@@8
-	??_R1CM@?0A@EN@Primitive@internal@csp@@8
 	??_R0?AVPrimitive@internal@csp@@@8
 	??_R3Primitive@internal@csp@@8
 	??_R2Primitive@internal@csp@@8
@@ -231,9 +228,7 @@ EXPORTS
 	?sync@BarrierEnd@csp@@QAEXXZ
 	__TI3?AVBarrierError@csp@@
 	__CTA3?AVBarrierError@csp@@
-	__CT??_R0?AVBarrierError@csp@@@8??0BarrierError@csp@@QAE@ABV01@@Z44
 	??_R0?AVBarrierError@csp@@@8
-	__CT??_R0?AVCPPCSPError@csp@@@8??0CPPCSPError@csp@@QAE@ABV01@@Z44
 	??_R0?AVCPPCSPError@csp@@@8
 	??0BarrierError@csp@@QAE@PBD@Z
 	
@@ -314,7 +309,6 @@ EXPORTS
 	?startInNewThread@ThreadCSProcess@csp@@AAEXXZ
 	__TI2?AVOutOfResourcesException@csp@@
 	__CTA2?AVOutOfResourcesException@csp@@
-	__CT??_R0?AVOutOfResourcesException@csp@@@8??0OutOfResourcesException@csp@@QAE@ABV01@@Z44
 	??_7OutOfResourcesException@csp@@6B@
 	??_R4OutOfResourcesException@csp@@6B@
 	??_R3OutOfResourcesException@csp@@8
