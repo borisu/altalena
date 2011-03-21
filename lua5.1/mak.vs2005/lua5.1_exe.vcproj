@@ -152,7 +152,7 @@
 				OutputFile="$(OutDir)/lua5.1.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../lib"
-				GenerateManifest="false"
+				GenerateManifest="true"
 				GenerateDebugInformation="false"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -165,6 +165,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				EmbedManifest="false"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
