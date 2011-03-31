@@ -45,7 +45,7 @@ local res;
 --
 --  RTSP setup request is sending client ports
 -- however it will always send stream to ip or
--- request oroginator that's why we doing trick
+-- request oroginator that is why we doing trick
 -- with rtp proxy.
 --
 
