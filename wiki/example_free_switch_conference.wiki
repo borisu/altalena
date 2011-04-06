@@ -2,12 +2,13 @@
 
 = Introduction =
 
-Bridge b2b calls into free switch conference
+Bridge b2b calls into free switch conference. Should work with out-of-box freeswitch configuration 
 
 Change your environment settings accordingly:-
 
 ||GW || 192.168.150.3 ||
 ||extension bridged into conference|| 24001,204012||
+|| FreeSwitch extensions used for b2b call || 1001,1002,1003 ||
 ||FreeSwitch ip || 192.168.100.241 ||
 ||FreeSwitch conference extensions || 3001 ||
 
