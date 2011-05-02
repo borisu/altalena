@@ -19,7 +19,7 @@
 
 #include "StdAfx.h"
 #include "ProcResipStack.h"
-#include "UASAppDialogSetFactory.h"
+#include "IwAppDialogSetFactory.h"
 #include "UASDialogUsageManager.h"
 #include "FreeContent.h"
 
@@ -303,7 +303,7 @@ namespace ivrworx
 			
 
 
-			auto_ptr<AppDialogSetFactory> uas_dsf(new UASAppDialogSetFactory());
+			auto_ptr<AppDialogSetFactory> uas_dsf(new IwAppDialogSetFactory());
 			_dumMngr->setAppDialogSetFactory(uas_dsf);
 			
 
@@ -497,6 +497,14 @@ namespace ivrworx
 		_dumUac->UponUnRegisterReq(req);
 	}
 
+	void 
+	ProcResipStack::UponSubscribeReq(IN IwMessagePtr req)
+	{
+		FUNCTRACKER;
+
+		_dumUac->UponSubscribeReq(req);
+	}
+
 
 	bool 
 	ProcResipStack::ProcessApplicationMessages()
@@ -580,6 +588,12 @@ namespace ivrworx
 			case MSG_CALL_REOFFER_REQ:
 				{
 					UponReofferReq(msg);
+					break;
+				}
+
+			case SIP_CALL_SUBSCRIBE_REQ:
+				{
+					UponSubscribeReq(msg);
 					break;
 				}
 			default:
@@ -679,7 +693,9 @@ namespace ivrworx
 			return;
 		}
 
-		if ((iter->second)->isUac())
+		SipDialogContextPtr ctx = iter->second;
+
+		if (ctx->uac_invite_handle.isValid())
 		{
 			_dumUac->onOffer(h,msg,body);
 		}

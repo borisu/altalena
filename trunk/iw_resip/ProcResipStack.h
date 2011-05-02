@@ -135,6 +135,8 @@ namespace ivrworx
 
 		virtual void UponReofferReq(IN IwMessagePtr req);
 
+		virtual void UponSubscribeReq(IN IwMessagePtr req);
+
 		virtual void onSuccess(
 			IN ClientRegistrationHandle h, 
 			IN const SipMessage& response);

@@ -1,39 +1,84 @@
 {
-	
+	"__" : "==================================",
+	"__" : "ivrworx configuration file",
+	"__" : "==================================",
+
+
+	"__" : "VALUES:", 
+	"__" : "true|false",
+	"__" : "DESCRIPTION:",
+	"__" : "Current logging infrastructure may work by logging messages",
+	"__" : "in the same thread or by offloading it to another thread",
+	"__" : "second approach is more efficient but may cause message to",
+	"__" : "appear out of order",
 	"sync_log"  : true,
+
+	"__" : "VALUES:", 
+	"__" : "OFF|INF|WRN|CRT|DBG|TRC",
+	"__" : "DESCRIPTION:",
+	"__" : "Debug level. Trace level must be run with special libraries.",
 	"debug_level"  : "DBG",
-	"debug_outputs" : "debug,console",
+
+	"__" : "VALUES:", 
+	"__" : "comma separated - debug|console|syslog ",
+	"__" : "DESCRIPTION:",
+	"__" : "debug -> debugview, console->console, syslog -> syslog server",
+	"debug_outputs" : "console",
+
+	"__" : "VALUES:", 
+	"__" : "ip address",
+	"__" : "DESCRIPTION:",
+	"__" : "ip address of syslog server",
 	"syslogd_host" : "127.0.0.1",
+
+	"__" : "VALUES:", 
+	"__" : "port",
+	"__" : "DESCRIPTION:",
+	"__" : "port of syslog server",
 	"syslogd_port" : 514,
+
+	"__" : "VALUES:", 
+	"__" : "timeout in ms",
+	"__" : "DESCRIPTION:",
+	"__" : "max time for ivrworx to load each implementation module",
 	"default_boot_time" : 15000,
 	
-	"xmodelus":[
-	 "iw_sqlite.dll",
-	 "iw_live555rtsp.dll",
-	 "iw_unimrcp.dll",
-	 
-	 "iw_live555rtsp.dll",
-	 "iw_m2ims.dll"
-	],
 	
+	"__" : "VALUES:", 
+	"__" : "array of dll names",
+	"__" : "DESCRIPTION:",
+	"__" : "List of implementation modules to load",
 	"modules":[
-	   "iw_unimrcp.dll",
-	   "iw_live555rtpproxy.dll",
-	   "iw_resip.dll"
+		"iw_live555rtsp.dll",	   
+		"iw_live555rtpproxy.dll",
+	   	"iw_resip.dll",
+		"iw_m2ims.dll",
+		"iw_unimrcp.dll"	   
 	],
-	
-   
-    "sqlite" : {
-		"uri" : "sql,sqlite"
-    },
-    
-    "live555rtsp" :{
-		"uri" : "rtsp,live555"
-    },
-    
-   
-    "resip" :  {
-		"resip_log" : "",
+
+	"__" : "VALUES:", 
+	"__" : "service:service uri",
+	"__" : "DESCRIPTION:",
+	"__" : "pairs of predefined telephony service and their implementation uri's",
+	"__" : "uri is simple string with which each module registers itself",
+	"ivr" : {
+		"stream_service"   : "stream,m2",
+		"sip_service"	   : "sip,resip",
+		"unimrcp_service"  : "mrcp,unimrcp",
+		"rtsp_service"     : "rtsp,live555",
+		"rtpproxy_service" : "rtpproxy,live555",
+		"mrcp_service"	   : "mrcp,unimrcp"
+	},
+
+	"__" : "-----------------------", 
+	"__" : "implementation modules",
+	"__" : "-----------------------", 
+	"live555rtsp" :{
+			"uri" : "rtsp,live555"
+	},
+	    
+	"resip" :  {
+		"resip_log" : "DUM,DBG",
 		"uri"	: "sip,resip",
 		"from_id" : "ivrworx",
 		"from_display_name": "ivrworx",
@@ -42,66 +87,29 @@
 		"sip_session_timer_enabled" : true,
 		"sip_refresh_mode" : "prefer_local",
 		"sip_default_session_time" : 360
-    },
-    
-    "unimrcp" :   {
+	},
+
+	"unimrcp" :   {
 		"uri" : "mrcp,unimrcp",
 		"unimrcp_conf_dir": "./unimrcp",
 		"unimrcp_client_profile": "nss2",
 		"unimrcp_log_file": "unimrcpclient"
-    },
-    
-    "live555rtpproxy" :  {
+	},
+
+	"live555rtpproxy" :  {
 		"uri"	: "rtpproxy,live555",
 		"rtp_proxy_base_port" : 6000,
 		"rtp_proxy_top_port" : 7000,
 		"rtp_proxy_num_of_connections" : 100,
 		"rtp_proxy_ip" : "$COMPUTERNAME",
 		"default_static_payloads":"0 8 18"
-    },
-    
-      
-    "m2ims" :  {
+	},
+
+
+	"m2ims" :  {
 		"uri" : "stream,m2",
 		"local_ip": "$COMPUTERNAME",
 		"sounds_dir" : "sounds",
-		"record_dir" : "c:\\recording"
-    },
-    
-    
-    "opal" : {
-		"uri" : "h.323,opal",
-		 "ani" : "ivrworx",
-		 "no-h323"      : "",
-		 "t-trace"      : "no-trace",
-		 "o-output"     : "no-output",
-		 "h323-listen"  : "tcp$*:1720",
-		 "u"		    : "ivrworx"	
-    },
-    
-     "ivr" : {
-		"ivr_enabled"  : false,
-		"mrcp_enabled" : false,
-		"ims_enabled"  : false, 
-		"rtsp_enabled" : false,
-		
-		"ring_timeout" : 20, 
-		
-		"script_file"  : "scripts\\test-dev.lua",
-		"precompile"   : false,
-		"super_script" : "scripts\\super-mscml.lua",
-		"super_mode"   : "async",
-		
-		"h323_service"     : "h.323,opal",
-		"mscml_service"    : "sip,resip",
-		"stream_service"   : "stream,m2",
-		"sip_service"	   : "sip,resip",
-		"unimrcp_service"  : "mrcp,unimrcp",
-		"rtsp_service"     : "rtsp,live555",
-		"rtpproxy_service" : "rtpproxy,live555",
-		"mrcp_service"	   : "mrcp,unimrcp"
-    }
-    
-    
-    
+		"record_dir" : "recording"
+	}
 }

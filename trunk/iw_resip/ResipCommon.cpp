@@ -62,17 +62,16 @@ namespace ivrworx
 	}
 
 	SipDialogContext::SipDialogContext(BOOL isUac):
-	stack_handle(IW_UNDEFINED),
-	is_uac(isUac)
+	stack_handle(IW_UNDEFINED)
 	{
 
 	}
 
-	BOOL
-	SipDialogContext::isUac()
-	{
-		return is_uac;
-	}
+// 	BOOL
+// 	SipDialogContext::isUac()
+// 	{
+// 		return is_uac;
+// 	}
 
 	
 }
