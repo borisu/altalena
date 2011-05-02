@@ -18,12 +18,9 @@
 */
 
 #include "StdAfx.h"
-#include "IwBase.h"
-#include "LightweightProcess.h"
 #include "ResipCommon.h"
 #include "UacDialogUsageManager.h"
-#include "UACAppDialogSet.h"
-#include "Logger.h"
+#include "IwAppDialogSet.h"
 #include "FreeContent.h"
 
 
@@ -55,8 +52,8 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-// 		UACAppDialogSet* uac_set = 
-// 			(UACAppDialogSet*)(h->getAppDialogSet().get());
+// 		IwAppDialogSet* uac_set = 
+// 			(IwAppDialogSet*)(h->getAppDialogSet().get());
 // 
 // 		if (uac_set && uac_set->last_registration_req)
 // 		{
@@ -74,8 +71,8 @@ namespace ivrworx
 		IN const SipMessage& response)
 	{
 		FUNCTRACKER;
-		UACAppDialogSet* uac_set = 
-			(UACAppDialogSet*)(h->getAppDialogSet().get());
+		IwAppDialogSet* uac_set = 
+			(IwAppDialogSet*)(h->getAppDialogSet().get());
 
 		uac_set->_ptr->uac_register_handle = h;
 
@@ -99,8 +96,8 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		UACAppDialogSet* uac_set = 
-			(UACAppDialogSet*)(h->getAppDialogSet().get());
+		IwAppDialogSet* uac_set = 
+			(IwAppDialogSet*)(h->getAppDialogSet().get());
 
 		GetCurrRunningContext()->SendResponse(uac_set->last_registration_req,
 			new MsgSipCallRegisterNack());
@@ -118,8 +115,8 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		UACAppDialogSet* uac_set = 
-			(UACAppDialogSet*)(h->getAppDialogSet().get());
+		IwAppDialogSet* uac_set = 
+			(IwAppDialogSet*)(h->getAppDialogSet().get());
 
 		_iwHandlesMap.erase(uac_set->_ptr->stack_handle);
 
@@ -169,14 +166,15 @@ namespace ivrworx
 		ctx_ptr->stack_handle = GenerateCallHandle();
 		
 
-		UACAppDialogSet *uac_dialog_set = 
-			new UACAppDialogSet(_dum,ctx_ptr,ptr);
+		IwAppDialogSet *uac_dialog_set = 
+			new IwAppDialogSet(_dum,ctx_ptr,ptr);
 		uac_dialog_set->last_registration_req = reg_req;
 
 
 		NameAddr addr(reg_req ->registrar.c_str());
 		SharedPtr<UserProfile> &bp = _dum.getMasterUserProfile();
 		SharedPtr<UserProfile> up (new UserProfile(bp));
+		
 
 		ctx_ptr->user_profile = up;
 
@@ -191,8 +189,9 @@ namespace ivrworx
 		else
 			up->setDefaultMaxRegistrationTime(180);
 
+		LogDebug("UACDialogUsageManager::UponRegisterReq - " << reg_req->username.c_str() << "(@)" << reg_req->realm.c_str());
 		up->setDigestCredential(reg_req->realm.c_str(),reg_req->username.c_str(), reg_req->password.c_str());
-		up->setDefaultFrom(addr);
+		up->setDefaultFrom(bp->getDefaultFrom());
 
 		
 
@@ -203,6 +202,72 @@ namespace ivrworx
 		
 
 		_dum.send(msg);
+
+	}
+
+	void 
+	UACDialogUsageManager::UponSubscribeReq(IN IwMessagePtr ptr)
+	{
+		FUNCTRACKER;
+
+// 		shared_ptr<MsgSipCallSubscribeReq> subscribe_req = 
+// 			dynamic_pointer_cast<MsgSipCallSubscribeReq>(ptr);
+// 
+// 		SipDialogContextPtr ctx_ptr;
+// 		if (subscribe_req->stack_call_handle == IW_UNDEFINED)
+// 		{
+// 			// create context
+// 			//
+// 			SipDialogContextPtr ctx_ptr = SipDialogContextPtr(new SipDialogContext(TRUE));
+// 			ctx_ptr->stack_handle = GenerateCallHandle();
+// 
+// 
+// 			IwAppDialogSet *uac_dialog_set = 
+// 				new IwAppDialogSet(_dum,ctx_ptr,ptr);
+// 			uac_dialog_set->last_registration_req = reg_req;
+// 
+// 
+// 			NameAddr addr(reg_req ->registrar.c_str());
+// 			SharedPtr<UserProfile> &bp = _dum.getMasterUserProfile();
+// 			SharedPtr<UserProfile> up (new UserProfile(bp));
+// 
+// 			ctx_ptr->user_profile = up;
+// 
+// 
+// 			if (reg_req->max_registration_time != IW_UNDEFINED)
+// 				up->setDefaultMaxRegistrationTime(reg_req->max_registration_time);
+// 			else
+// 				up->setDefaultMaxRegistrationTime(1);
+// 
+// 			if (reg_req->max_registration_time != IW_UNDEFINED)
+// 				up->setDefaultRegistrationRetryTime(reg_req->registration_retry_time);
+// 			else
+// 				up->setDefaultMaxRegistrationTime(180);
+// 
+// 			LogDebug("UACDialogUsageManager::UponRegisterReq - " << reg_req->username.c_str() << "(@)" , reg_req->realm.c_str());
+// 			up->setDigestCredential(reg_req->realm.c_str(),reg_req->username.c_str(), reg_req->password.c_str());
+// 			up->setDefaultFrom(bp->getDefaultFrom());
+// 
+// 		} 
+// 		else
+// 		{
+// 			IwHandlesMap::iterator iter = _iwHandlesMap.find(subscribe_req->stack_call_handle);
+// 			if (iter == _iwHandlesMap.end())
+// 			{
+// 				LogDebug("UACDialogUsageManager::UponRegisterReq - the call iwh:" << unreg_req->registration_id << " already unregistered");
+// 				return;
+// 			}
+// 
+// 			SipDialogContextPtr ctx_ptr = (*iter).second;
+// 
+// 		}
+// 		
+// 
+// 
+// 		SharedPtr<SipMessage> msg =  _dum.makeSubscription(addr,up,ctx_ptr->);
+// 		_iwHandlesMap[ctx_ptr->stack_handle]= ctx_ptr;
+// 
+// 		_dum.send(msg);
 
 	}
 
@@ -234,7 +299,7 @@ namespace ivrworx
 		FreeContent fc(options_req->localOffer.body, options_req->localOffer.type);
 		ctx_ptr->invite_handle->info(fc);
 
-		UACAppDialogSet* uac_set = (UACAppDialogSet*)(ctx_ptr->invite_handle->getAppDialogSet().get());
+		IwAppDialogSet* uac_set = (IwAppDialogSet*)(ctx_ptr->invite_handle->getAppDialogSet().get());
 		uac_set->last_options_req = ptr;
 
 
@@ -248,7 +313,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
+		IwAppDialogSet* uac_set = (IwAppDialogSet*)(is->getAppDialogSet().get());
 
 		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
 
@@ -280,7 +345,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
+		IwAppDialogSet* uac_set = (IwAppDialogSet*)(is->getAppDialogSet().get());
 
 		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
 
@@ -400,7 +465,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
+		IwAppDialogSet* uac_set = (IwAppDialogSet*)(is->getAppDialogSet().get());
 		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
 
 		LogDebug("UACDialogUsageManager::onAnswer rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
@@ -448,8 +513,8 @@ namespace ivrworx
 			//
 			SipDialogContextPtr ctx_ptr = SipDialogContextPtr(new SipDialogContext(TRUE));;
 
-			UACAppDialogSet * uac_dialog_set = 
-				new UACAppDialogSet(_dum,ctx_ptr,ptr);
+			IwAppDialogSet * uac_dialog_set = 
+				new IwAppDialogSet(_dum,ctx_ptr,ptr);
 
 			MapOfAny::iterator param_iter = req->optional_params.find("registration_id");
 				 
@@ -490,7 +555,7 @@ namespace ivrworx
 			}
 			else
 			{
-				UACAppDialogSet * uac_dialog_set = new UACAppDialogSet(_dum,ctx_ptr,ptr);
+				IwAppDialogSet * uac_dialog_set = new IwAppDialogSet(_dum,ctx_ptr,ptr);
 
 				// empty invite
 				invite_session = _dum.makeInviteSession(
@@ -562,7 +627,7 @@ namespace ivrworx
 		FUNCTRACKER;
 
 
-		SipDialogContextPtr ctx_ptr = ((UACAppDialogSet*)(s->getAppDialogSet().get()))->_ptr;
+		SipDialogContextPtr ctx_ptr = ((IwAppDialogSet*)(s->getAppDialogSet().get()))->_ptr;
 		ctx_ptr->uac_invite_handle = s;
 
 		
@@ -637,7 +702,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
+		IwAppDialogSet* uac_set = (IwAppDialogSet*)(is->getAppDialogSet().get());
 
 		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
 
@@ -684,7 +749,7 @@ namespace ivrworx
 
 		LogDebug("UACDialogUsageManager::onConnected rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
 
-		UACAppDialogSet* uac_set = (UACAppDialogSet*)(is->getAppDialogSet().get());
+		IwAppDialogSet* uac_set = (IwAppDialogSet*)(is->getAppDialogSet().get());
 
 		if (ctx_ptr->last_reoffer_req)
 		{

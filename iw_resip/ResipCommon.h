@@ -59,8 +59,6 @@ namespace ivrworx
 	{
 		SipDialogContext(BOOL isUac);
 
-		BOOL isUac();
-
 		InviteSessionHandle invite_handle;
 
 		ServerInviteSessionHandle uas_invite_handle;
@@ -80,8 +78,6 @@ namespace ivrworx
 		SharedPtr<UserProfile> user_profile;
 
 		IwMessagePtr last_reoffer_req;
-
-		BOOL is_uac;
 
 	};
 

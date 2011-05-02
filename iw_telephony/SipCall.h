@@ -30,6 +30,7 @@ namespace ivrworx
 		SIP_CALL_INFO_REQ = SIP_MSG_BASE,
 		SIP_CALL_INFO_ACK,
 		SIP_CALL_INFO_NACK,
+		SIP_CALL_NOTIFY_EVT,
 		SIP_CALL_SUBSCRIBE_REQ,
 		SIP_CALL_SUBSCRIBE_ACK,
 		SIP_CALL_SUBSCRIBE_NACK,
@@ -73,7 +74,9 @@ namespace ivrworx
 
 	};
 
-	class IW_TELEPHONY_API RegistrationMixin
+
+	class IW_TELEPHONY_API RegistrationMixin : 
+		public AuthenticationMixin
 	{
 	public:
 		RegistrationMixin():
@@ -84,17 +87,25 @@ namespace ivrworx
 	};
 
 	class IW_TELEPHONY_API MsgSipCallSubscribeReq:
-		public MsgVoipCallMixin, public MsgRequest, public RegistrationMixin
+		public MsgVoipCallMixin, public MsgRequest, public AuthenticationMixin
 	{
 	public:
 		MsgSipCallSubscribeReq():
 		  MsgRequest(SIP_CALL_SUBSCRIBE_REQ, 
 			  NAME(SIP_CALL_SUBSCRIBE_REQ)){}
 
+		   std::list<string> contacts;
+
+		   string dest;
+
+		   string events_package;
+
+		   AbstractOffer offer;
+
 	};
 
 	class IW_TELEPHONY_API MsgSipCallSubscribeAck:
-		public MsgVoipCallMixin, public MsgResponse, public RegistrationMixin
+		public MsgVoipCallMixin, public MsgResponse, public AuthenticationMixin
 	{
 	public:
 		MsgSipCallSubscribeAck():
@@ -104,7 +115,7 @@ namespace ivrworx
 	};
 
 	class IW_TELEPHONY_API MsgSipCallSubscribeNack:
-		public MsgVoipCallMixin, public MsgResponse, public RegistrationMixin
+		public MsgVoipCallMixin, public MsgResponse, public AuthenticationMixin
 	{
 	public:
 		MsgSipCallSubscribeNack():
@@ -126,13 +137,7 @@ namespace ivrworx
 
 		  std::list<string> contacts;
 
-		  string username;
-
-		  string password;
-
 		  string registrar;
-
-		  string realm;
 
 		  int max_registration_time;
 
@@ -170,6 +175,17 @@ namespace ivrworx
 	 
 	};
 
+
+	class IW_TELEPHONY_API MsgSipCallNotifyEvt:
+		public MsgVoipCallMixin, IwMessage
+	{
+	public:
+		MsgSipCallNotifyEvt():
+		  IwMessage(SIP_CALL_NOTIFY_EVT, 
+			  NAME(SIP_CALL_NOTIFY_EVT)){};
+
+	};
+
 	class SipMediaCall;
 
 	typedef
@@ -197,6 +213,21 @@ namespace ivrworx
 			IN const string &realm,
 			IN csp::Time timeout);
 
+		virtual ApiErrorCode Subscribe(
+			IN const list<string> &contacts, 
+			IN const string &username, 
+			IN const string &password, 
+			IN const string &dest, 
+			IN const string &realm,
+			IN const AbstractOffer &body,
+			IN const string &eventsPackage,
+			IN csp::Time timeout);
+
+		virtual ApiErrorCode WaitForNotify(
+			OUT AbstractOffer &offer);
+
+		virtual void CleanNotifyBuffer();
+
 		virtual ApiErrorCode MakeCall(IN const string   &destination_uri, 
 			IN const AbstractOffer &offer,
 			IN OUT MapOfAny &key_value_map,
@@ -212,9 +243,13 @@ namespace ivrworx
 
 		LpHandlePtr _infosChannel;
 
+		LpHandlePtr _notifyChannel;
+
 		LpHandlePtr _registrationChannel;
 
-		HandleId _registrationId;
+		HandleId _stackRegistrationHandle;
+
+		HandleId _stackSubscribeHandle;
 
 	};
 

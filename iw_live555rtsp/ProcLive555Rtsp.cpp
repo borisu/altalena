@@ -392,7 +392,7 @@ namespace ivrworx
 
 		MediaSubsession *curr_subsession = NULL;
 		MediaSubsession *subsession_candidate = NULL;
-		MediaFormat media_format;
+		
 
 		for(MediaFormatsList::iterator it=audio_medium.list.begin(); it!= audio_medium.list.end(); it++)
 		{
@@ -400,9 +400,13 @@ namespace ivrworx
 			// Then, setup the "RTPSource"s for the session:
 			MediaSubsessionIterator iter(*session);
 
+
+			LogDebug("ProcLive555Rtsp::SetupSession - before null:" );
+
 			// find if there is an appropriate codec
 			while ((curr_subsession = iter.next()) != NULL) 
 			{
+				LogDebug("ProcLive555Rtsp::SetupSession - comparing:" << (int) media_format.sdp_mapping() << ", curr:" << (int) curr_subsession->rtpPayloadFormat());
 
 				if (strcmp(curr_subsession->mediumName(),"audio") != 0)
 					continue;
@@ -433,7 +437,7 @@ namespace ivrworx
 
 		if (curr_subsession == NULL)
 		{
-			LogWarn("ProcLive555Rtsp::SetupSession - This session has no media subsessions with needed codec:" << media_format.sdp_name_tos());
+			LogWarn("ProcLive555Rtsp::SetupSession - This session has no media subsessions with needed codec");
 			SendResponse(msg, new MsgRtspSetupSessionNack());
 			return;
 		}

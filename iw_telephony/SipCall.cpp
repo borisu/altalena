@@ -29,7 +29,8 @@ namespace ivrworx
 
 SipMediaCall::SipMediaCall(IN ScopedForking &forking, IN HandleId handle_id):
 	GenericOfferAnswerSession(forking, handle_id),
-	_registrationId(IW_UNDEFINED)
+	_stackRegistrationHandle(IW_UNDEFINED),
+	_stackSubscribeHandle(IW_UNDEFINED)
 {
 	FUNCTRACKER;
 }
@@ -37,7 +38,8 @@ SipMediaCall::SipMediaCall(IN ScopedForking &forking, IN HandleId handle_id):
 SipMediaCall::SipMediaCall(IN ScopedForking &forking,
 		   IN shared_ptr<MsgCallOfferedReq> offered_msg):
 	GenericOfferAnswerSession(forking, offered_msg->source.handle_id, offered_msg),
-	_registrationId(IW_UNDEFINED)
+	_stackRegistrationHandle(IW_UNDEFINED),
+	_stackSubscribeHandle(IW_UNDEFINED)
 {
 	FUNCTRACKER;
 
@@ -50,7 +52,45 @@ SipMediaCall::~SipMediaCall()
 }
 
 ApiErrorCode
-SipMediaCall::WaitForInfo(IN AbstractOffer &remoteOffer)
+SipMediaCall::WaitForNotify(OUT AbstractOffer &remoteOffer)
+{
+	FUNCTRACKER;
+
+	if (_stackRegistrationHandle == IW_UNDEFINED)
+	{
+		return API_WRONG_STATE;
+	}
+
+	// just proxy the event
+	int handle_index= IW_UNDEFINED;
+	IwMessagePtr response = NULL_MSG;
+
+	ApiErrorCode res = GetCurrRunningContext()->WaitForTxnResponse(
+		assign::list_of(_notifyChannel)(_hangupChannel),
+		handle_index,
+		response, 
+		Seconds(60));
+
+	if (IW_FAILURE(res))
+	{
+		return res;
+	}
+
+	if (handle_index == 1)
+	{
+		return API_HANGUP;
+	}
+
+	shared_ptr<MsgSipCallNotifyEvt> notify = 
+		dynamic_pointer_cast<MsgSipCallNotifyEvt>(response);
+	remoteOffer = notify->remoteOffer;
+
+	return API_SUCCESS;
+
+}
+
+ApiErrorCode
+SipMediaCall::WaitForInfo(OUT AbstractOffer &remoteOffer)
 {
 	FUNCTRACKER;
 
@@ -90,9 +130,9 @@ SipMediaCall::MakeCall(IN const string   &destination_uri,
 {
 	
 	
-	if (_registrationId  != IW_UNDEFINED)
+	if (_stackRegistrationHandle  != IW_UNDEFINED)
 	{
-		key_value_map["registration_id"] = _registrationId;
+		key_value_map["registration_id"] = _stackRegistrationHandle;
 
 	}
 	return GenericOfferAnswerSession::MakeCall(destination_uri, offer, key_value_map, ring_timeout);
@@ -106,15 +146,15 @@ SipMediaCall::StopRegistration()
 
 	LogDebug("SipMediaCall::StopRegistration");
 
-	if (_registrationId == IW_UNDEFINED)
+	if (_stackRegistrationHandle == IW_UNDEFINED)
 	{
 		return API_WRONG_STATE;
 	}
 
 	MsgSipCallUnRegisterReq *msg = new MsgSipCallUnRegisterReq();
-	msg->registration_id  = _registrationId;
+	msg->registration_id  = _stackRegistrationHandle;
 
-	_registrationId = IW_UNDEFINED;
+	_stackRegistrationHandle = IW_UNDEFINED;
 	
 
 	IwMessagePtr response = NULL_MSG;
@@ -139,7 +179,7 @@ SipMediaCall::StartRegistration(const list<string> &contacts,
 
 	LogDebug("SipMediaCall::StartRegistration username:" << username);
 
-	if (_registrationId != IW_UNDEFINED)
+	if (_stackRegistrationHandle != IW_UNDEFINED)
 	{
 		return API_WRONG_STATE;
 	}
@@ -175,9 +215,90 @@ SipMediaCall::StartRegistration(const list<string> &contacts,
 				shared_ptr<MsgSipCallRegisterAck> ack = 
 					dynamic_pointer_cast<MsgSipCallRegisterAck>(response);
 
-				_registrationId = ack->registration_id;
+				_stackRegistrationHandle = ack->registration_id;
 				break;
 			}
+	default:
+		{
+			return API_SERVER_FAILURE;
+		}
+	}
+
+	return res;
+}
+
+
+ 
+void 
+SipMediaCall::CleanNotifyBuffer()
+{
+	FUNCTRACKER;
+
+	// the trick we are using
+	// to clean the buffer is just replace the handle
+	// with  new one
+	_notifyChannel->Poison();
+	_notifyChannel = LpHandlePtr(new LpHandle());
+
+	LogDebug("SipMediaCall::CleanNotifyBuffer iwh:" << _iwCallHandle);
+
+}
+
+ApiErrorCode
+SipMediaCall::Subscribe(IN const list<string> &contacts, 
+						IN const string &username, 
+						IN const string &password, 
+						IN const string &dest, 
+						IN const string &realm,
+						IN const AbstractOffer &body,
+						IN const string &eventsPackage,
+						IN csp::Time timeout)
+{
+	FUNCTRACKER;
+
+	LogDebug("SipMediaCall::Subscribe username:" << username);
+
+	if (_stackHandleId != IW_UNDEFINED)
+	{
+		return API_WRONG_STATE;
+	}
+
+	MsgSipCallSubscribeReq *msg = new MsgSipCallSubscribeReq();
+	msg->contacts  = contacts;
+	msg->dest	   = dest;
+	msg->username  = username;
+	msg->password  = password;
+	msg->realm	   = realm;
+	msg->events_package = eventsPackage;
+	msg->offer	= body;
+
+
+	IwMessagePtr response = NULL_MSG;
+	ApiErrorCode res = API_SUCCESS;
+
+	res = GetCurrRunningContext()->DoRequestResponseTransaction(
+		_stackHandleId,
+		IwMessagePtr(msg),
+		response,
+		timeout,
+		"SIP Subscribe TXN");
+
+	if (res != API_SUCCESS)
+	{
+		LogWarn("SipMediaCall::StartRegistration - failure" << res);
+		return res;
+	}
+
+	switch (response->message_id)
+	{
+	case SIP_CALL_SUBSCRIBE_ACK:
+		{
+			shared_ptr<MsgSipCallSubscribeAck> ack = 
+				dynamic_pointer_cast<MsgSipCallSubscribeAck>(response);
+
+			_stackHandleId = ack->stack_call_handle;
+			break;
+		}
 	default:
 		{
 			return API_SERVER_FAILURE;

@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="../bin"
+			OutputDirectory="../bin/Debug"
 			IntermediateDirectory="../obj/lua5.1_exe/Debug"
 			ConfigurationType="1"
 			CharacterSet="2"
@@ -70,7 +70,7 @@
 				AdditionalLibraryDirectories="../lib"
 				GenerateManifest="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/lua5.1.exel.pdb"
+				ProgramDatabaseFile="$(OutDir)/lua5.1.exe.pdb"
 				SubSystem="1"
 				EntryPointSymbol="mainCRTStartup"
 				TargetMachine="1"
@@ -102,7 +102,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="../bin"
+			OutputDirectory="../bin/Release"
 			IntermediateDirectory="../obj/lua5.1_exe/Release"
 			ConfigurationType="1"
 			CharacterSet="2"

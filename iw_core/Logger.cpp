@@ -87,26 +87,105 @@ namespace ivrworx
 	DWORD	 g_logMask		= IW_LOG_MASK_CONSOLE;
 	BOOL	 g_LogSyncMode  = FALSE;
 
-	__declspec( thread ) debug_dostream *tls_logger = NULL;
-
-	__declspec( thread ) BOOL script_log = FALSE;
-
-	__declspec( thread ) HANDLE tls_completion_port = NULL;
-
-	__declspec( thread ) HANDLE tls_queue_semaphore = NULL;
-
-	__declspec( thread ) BOOL tls_sync_mode= FALSE;
+// 	__declspec( thread ) debug_dostream *tls_logger = NULL;
+// 
+// 	__declspec( thread ) BOOL script_log = FALSE;
+// 
+// 	__declspec( thread ) HANDLE tls_completion_port = NULL;
+// 
+// 	__declspec( thread ) HANDLE tls_queue_semaphore = NULL;
+// 
+// 	__declspec( thread ) BOOL tls_sync_mode= FALSE;
 	
+#define LOGGER_SLOT 1
 	IW_CORE_API debug_dostream *GetTlsLogger()
 	{
-		if (tls_logger == NULL)
+		LPVOID res = NULL;
+		if (GetCoreData(LOGGER_SLOT,&res) && res != NULL)
 		{
-			tls_logger = new debug_dostream();
-		};
-
-		return tls_logger;
+			return (debug_dostream *)res;
+			
+		}
+		else
+		{
+			StoreCoreData(LOGGER_SLOT, new debug_dostream());
+			return  GetTlsLogger();
+		}
 
 	}
+
+#define SCRIPT_LOG_SLOT 2
+	IW_CORE_API BOOL GetScriptLog()
+	{
+		LPVOID res = NULL;
+		if (GetCoreData(SCRIPT_LOG_SLOT,&res))
+		{
+			return (BOOL)res;
+
+		}
+		else
+		{
+			StoreCoreData(SCRIPT_LOG_SLOT, FALSE);
+			return  GetScriptLog();
+		}
+		
+	}
+
+#define TLS_COMPLETION_PORT 3
+	IW_CORE_API HANDLE GetTlsCompletionPort()
+	{
+		LPVOID res = NULL;
+		if (GetCoreData(TLS_COMPLETION_PORT,&res))
+		{
+			return (HANDLE)res;
+
+		}
+		else
+		{
+			StoreCoreData(TLS_COMPLETION_PORT, NULL);
+			return  GetTlsCompletionPort();
+		}
+
+
+
+	}
+
+#define QUEUE_SEMAPHORE_SLOT 4
+	IW_CORE_API HANDLE GetTlsQueueSemaphore()
+	{
+		LPVOID res = NULL;
+		if (GetCoreData(QUEUE_SEMAPHORE_SLOT,&res))
+		{
+			return (HANDLE)res;
+
+		}
+		else
+		{
+			StoreCoreData(QUEUE_SEMAPHORE_SLOT, NULL);
+			return  GetTlsQueueSemaphore();
+		}
+
+
+
+	}
+
+#define TLS_SYNC_MODE_SLOT 5
+	IW_CORE_API  BOOL GetTlsSyncMode()
+	{
+		LPVOID res = NULL;
+		if (GetCoreData(TLS_SYNC_MODE_SLOT,&res))
+		{
+			return (BOOL)res;
+		}
+		else
+		{
+			StoreCoreData(TLS_SYNC_MODE_SLOT, FALSE);
+			return  GetTlsSyncMode();
+		}
+	}
+
+
+
 
 	struct LogBucket :
 		public OVERLAPPED
@@ -130,13 +209,13 @@ namespace ivrworx
 	IW_CORE_API void 
 	IwStartScript()
 	{
-		script_log = TRUE;
+		StoreCoreData(SCRIPT_LOG_SLOT, (LPVOID)TRUE);
 	}
 
 	IW_CORE_API void
 	IwStopScript()
 	{
-		script_log = FALSE;
+		StoreCoreData(SCRIPT_LOG_SLOT, (LPVOID)FALSE);
 	}
 	
 	BOOL 
@@ -410,26 +489,26 @@ error:
 		lb->fiber_id   = ::GetCurrentFiber();
 		lb->timestamp  = ::GetTickCount();
 		lb->log_str	   = str();
-		lb->script_log = script_log;
+		lb->script_log = GetScriptLog();
 
 		// Clear the string buffer
 		str(std::basic_string<char>());
 
-		if (tls_sync_mode == TRUE)
+		if (GetTlsSyncMode() == TRUE)
 		{
 			mutex::scoped_lock scoped_lock(g_loggerMutex);
 			LogBucketAndDelete(lb);
 		}
 		else
 		{
-			if (tls_queue_semaphore == NULL || 
-				tls_completion_port == NULL)
+			if (GetTlsQueueSemaphore() == NULL || 
+				GetTlsCompletionPort() == NULL)
 			{
 				return 0;
 			}
 
 			DWORD res = ::WaitForSingleObject(
-				tls_queue_semaphore,
+				GetTlsQueueSemaphore(),
 				INFINITE);
 
 			if (res != WAIT_OBJECT_0)
@@ -438,13 +517,13 @@ error:
 				return 0;
 			}
 
-			if (tls_completion_port == NULL)
+			if (GetTlsCompletionPort() == NULL)
 			{
 				return 0;
 			}
 
 			res = ::PostQueuedCompletionStatus(
-				tls_completion_port,
+				GetTlsCompletionPort(),
 				IW_LOG_LOG_COMPLETION_KEY,
 				0,
 				lb);
@@ -461,21 +540,22 @@ error:
 
 		mutex::scoped_lock scoped_lock(g_loggerMutex);
 
-		tls_sync_mode = g_LogSyncMode;
+		StoreCoreData(TLS_SYNC_MODE_SLOT,(LPVOID)g_LogSyncMode);
 
 		if (g_IocpLogger == NULL		||
 			g_queueSemaphore == NULL	||
-			tls_queue_semaphore != NULL ||
-			tls_completion_port !=NULL)
+			GetTlsQueueSemaphore() != NULL ||
+			GetTlsCompletionPort() !=NULL)
 		{
 			return;
 		}
 
+		HANDLE queue_handle = GetTlsQueueSemaphore();
 		int res  = ::DuplicateHandle(
 						::GetCurrentProcess(), 
 						g_queueSemaphore, 
 						::GetCurrentProcess(),
-						&tls_queue_semaphore, 
+						&queue_handle, 
 						0,
 						FALSE,
 						DUPLICATE_SAME_ACCESS);
@@ -487,11 +567,12 @@ error:
 			throw std::exception(msg.c_str());
 		}
 
+		HANDLE io_handle = GetTlsQueueSemaphore();
 		res  = ::DuplicateHandle(
 			::GetCurrentProcess(), 
 			g_IocpLogger, 
 			::GetCurrentProcess(),
-			&tls_completion_port, 
+			&io_handle, 
 			0,
 			FALSE,
 			DUPLICATE_SAME_ACCESS);

@@ -18,12 +18,10 @@
 */
 
 #include "StdAfx.h"
-#include "LightweightProcess.h"
 #include "ResipCommon.h"
-#include "UASAppDialogSet.h"
+#include "IwAppDialogSet.h"
 #include "UASDialogUsageManager.h"
-#include "UASAppDialogSetFactory.h"
-#include "Logger.h"
+#include "IwAppDialogSetFactory.h"
 #include "FreeContent.h"
 
 
@@ -102,7 +100,7 @@ namespace ivrworx
 		Data free_data(ack->localOffer.body);
 		FreeContent fc(ack->localOffer.body,ack->localOffer.type);
 
-		((UASAppDialogSet*)(ctx_ptr->uas_invite_handle->getAppDialogSet().get()))->_makeCallAck
+		((IwAppDialogSet*)(ctx_ptr->uas_invite_handle->getAppDialogSet().get()))->_makeCallAck
 			= req;
 		
 
@@ -257,7 +255,7 @@ namespace ivrworx
 
 
 		GetCurrRunningContext()->SendResponse(
-			((UASAppDialogSet *)is->getAppDialogSet().get())->_makeCallAck, 
+			((IwAppDialogSet *)is->getAppDialogSet().get())->_makeCallAck, 
 			conn_msg);
 
 		LogDebug("onConnectedConfirmed:: " << LogHandleState(ctx_ptr,is));

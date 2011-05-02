@@ -71,12 +71,25 @@ namespace ivrworx
 
 	};
 
+	class IW_TELEPHONY_API AuthenticationMixin
+	{
+	public:
+		AuthenticationMixin(){};
+
+		string username;
+
+		string password;
+
+		string realm;
+
+	};
+
 
 	//
 	// CALL RELATED
 	//
 	class IW_TELEPHONY_API MsgMakeCallReq : 
-		public MsgRequest, public MsgVoipCallMixin
+		public MsgRequest, public MsgVoipCallMixin, public AuthenticationMixin
 	{
 
 	public:

@@ -75,7 +75,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				EmbedManifest="false"
+				EmbedManifest="true"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -326,22 +326,6 @@
 			Name="uac"
 			>
 			<File
-				RelativePath=".\UACAppDialog.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\UACAppDialog.h"
-				>
-			</File>
-			<File
-				RelativePath=".\UACAppDialogSet.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\UACAppDialogSet.h"
-				>
-			</File>
-			<File
 				RelativePath=".\UACDialogUsageManager.cpp"
 				>
 			</File>
@@ -353,30 +337,6 @@
 		<Filter
 			Name="uas"
 			>
-			<File
-				RelativePath=".\UASAppDialog.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\UASAppDialog.h"
-				>
-			</File>
-			<File
-				RelativePath=".\UASAppDialogSet.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\UASAppDialogSet.h"
-				>
-			</File>
-			<File
-				RelativePath=".\UASAppDialogSetFactory.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\UASAppDialogSetFactory.h"
-				>
-			</File>
 			<File
 				RelativePath=".\UASDialogUsageManager.cpp"
 				>
@@ -392,6 +352,22 @@
 		</File>
 		<File
 			RelativePath=".\FreeContent.h"
+			>
+		</File>
+		<File
+			RelativePath=".\IwAppDialogSet.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\IwAppDialogSet.h"
+			>
+		</File>
+		<File
+			RelativePath=".\IwAppDialogSetFactory.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\IwAppDialogSetFactory.h"
 			>
 		</File>
 		<File

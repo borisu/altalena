@@ -55,6 +55,8 @@ public:
 
 	virtual void UponInfoReq(IN IwMessagePtr ptr);
 
+	virtual void UponSubscribeReq(IN IwMessagePtr ptr);
+
 	virtual void onNewSession(
 		IN ClientInviteSessionHandle s, 
 		IN InviteSession::OfferAnswerType oat, 
