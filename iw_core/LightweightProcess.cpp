@@ -22,6 +22,7 @@
 #include "LocalProcessRegistrar.h"
 #include "Logger.h"
 #include "Profiler.h"
+#include "DllHelpers.h"
 
 namespace ivrworx
 {
@@ -29,13 +30,26 @@ namespace ivrworx
 	typedef 
 	map<PVOID, RunningContext*> ProcMap;
 
-	__declspec (thread) ProcMap *tl_procMap = NULL;
-
 	int AppData::getType()
 	{
 		return IW_UNDEFINED;
 	}
 
+#define TLS_PROC_MAP 15
+	ProcMap *GetTlsProcMap()
+	{
+		LPVOID res = NULL;
+		if (GetCoreData(TLS_PROC_MAP,&res) && res != NULL)
+		{
+			return (ProcMap *)res;
+		}
+		else
+		{
+			StoreCoreData(TLS_PROC_MAP,new ProcMap());
+			return  GetTlsProcMap();
+		}
+
+	}
 
 	RunningContext::RunningContext(
 		IN LpHandlePair pair,
@@ -605,15 +619,15 @@ select_end:
 	GetCurrRunningContext()
 	{
 		PVOID fiber = ::GetCurrentFiber();
-		if (tl_procMap== NULL || 
+		if (GetTlsProcMap() == NULL || 
 			fiber == (PVOID)NON_FIBEROUS_THREAD || 
 			fiber == NULL)
 		{
 			return NULL;
 		}
 
-		ProcMap::iterator iter =  tl_procMap->find(::GetCurrentFiber());
-		return  (iter == tl_procMap->end()) ? NULL : iter->second;
+		ProcMap::iterator iter =  GetTlsProcMap()->find(::GetCurrentFiber());
+		return  (iter == GetTlsProcMap()->end()) ? NULL : iter->second;
 	}
 
 	IW_CORE_API string 
@@ -642,20 +656,13 @@ select_end:
 
 		RegistrationGuard guard(ctx->_inbound,ctx->_serviceId);
 
-		// Created only once -  thread local storage 
-		// of the fibers.
-		if (tl_procMap == NULL)
-		{
-			tl_procMap = new ProcMap();
-		}
-
 		//
 		// register itself within thread 
 		// local storage
 		//
 		PVOID fiber = ::GetCurrentFiber();
 
-		if (tl_procMap->find(fiber) != tl_procMap->end())
+		if (GetTlsProcMap()->find(fiber) != GetTlsProcMap()->end())
 		{
 			LogCrit("Fiber id already exists in the map. Have you run the routine manually?")
 				throw;
@@ -670,7 +677,7 @@ select_end:
 		}
 
 
-		(*tl_procMap)[fiber] = ctx ;
+		(*GetTlsProcMap())[fiber] = ctx ;
 
 		guard.dismiss();
 
@@ -690,7 +697,7 @@ select_end:
 
 
 		PVOID fiber = ::GetCurrentFiber();
-		tl_procMap->erase(tl_procMap->find(fiber));
+		GetTlsProcMap()->erase(GetTlsProcMap()->find(fiber));
 
 		csp::CPPCSP_Yield();
 
