@@ -76,11 +76,7 @@ namespace ivrworx
 	public:
 		AuthenticationMixin(){};
 
-		string username;
-
-		string password;
-
-		string realm;
+		Credentials credentials;
 
 	};
 
@@ -413,9 +409,6 @@ namespace ivrworx
 
 		virtual ApiErrorCode RejectCall();
 
-		// template method
-		virtual void UponOk(shared_ptr<MsgMakeCallOk> makeCallOk){};
-
 		virtual void UponCallTerminated(
 			IN IwMessagePtr ptr);
 
@@ -438,15 +431,16 @@ namespace ivrworx
 		virtual AbstractOffer RemoteOffer();
 
 		virtual ApiErrorCode MakeCall(
-			IN const string   &destinationUri, 
+			IN const string			&destinationUri, 
 			IN const AbstractOffer  &localOffer,
-			IN OUT  MapOfAny &keyValueMap,
-			IN csp::Time	  ringTimeout);
+			IN const Credentials	&credentials, 
+			IN OUT  MapOfAny		&keyValueMap,
+			IN csp::Time			ringTimeout);
 
 		virtual ApiErrorCode ReOffer(
 			IN const AbstractOffer  &localOffer,
-			IN OUT  MapOfAny &keyValueMap,
-			IN csp::Time	  ringTimeout);
+			IN OUT  MapOfAny		&keyValueMap,
+			IN csp::Time			ringTimeout);
 
 		virtual ApiErrorCode Answer(
 			IN const AbstractOffer  &localOffer,
@@ -462,7 +456,7 @@ namespace ivrworx
 
 		void ResetState(CallState state, const char *stateName);
 
-		HandleId _stackHandleId;
+		HandleId _serviceHandleId;
 
 		LpHandlePair _handlerPair;
 

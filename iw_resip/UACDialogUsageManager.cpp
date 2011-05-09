@@ -189,8 +189,12 @@ namespace ivrworx
 		else
 			up->setDefaultMaxRegistrationTime(180);
 
-		LogDebug("UACDialogUsageManager::UponRegisterReq - " << reg_req->username.c_str() << "(@)" << reg_req->realm.c_str());
-		up->setDigestCredential(reg_req->realm.c_str(),reg_req->username.c_str(), reg_req->password.c_str());
+		LogDebug("UACDialogUsageManager::UponRegisterReq - " << reg_req->credentials.username.c_str() << "(@)" << reg_req->credentials.realm.c_str());
+		up->setDigestCredential(
+			reg_req->credentials.realm.c_str(),
+			reg_req->credentials.username.c_str(), 
+			reg_req->credentials.password.c_str());
+
 		up->setDefaultFrom(bp->getDefaultFrom());
 
 		
@@ -210,64 +214,74 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-// 		shared_ptr<MsgSipCallSubscribeReq> subscribe_req = 
-// 			dynamic_pointer_cast<MsgSipCallSubscribeReq>(ptr);
-// 
-// 		SipDialogContextPtr ctx_ptr;
-// 		if (subscribe_req->stack_call_handle == IW_UNDEFINED)
-// 		{
-// 			// create context
-// 			//
-// 			SipDialogContextPtr ctx_ptr = SipDialogContextPtr(new SipDialogContext(TRUE));
-// 			ctx_ptr->stack_handle = GenerateCallHandle();
-// 
-// 
-// 			IwAppDialogSet *uac_dialog_set = 
-// 				new IwAppDialogSet(_dum,ctx_ptr,ptr);
-// 			uac_dialog_set->last_registration_req = reg_req;
-// 
-// 
-// 			NameAddr addr(reg_req ->registrar.c_str());
-// 			SharedPtr<UserProfile> &bp = _dum.getMasterUserProfile();
-// 			SharedPtr<UserProfile> up (new UserProfile(bp));
-// 
-// 			ctx_ptr->user_profile = up;
-// 
-// 
-// 			if (reg_req->max_registration_time != IW_UNDEFINED)
-// 				up->setDefaultMaxRegistrationTime(reg_req->max_registration_time);
-// 			else
-// 				up->setDefaultMaxRegistrationTime(1);
-// 
-// 			if (reg_req->max_registration_time != IW_UNDEFINED)
-// 				up->setDefaultRegistrationRetryTime(reg_req->registration_retry_time);
-// 			else
-// 				up->setDefaultMaxRegistrationTime(180);
-// 
-// 			LogDebug("UACDialogUsageManager::UponRegisterReq - " << reg_req->username.c_str() << "(@)" , reg_req->realm.c_str());
-// 			up->setDigestCredential(reg_req->realm.c_str(),reg_req->username.c_str(), reg_req->password.c_str());
-// 			up->setDefaultFrom(bp->getDefaultFrom());
-// 
-// 		} 
-// 		else
-// 		{
-// 			IwHandlesMap::iterator iter = _iwHandlesMap.find(subscribe_req->stack_call_handle);
-// 			if (iter == _iwHandlesMap.end())
-// 			{
-// 				LogDebug("UACDialogUsageManager::UponRegisterReq - the call iwh:" << unreg_req->registration_id << " already unregistered");
-// 				return;
-// 			}
-// 
-// 			SipDialogContextPtr ctx_ptr = (*iter).second;
-// 
-// 		}
-// 		
-// 
-// 
-// 		SharedPtr<SipMessage> msg =  _dum.makeSubscription(addr,up,ctx_ptr->);
-// 		_iwHandlesMap[ctx_ptr->stack_handle]= ctx_ptr;
-// 
-// 		_dum.send(msg);
+		shared_ptr<MsgSipCallSubscribeReq> subscribe_req = 
+			dynamic_pointer_cast<MsgSipCallSubscribeReq>(ptr);
+
+		SipDialogContextPtr ctx_ptr;
+		IwAppDialogSet *uac_dialog_set = NULL;
+
+		// on non-existing INVITE dialog?
+		if (subscribe_req->stack_call_handle == IW_UNDEFINED)
+		{
+			// create context
+			//
+			SipDialogContextPtr ctx_ptr = SipDialogContextPtr(new SipDialogContext(TRUE));
+			ctx_ptr->stack_handle = GenerateCallHandle();
+
+
+			uac_dialog_set = new IwAppDialogSet(_dum,ctx_ptr,ptr);
+			uac_dialog_set->last_registration_req = subscribe_req;
+
+
+			NameAddr addr(subscribe_req ->dest.c_str());
+			SharedPtr<UserProfile> &bp = _dum.getMasterUserProfile();
+			SharedPtr<UserProfile> up (new UserProfile(bp));
+
+			ctx_ptr->user_profile = up;
+
+			LogDebug("UACDialogUsageManager::UponSubscribeReq - " << subscribe_req->credentials.username.c_str() << "(@)" << subscribe_req->credentials.realm.c_str());
+			up->setDigestCredential(
+				subscribe_req->credentials.realm.c_str(),
+				subscribe_req->credentials.username.c_str(), 
+				subscribe_req->credentials.password.c_str());
+
+			if (subscribe_req->ani.empty()) 
+			{
+				up->setDefaultFrom(bp->getDefaultFrom());
+			} 
+			else
+			{
+				up->setDefaultFrom(NameAddr(subscribe_req->ani.c_str()));
+			}
+				
+			_iwHandlesMap[ctx_ptr->stack_handle]= ctx_ptr;
+
+		} 
+		else
+		{
+			IwHandlesMap::iterator iter = _iwHandlesMap.find(subscribe_req->stack_call_handle);
+			if (iter == _iwHandlesMap.end())
+			{
+				LogDebug("UACDialogUsageManager::UponSubscribeReq - the call iwh:" << subscribe_req->stack_call_handle << " does not exits.");
+				return;
+			}
+
+			SipDialogContextPtr ctx_ptr = (*iter).second;
+
+			AppDialogSetHandle app_diag_set_handle = ctx_ptr->invite_handle->getAppDialogSet();
+			uac_dialog_set = (IwAppDialogSet*)app_diag_set_handle.get();
+
+		}
+
+		SharedPtr<SipMessage> msg =  _dum.makeSubscription(
+			NameAddr(subscribe_req->dest.c_str()),
+			subscribe_req->events_package.c_str(),
+			subscribe_req->subscription_time,
+			subscribe_req->refresh_interval,
+			uac_dialog_set);
+		
+
+		_dum.send(msg);
 
 	}
 

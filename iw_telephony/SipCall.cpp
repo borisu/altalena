@@ -125,6 +125,7 @@ SipMediaCall::WaitForInfo(OUT AbstractOffer &remoteOffer)
 ApiErrorCode 
 SipMediaCall::MakeCall(IN const string   &destination_uri, 
 							  IN const AbstractOffer &offer,
+							  IN const Credentials &credentials,
 							  IN OUT MapOfAny &key_value_map,
 							  IN csp::Time	  ring_timeout)
 {
@@ -135,7 +136,7 @@ SipMediaCall::MakeCall(IN const string   &destination_uri,
 		key_value_map["registration_id"] = _stackRegistrationHandle;
 
 	}
-	return GenericOfferAnswerSession::MakeCall(destination_uri, offer, key_value_map, ring_timeout);
+	return GenericOfferAnswerSession::MakeCall(destination_uri, offer, credentials, key_value_map, ring_timeout);
 
 }
 
@@ -161,23 +162,21 @@ SipMediaCall::StopRegistration()
 	ApiErrorCode res = API_SUCCESS;
 
 	res = GetCurrRunningContext()->SendMessage(
-		_stackHandleId,
+		_serviceHandleId,
 		IwMessagePtr(msg));
 
 	return res;
 }
 
 ApiErrorCode
-SipMediaCall::StartRegistration(const list<string> &contacts, 
-								const string &username, 
-								const string &password, 
-								const string &registrar, 
-								const string &realm, 
-								csp::Time timeout)
+SipMediaCall::StartRegistration(IN const list<string> &contacts, 
+								IN const string		  &registrar,
+								IN const Credentials  &credentials, 
+								IN csp::Time timeout)
 {
 	FUNCTRACKER;
 
-	LogDebug("SipMediaCall::StartRegistration username:" << username);
+	LogDebug("SipMediaCall::StartRegistration username:" << credentials.username);
 
 	if (_stackRegistrationHandle != IW_UNDEFINED)
 	{
@@ -187,16 +186,14 @@ SipMediaCall::StartRegistration(const list<string> &contacts,
 	MsgSipCallRegisterReq *msg = new MsgSipCallRegisterReq();
 	msg->contacts  = contacts;
 	msg->registrar = registrar;
-	msg->username  = username;
-	msg->password  = password;
-	msg->realm	   = realm;
-
+	msg->credentials  = credentials;
+	
 
 	IwMessagePtr response = NULL_MSG;
 	ApiErrorCode res = API_SUCCESS;
 	
 	res = GetCurrRunningContext()->DoRequestResponseTransaction(
-		_stackHandleId,
+		_serviceHandleId,
 		IwMessagePtr(msg),
 		response,
 		timeout,
@@ -245,39 +242,40 @@ SipMediaCall::CleanNotifyBuffer()
 }
 
 ApiErrorCode
-SipMediaCall::Subscribe(IN const list<string> &contacts, 
-						IN const string &username, 
-						IN const string &password, 
-						IN const string &dest, 
-						IN const string &realm,
-						IN const AbstractOffer &body,
-						IN const string &eventsPackage,
-						IN csp::Time timeout)
+SipMediaCall::Subscribe(IN const string			&eventserver,
+						IN const list<string>	&contacts, 
+						IN const Credentials	&credentials, 
+						IN const AbstractOffer	&offer,
+						IN const string			&eventsPackage,
+						IN int					refreshInterval,
+						IN int					subscriptionTime,
+						IN csp::Time			timeout)
 {
 	FUNCTRACKER;
 
-	LogDebug("SipMediaCall::Subscribe username:" << username);
+	LogDebug("SipMediaCall::Subscribe username:" << credentials.username);
 
-	if (_stackHandleId != IW_UNDEFINED)
+	if (_stackSubscribeHandle != IW_UNDEFINED)
 	{
 		return API_WRONG_STATE;
 	}
 
 	MsgSipCallSubscribeReq *msg = new MsgSipCallSubscribeReq();
-	msg->contacts  = contacts;
-	msg->dest	   = dest;
-	msg->username  = username;
-	msg->password  = password;
-	msg->realm	   = realm;
+	msg->contacts		= contacts;
+	msg->dest			= eventserver;
+	msg->credentials	= credentials;
 	msg->events_package = eventsPackage;
-	msg->offer	= body;
+	msg->offer			= offer;
+	msg->stack_call_handle	= _iwCallHandle;
+	msg->subscription_time = subscriptionTime;
+	msg->refresh_interval = refreshInterval;
 
 
 	IwMessagePtr response = NULL_MSG;
 	ApiErrorCode res = API_SUCCESS;
 
 	res = GetCurrRunningContext()->DoRequestResponseTransaction(
-		_stackHandleId,
+		_serviceHandleId,
 		IwMessagePtr(msg),
 		response,
 		timeout,
@@ -296,7 +294,13 @@ SipMediaCall::Subscribe(IN const list<string> &contacts,
 			shared_ptr<MsgSipCallSubscribeAck> ack = 
 				dynamic_pointer_cast<MsgSipCallSubscribeAck>(response);
 
-			_stackHandleId = ack->stack_call_handle;
+			if (_serviceHandleId == IW_UNDEFINED)
+				_serviceHandleId= ack->stack_call_handle;
+
+			_stackSubscribeHandle = ack->subscription_handle;
+
+			res = API_SUCCESS;
+
 			break;
 		}
 	default:
@@ -327,7 +331,7 @@ SipMediaCall::SendInfo(IN const AbstractOffer &offer, OUT AbstractOffer &remoteO
 	if (async)
 	{
 		res = GetCurrRunningContext()->DoRequestResponseTransaction(
-			_stackHandleId,
+			_serviceHandleId,
 			IwMessagePtr(msg),
 			response,
 			Seconds(10),
@@ -336,7 +340,7 @@ SipMediaCall::SendInfo(IN const AbstractOffer &offer, OUT AbstractOffer &remoteO
 	} else
 	{
 		res = GetCurrRunningContext()->SendMessage(
-			_stackHandleId,
+			_serviceHandleId,
 			IwMessagePtr(msg));
 	}
 	

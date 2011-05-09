@@ -9,18 +9,11 @@ require "ivrworx"
 
 l:loginfo("=== START ===");						
 
-caller = sipcall:new()
+s = sipcall:new()
+s:subscribe{server="sip:freeswitch@192.168.100.242",package="lulu",interval=60,refresh=180}
 
-s = streamer:new();
-s:allocate{rcv=iw.SND_DEVICE_TYPE_SND_CARD_MIC, snd=iw.SND_DEVICE_TYPE_FILE}
+l:loginfo("=== END ===");						
 
-caller = sipcall:new();
-caller:makecall{dest="sip:24001@192.168.150.3", timeout=60,sdp=s:localoffer()}
-
-
-s:modify{sdp=caller:remoteoffer()}
-
-s:play{file="C:\\tada.wav", loop=true}l:loginfo("=== END ===");						
 
 
 

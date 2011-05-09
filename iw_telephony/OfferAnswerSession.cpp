@@ -16,7 +16,7 @@ GenerateCallHandle()
 
 GenericOfferAnswerSession::GenericOfferAnswerSession(IN ScopedForking &forking, 
 	IN HandleId stack_handle_id):
-	_stackHandleId(stack_handle_id),
+	_serviceHandleId(stack_handle_id),
 	_iwCallHandle(IW_UNDEFINED),
 	_hangupDetected(FALSE),
 	_handlerPair(HANDLE_PAIR),
@@ -31,15 +31,13 @@ GenericOfferAnswerSession::GenericOfferAnswerSession(IN ScopedForking &forking,
 
 	StartActiveObjectLwProc(forking,_handlerPair,"GenericOfferAnswerSession Session Handler");
 
-	_iwCallHandle = GenerateCallHandle();
-
-
+	//_iwCallHandle = GenerateCallHandle();
 }
 
 GenericOfferAnswerSession::GenericOfferAnswerSession(IN ScopedForking &forking,
 	IN HandleId stack_handle_id,
 	IN shared_ptr<MsgCallOfferedReq> offered_msg):
-	_stackHandleId(stack_handle_id),
+	_serviceHandleId(stack_handle_id),
 	_iwCallHandle(offered_msg->stack_call_handle),
 	_handlerPair(offered_msg->call_handler_inbound),
 	_dtmfChannel(new LpHandle()),
@@ -162,7 +160,7 @@ GenericOfferAnswerSession::ReOffer(
 
 	// wait for ok or nack
 	res = GetCurrRunningContext()->DoRequestResponseTransaction(
-		_stackHandleId,
+		_serviceHandleId,
 		IwMessagePtr(msg),
 		response,
 		ringTimeout,
@@ -214,6 +212,7 @@ GenericOfferAnswerSession::ReOffer(
 ApiErrorCode
 GenericOfferAnswerSession::MakeCall(IN const string   &destination_uri, 
 	IN const AbstractOffer &offer,
+	IN const Credentials &credentials,
 	IN OUT MapOfAny &key_value_map,
 	IN csp::Time	  ring_timeout)
 {
@@ -238,6 +237,7 @@ GenericOfferAnswerSession::MakeCall(IN const string   &destination_uri,
 	msg->call_handler_inbound	= _handlerPair.inbound;
 	msg->stack_call_handle		= _iwCallHandle;
 	msg->optional_params		= key_value_map;
+	msg->credentials			= credentials;
 
 	_localOffer					= offer;
 
@@ -245,7 +245,7 @@ GenericOfferAnswerSession::MakeCall(IN const string   &destination_uri,
 	
 	// wait for ok or nack
 	res = GetCurrRunningContext()->DoRequestResponseTransaction(
-		_stackHandleId,
+		_serviceHandleId,
 		IwMessagePtr(msg),
 		response,
 		ring_timeout,
@@ -334,7 +334,7 @@ GenericOfferAnswerSession::Answer(IN const AbstractOffer &offer,
 
 
 		ApiErrorCode res = GetCurrRunningContext()->SendMessage(
-			_stackHandleId,
+			_serviceHandleId,
 			IwMessagePtr(ack));
 
 		CALL_RESET_STATE(CALL_STATE_CONNECTED);
@@ -349,7 +349,7 @@ GenericOfferAnswerSession::Answer(IN const AbstractOffer &offer,
 
 
 	ApiErrorCode res = GetCurrRunningContext()->DoRequestResponseTransaction(
-		_stackHandleId,
+		_serviceHandleId,
 		IwMessagePtr(ack),
 		response,
 		MilliSeconds(GetCurrRunningContext()->TransactionTimeout()),
@@ -509,7 +509,7 @@ GenericOfferAnswerSession::RejectCall()
 	MsgCallOfferedNack *msg = new MsgCallOfferedNack();
 	msg->stack_call_handle = _iwCallHandle;
 
-	ApiErrorCode res = GetCurrRunningContext()->SendMessage(_stackHandleId,msg);
+	ApiErrorCode res = GetCurrRunningContext()->SendMessage(_serviceHandleId,msg);
 	return res;
 
 }
@@ -532,7 +532,7 @@ GenericOfferAnswerSession::HangupCall()
 	MsgHangupCallReq *msg = new MsgHangupCallReq(_iwCallHandle);
 	msg->stack_call_handle = _iwCallHandle;
 
-	ApiErrorCode res = GetCurrRunningContext()->SendMessage(_stackHandleId,msg);
+	ApiErrorCode res = GetCurrRunningContext()->SendMessage(_serviceHandleId,msg);
 
 	_iwCallHandle = IW_UNDEFINED;
 	_hangupDetected = TRUE;
@@ -595,7 +595,7 @@ GenericOfferAnswerSession::BlindXfer(IN const string &destination_uri)
 	msg->stack_call_handle = _iwCallHandle;
 
 	ApiErrorCode res = GetCurrRunningContext()->DoRequestResponseTransaction(
-		_stackHandleId,
+		_serviceHandleId,
 		IwMessagePtr(msg),
 		response,
 		Seconds(60),
