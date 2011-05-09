@@ -100,6 +100,10 @@ namespace ivrworx
 
 		   string events_package;
 
+		   int subscription_time;
+
+		   int refresh_interval;
+
 		   AbstractOffer offer;
 
 	};
@@ -110,7 +114,9 @@ namespace ivrworx
 	public:
 		MsgSipCallSubscribeAck():
 		  MsgResponse(SIP_CALL_SUBSCRIBE_ACK, 
-			  NAME(SIP_CALL_SUBSCRIBE_ACK)){}
+			  NAME(SIP_CALL_SUBSCRIBE_ACK)){};
+
+		  HandleId subscription_handle;
 
 	};
 
@@ -201,37 +207,40 @@ namespace ivrworx
 		SipMediaCall(IN ScopedForking &forking,
 			 IN shared_ptr<MsgCallOfferedReq> offered_msg);
 
-		virtual ApiErrorCode SendInfo(IN const AbstractOffer &offer, OUT AbstractOffer &response, IN bool async);
+		virtual ApiErrorCode SendInfo(
+			IN	const AbstractOffer	&offer, 
+			OUT AbstractOffer		&response, 
+			IN	bool async);
 
 		virtual ApiErrorCode WaitForInfo(OUT AbstractOffer &offer);
 
 		virtual ApiErrorCode StartRegistration(
-			IN const list<string> &contacts, 
-			IN const string &username, 
-			IN const string &password, 
-			IN const string &registrar, 
-			IN const string &realm,
-			IN csp::Time timeout);
+			IN const list<string>	&contacts, 
+			IN const string			&registrar,
+			IN const Credentials	&credentials, 
+			IN csp::Time			timeout);
 
 		virtual ApiErrorCode Subscribe(
-			IN const list<string> &contacts, 
-			IN const string &username, 
-			IN const string &password, 
-			IN const string &dest, 
-			IN const string &realm,
-			IN const AbstractOffer &body,
-			IN const string &eventsPackage,
-			IN csp::Time timeout);
+			IN const string			&eventserver,
+			IN const list<string>	&contacts, 
+			IN const Credentials	&credentials, 
+			IN const AbstractOffer	&offer,
+			IN const string			&eventsPackage,
+			IN int					refreshInterval,
+			IN int					subscriptionTime,
+			IN csp::Time			timeout);
 
 		virtual ApiErrorCode WaitForNotify(
-			OUT AbstractOffer &offer);
+			OUT AbstractOffer		&offer);
 
 		virtual void CleanNotifyBuffer();
 
-		virtual ApiErrorCode MakeCall(IN const string   &destination_uri, 
-			IN const AbstractOffer &offer,
-			IN OUT MapOfAny &key_value_map,
-			IN csp::Time	  ring_timeout);
+		virtual ApiErrorCode MakeCall(
+			IN const string			&destination_uri, 
+			IN const AbstractOffer	&offer,
+			IN const Credentials	&credentials,
+			IN OUT MapOfAny			&key_value_map,
+			IN csp::Time			ring_timeout);
 
 		virtual ApiErrorCode StopRegistration();
 
@@ -247,9 +256,9 @@ namespace ivrworx
 
 		LpHandlePtr _registrationChannel;
 
-		HandleId _stackRegistrationHandle;
+		HandleId	_stackRegistrationHandle;
 
-		HandleId _stackSubscribeHandle;
+		HandleId	_stackSubscribeHandle;
 
 	};
 

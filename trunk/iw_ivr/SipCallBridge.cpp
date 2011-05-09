@@ -44,6 +44,8 @@ Luna<sipcall>::RegType sipcall::methods[] = {
 	method(sipcall, startregister),
 	method(sipcall, unregister),
 	method(sipcall, reoffer),
+	method(sipcall, subscribe),
+	method(sipcall, unsubscribe),
 	{0,0}
 };
 
@@ -175,6 +177,84 @@ sipcall::localoffer(lua_State *L)
 	lua_pushstring(L, _call->LocalOffer().body.c_str());
 	return 1;
 }
+int
+sipcall::unsubscribe(lua_State *L)
+{
+	FUNCTRACKER;
+
+	if (!_call)
+	{
+		lua_pushnumber (L, API_WRONG_STATE);
+		return 1;
+	}
+	return 0;
+}
+
+int
+sipcall::subscribe(lua_State *L)
+{
+	FUNCTRACKER;
+
+	if (!_call)
+	{
+		lua_pushnumber (L, API_WRONG_STATE);
+		return 1;
+	}
+
+	string eventserver;
+	string realm;
+	string username;
+	string password;
+	string eventpackage;
+	list<string> contactslist;
+	int timeout = 15;
+	int refresh = 160;
+	int subscription_interval = 380;
+	AbstractOffer offer;
+
+	BOOL paramres = TRUE;
+	GetTableStringParam(L,-1,eventserver,"server");
+	GetTableStringParam(L,-1,eventpackage,"package");
+	GetTableStringParam(L,-1,username,"username");
+	GetTableStringParam(L,-1,realm,"realm");
+	GetTableStringParam(L,-1,password,"password");
+
+	Credentials cred;
+	cred.username = username;
+	cred.realm = realm;
+	cred.password = password;
+
+	GetTableNumberParam(L,-1,&timeout,"timeout");
+	GetTableNumberParam(L,-1,&subscription_interval,"interval");
+	GetTableNumberParam(L,-1,&refresh,"refresh");
+
+	
+	GetTableStringParam(L,-1,offer.body,"offer");
+	GetTableStringParam(L,-1,offer.type,"type");
+
+	
+
+	ApiErrorCode res = 
+		_call->Subscribe(
+			eventserver,
+			contactslist,
+			cred, 
+			offer, 
+			eventpackage, 
+			refresh, 
+			subscription_interval, 
+			Seconds(timeout));
+
+
+	lua_pushnumber (L, res);
+	return 1;
+
+
+// error_param:
+// 	lua_pushnumber (L, API_WRONG_PARAMETER);
+// 	return 1;
+
+}
 
 int
 sipcall::startregister(lua_State *L)
@@ -194,7 +274,7 @@ sipcall::startregister(lua_State *L)
 	string contacts;
 	list<string> contactslist;
 	vector<string> strs;
-
+	Credentials cred;
 	
 	BOOL paramres = GetTableStringParam(L,-1,registrar,"registrar");
 	if (paramres == FALSE)
@@ -223,17 +303,19 @@ sipcall::startregister(lua_State *L)
 
 	int timeout = 15;
 	GetTableNumberParam(L,-1,&timeout,"timeout",15);
+
+
+	cred.username = username;
+	cred.realm = realm;
+	cred.password = password;
 	
 
 	ApiErrorCode res = 
-		_call->StartRegistration(contactslist,username,password,registrar,realm,Seconds(timeout));
+		_call->StartRegistration(contactslist,registrar,cred,Seconds(timeout));
 
 
 	lua_pushnumber (L, res);
 	return 1;
-
-
-
 
 error_param:
 	lua_pushnumber (L, API_WRONG_PARAMETER);
@@ -316,6 +398,19 @@ sipcall::makecall(lua_State *L)
 	MapOfAny freemap;
 	AbstractOffer offer;
 	string dest;
+	string username;
+	string realm;
+	string password;
+
+
+	GetTableStringParam(L,-1,username,"username");
+	GetTableStringParam(L,-1,realm,"realm");
+	GetTableStringParam(L,-1,password,"password");
+
+	Credentials cred;
+	cred.username	= username;
+	cred.realm		= realm;
+	cred.password	= password;
 	
 
 	BOOL paramres = GetTableStringParam(L,-1,dest,"dest");
@@ -341,7 +436,7 @@ sipcall::makecall(lua_State *L)
 	FillTable(L,-1,freemap);
 
 	ApiErrorCode res = 
-		_call->MakeCall(dest,offer,freemap,Seconds(timeout));
+		_call->MakeCall(dest,offer,cred,freemap,Seconds(timeout));
 
 
 	lua_pushnumber (L, res);

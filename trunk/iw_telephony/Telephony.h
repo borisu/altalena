@@ -134,6 +134,14 @@ public:
 	string type;
 };
 
+class IW_TELEPHONY_API Credentials
+{
+public:
+	string username;
+	string password;
+	string realm;
+};
+
 class SdpParserImpl;
 
 class IW_TELEPHONY_API SdpParser
