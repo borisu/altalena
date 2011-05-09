@@ -33,7 +33,7 @@ are either included into subversion tree completely or by means of subversion ex
 
  * Checkout altalena code in '<project root>\altalena' - see instructions [http://code.google.com/p/altalena/source/checkout here]. Write to administrator if you want to become a member of development team. 
 
- * Add ;<project root>\kentcsp\kentcsp\src' to include library in IDE options tab. After all definitions, library and include IDE options should look something like this.
+ * Add ;<project root>\kentcsp\kentcsp\src' to include library in IDE options tab. After all definitions, library and include IDE options should look something like this. Extras DirectShow libraries seems to be missing in pictures, please add.
 
 http://www.prettythingsflying.com/images/includes.gif
 
@@ -76,7 +76,11 @@ cppcsp.h(167) : warning C4005: '_WIN32_WINNT' : macro redefinition
 
 =Start= 
 
+All files needed to run are copied to '<project root>\solutions\altalena_all\<configuration>' directory. 
+
  Configuration file is located in '<project root>\iw_run\conf.json'. Test script is located in '<project root>\altalena\iw_run\scripts\test.lua'. Inspect the files and change them accordingly to your environment.
+
+Configure your iw_lualib project to use these files for debugging. 
 
 Enjoy
 
