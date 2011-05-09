@@ -33,7 +33,7 @@ are either included into subversion tree completely or by means of subversion ex
 
  * Checkout altalena code in '<project root>\altalena' - see instructions [http://code.google.com/p/altalena/source/checkout here]. Write to administrator if you want to become a member of development team. 
 
- * Add ;<project root>\kentcsp\kentcsp\src' to include library in IDE options tab. After all definitions, library and include IDE options should look something like this. Extras DirectShow libraries seems to be missing in pictures, please add.
+ * Add ;<project root>\kentcsp\kentcsp\src' to include library in IDE options tab. After all definitions, library and include IDE options should look something like this. Extras DirectSound libraries seems to be missing in pictures, please add.
 
 http://www.prettythingsflying.com/images/includes.gif
 
