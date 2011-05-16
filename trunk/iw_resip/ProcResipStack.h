@@ -137,6 +137,12 @@ namespace ivrworx
 
 		virtual void UponSubscribeReq(IN IwMessagePtr req);
 
+		virtual int onRequestRetry(
+			ClientSubscriptionHandle, 
+			int retrySeconds, 
+			const SipMessage& notify);
+		
+
 		virtual void onSuccess(
 			IN ClientRegistrationHandle h, 
 			IN const SipMessage& response);
@@ -220,6 +226,14 @@ namespace ivrworx
 
 		virtual void onSessionExpired(
 			IN InviteSessionHandle is);
+
+		// client subscription handlers
+
+		//subscription can be ended through a notify or a failure response.
+		virtual void onTerminated(ClientSubscriptionHandle, const SipMessage* msg);   
+
+		//not sure if this has any value.
+		virtual void onNewSubscription(ClientSubscriptionHandle, const SipMessage& notify);
 	
 		virtual void ShutdownStack();
 
@@ -258,8 +272,6 @@ namespace ivrworx
 		bool _shutDownFlag;
 
 		IwHandlesMap _iwHandlesMap;
-
-		ResipDialogHandlesMap _resipHandlesMap;
 
 		ResipInterruptorPtr _dumInt;
 

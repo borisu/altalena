@@ -33,12 +33,10 @@ namespace ivrworx
 	UACDialogUsageManager::UACDialogUsageManager(
 		IN ConfigurationPtr conf,
 		IN IwHandlesMap &ccu_handles_map,
-		IN ResipDialogHandlesMap &resip_handles_map,
 		IN DialogUsageManager &dum):
 		_conf(conf),
 		_dum(dum),
-		_iwHandlesMap(ccu_handles_map),
-		_resipHandlesMap(resip_handles_map)
+		_iwHandlesMap(ccu_handles_map)
 	{
 		FUNCTRACKER;
 
@@ -74,13 +72,13 @@ namespace ivrworx
 		IwAppDialogSet* uac_set = 
 			(IwAppDialogSet*)(h->getAppDialogSet().get());
 
-		uac_set->_ptr->uac_register_handle = h;
+		uac_set->dialog_ctx->uac_register_handle = h;
 
 		if (!uac_set->last_registration_req)
 			return;
 		
 		MsgSipCallRegisterAck* ack = new MsgSipCallRegisterAck();
-		ack->registration_id = uac_set->_ptr->stack_handle;
+		ack->registration_id = uac_set->dialog_ctx->stack_handle;
 
 		GetCurrRunningContext()->SendResponse(uac_set->last_registration_req,
 			ack);
@@ -102,7 +100,7 @@ namespace ivrworx
 		GetCurrRunningContext()->SendResponse(uac_set->last_registration_req,
 			new MsgSipCallRegisterNack());
 
-		_iwHandlesMap.erase(uac_set->_ptr->stack_handle);
+		_iwHandlesMap.erase(uac_set->dialog_ctx->stack_handle);
 
 		
 
@@ -118,7 +116,7 @@ namespace ivrworx
 		IwAppDialogSet* uac_set = 
 			(IwAppDialogSet*)(h->getAppDialogSet().get());
 
-		_iwHandlesMap.erase(uac_set->_ptr->stack_handle);
+		_iwHandlesMap.erase(uac_set->dialog_ctx->stack_handle);
 
 	}
 
@@ -209,6 +207,54 @@ namespace ivrworx
 
 	}
 
+	//subscription can be ended through a notify or a failure response.
+	void 
+	UACDialogUsageManager::onTerminated(
+		IN ClientSubscriptionHandle h, 
+		IN const SipMessage* msg)
+	{
+		FUNCTRACKER;
+
+		IwAppDialogSet* uac_set = (IwAppDialogSet*)(h->getAppDialogSet().get());
+
+		SipDialogContextPtr ctx_ptr = uac_set->dialog_ctx;
+		ctx_ptr->uac_subscription_handle = h;
+
+		LogWarn("UACDialogUsageManager::onTerminated rsh:" << h.getId() << ", iwh:" << ctx_ptr->stack_handle);
+
+		GetCurrRunningContext()->SendResponse(
+			ctx_ptr->last_subscribe_req,
+			new MsgSipCallSubscribeNack());
+
+		CleanUpCall(ctx_ptr);
+
+		return;
+
+	}
+
+	//not sure if this has any value.
+	void 
+	UACDialogUsageManager::onNewSubscription(
+		IN ClientSubscriptionHandle h, 
+		IN const SipMessage& notify)
+	{
+		FUNCTRACKER;
+
+		IwAppDialogSet* uac_set = (IwAppDialogSet*)(h->getAppDialogSet().get());
+
+		SipDialogContextPtr ctx_ptr = uac_set->dialog_ctx;
+		ctx_ptr->uac_subscription_handle = h;
+
+		LogWarn("UACDialogUsageManager::onNewSubscription rsh:" << h.getId() << ", iwh:" << ctx_ptr->stack_handle);
+
+		GetCurrRunningContext()->SendResponse(
+			ctx_ptr->last_subscribe_req,
+			new MsgSipCallSubscribeAck());
+
+		return;
+
+	}
+
 	void 
 	UACDialogUsageManager::UponSubscribeReq(IN IwMessagePtr ptr)
 	{
@@ -225,7 +271,7 @@ namespace ivrworx
 		{
 			// create context
 			//
-			SipDialogContextPtr ctx_ptr = SipDialogContextPtr(new SipDialogContext(TRUE));
+			ctx_ptr = SipDialogContextPtr(new SipDialogContext(TRUE));
 			ctx_ptr->stack_handle = GenerateCallHandle();
 
 
@@ -263,15 +309,34 @@ namespace ivrworx
 			if (iter == _iwHandlesMap.end())
 			{
 				LogDebug("UACDialogUsageManager::UponSubscribeReq - the call iwh:" << subscribe_req->stack_call_handle << " does not exits.");
+				GetCurrRunningContext()->SendResponse(
+					subscribe_req,
+					new MsgSipCallSubscribeNack());
+
 				return;
 			}
 
-			SipDialogContextPtr ctx_ptr = (*iter).second;
+			ctx_ptr = (*iter).second;
+
+			if (ctx_ptr->last_subscribe_req)
+			{
+				LogDebug("UACDialogUsageManager::UponSubscribeReq - transaction in progress.");
+				GetCurrRunningContext()->SendResponse(
+					subscribe_req,
+					new MsgSipCallSubscribeNack());
+
+				return;
+			}
 
 			AppDialogSetHandle app_diag_set_handle = ctx_ptr->invite_handle->getAppDialogSet();
 			uac_dialog_set = (IwAppDialogSet*)app_diag_set_handle.get();
 
 		}
+
+		
+
+		ctx_ptr->last_subscribe_req = 
+			subscribe_req;
 
 		SharedPtr<SipMessage> msg =  _dum.makeSubscription(
 			NameAddr(subscribe_req->dest.c_str()),
@@ -329,7 +394,7 @@ namespace ivrworx
 
 		IwAppDialogSet* uac_set = (IwAppDialogSet*)(is->getAppDialogSet().get());
 
-		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
+		SipDialogContextPtr ctx_ptr = uac_set->dialog_ctx;
 
 		LogDebug("UACDialogUsageManager::onInfoSuccess rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
 
@@ -361,7 +426,7 @@ namespace ivrworx
 
 		IwAppDialogSet* uac_set = (IwAppDialogSet*)(is->getAppDialogSet().get());
 
-		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
+		SipDialogContextPtr ctx_ptr = uac_set->dialog_ctx;
 
 		LogWarn("UACDialogUsageManager::onInfoFailure rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
 
@@ -403,13 +468,11 @@ namespace ivrworx
 		if (ctx_ptr->uac_invite_handle.isValid())
 		{
 
-			_resipHandlesMap.erase(ctx_ptr->uac_invite_handle->getAppDialog());
 			ctx_ptr->uac_invite_handle->getAppDialogSet()->end();
 		}
 
 		if (ctx_ptr->uas_invite_handle.isValid())
 		{
-			_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
 			ctx_ptr->uas_invite_handle->getAppDialogSet()->end();
 		}
 		
@@ -424,13 +487,15 @@ namespace ivrworx
 		_iwHandlesMap.erase(ctx_ptr->stack_handle);
 		if (ctx_ptr->uac_invite_handle.isValid())
 		{
-			_resipHandlesMap.erase(ctx_ptr->uac_invite_handle->getAppDialog());
 			ctx_ptr->uac_invite_handle->getAppDialogSet()->end();
 		}
 		if (ctx_ptr->uas_invite_handle.isValid())
 		{
-			_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
 			ctx_ptr->uas_invite_handle->getAppDialogSet()->end();
+		}
+		if (ctx_ptr->uac_subscription_handle.isValid())
+		{
+			ctx_ptr->uac_subscription_handle->getAppDialogSet()->end();
 		}
 		
 	}
@@ -451,10 +516,6 @@ namespace ivrworx
 			LogWarn("UACDialogUsageManager::UponMakeCallAckReq - non-existent call iwh:" << ack_req->stack_call_handle);
 			return;
 		}
-
-		//
-		//
-		//
 
 		SipDialogContextPtr ctx_ptr = (*iter).second;
 
@@ -480,7 +541,7 @@ namespace ivrworx
 		FUNCTRACKER;
 
 		IwAppDialogSet* uac_set = (IwAppDialogSet*)(is->getAppDialogSet().get());
-		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
+		SipDialogContextPtr ctx_ptr = uac_set->dialog_ctx;
 
 		LogDebug("UACDialogUsageManager::onAnswer rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
 
@@ -641,7 +702,7 @@ namespace ivrworx
 		FUNCTRACKER;
 
 
-		SipDialogContextPtr ctx_ptr = ((IwAppDialogSet*)(s->getAppDialogSet().get()))->_ptr;
+		SipDialogContextPtr ctx_ptr = ((IwAppDialogSet*)(s->getAppDialogSet().get()))->dialog_ctx;
 		ctx_ptr->uac_invite_handle = s;
 
 		
@@ -655,7 +716,6 @@ namespace ivrworx
 		//
 		// put them in maps
 		//
-		_resipHandlesMap[s->getAppDialog()]= ctx_ptr;
 		_iwHandlesMap[ctx_ptr->stack_handle]= ctx_ptr;
 
 	}
@@ -718,7 +778,7 @@ namespace ivrworx
 
 		IwAppDialogSet* uac_set = (IwAppDialogSet*)(is->getAppDialogSet().get());
 
-		SipDialogContextPtr ctx_ptr = uac_set->_ptr;
+		SipDialogContextPtr ctx_ptr = uac_set->dialog_ctx;
 
 		LogWarn("UACDialogUsageManager::onFailure rsh:" << is.getId() <<", reason:" << msg.getReason().c_str() << ", iwh:" << ctx_ptr->stack_handle);
 
@@ -748,18 +808,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 	
-		ResipDialogHandlesMap::iterator iter = 
-			_resipHandlesMap.find(is->getAppDialog());
-
-		if (iter == _resipHandlesMap.end())
-		{
-			LogWarn("UACDialogUsageManager::onConnected non-existent call");
-			is->end();
-			return;
-		}
-
-
-		SipDialogContextPtr ctx_ptr = (*iter).second;
+		SipDialogContextPtr ctx_ptr = ((IwAppDialogSet*)is->getAppDialogSet().get())->dialog_ctx;
 
 		LogDebug("UACDialogUsageManager::onConnected rsh:" << is.getId() << ", iwh:" << ctx_ptr->stack_handle);
 

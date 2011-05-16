@@ -17,7 +17,7 @@
 	"__" : "OFF|INF|WRN|CRT|DBG|TRC",
 	"__" : "DESCRIPTION:",
 	"__" : "Debug level. Trace level must be run with special libraries.",
-	"debug_level"  : "DBG",
+	"debug_level"  : "TRC",
 
 	"__" : "VALUES:", 
 	"__" : "comma separated - debug|console|syslog ",
@@ -44,16 +44,21 @@
 	"default_boot_time" : 15000,
 	
 	
-	"__" : "VALUES:", 
-	"__" : "array of dll names",
-	"__" : "DESCRIPTION:",
-	"__" : "List of implementation modules to load",
-	"modules":[
+	"all__modules":[
 		"iw_live555rtsp.dll",	   
 		"iw_live555rtpproxy.dll",
 	   	"iw_resip.dll",
 		"iw_m2ims.dll",
 		"iw_unimrcp.dll"	   
+	],
+	
+	
+	"__" : "VALUES:", 
+	"__" : "array of dll names",
+	"__" : "DESCRIPTION:",
+	"__" : "List of implementation modules to load",
+	"modules":[
+		"iw_resip.dll"
 	],
 
 	"__" : "VALUES:", 

@@ -22,6 +22,7 @@
 #include "IwAppDialogSetFactory.h"
 #include "UASDialogUsageManager.h"
 #include "FreeContent.h"
+#include "IwAppDialogSet.h"
 
 
 
@@ -199,8 +200,8 @@ namespace ivrworx
 		{
 
 			_dumMngr.reset( new IwDialogUsageManager(_stack));
-			_dumUas.reset( new UASDialogUsageManager(_conf,_iwHandlesMap,_resipHandlesMap,*_dumMngr));
-			_dumUac.reset( new UACDialogUsageManager(_conf,_iwHandlesMap,_resipHandlesMap,*_dumMngr));
+			_dumUas.reset( new UASDialogUsageManager(_conf,_iwHandlesMap,*_dumMngr));
+			_dumUac.reset( new UACDialogUsageManager(_conf,_iwHandlesMap,*_dumMngr));
 
 			
 			//
@@ -259,8 +260,11 @@ namespace ivrworx
 			_dumMngr->getMasterProfile()->addSupportedMethod(INFO);
 			_dumMngr->getMasterProfile()->addSupportedMimeType(INFO,Mime("application","dtmf-relay"));
 			_dumMngr->getMasterProfile()->addSupportedMimeType(INFO,Mime("application","mediaservercontrol+xml"));
+			_dumMngr->addClientSubscriptionHandler(Symbols::Presence, this);
 
 
+
+			
 
 			if (_conf->GetBool("resip/sip_session_timer_enabled"))
 			{
@@ -329,14 +333,7 @@ namespace ivrworx
 		FUNCTRACKER;
 
 		LogWarn("ProcResipStack::onSessionExpired - rsh:" << is.getId());
-		ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
-		if (iter != _resipHandlesMap.end())
-		{
-			SipDialogContextPtr ctx = (*iter).second;
-			LogDebug("ProcResipStack::onSessionExpired rsh:" << is.getId() << ", iwh:" << ctx->stack_handle);
-			FinalizeContext(ctx);
-		} 
-
+		FinalizeContext(IWDIAGSET(is)->dialog_ctx);
 
 	}
 
@@ -422,7 +419,6 @@ namespace ivrworx
 		_shutDownFlag = true;
 
 		_iwHandlesMap.clear();
-		_resipHandlesMap.clear();
 
  		_dumMngr->forceShutdown(NULL);
 		if (_dumInt)_dumInt->Destroy();
@@ -685,15 +681,8 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		ResipDialogHandlesMap::iterator iter 
-			= _resipHandlesMap.find(h->getAppDialog());
-		if (iter == _resipHandlesMap.end())
-		{
-			LogWarn("Dialog not found");
-			return;
-		}
-
-		SipDialogContextPtr ctx = iter->second;
+		
+		SipDialogContextPtr ctx = IWDIAGSET(h)->dialog_ctx;
 
 		if (ctx->uac_invite_handle.isValid())
 		{
@@ -835,6 +824,26 @@ namespace ivrworx
 		_dumUas->onReceivedRequest(ood,request);
 	}
 
+	//subscription can be ended through a notify or a failure response.
+	void ProcResipStack::onTerminated(
+		IN ClientSubscriptionHandle h, 
+		IN const SipMessage* msg)
+	{
+		FUNCTRACKER;
+		_dumUac->onTerminated(h,msg);
+
+	}
+
+	//not sure if this has any value.
+	void ProcResipStack::onNewSubscription(
+		IN ClientSubscriptionHandle h, 
+		IN const SipMessage& notify)
+	{
+		FUNCTRACKER;
+		_dumUac->onNewSubscription(h,notify);
+
+	}
+
 	void 
 	ProcResipStack::FinalizeContext(SipDialogContextPtr ctx_ptr)
 	{
@@ -847,14 +856,6 @@ namespace ivrworx
 
 		_iwHandlesMap.erase(ctx_ptr->stack_handle);
 
-		if (ctx_ptr->uas_invite_handle.isValid())
-		{
-			_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
-		}
-		if (ctx_ptr->uac_invite_handle.isValid())
-		{
-			_resipHandlesMap.erase(ctx_ptr->uac_invite_handle->getAppDialog());
-		}
 	}
 
 	void 
@@ -868,14 +869,8 @@ namespace ivrworx
 
 		// this logic is not UAS/UAC specific
 		LogDebug("ProcResipStack::onTerminated rsh:" << is.getId());
-	
-		ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
-		if (iter != _resipHandlesMap.end())
-		{
-			SipDialogContextPtr ctx = (*iter).second;
-			LogDebug("ProcResipStack::onTerminated rsh:" << is.getId() << ", iwh:" << ctx->stack_handle);
-			FinalizeContext(ctx);
-		} 
+		FinalizeContext(IWDIAGSET(is)->dialog_ctx);
+		
 	}
 
 	/// called when response to INFO message is received 
@@ -887,6 +882,16 @@ namespace ivrworx
 		FUNCTRACKER;
 		_dumUac->onInfoSuccess(is,msg);
 	}
+
+	int ProcResipStack::onRequestRetry(
+		ClientSubscriptionHandle, 
+		int retrySeconds, 
+		const SipMessage& notify)
+	{
+		FUNCTRACKER;
+		return -1;
+	}
+
 
 	void 
 	ProcResipStack::onInfoFailure(
@@ -906,15 +911,7 @@ namespace ivrworx
 
 		LogDebug("ProcResipStack::onInfo rsh:" << is.getId());
 
-		IwStackHandle ixhandle = IW_UNDEFINED;
-		ResipDialogHandlesMap::iterator iter  = _resipHandlesMap.find(is->getAppDialog());
-		if (iter == _resipHandlesMap.end())
-		{
-			is->rejectNIT();
-			return;
-
-		}
-
+		
 		if (!msg.exists(h_ContentType))
 		{
 			LogWarn("Cannot deduce content/type type");
@@ -923,7 +920,7 @@ namespace ivrworx
 		};
 
 		// early termination
-		SipDialogContextPtr ctx_ptr = (*iter).second;
+		SipDialogContextPtr ctx_ptr = IWDIAGSET(is)->dialog_ctx;
 
 		Mime mime = msg.getContents()->getType();
 

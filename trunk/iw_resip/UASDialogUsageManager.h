@@ -40,7 +40,6 @@ namespace ivrworx
 		UASDialogUsageManager(
 			IN ConfigurationPtr conf,
 			IN IwHandlesMap &ccu_handles_map,
-			IN ResipDialogHandlesMap &resipHandlesMap,
 			IN DialogUsageManager &dum);
 
 		virtual ~UASDialogUsageManager(void);
@@ -69,13 +68,9 @@ namespace ivrworx
 
 		ConfigurationPtr _conf;
 
-		ResipDialogHandlesMap &_resipHandlesMap;
-
 		IwHandlesMap &_refIwHandlesMap;
 
 		LpHandlePtr _eventsHandle;
-
-		long _sdpVersionCounter;
 
 		DialogUsageManager &_dum;
 

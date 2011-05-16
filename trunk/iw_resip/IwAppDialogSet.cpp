@@ -29,7 +29,7 @@ namespace ivrworx
 		IN SipDialogContextPtr ptr,
 		IN IwMessagePtr origRequest):
 		AppDialogSet(dum),
-		_ptr(ptr)
+		dialog_ctx(ptr)
 	{
 		// dialog opening request
 		switch (origRequest->message_id)
@@ -51,7 +51,16 @@ namespace ivrworx
 		}
 	}
 
-	IwAppDialogSet::IwAppDialogSet( IN DialogUsageManager& dum):
+	SharedPtr<UserProfile> 
+	IwAppDialogSet::getUserProfile()
+	{
+		if (dialog_ctx->user_profile)
+			return dialog_ctx->user_profile;
+		else
+			return AppDialogSet::getUserProfile();
+	}
+
+	IwAppDialogSet::IwAppDialogSet(IN DialogUsageManager& dum):
 	AppDialogSet(dum)
 	{
 	}

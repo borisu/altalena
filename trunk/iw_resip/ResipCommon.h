@@ -67,6 +67,8 @@ namespace ivrworx
 
 		ClientRegistrationHandle  uac_register_handle;
 
+		ClientSubscriptionHandle  uac_subscription_handle;
+
 		LpHandlePtr call_handler_inbound;
 
 		IwStackHandle stack_handle;
@@ -78,6 +80,8 @@ namespace ivrworx
 		SharedPtr<UserProfile> user_profile;
 
 		IwMessagePtr last_reoffer_req;
+
+		IwMessagePtr last_subscribe_req;
 
 	};
 

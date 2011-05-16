@@ -25,7 +25,7 @@ using namespace std;
 #include "ResipCommon.h"
 #include "SipSessionHandlerAdapter.h"
 
-
+#define IWDIAGSET(x) ((ivrworx::IwAppDialogSet *)((x)->getAppDialogSet().get()))
 
 namespace ivrworx
 {
@@ -42,9 +42,11 @@ namespace ivrworx
 		IwAppDialogSet(
 			IN DialogUsageManager& dum);
 
+		virtual SharedPtr<UserProfile> getUserProfile();
+
 		virtual ~IwAppDialogSet(void);
 
-		SipDialogContextPtr _ptr;
+		SipDialogContextPtr dialog_ctx;
 		
 		IwMessagePtr last_subscribe_req;
 
@@ -54,7 +56,7 @@ namespace ivrworx
 
 		IwMessagePtr last_registration_req;
 
-		IwMessagePtr _makeCallAck;
+		IwMessagePtr make_call_ack;
 
 	};
 

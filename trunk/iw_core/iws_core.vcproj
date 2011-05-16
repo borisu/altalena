@@ -44,7 +44,7 @@
 				Optimization="0"
 				EnableFiberSafeOptimizations="false"
 				AdditionalIncludeDirectories="..\json_spirit\json_spirit_v2.06\json_spirit\;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_DLL_IW_CORE"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_DLL_IW_CORE;TRACE_FUNC_CALLS"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
