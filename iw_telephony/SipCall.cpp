@@ -201,7 +201,7 @@ SipMediaCall::StartRegistration(IN const list<string> &contacts,
 
 	if (res != API_SUCCESS)
 	{
-		LogWarn("SipMediaCall::StartRegistration - failure" << res);
+		LogWarn("SipMediaCall::StartRegistration - failure:" << res);
 		return res;
 	}
 
@@ -283,7 +283,7 @@ SipMediaCall::Subscribe(IN const string			&eventserver,
 
 	if (res != API_SUCCESS)
 	{
-		LogWarn("SipMediaCall::StartRegistration - failure" << res);
+		LogWarn("ipMediaCall::Subscribe - failure:" << res);
 		return res;
 	}
 

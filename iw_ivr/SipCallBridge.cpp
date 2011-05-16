@@ -215,7 +215,7 @@ sipcall::subscribe(lua_State *L)
 	BOOL paramres = TRUE;
 	GetTableStringParam(L,-1,eventserver,"server");
 	GetTableStringParam(L,-1,eventpackage,"package");
-	GetTableStringParam(L,-1,username,"username");
+	GetTableStringParam(L,-1,username,"user");
 	GetTableStringParam(L,-1,realm,"realm");
 	GetTableStringParam(L,-1,password,"password");
 
@@ -224,9 +224,9 @@ sipcall::subscribe(lua_State *L)
 	cred.realm = realm;
 	cred.password = password;
 
-	GetTableNumberParam(L,-1,&timeout,"timeout");
-	GetTableNumberParam(L,-1,&subscription_interval,"interval");
-	GetTableNumberParam(L,-1,&refresh,"refresh");
+	GetTableNumberParam(L,-1,&timeout,"timeout",15);
+	GetTableNumberParam(L,-1,&subscription_interval,"interval",160);
+	GetTableNumberParam(L,-1,&refresh,"refresh",380);
 
 	
 	GetTableStringParam(L,-1,offer.body,"offer");

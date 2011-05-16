@@ -30,21 +30,18 @@ namespace ivrworx
 	UASDialogUsageManager::UASDialogUsageManager(
 		IN ConfigurationPtr conf,
 		IN IwHandlesMap &handles_map,
-		IN ResipDialogHandlesMap &resipHandlesMap,
 		IN DialogUsageManager &dum):
 		_conf(conf),
-		_resipHandlesMap(resipHandlesMap),
 		_refIwHandlesMap(handles_map),
 		_dum(dum)
 	{
-
-		_sdpVersionCounter = ::GetTickCount();
 
 		
 	}
 
 	UASDialogUsageManager::~UASDialogUsageManager(void)
 	{
+
 	}
 
 
@@ -100,7 +97,7 @@ namespace ivrworx
 		Data free_data(ack->localOffer.body);
 		FreeContent fc(ack->localOffer.body,ack->localOffer.type);
 
-		((IwAppDialogSet*)(ctx_ptr->uas_invite_handle->getAppDialogSet().get()))->_makeCallAck
+		((IwAppDialogSet*)(ctx_ptr->uas_invite_handle->getAppDialogSet().get()))->make_call_ack
 			= req;
 		
 
@@ -120,9 +117,9 @@ namespace ivrworx
 		// prepare dialog context
 		SipDialogContextPtr ctx_ptr(new SipDialogContext(FALSE));
 		ctx_ptr->uas_invite_handle = sis;
-		ctx_ptr->stack_handle = GenerateCallHandle();
+		ctx_ptr->stack_handle = sis->getHandle().getId();
+		((IwAppDialogSet*)sis->getAppDialogSet().get())->dialog_ctx = ctx_ptr;
 
-		_resipHandlesMap[sis->getAppDialog()]= ctx_ptr;
 		_refIwHandlesMap[ctx_ptr->stack_handle]= ctx_ptr;
 
 		LogDebug("UASDialogUsageManager::onNewSession - " << LogHandleState(ctx_ptr,ctx_ptr->uas_invite_handle));
@@ -135,7 +132,6 @@ namespace ivrworx
 		FUNCTRACKER;
 
 		_refIwHandlesMap.erase(ctx_ptr->stack_handle);
-		_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
 	}
 
 	void
@@ -168,13 +164,6 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(is->getAppDialog());
-		if (ctx_iter == _resipHandlesMap.end())
-		{
-			LogCrit("UASDialogUsageManager::onOffer - without created context, rsh:" << is.getId());
-			return;
-		}
-
 		if (!_eventsHandle)
 		{
 			LogWarn("Stack has no listener set - rejecting the call");
@@ -182,7 +171,7 @@ namespace ivrworx
 			return;
 		}
 
-		SipDialogContextPtr ctx_ptr = (*ctx_iter).second;
+		SipDialogContextPtr ctx_ptr = ((IwAppDialogSet*)is->getAppDialogSet().get())->dialog_ctx;
 		ctx_ptr->invite_handle = is;
 
 		LogDebug("UASDialogUsageManager::onOffer - " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
@@ -198,7 +187,7 @@ namespace ivrworx
 
 		DECLARE_NAMED_HANDLE_PAIR(call_handler_pair);
 		
-		// keep alive or hold and reinvite are not accepted currently
+		// keep alive or hold and re-invite are not accepted currently
 		if (is->isAccepted())
 		{
 			LogWarn("UASDialogUsageManager::onOffer - In-dialog body is not supported, rejecting body" << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
@@ -239,15 +228,7 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
-		ResipDialogHandlesMap::iterator ctx_iter  = _resipHandlesMap.find(is->getAppDialog());
-		if (ctx_iter == _resipHandlesMap.end())
-		{
-			LogCrit("onConnectedConfirmed:: without context, rsh:" << is.getId());
-			is->end();
-			return;
-		}
-
-		SipDialogContextPtr ctx_ptr = (*ctx_iter).second;
+		SipDialogContextPtr ctx_ptr = ((IwAppDialogSet*)is->getAppDialogSet().get())->dialog_ctx;
 		ctx_ptr->invite_handle = is;
 
 		MsgNewCallConnected *conn_msg = 
@@ -255,7 +236,7 @@ namespace ivrworx
 
 
 		GetCurrRunningContext()->SendResponse(
-			((IwAppDialogSet *)is->getAppDialogSet().get())->_makeCallAck, 
+			((IwAppDialogSet *)is->getAppDialogSet().get())->make_call_ack, 
 			conn_msg);
 
 		LogDebug("onConnectedConfirmed:: " << LogHandleState(ctx_ptr,is));
@@ -271,7 +252,6 @@ namespace ivrworx
 		LogDebug("HangupCall:: " << LogHandleState(ctx_ptr,ctx_ptr->invite_handle));
 
 		_refIwHandlesMap.erase(ctx_ptr->stack_handle);
-		_resipHandlesMap.erase(ctx_ptr->uas_invite_handle->getAppDialog());
 		ctx_ptr->uas_invite_handle->getAppDialogSet()->end();
 
 	}

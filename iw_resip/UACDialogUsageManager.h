@@ -36,7 +36,7 @@ public:
 	UACDialogUsageManager(
 		IN ConfigurationPtr conf,
 		IN IwHandlesMap &ccu_handles_map,
-		IN ResipDialogHandlesMap &resip_handles_map,
+//		IN ResipDialogHandlesMap &resip_handles_map,
 		IN DialogUsageManager &dum);
 
 	virtual ~UACDialogUsageManager(void);
@@ -107,6 +107,16 @@ public:
 		IN ClientRegistrationHandle h, 
 		IN const SipMessage& response);
 
+	//subscription can be ended through a notify or a failure response.
+	virtual void onTerminated(
+		IN ClientSubscriptionHandle, 
+		IN const SipMessage* msg);   
+
+	//not sure if this has any value.
+	virtual void onNewSubscription(
+		IN ClientSubscriptionHandle, 
+		IN const SipMessage& notify);
+
 private:
 
 	ConfigurationPtr _conf;
@@ -115,7 +125,6 @@ private:
 
 	IwHandlesMap &_iwHandlesMap;
 
-	ResipDialogHandlesMap &_resipHandlesMap;
 
 };
 
