@@ -44,9 +44,15 @@ namespace ivrworx
 					last_makecall_req = origRequest;
 					break;
 				}
+			case SIP_CALL_REGISTER_REQ:
+				{
+					last_registration_req = origRequest;
+					break;
+				}
 			default:
 				{
-					throw std::exception("unknown request");
+					string err_msg = string("") + "IwAppDialogSet::IwAppDialogSet - unknown request-" + origRequest->message_id_str;
+					throw std::exception(err_msg.c_str());
 				}
 		}
 	}
