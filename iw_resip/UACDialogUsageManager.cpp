@@ -284,6 +284,7 @@ namespace ivrworx
 			SharedPtr<UserProfile> up (new UserProfile(bp));
 
 			ctx_ptr->user_profile = up;
+			
 
 			LogDebug("UACDialogUsageManager::UponSubscribeReq - " << subscribe_req->credentials.username.c_str() << "(@)" << subscribe_req->credentials.realm.c_str());
 			up->setDigestCredential(
@@ -340,8 +341,9 @@ namespace ivrworx
 
 		SharedPtr<SipMessage> msg =  _dum.makeSubscription(
 			NameAddr(subscribe_req->dest.c_str()),
+			ctx_ptr->user_profile,
 			subscribe_req->events_package.c_str(),
-			subscribe_req->subscription_time,
+			subscribe_req->refresh_interval,
 			subscribe_req->refresh_interval,
 			uac_dialog_set);
 		
