@@ -252,10 +252,20 @@ namespace ivrworx
 
 			auto_ptr<ClientAuthManager> uasAuth (new ClientAuthManager());
 			_dumMngr->setClientAuthManager(uasAuth);
+
+// 			if (_conf->HasOption("resip/outbound_proxy"))
+// 			{
+// 				_dumMngr->getMasterProfile()->setOutboundProxy(Uri(_conf->GetString("resip/outbound_proxy").c_str()));
+// 			}
+
+			
 			
 
 			_dumMngr->getMasterProfile()->setDefaultFrom(uasAor);
 			_dumMngr->getMasterProfile()->setDefaultRegistrationTime(70);
+
+			_dumMngr->getMasterProfile()->addSupportedMethod(NOTIFY);
+			_dumMngr->getMasterProfile()->addSupportedMimeType(NOTIFY,Mime("application","pidf+xml"));
 
 			_dumMngr->getMasterProfile()->addSupportedMethod(INFO);
 			_dumMngr->getMasterProfile()->addSupportedMimeType(INFO,Mime("application","dtmf-relay"));
@@ -499,6 +509,44 @@ namespace ivrworx
 		FUNCTRACKER;
 
 		_dumUac->UponSubscribeReq(req);
+	}
+
+
+	void 
+	ProcResipStack::onUpdatePending(
+		IN ClientSubscriptionHandle h, 
+		IN const SipMessage& notify, 
+		IN bool outOfOrder)
+	{
+		FUNCTRACKER;
+
+		_dumUac->onUpdatePending(h,notify,outOfOrder);
+
+	}
+
+	void 
+	ProcResipStack::onUpdateActive(
+		IN ClientSubscriptionHandle h, 
+		IN const SipMessage& notify, 
+		IN bool outOfOrder)
+	{
+		FUNCTRACKER;
+
+		_dumUac->onUpdateActive(h,notify,outOfOrder);
+
+	}
+
+	//unknown Subscription-State value
+	void 
+	ProcResipStack::onUpdateExtension(
+		IN ClientSubscriptionHandle h, 
+		IN const SipMessage& notify, 
+		IN bool outOfOrder)
+	{
+		FUNCTRACKER;
+
+		_dumUac->onUpdateExtension(h,notify,outOfOrder);
+
 	}
 
 

@@ -46,6 +46,9 @@ Luna<sipcall>::RegType sipcall::methods[] = {
 	method(sipcall, reoffer),
 	method(sipcall, subscribe),
 	method(sipcall, unsubscribe),
+	method(sipcall, waitfornotify),
+	method(sipcall, cleannotifybuffer),
+	method(sipcall, cleaninfobuffer),
 	{0,0}
 };
 
@@ -253,6 +256,42 @@ sipcall::subscribe(lua_State *L)
 // error_param:
 // 	lua_pushnumber (L, API_WRONG_PARAMETER);
 // 	return 1;
+
+}
+
+int
+sipcall::cleaninfobuffer(lua_State *L)
+{
+	if (!_call)
+	{
+		lua_pushnumber (L, API_WRONG_STATE);
+		return 1;
+	}
+
+	FUNCTRACKER;
+
+	_call->CleanInfoBuffer();
+
+	lua_pushnumber (L, API_SUCCESS);
+	return 1;
+
+}
+
+int
+sipcall::cleannotifybuffer(lua_State *L)
+{
+	if (!_call)
+	{
+		lua_pushnumber (L, API_WRONG_STATE);
+		return 1;
+	}
+
+	FUNCTRACKER;
+
+	_call->CleanNotifyBuffer();
+
+	lua_pushnumber (L, API_SUCCESS);
+	return 1;
 
 }
 
@@ -585,6 +624,27 @@ sipcall::waitforinfo(lua_State *L)
 	lua_pushnumber (L, res);
 	lua_pushstring(L, remote_offer.body.c_str());
 	return 2;
+}
+
+int
+sipcall::waitfornotify(lua_State *L)
+{
+	FUNCTRACKER;
+
+	if (!_call)
+	{
+		lua_pushnumber (L, API_WRONG_STATE);
+		return 1;
+	}
+
+	AbstractOffer remote_offer;
+	ApiErrorCode res = _call->WaitForNotify(remote_offer);
+
+	lua_pushnumber (L, res);
+	lua_pushstring(L, remote_offer.type.c_str());
+	lua_pushstring(L, remote_offer.body.c_str());
+
+	return 3;
 }
 
 int

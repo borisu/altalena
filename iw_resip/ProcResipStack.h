@@ -227,13 +227,40 @@ namespace ivrworx
 		virtual void onSessionExpired(
 			IN InviteSessionHandle is);
 
-		// client subscription handlers
+		/////////////////////////////////
+		// Client subscription handlers
+		//
 
 		//subscription can be ended through a notify or a failure response.
-		virtual void onTerminated(ClientSubscriptionHandle, const SipMessage* msg);   
+		virtual void onTerminated(
+			IN ClientSubscriptionHandle, 
+			IN const SipMessage* msg);   
 
 		//not sure if this has any value.
-		virtual void onNewSubscription(ClientSubscriptionHandle, const SipMessage& notify);
+		virtual void onNewSubscription(
+			IN ClientSubscriptionHandle, 
+			IN const SipMessage& notify);
+
+		//Client must call acceptUpdate or rejectUpdate for any onUpdateFoo
+		virtual void onUpdatePending(
+			IN ClientSubscriptionHandle, 
+			IN const SipMessage& notify, 
+			IN bool outOfOrder);
+
+		virtual void onUpdateActive(
+			IN ClientSubscriptionHandle, 
+			IN const SipMessage& notify, 
+			IN bool outOfOrder);
+
+		//unknown Subscription-State value
+		virtual void onUpdateExtension(
+			IN ClientSubscriptionHandle, 
+			IN const SipMessage& notify, 
+			IN bool outOfOrder);
+
+		//
+		////////////////////////////
+
 	
 		virtual void ShutdownStack();
 

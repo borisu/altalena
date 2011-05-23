@@ -245,7 +245,7 @@ namespace ivrworx
 		SipDialogContextPtr ctx_ptr = uac_set->dialog_ctx;
 		ctx_ptr->uac_subscription_handle = h;
 
-		LogWarn("UACDialogUsageManager::onNewSubscription rsh:" << h.getId() << ", iwh:" << ctx_ptr->stack_handle);
+		LogDebug("UACDialogUsageManager::onNewSubscription rsh:" << h.getId() << ", iwh:" << ctx_ptr->stack_handle);
 
 		GetCurrRunningContext()->SendResponse(
 			ctx_ptr->last_subscribe_req,
@@ -272,11 +272,13 @@ namespace ivrworx
 			// create context
 			//
 			ctx_ptr = SipDialogContextPtr(new SipDialogContext(TRUE));
-			ctx_ptr->stack_handle = GenerateCallHandle();
+			ctx_ptr->stack_handle		   = GenerateCallHandle();
+			ctx_ptr->call_handler_inbound  =  subscribe_req->call_handler_inbound;
 
 
 			uac_dialog_set = new IwAppDialogSet(_dum,ctx_ptr,ptr);
 			uac_dialog_set->last_registration_req = subscribe_req;
+
 
 
 			NameAddr addr(subscribe_req ->dest.c_str());
@@ -854,6 +856,76 @@ namespace ivrworx
 
 		return;
 					
+	}
+
+	void 
+	UACDialogUsageManager::onUpdatePending(
+		IN ClientSubscriptionHandle h, 
+		IN const SipMessage& notify, 
+		IN bool outOfOrder)
+	{
+		FUNCTRACKER;
+		h->acceptUpdate();
+
+		MsgSipCallNotifyEvt *msg = new MsgSipCallNotifyEvt();
+
+		if (notify.getContents())
+		{
+			msg->remoteOffer.body = notify.getContents()->getBodyData().c_str();
+			msg->remoteOffer.type = string("") + notify.getContents()->getType().type().c_str() + "/" + notify.getContents()->getType().subType().c_str();
+		}
+
+		IwAppDialogSet* uac_set = (IwAppDialogSet*)(h->getAppDialogSet().get());
+		uac_set->dialog_ctx->call_handler_inbound->Send(msg);
+		
+
+	}
+
+	void 
+	UACDialogUsageManager::onUpdateActive(
+		IN ClientSubscriptionHandle h, 
+		IN const SipMessage& notify, 
+		IN bool outOfOrder)
+	{
+		FUNCTRACKER;
+		h->acceptUpdate();
+
+		MsgSipCallNotifyEvt *msg = new MsgSipCallNotifyEvt();
+
+		if (notify.getContents())
+		{
+			msg->remoteOffer.body = notify.getContents()->getBodyData().c_str();
+			msg->remoteOffer.type = string("") + notify.getContents()->getType().type().c_str() + "/" + notify.getContents()->getType().subType().c_str();
+		}
+
+		IwAppDialogSet* uac_set = (IwAppDialogSet*)(h->getAppDialogSet().get());
+		uac_set->dialog_ctx->call_handler_inbound->Send(msg);
+		
+
+	}
+
+	//unknown Subscription-State value
+	void 
+	UACDialogUsageManager::onUpdateExtension(
+		IN ClientSubscriptionHandle h, 
+		IN const SipMessage& notify, 
+		IN bool outOfOrder)
+	{
+		FUNCTRACKER;
+		h->acceptUpdate();
+
+		MsgSipCallNotifyEvt *msg = new MsgSipCallNotifyEvt();
+
+		if (notify.getContents())
+		{
+			msg->remoteOffer.body = notify.getContents()->getBodyData().c_str();
+			msg->remoteOffer.type = string("") + notify.getContents()->getType().type().c_str() + "/" + notify.getContents()->getType().subType().c_str();
+		}
+
+		IwAppDialogSet* uac_set = (IwAppDialogSet*)(h->getAppDialogSet().get());
+		uac_set->dialog_ctx->call_handler_inbound->Send(msg);
+			
+
 	}
 
 	UACDialogUsageManager::~UACDialogUsageManager(void)
