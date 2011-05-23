@@ -106,6 +106,8 @@ namespace ivrworx
 
 		   AbstractOffer offer;
 
+		   LpHandlePtr call_handler_inbound;
+
 	};
 
 	class IW_TELEPHONY_API MsgSipCallSubscribeAck:
@@ -183,7 +185,7 @@ namespace ivrworx
 
 
 	class IW_TELEPHONY_API MsgSipCallNotifyEvt:
-		public MsgVoipCallMixin, IwMessage
+		public MsgVoipCallMixin, public IwMessage
 	{
 	public:
 		MsgSipCallNotifyEvt():
@@ -213,6 +215,8 @@ namespace ivrworx
 			IN	bool async);
 
 		virtual ApiErrorCode WaitForInfo(OUT AbstractOffer &offer);
+
+		virtual void CleanInfoBuffer();
 
 		virtual ApiErrorCode StartRegistration(
 			IN const list<string>	&contacts, 

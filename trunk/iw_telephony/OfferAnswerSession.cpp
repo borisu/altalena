@@ -31,7 +31,6 @@ GenericOfferAnswerSession::GenericOfferAnswerSession(IN ScopedForking &forking,
 
 	StartActiveObjectLwProc(forking,_handlerPair,"GenericOfferAnswerSession Session Handler");
 
-	//_iwCallHandle = GenerateCallHandle();
 }
 
 GenericOfferAnswerSession::GenericOfferAnswerSession(IN ScopedForking &forking,

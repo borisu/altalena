@@ -117,6 +117,22 @@ public:
 		IN ClientSubscriptionHandle, 
 		IN const SipMessage& notify);
 
+	virtual void onUpdatePending(
+		IN ClientSubscriptionHandle, 
+		IN const SipMessage& notify, 
+		IN bool outOfOrder);
+
+	virtual void onUpdateActive(
+		IN ClientSubscriptionHandle, 
+		IN const SipMessage& notify, 
+		IN bool outOfOrder);
+
+	//unknown Subscription-State value
+	virtual void onUpdateExtension(
+		IN ClientSubscriptionHandle, 
+		IN const SipMessage& notify, 
+		IN bool outOfOrder);
+
 private:
 
 	ConfigurationPtr _conf;

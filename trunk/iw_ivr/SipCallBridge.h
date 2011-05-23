@@ -46,6 +46,7 @@ namespace ivrworx
 
 		int sendinfo(lua_State *L);
 		int waitforinfo(lua_State *L);
+		int cleaninfobuffer(lua_State *L);
 
 		int makecall(lua_State *L);
 		int blindxfer(lua_State *L);
@@ -63,6 +64,8 @@ namespace ivrworx
 
 		int subscribe(lua_State *L);
 		int unsubscribe(lua_State *L);
+		int waitfornotify(lua_State *L);
+		int cleannotifybuffer(lua_State *L);
 
 		static const char className[];
 		static Luna<sipcall>::RegType methods[];

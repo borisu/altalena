@@ -83,15 +83,24 @@
 	},
 	    
 	"resip" :  {
+		"outbound_proxy" : "192.168.100.242",
 		"resip_log" : "DUM,DBG",
 		"uri"	: "sip,resip",
-		"from_id" : "ivrworx",
-		"from_display_name": "ivrworx",
+		"from_id" : "user1",
+		"from_display_name": "user1",
 		"sip_host": "$COMPUTERNAME",
 		"sip_port": 5060,
 		"sip_session_timer_enabled" : true,
 		"sip_refresh_mode" : "prefer_local",
-		"sip_default_session_time" : 360
+		"sip_default_session_time" : 360,
+		"supported_methods":[
+			"OPTIONS",
+			"INFO"
+		],
+		"supported_mime_types":[
+			"OPTIONS",
+			"INFO"
+		]
 	},
 
 	"unimrcp" :   {

@@ -101,6 +101,7 @@ namespace ivrworx
 
 		
 		ivrworxTable.AddFunction("sleep",LuaWait);
+		ivrworxTable.AddFunction("wait",LuaWait);
 		ivrworxTable.AddFunction("run",LuaRunLongOperation);
 
 

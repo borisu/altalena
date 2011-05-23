@@ -15,12 +15,16 @@ r:startregister{registrar="sip:user1@192.168.100.242:5080",
                         password="1234",
                         realm="192.168.100.242",
                         timeout=15};
+                        
+r:makecall()
+                        
+-- iw.sleep(30000);
 
 
 s = sipcall:new()
 s:subscribe{
 	server="sip:user1@192.168.100.242:5080",
-	package="presence",
+	package="presence", 
 	user="user1",
 	password="1234",
 	realm="192.168.100.242",
@@ -28,7 +32,12 @@ s:subscribe{
 	refresh=180, 
 	timeout=300};
 	
-iw.wait(30000);
+x,y,z = s:waitfornotify{timeout=15}
+
+l:loginfo(z);
+
+	
+
 
 l:loginfo("=== END ===");						
 

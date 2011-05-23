@@ -30,7 +30,9 @@ namespace ivrworx
 SipMediaCall::SipMediaCall(IN ScopedForking &forking, IN HandleId handle_id):
 	GenericOfferAnswerSession(forking, handle_id),
 	_stackRegistrationHandle(IW_UNDEFINED),
-	_stackSubscribeHandle(IW_UNDEFINED)
+	_stackSubscribeHandle(IW_UNDEFINED),
+	_notifyChannel(new LpHandle()),
+	_infosChannel(new LpHandle())
 {
 	FUNCTRACKER;
 }
@@ -55,11 +57,6 @@ ApiErrorCode
 SipMediaCall::WaitForNotify(OUT AbstractOffer &remoteOffer)
 {
 	FUNCTRACKER;
-
-	if (_stackRegistrationHandle == IW_UNDEFINED)
-	{
-		return API_WRONG_STATE;
-	}
 
 	// just proxy the event
 	int handle_index= IW_UNDEFINED;
@@ -231,13 +228,28 @@ SipMediaCall::CleanNotifyBuffer()
 {
 	FUNCTRACKER;
 
+	LogDebug("SipMediaCall::CleanNotifyBuffer iwh:" << _iwCallHandle);
+
 	// the trick we are using
 	// to clean the buffer is just replace the handle
 	// with  new one
 	_notifyChannel->Poison();
 	_notifyChannel = LpHandlePtr(new LpHandle());
 
+}
+
+void 
+SipMediaCall::CleanInfoBuffer()
+{
+	FUNCTRACKER;
+
 	LogDebug("SipMediaCall::CleanNotifyBuffer iwh:" << _iwCallHandle);
+
+	// the trick we are using
+	// to clean the buffer is just replace the handle
+	// with  new one
+	_infosChannel->Poison();
+	_infosChannel = LpHandlePtr(new LpHandle());
 
 }
 
@@ -267,8 +279,9 @@ SipMediaCall::Subscribe(IN const string			&eventserver,
 	msg->events_package = eventsPackage;
 	msg->offer			= offer;
 	msg->stack_call_handle	= _iwCallHandle;
-	msg->subscription_time = subscriptionTime;
-	msg->refresh_interval = refreshInterval;
+	msg->subscription_time	= subscriptionTime;
+	msg->refresh_interval	= refreshInterval;
+	msg->call_handler_inbound	= _handlerPair.inbound;
 
 
 	IwMessagePtr response = NULL_MSG;
@@ -389,9 +402,13 @@ SipMediaCall::UponActiveObjectEvent(IwMessagePtr ptr)
 		{
 
 			if (_infosChannel)
-			{
 				_infosChannel->Send(ptr);
-			}
+			break;
+		}
+	case SIP_CALL_NOTIFY_EVT:
+		{
+			if (_notifyChannel)
+				_notifyChannel->Send(ptr);
 			break;
 		}
 	default:
