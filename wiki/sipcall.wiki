@@ -15,9 +15,11 @@ creates sipcall object
 || offer || offer ||
 || type || type type ||
 || H_XXX || XXX header will be added to the SIP message ||
-|| username (1.0.9) || authentication username ||
+|| username (1.0.9) || authentication username  ||
 || password (1.0.9)|| authentication password  ||
 || realm  (1.0.9) || authentication realm ||
+
+Authentication data will be re-used if registration was done before on the same object (see register for example). 
 
 ===example 1 - Make call (empty INVITE) ===
 Makes call to the destination, the INVITE sent is empty the call should be answered lately. 
