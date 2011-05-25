@@ -595,12 +595,13 @@ namespace ivrworx
 			IwAppDialogSet * uac_dialog_set = 
 				new IwAppDialogSet(_dum,ctx_ptr,ptr);
 
+			
 			MapOfAny::iterator param_iter = req->optional_params.find("registration_id");
 				 
 			if (param_iter != req->optional_params.end())
 			{
-
 				int registration_id = any_cast<int>(param_iter->second);
+				LogDebug("UACDialogUsageManager::UponMakeCallReq - the call has registration id:" << registration_id << ". re-use its user profile");
 				IwHandlesMap::iterator iter = _iwHandlesMap.find(registration_id);
 				if (iter == _iwHandlesMap.end())
 				{
@@ -615,7 +616,23 @@ namespace ivrworx
 			} 
 			else 
 			{
-				user_profile = _dum.getMasterProfile();
+				
+				SharedPtr<UserProfile> &bp = _dum.getMasterUserProfile();
+				SharedPtr<UserProfile> up (new UserProfile(bp));
+
+				ctx_ptr->user_profile = up;
+
+				if (req->credentials.isValid())
+				{
+					LogDebug("UACDialogUsageManager::UponSubscribeReq - " << req->credentials.username.c_str() << "(@)" << req->credentials.realm.c_str());
+					up->setDigestCredential(
+						req->credentials.realm.c_str(),
+						req->credentials.username.c_str(), 
+						req->credentials.password.c_str());
+				};
+
+				user_profile = up;
+				user_profile->setDefaultFrom(_dum.getMasterProfile()->getDefaultFrom());
 			}
 
 			// generic offer INVITE
