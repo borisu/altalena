@@ -140,6 +140,11 @@ public:
 	string username;
 	string password;
 	string realm;
+
+	bool isValid()
+	{
+		return (!username.empty() && !realm.empty());
+	}
 };
 
 class SdpParserImpl;

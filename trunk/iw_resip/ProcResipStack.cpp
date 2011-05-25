@@ -253,13 +253,11 @@ namespace ivrworx
 			auto_ptr<ClientAuthManager> uasAuth (new ClientAuthManager());
 			_dumMngr->setClientAuthManager(uasAuth);
 
-// 			if (_conf->HasOption("resip/outbound_proxy"))
-// 			{
-// 				_dumMngr->getMasterProfile()->setOutboundProxy(Uri(_conf->GetString("resip/outbound_proxy").c_str()));
-// 			}
+			if (_conf->HasOption("resip/outbound_proxy"))
+			{
+				_dumMngr->getMasterProfile()->setOutboundProxy(Uri(_conf->GetString("resip/outbound_proxy").c_str()));
+			}
 
-			
-			
 
 			_dumMngr->getMasterProfile()->setDefaultFrom(uasAor);
 			_dumMngr->getMasterProfile()->setDefaultRegistrationTime(70);
