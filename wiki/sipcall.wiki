@@ -265,7 +265,7 @@ c:reoffer{timeout=15, sdp=localoffer}
 c:hangup();
 }}}
 
-== `:subscribe(...)` (1.0.9) ==
+== `:subscribe(...)/:waitfornotify()` (1.0.9) ==
 
 starts subscription
 
