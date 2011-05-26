@@ -83,7 +83,7 @@
 	},
 	    
 	"resip" :  {
-		"outbound_proxy" : "sip:192.168.100.242:5080",
+		"__outbound_proxy" : "sip:192.168.100.242:5080",
 		"resip_log" : "DUM,DBG",
 		"uri"	: "sip,resip",
 		"from_id" : "user1",
