@@ -47,7 +47,7 @@
 	"__" : "VALUES:", 
 	"__" : "array of dll names",
 	"__" : "DESCRIPTION:",
-	"__" : "List of implementation modules to load",
+	"__" : "List of implementation modules to load, remove unnecessary modules from the list",
 	"modules":[
 		"iw_live555rtsp.dll",	   
 		"iw_live555rtpproxy.dll",
@@ -73,12 +73,21 @@
 	"__" : "-----------------------", 
 	"__" : "implementation modules",
 	"__" : "-----------------------", 
+	
+	
+	"__" : "-----------------------", 
+	"__" : "Live555 RTSP client    ",
+	"__" : "-----------------------", 
 	"live555rtsp" :{
 			"uri" : "rtsp,live555"
 	},
 	    
+	"__" : "-----------------------",
+	"__" : "Resiprocate SIP stack  ",
+	"__" : "-----------------------",
 	"resip" :  {
-		"resip_log" : "",
+		"#outbound_proxy" : "sip:192.168.100.242:5080",
+		"resip_log" : "DUM,DBG",
 		"uri"	: "sip,resip",
 		"from_id" : "ivrworx",
 		"from_display_name": "ivrworx",
@@ -89,6 +98,9 @@
 		"sip_default_session_time" : 360
 	},
 
+	"__" : "-----------------------",
+	"__" : "UniMRCP MRCP stack     ",
+	"__" : "-----------------------",
 	"unimrcp" :   {
 		"uri" : "mrcp,unimrcp",
 		"unimrcp_conf_dir": "./unimrcp",
@@ -96,6 +108,9 @@
 		"unimrcp_log_file": "unimrcpclient"
 	},
 
+	"__" : "-----------------------",
+	"__" : "Live555 RTP bridge     ",
+	"__" : "-----------------------",
 	"live555rtpproxy" :  {
 		"uri"	: "rtpproxy,live555",
 		"rtp_proxy_base_port" : 6000,
@@ -106,6 +121,9 @@
 	},
 
 
+	"__" : "-----------------------",
+	"__" : "mediastreamer2 streamer",
+	"__" : "-----------------------",
 	"m2ims" :  {
 		"uri" : "stream,m2",
 		"local_ip": "$COMPUTERNAME",
