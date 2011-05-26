@@ -264,3 +264,53 @@ c:makecall{dest="sip:24001@192.168.150.3", timeout=15, sdp=localoffer}
 c:reoffer{timeout=15, sdp=localoffer}
 c:hangup();
 }}}
+
+== `:subscribe(...)` (1.0.9) ==
+
+starts subscription
+
+|| *named parameter* || *description* ||
+|| server || Request-URI and To: example "sip:1234@example.com"||
+|| package || events package ||
+|| interval || subscription interval ||
+|| refresh || subscription refresh ||
+|| timeout || client side timeout ||
+|| username|| user name||
+|| password || password ||
+|| realm || realm  ||
+
+
+{{{
+require "ivrworx"
+
+local l	= assert(iw.LOGGER, "assert:iw.LOGGER")
+
+l:loginfo("=== START ===");
+
+--
+-- set registration session to receive events upon
+--
+r= sipcall:new();			
+r:startregister{registrar="sip:user1@192.168.100.242:5080", 
+                        username="user1", 
+                        password="1234",
+                        realm="192.168.100.242",
+                        timeout=15};
+
+s = sipcall:new()
+s:subscribe{
+	server="sip:user1@192.168.100.242:5080",
+	package="presence", 
+	user="user1",
+	password="1234",
+	realm="192.168.100.242",
+	interval=60,
+	refresh=180, 
+	timeout=300};
+	
+x,y,z = s:waitfornotify{timeout=15}
+
+l:loginfo(z);
+
+l:loginfo("=== END ===");						
+}}}
