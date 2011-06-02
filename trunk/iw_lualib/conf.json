@@ -58,7 +58,7 @@
 	"__" : "DESCRIPTION:",
 	"__" : "List of implementation modules to load",
 	"modules":[
-		"iw_resip.dll"
+		"iw_msrtpproxy.dll"
 	],
 
 	"__" : "VALUES:", 
@@ -125,5 +125,12 @@
 		"local_ip": "$COMPUTERNAME",
 		"sounds_dir" : "sounds",
 		"record_dir" : "recording"
+	},
+	
+	"msrtpproxy" :  {
+		"uri" : "rtpproxy,maximsobolev",
+		"control_host": "$COMPUTERNAME",
+		"control_port" : 9100
 	}
+	
 }

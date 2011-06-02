@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\iw_core;..\iw_telephony;..\live555\live\UsageEnvironment\include;..\live555\live\BasicUsageEnvironment\include;..\live555\live\groupsock\include;..\live555\live\liveMedia\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_USE_32BIT_TIME_T;_DLL_IW_LIVE555PROXY"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_USE_32BIT_TIME_T;_DLL_IW_LIVE555PROXY;TRACE_FUNC_CALLS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"

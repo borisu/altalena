@@ -2,24 +2,17 @@ require "ivrworx"
 
 local l	= assert(iw.LOGGER, "assert:iw.LOGGER")
 
---
--- set up first media call
---
-require "ivrworx"
-
 l:loginfo("=== START ===");
 
+--
+-- set registration session to receive events upon
+--
 r= sipcall:new();			
 r:startregister{registrar="sip:user1@192.168.100.242:5080", 
                         username="user1", 
                         password="1234",
                         realm="192.168.100.242",
                         timeout=15};
-                        
-r:makecall()
-                        
--- iw.sleep(30000);
-
 
 s = sipcall:new()
 s:subscribe{
