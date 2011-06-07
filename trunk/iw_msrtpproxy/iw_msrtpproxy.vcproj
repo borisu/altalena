@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\iw_core"
+				AdditionalIncludeDirectories="..\iw_core;..\iw_telephony"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;IW_MSRTPPROXY_EXPORTS;_DLL_IW_MSRTPPROXY;TRACE_FUNC_CALLS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

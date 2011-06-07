@@ -31,13 +31,54 @@ namespace ivrworx
 
 		virtual void real_run();
 
-	private:
+	protected:
+
+		virtual void UponAllocateReq(IwMessagePtr msg);
+
+		virtual void UponDeallocateReq(IwMessagePtr msg);
+
+		virtual void UponModifyReq(IwMessagePtr msg);
+
+		virtual void UponBridgeReq(IwMessagePtr msg);
 
 		ApiErrorCode InitSockets();
+
+		ApiErrorCode onSocketOverlappedReceived(const string &response);
+
+	private:
 
 		ConfigurationPtr _conf;
 
 		SOCKET _s;
+
+		int _sessionCounter;
+
+		HANDLE g_hIOCompletionPort;
+
+		IocpInterruptorPtr _iocpPtr;
+
+		enum REQUEST_TYPE
+		{
+			REQUEST_TYPE_NONE,
+			REQUEST_TYPE_UPDATE,
+			REQUEST_TYPE_DELETE,
+		};
+
+		struct ReqCtx
+		{
+			ReqCtx();
+
+			IwMessagePtr request;
+
+			REQUEST_TYPE type;
+		};
+
+		typedef map<int,ReqCtx>
+		RequestsMap;
+
+		RequestsMap _reqMap;
+
+		int _correlationCounter;
 
 	};
 

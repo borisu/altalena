@@ -58,7 +58,7 @@ namespace ivrworx
 		virtual BOOL HasOption(IN const string &name) = 0;
 
 		virtual void GetArray(IN const string &key, OUT ListOfAny &out_list) = 0;
-		
+
 	};
 
 	typedef 

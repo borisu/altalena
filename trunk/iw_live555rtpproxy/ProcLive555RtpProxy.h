@@ -27,27 +27,44 @@
 
 
 #include "RtpProxySession.h"
-
-
 namespace ivrworx
 {
-
-	enum CONNECTION_STATE
-	{
-		CONNECTION_STATE_AVAILABLE,
-		CONNECTION_STATE_ALLOCATED,
-		CONNECTION_STATE_INPUT,
-		CONNECTION_STATE_OUTPUT
-	};
 	
 	class ProcLive555RtpProxy :
 		public LightweightProcess
 	{
 	public:
-
 		
+		ProcLive555RtpProxy(LpHandlePair pair, ConfigurationPtr conf);
+
+		virtual ~ProcLive555RtpProxy(void);
+
+		virtual void real_run();
+
+	protected:
+
+		virtual ApiErrorCode InitSockets();
+
+		virtual void UponAllocateReq(IwMessagePtr msg);
+
+		virtual void UponDeallocateReq(IwMessagePtr msg);
+
+		virtual void UponModifyReq(IwMessagePtr msg);
+
+		virtual void UponBridgeReq(IwMessagePtr msg);
+
+	private:
+
+		enum CONNECTION_STATE
+		{
+			CONNECTION_STATE_AVAILABLE,
+			CONNECTION_STATE_ALLOCATED,
+			CONNECTION_STATE_INPUT,
+			CONNECTION_STATE_OUTPUT
+		};
+
 		typedef shared_ptr<Groupsock>
-		GroupSockPtr;
+			GroupSockPtr;
 
 		struct RtpConnection;
 		typedef shared_ptr<struct RtpConnection> 
@@ -76,34 +93,16 @@ namespace ivrworx
 
 			RtpConnectionPtr source_conn;
 			SimpleRTPSource* source;
-			
+
 			RtpConnectionPtr destination_conn;
 			SimpleRTPSink* sink;
 
-		
-			
+
+
 		};
 
-
-		ProcLive555RtpProxy(LpHandlePair pair, ConfigurationPtr conf);
-
-		virtual ~ProcLive555RtpProxy(void);
-
-		virtual void real_run();
-
-		virtual ApiErrorCode InitSockets();
-
-		virtual void UponAllocateReq(IwMessagePtr msg);
-
-		virtual void UponDeallocateReq(IwMessagePtr msg);
-
-		virtual void UponModifyReq(IwMessagePtr msg);
-
-		virtual void UponBridgeReq(IwMessagePtr msg);
-
-		virtual ApiErrorCode Unbridge(RtpConnectionPtr msg);
-
-	private:
+		ApiErrorCode 
+		Unbridge(RtpConnectionPtr msg);
 
 		ConfigurationPtr _conf;
 
