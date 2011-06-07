@@ -113,7 +113,7 @@ BOOL StoreCoreData(DWORD slotIndex, LPVOID slotValue)
 			return FALSE;
 		if (!TlsSetValue(dwTlsIndex, lpvThreadData))
 			return FALSE;
-	}
+	};
 
 	pData = &(((LPVOID *) lpvThreadData)[slotIndex]); // Cast to my data type.
 	(*pData) = slotValue;
@@ -130,7 +130,7 @@ BOOL GetCoreData(DWORD slotIndex,LPVOID *pdw)
 	if (slotIndex < 0 || slotIndex > (lMaxSlots - 1))
 		return false;
 
-	lpvThreadData = TlsGetValue(dwTlsIndex); 
+	lpvThreadData = TlsGetValue(dwTlsIndex);
 	if (lpvThreadData == NULL)
 		return FALSE;
 

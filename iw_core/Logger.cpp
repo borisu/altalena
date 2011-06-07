@@ -100,9 +100,11 @@ namespace ivrworx
 #define LOGGER_SLOT 1
 	IW_CORE_API debug_dostream *GetTlsLogger()
 	{
+		DWORD os_res = ::GetLastError();
 		LPVOID res = NULL;
 		if (GetCoreData(LOGGER_SLOT,&res) && res != NULL)
 		{
+			::SetLastError(os_res);
 			return (debug_dostream *)res;
 			
 		}

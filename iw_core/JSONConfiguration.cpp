@@ -156,9 +156,6 @@ namespace ivrworx
 	{
 	}
 
-	
-
-	
 
 	int
 	JSONConfiguration::GetInt(IN const string &name)
@@ -250,11 +247,29 @@ namespace ivrworx
 	ApiErrorCode
 	JSONConfiguration::InitFromFile(IN const string &filename)
 	{
-		ifstream is(filename.c_str());
+		
+		cout << "Dumping Configuration...\n";
+		ifstream is1(filename.c_str());
+		if (is1.is_open())
+		{
+			string line;
+			while ( is1.good() )
+			{
+				getline (is1,line);
+				cout << line << endl;
 
+			}
+			is1.close();
+		} else
+		{
+			cerr << "Error reading json configuration file '" << filename << "'. Check that file exists ans accessible." << endl;
+			return API_FAILURE;
+		}
+
+		ifstream  is(filename.c_str());
 		if (read(is, _rootValue) == false)
 		{
-			cerr << "Error reading json configuration file '" << filename << "'. Check that file exists, accessible and json valid." << endl;
+			cerr << "Error reading json configuration file '" << filename << "'. Check that file exists, accessible and JSON valid." << endl;
 			return API_FAILURE;
 		}
 
