@@ -2,6 +2,8 @@
 
 rtpproxy session. Currently only half duplex mode is supported.
 
+We are working on DTMF detection - stay tuned!!!
+
 
 == `:new(...)` ==
 _ctor_
