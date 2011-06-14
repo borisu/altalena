@@ -38,6 +38,8 @@ protected:
       // virtual base class
   virtual ~MultiFramedRTPSource();
 
+  virtual Boolean processUnknownPayload(BufferedPacket* packet) {return False;};
+
   virtual Boolean processSpecialHeader(BufferedPacket* packet,
 				       unsigned& resultSpecialHeaderSize);
       // Subclasses redefine this to handle any special, payload format
@@ -110,6 +112,7 @@ public:
   struct timeval const& timeReceived() const { return fTimeReceived; }
 
   unsigned char* data() const { return &fBuf[fHead]; }
+  unsigned char* header() const { return &fBuf[0]; }
   unsigned dataSize() const { return fTail-fHead; }
   Boolean rtpMarkerBit() const { return fRTPMarkerBit; }
   Boolean& isFirstPacket() { return fIsFirstPacket; }

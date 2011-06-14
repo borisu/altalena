@@ -208,10 +208,41 @@ namespace ivrworx
 		}
 			
 
-		if ( _reqMap.find(correlation_id) == _reqMap.end())
+		RequestsMap::iterator iter = _reqMap.find(correlation_id);
+		if (  iter == _reqMap.end())
 		{
 			LogDebug("ProcMaxSobolevRtpProxy::onSocketOverlappedReceived - strayed request");
 			return API_SUCCESS;
+		}
+
+		ReqCtx &ctx = (*iter).second;
+		switch (ctx.type)
+		{
+		case REQUEST_TYPE_UPDATE:
+			{
+// 				DWORD time = ::GetTickCount();
+// 
+// 				stringstream str;
+// 				str <<  "v=0\r\n"
+// 					<<  "o=live555proxy "   << time << " " << time << " IN IP4 " << candidate->local_cnx_ino.iptoa() << "\r\n"
+// 					<<  "s=live555proxy\r\n"
+// 					<<  "c=IN IP4 " << candidate->local_cnx_ino.iptoa() << "\r\n"
+// 					<<  "t=0 0\r\n"
+// 					<<  "m=audio " << candidate->local_cnx_ino.port_ho() << " RTP/AVP";
+// 
+// 				m.append_codec_list(str) ; str << "\r\n"; 
+// 				m.append_rtp_map(str) ; str << "\r\n\r\n";
+// 
+// 				MsgRtpProxyAck* ack = new MsgRtpProxyAck();
+// 				ack->rtp_proxy_handle = candidate->connection_id;
+// 				ack->offer.type = "application/sdp";
+// 				ack->offer.body = str.str();
+// 
+// 				LogDebug("ProcLive555RtpProxy::UponAllocateReq allocated rtph:" << candidate->connection_id );
+// 				SendResponse(req, ack);
+
+			}
+
 		}
 
 

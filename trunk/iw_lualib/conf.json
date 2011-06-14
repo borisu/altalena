@@ -58,6 +58,8 @@
 	"__" : "DESCRIPTION:",
 	"__" : "List of implementation modules to load",
 	"modules":[
+		"iw_resip.dll",
+		"iw_live555rtpproxy.dll",
 		"iw_msrtpproxy.dll"
 	],
 
@@ -71,7 +73,7 @@
 		"sip_service"	   : "sip,resip",
 		"unimrcp_service"  : "mrcp,unimrcp",
 		"rtsp_service"     : "rtsp,live555",
-		"rtpproxy_service" : "rtpproxy,maximsobolev",
+		"rtpproxy_service" : "rtpproxy,live555",
 		"mrcp_service"	   : "mrcp,unimrcp"
 	},
 

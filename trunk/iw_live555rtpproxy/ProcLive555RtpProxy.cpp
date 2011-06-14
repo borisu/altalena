@@ -19,6 +19,7 @@
 #include "StdAfx.h"
 #include "ProcLive555RtpProxy.h"
 #include "IwUsageEnvironment.h"
+#include "MockRtpSink.h"
 
 #define RTP_PROXY_POLL_TIME 10
 
@@ -26,7 +27,7 @@ namespace ivrworx
 {
 
 
-ProcLive555RtpProxy::RtpConnection::RtpConnection()
+RtpConnection::RtpConnection()
 :connection_id(NULL),
 state(CONNECTION_STATE_AVAILABLE),
 source(NULL),
@@ -36,7 +37,7 @@ rtcp_instance(NULL)
 
 }
 
-ProcLive555RtpProxy::RtpConnection::~RtpConnection()
+RtpConnection::~RtpConnection()
 {
 
 }
@@ -99,6 +100,53 @@ reschedule:
 	// iw messages are polled once in 5 ms
 	proxy->_env->taskScheduler().scheduleDelayedTask(RTP_PROXY_POLL_TIME,
 		(TaskFunc*)processIwMessagesTask,proxy);
+
+}
+
+IwSimpleRTPSource*
+IwSimpleRTPSource::createNew(UsageEnvironment& env,
+							 Groupsock* RTPgs,
+							 unsigned char rtpPayloadFormat,
+							 unsigned rtpTimestampFrequency,
+							 char const* mimeTypeString,
+							 unsigned offset, Boolean doNormalMBitRule)
+{
+	return new IwSimpleRTPSource(env, RTPgs, rtpPayloadFormat,
+		rtpTimestampFrequency,
+		mimeTypeString, offset, doNormalMBitRule);
+}
+
+Boolean 
+IwSimpleRTPSource::processUnknownPayload(BufferedPacket* packet)
+{
+	unsigned char payload = packet->header()[1];
+	if (payload == dtmf_format.sdp_mapping())
+	{
+		char ervolume = packet->data()[1];
+		if (ervolume & 0x80)
+		{
+			return False;
+		}
+		
+	}
+	return False;
+}
+
+IwSimpleRTPSource::IwSimpleRTPSource(UsageEnvironment& env, 
+ Groupsock* RTPgs,
+ unsigned char rtpPayloadFormat,
+ unsigned rtpTimestampFrequency,
+ char const* mimeTypeString, unsigned offset,
+ Boolean doNormalMBitRule):
+	SimpleRTPSource(
+		env, 
+		RTPgs,
+		rtpPayloadFormat, 
+		rtpTimestampFrequency,
+		mimeTypeString, 
+		offset,
+		doNormalMBitRule)
+{
 
 }
 
@@ -303,8 +351,9 @@ ProcLive555RtpProxy::UponAllocateReq(IwMessagePtr msg)
 	}
 
 	candidate->remote_cnx_ino = m.connection;
-	candidate->media_format = *m.list.begin(); 
-
+	candidate->media_format = *(m.list.begin()); 
+	candidate->cn_format	= m.cn_format;
+	candidate->dtmf_format	= m.dtmf_format;
 
 	if (m.connection.is_ip_valid() && 
 		m.connection.is_port_valid())
@@ -338,7 +387,17 @@ ProcLive555RtpProxy::UponAllocateReq(IwMessagePtr msg)
 	ack->offer.body = str.str();
 	
 	LogDebug("ProcLive555RtpProxy::UponAllocateReq allocated rtph:" << candidate->connection_id );
-	SendResponse(req, ack);
+
+	if (IW_FAILURE(Bridge(candidate, RtpConnectionPtr())))
+	{
+		delete ack;
+		SendResponse(req, new MsgRtpProxyNack());
+	} 
+	else
+	{
+		SendResponse(req, ack);
+	}
+	
 	
 }
 
@@ -501,67 +560,34 @@ ProcLive555RtpProxy::Unbridge(RtpConnectionPtr conn)
 
 }
 
-
-void 
-ProcLive555RtpProxy::UponBridgeReq(IwMessagePtr msg)
+ApiErrorCode
+ProcLive555RtpProxy::Bridge(RtpConnectionPtr src, RtpConnectionPtr destination_connection)
 {
-	FUNCTRACKER;
-
-	shared_ptr<MsgRtpProxyBridgeReq> bridge_req = 
-		dynamic_pointer_cast<MsgRtpProxyBridgeReq>(msg);
-
-
-	// Find source.
-	RtpConnectionsMap::iterator iter = 
-		_connectionsMap.find(bridge_req->rtp_proxy_handle);
-	if (iter == _connectionsMap.end())
-	{
-
-		LogWarn("ProcLive555RtpProxy::UponBridgeReq - rtph:" << bridge_req->rtp_proxy_handle << " not found");
-		SendResponse(bridge_req, new MsgRtpProxyNack());
-		return;
-
-	}
-
-	RtpConnectionPtr source_connection = iter->second;
+	RtpConnectionPtr source_connection = src;
 	Unbridge(source_connection);
-	
 
+
+	BOOL using_dummy_sink = FALSE;
 	// Find destination
-	iter = _connectionsMap.find(bridge_req->output_conn);
-	if (iter == _connectionsMap.end())
+	if (destination_connection) 
 	{
-
-		LogWarn("rtph:" << bridge_req->output_conn << " not found");
-		SendResponse(bridge_req, new MsgRtpProxyNack());
-		return;
-
-	}
-
-	RtpConnectionPtr destination_connection = iter->second;
-
-	if (source_connection->media_format.get_media_type()      == MediaFormat::MediaType_UNKNOWN	|| 
-		destination_connection->media_format.get_media_type() == MediaFormat::MediaType_UNKNOWN ||
-		destination_connection->media_format != source_connection->media_format)
+		Unbridge(destination_connection);
+	} 
+	else
 	{
-		LogWarn("ProcLive555RtpProxy::UponBridgeReq - transcoding not supported src rtph:"
-			<< source_connection->connection_id << "(" << source_connection->media_format << ")" << 
-			 " <-> dst rtph:" << destination_connection->connection_id << "(" << destination_connection->media_format << ")");
-
-		SendResponse(bridge_req, new MsgRtpProxyNack());
-		return;
+		using_dummy_sink = TRUE;
+		destination_connection = RtpConnectionPtr(new RtpConnection());
 	}
-
-	Unbridge(destination_connection);
-
+	
+	
 
 	//
 	// source
 	//
-	SimpleRTPSource *rtp_source		      = source_connection->source;
+	IwSimpleRTPSource *rtp_source		      = source_connection->source;
 	RTCPInstance    *source_rtcp_instance = source_connection->rtcp_instance;
 
-	SimpleRTPSink	*rtp_sink			  = destination_connection->sink;
+	MediaSink		*rtp_sink			  = destination_connection->sink;
 	RTCPInstance    *sink_rtcp_instance	  = destination_connection->rtcp_instance;
 
 	MediaFormat		media_format		  = source_connection->media_format;
@@ -573,7 +599,7 @@ ProcLive555RtpProxy::UponBridgeReq(IwMessagePtr msg)
 		if (!rtp_source)
 		{
 			rtp_source = 
-				SimpleRTPSource::createNew(
+				IwSimpleRTPSource::createNew(
 				*_env,											// env
 				source_connection->live_rtp_socket.get(),		// RTPgs
 				media_format.sdp_mapping(),			// rtpPayloadFormat
@@ -581,13 +607,16 @@ ProcLive555RtpProxy::UponBridgeReq(IwMessagePtr msg)
 				media_format.sdp_name_tos().c_str()	// mimeTypeString
 				);
 
+			rtp_source->cn_format   = source_connection->cn_format;
+			rtp_source->dtmf_format = source_connection->dtmf_format;
+
 			if (rtp_source == NULL)
 			{
 				LogWarn("ProcLive555RtpProxy::UponBridgeReq - Cannot create source");
 				goto error;
 			};
 		}
-		
+
 
 		if (!source_rtcp_instance)
 		{
@@ -606,15 +635,21 @@ ProcLive555RtpProxy::UponBridgeReq(IwMessagePtr msg)
 				goto error;
 			};
 		}
-		
 
-		//
-		// sink
-		//
-		if (!rtp_sink)
+		if (using_dummy_sink)
 		{
-			rtp_sink = 
-				SimpleRTPSink::createNew(
+			rtp_sink = new MockRtpSink(*_env);
+
+		} // dummy sink
+		else
+		{
+			//
+			// sink
+			//
+			if (!rtp_sink)
+			{
+				rtp_sink = 
+					SimpleRTPSink::createNew(
 					*_env,											 // env
 					destination_connection->live_rtp_socket.get(),  // RTPgs
 					media_format.sdp_mapping(),			 // rtpPayloadFormat
@@ -622,32 +657,32 @@ ProcLive555RtpProxy::UponBridgeReq(IwMessagePtr msg)
 					media_format.sdp_name_tos().c_str(), // sdpMediaTypeString
 					media_format.sdp_name_tos().c_str()  // rtpPayloadFormatName
 					);
-			if (rtp_sink == NULL)
-			{
-				LogWarn("ProcLive555RtpProxy::UponBridgeReq - Cannot create sink instance");
-				goto error;
-			}
-		}
-		
+				if (rtp_sink == NULL)
+				{
+					LogWarn("ProcLive555RtpProxy::UponBridgeReq - Cannot create sink instance");
+					goto error;
+				}
+			}// rtp_sink creation
 
-		if (!sink_rtcp_instance)
-		{
-			sink_rtcp_instance  = 
-				RTCPInstance::createNew(
+
+			if (!sink_rtcp_instance)
+			{
+				sink_rtcp_instance  = 
+					RTCPInstance::createNew(
 					*_env,											 // env	
 					destination_connection->live_rtcp_socket.get(),  // RTCPgs
 					500,											 // totSessionBW
 					(const unsigned char *)"ivrworx",				 // cname
-					rtp_sink,										 // sink	
+					(SimpleRTPSink*)rtp_sink,						 // sink	
 					NULL											 // source 	
 					);					
-			if (sink_rtcp_instance == NULL)
-			{
-				LogWarn("ProcLive555RtpProxy::UponBridgeReq - Cannot create sink instance");
-				goto error;
-			}
-		}
-
+				if (sink_rtcp_instance == NULL)
+				{
+					LogWarn("ProcLive555RtpProxy::UponBridgeReq - Cannot create sink instance");
+					goto error;
+				}
+			} // rtcp creation
+		}// non dummy sink
 
 		source_connection->state			= CONNECTION_STATE_INPUT;
 		source_connection->source			= rtp_source;
@@ -659,8 +694,6 @@ ProcLive555RtpProxy::UponBridgeReq(IwMessagePtr msg)
 		destination_connection->source_conn		= source_connection;
 		destination_connection->rtcp_instance	= sink_rtcp_instance;
 
-
-		
 		if (rtp_sink->startPlaying(*rtp_source, NULL, NULL) == FALSE)
 		{
 			LogWarn("ProcLive555RtpProxy::UponBridgeReq error: startPlaying");
@@ -676,9 +709,9 @@ ProcLive555RtpProxy::UponBridgeReq(IwMessagePtr msg)
 			destination_connection->remote_cnx_ino );
 
 	}
-	SendResponse(bridge_req, new MsgRtpProxyAck());
+	;
 
-	return;
+	return API_SUCCESS;
 
 error:
 
@@ -688,18 +721,83 @@ error:
 	if (rtp_sink != NULL) Medium::close(rtp_sink);
 	if (sink_rtcp_instance != NULL) RTCPInstance::close(sink_rtcp_instance);
 
-	
+
 	source_connection->source			= NULL;
 	source_connection->destination_conn = RtpConnectionPtr();
 	source_connection->rtcp_instance	= NULL;
 
-	
+
 	destination_connection->sink			= NULL;
 	destination_connection->source_conn		= RtpConnectionPtr();
 	destination_connection->rtcp_instance	= NULL;
 
-	SendResponse(bridge_req, new MsgRtpProxyNack());
-	return;
+	return API_FAILURE;
+
+
+}
+
+
+void 
+ProcLive555RtpProxy::UponBridgeReq(IwMessagePtr msg)
+{
+	FUNCTRACKER;
+
+	shared_ptr<MsgRtpProxyBridgeReq> bridge_req = 
+		dynamic_pointer_cast<MsgRtpProxyBridgeReq>(msg);
+
+
+	//
+	// Find source.
+	//
+	RtpConnectionsMap::iterator iter = 
+		_connectionsMap.find(bridge_req->rtp_proxy_handle);
+	if (iter == _connectionsMap.end())
+	{
+
+		LogWarn("ProcLive555RtpProxy::UponBridgeReq - rtph:" << bridge_req->rtp_proxy_handle << " not found");
+		SendResponse(bridge_req, new MsgRtpProxyNack());
+		return;
+	};
+
+	RtpConnectionPtr source_connection = iter->second;
+
+	//
+	// Find destination.
+	//
+	iter = _connectionsMap.find(bridge_req->output_conn);
+	if (iter == _connectionsMap.end())
+	{
+
+		LogWarn("dst rtph:" << bridge_req->output_conn << " not found");
+		SendResponse(bridge_req, new MsgRtpProxyNack());
+		return;
+	}
+
+	RtpConnectionPtr destination_connection = iter->second;
+
+	// check codec settings
+	if (source_connection->media_format.get_media_type()      == MediaFormat::MediaType_UNKNOWN	|| 
+		destination_connection->media_format.get_media_type() == MediaFormat::MediaType_UNKNOWN ||
+		destination_connection->media_format != source_connection->media_format)
+	{
+		LogWarn("ProcLive555RtpProxy::UponBridgeReq - transcoding not supported src rtph:"
+			<< source_connection->connection_id << "(" << source_connection->media_format << ")" << 
+			" <-> dst rtph:" << destination_connection->connection_id << "(" << destination_connection->media_format << ")");
+
+		SendResponse(bridge_req, new MsgRtpProxyNack());
+		return;
+	}
+
+	if (IW_FAILURE(Bridge(source_connection, destination_connection)))
+	{
+		SendResponse(bridge_req, new MsgRtpProxyNack());
+		return;
+	} 
+	else
+	{
+		SendResponse(bridge_req, new MsgRtpProxyAck());
+		return;
+	}
 	
 }
 

@@ -86,9 +86,8 @@ int LUA_API init(lua_State *L)
 		const char* conffile = lua_tostring(L,-1);
 		if (conffile == NULL)
 		{
-			cerr << "init:g_conf file is NULL" << endl;
-			lua_pushnumber(L,API_WRONG_PARAMETER);
-			return 1;
+			cerr << "init:g_conf file is NULL using conf.json" << endl;
+			conffile = "conf.json";
 		}
  
  		ApiErrorCode err_code = API_SUCCESS;
