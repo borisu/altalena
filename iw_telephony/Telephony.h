@@ -50,7 +50,8 @@ public:
 	{
 		MediaType_UNKNOWN,
 		MediaType_SPEECH,
-		MediaType_DTMF
+		MediaType_DTMF,
+		MediaType_CN
 	};
 
 	MediaFormat();
@@ -78,6 +79,8 @@ public:
 	const string& get_sdp_a() const;
 
 	MediaType get_media_type() const;
+
+	const BOOL is_valid() const;
 
 	static const MediaFormat UNKNOWN;
 
@@ -157,6 +160,10 @@ public:
 		CnxInfo connection;
 
 		MediaFormatsList list;
+
+		MediaFormat dtmf_format;
+
+		MediaFormat cn_format;
 
 		void append_rtp_map(stringstream &str);
 

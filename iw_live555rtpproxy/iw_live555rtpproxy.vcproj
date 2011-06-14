@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MockRtpSink.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ProcLive555RtpProxy.cpp"
 				>
 			</File>
@@ -214,6 +218,10 @@
 			</File>
 			<File
 				RelativePath=".\Live555RtpProxyFactory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MockRtpSink.h"
 				>
 			</File>
 			<File

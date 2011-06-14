@@ -24,11 +24,85 @@
 #define _WIN32_WINNT 0x0501	// Change this to the appropriate value to target other versions of Windows.
 #endif						
 
-
-
 #include "RtpProxySession.h"
 namespace ivrworx
 {
+	enum CONNECTION_STATE
+	{
+		CONNECTION_STATE_AVAILABLE,
+		CONNECTION_STATE_ALLOCATED,
+		CONNECTION_STATE_INPUT,
+		CONNECTION_STATE_OUTPUT
+	};
+
+	struct IwSimpleRTPSource :
+		public SimpleRTPSource
+	{
+	public:
+		static IwSimpleRTPSource*
+			createNew(UsageEnvironment& env, Groupsock* RTPgs,
+			unsigned char rtpPayloadFormat,
+			unsigned rtpTimestampFrequency,
+			char const* mimeTypeString,
+			unsigned offset = 0,
+			Boolean doNormalMBitRule = True);
+
+
+		IwSimpleRTPSource(UsageEnvironment& env, 
+			Groupsock* RTPgs,
+			unsigned char rtpPayloadFormat,
+			unsigned rtpTimestampFrequency,
+			char const* mimeTypeString, unsigned offset,
+			Boolean doNormalMBitRule);
+
+		Boolean processUnknownPayload(BufferedPacket* packet);
+
+		MediaFormat dtmf_format;
+
+		MediaFormat cn_format;
+
+
+	};
+
+	typedef shared_ptr<struct RtpConnection> 
+	RtpConnectionPtr;
+
+	typedef shared_ptr<Groupsock>
+	GroupSockPtr;
+
+	struct RtpConnection:
+		public boost::noncopyable
+	{
+		RtpConnection();
+
+		~RtpConnection();
+
+		int connection_id;
+
+		GroupSockPtr live_rtp_socket;
+		GroupSockPtr live_rtcp_socket;
+
+		RTCPInstance *rtcp_instance;
+
+		CONNECTION_STATE state;
+
+		CnxInfo local_cnx_ino;
+		CnxInfo remote_cnx_ino;
+
+		MediaFormat media_format;
+
+		MediaFormat dtmf_format;
+
+		MediaFormat cn_format;
+
+		RtpConnectionPtr source_conn;
+		IwSimpleRTPSource* source;
+
+		RtpConnectionPtr destination_conn;
+		MediaSink* sink;
+
+	};
+
 	
 	class ProcLive555RtpProxy :
 		public LightweightProcess
@@ -55,52 +129,9 @@ namespace ivrworx
 
 	private:
 
-		enum CONNECTION_STATE
-		{
-			CONNECTION_STATE_AVAILABLE,
-			CONNECTION_STATE_ALLOCATED,
-			CONNECTION_STATE_INPUT,
-			CONNECTION_STATE_OUTPUT
-		};
-
-		typedef shared_ptr<Groupsock>
-			GroupSockPtr;
-
-		struct RtpConnection;
-		typedef shared_ptr<struct RtpConnection> 
-		RtpConnectionPtr;
-
-		struct RtpConnection :
-			public boost::noncopyable
-		{
-			RtpConnection();
-
-			~RtpConnection();
-
-			int connection_id;
-
-			GroupSockPtr live_rtp_socket;
-			GroupSockPtr live_rtcp_socket;
-
-			RTCPInstance *rtcp_instance;
-
-			CONNECTION_STATE state;
-
-			CnxInfo local_cnx_ino;
-			CnxInfo remote_cnx_ino;
-
-			MediaFormat media_format;
-
-			RtpConnectionPtr source_conn;
-			SimpleRTPSource* source;
-
-			RtpConnectionPtr destination_conn;
-			SimpleRTPSink* sink;
-
-
-
-		};
-
+		ApiErrorCode
+		Bridge(RtpConnectionPtr src, RtpConnectionPtr dst);
+		
 		ApiErrorCode 
 		Unbridge(RtpConnectionPtr msg);
 

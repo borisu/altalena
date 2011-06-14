@@ -115,6 +115,11 @@ namespace ivrworx
 		return media_type;
 	}
 
+	const BOOL MediaFormat::is_valid() const
+	{
+		return media_type != MediaType_UNKNOWN;
+	}
+
 	void MediaFormat::init_strings()
 	{
 
@@ -300,7 +305,22 @@ namespace ivrworx
 					codec_iter != offered_codecs.end(); 
 					codec_iter++)
 				{
-
+					if (strcmp(codec_iter->getName().c_str(),"CN") == 0)
+					{
+						res.cn_format = MediaFormat(
+							codec_iter->getName().c_str(),
+							codec_iter->getRate(),
+							codec_iter->payloadType(),
+							MediaFormat::MediaType_CN);
+					} 
+					else if (strcmp(codec_iter->getName().c_str(),"telephone-event") == 0)
+					{
+						res.dtmf_format = MediaFormat(
+							codec_iter->getName().c_str(),
+							codec_iter->getRate(),
+							codec_iter->payloadType(),
+							MediaFormat::MediaType_DTMF);
+					}
 					res.list.push_back(MediaFormat(
 						codec_iter->getName().c_str(),
 						codec_iter->getRate(),
