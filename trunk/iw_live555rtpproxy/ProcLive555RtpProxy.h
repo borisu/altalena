@@ -61,6 +61,9 @@ namespace ivrworx
 
 		MediaFormat cn_format;
 
+		unsigned _lastTimestamp;
+
+		LpHandlePtr handler;
 
 	};
 
@@ -100,6 +103,8 @@ namespace ivrworx
 
 		RtpConnectionPtr destination_conn;
 		MediaSink* sink;
+
+		LpHandlePtr handler;
 
 	};
 

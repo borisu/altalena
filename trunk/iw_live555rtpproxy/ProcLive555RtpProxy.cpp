@@ -119,13 +119,29 @@ IwSimpleRTPSource::createNew(UsageEnvironment& env,
 Boolean 
 IwSimpleRTPSource::processUnknownPayload(BufferedPacket* packet)
 {
+	
+	if (!handler)
+		return False;
+
 	unsigned char payload = packet->header()[1];
-	if (payload == dtmf_format.sdp_mapping())
+
+	if (payload == dtmf_format.sdp_mapping() && 
+		_lastTimestamp != packet->RTPTimestamp())
 	{
-		char ervolume = packet->data()[1];
-		if (ervolume & 0x80)
+		char event_field	= packet->data()[0];
+		char ervolume_field = packet->data()[1];
+		int  duration		= *(&(packet->data()[2]));
+		
+		// edge
+		if (ervolume_field & 0x80)
 		{
-			return False;
+			_lastTimestamp = packet->RTPTimestamp();
+			MsgRtpProxyDtmfEvt *evt = new MsgRtpProxyDtmfEvt();
+			char buffer[32];
+			buffer[0] = '\0';
+			evt->signal = ::itoa(event_field,buffer,10);
+			handler->Send(evt);
+
 		}
 		
 	}
@@ -147,7 +163,7 @@ IwSimpleRTPSource::IwSimpleRTPSource(UsageEnvironment& env,
 		offset,
 		doNormalMBitRule)
 {
-
+	_lastTimestamp = 0;
 }
 
 
@@ -354,6 +370,8 @@ ProcLive555RtpProxy::UponAllocateReq(IwMessagePtr msg)
 	candidate->media_format = *(m.list.begin()); 
 	candidate->cn_format	= m.cn_format;
 	candidate->dtmf_format	= m.dtmf_format;
+
+	candidate->handler		= req->handler;
 
 	if (m.connection.is_ip_valid() && 
 		m.connection.is_port_valid())
@@ -609,6 +627,7 @@ ProcLive555RtpProxy::Bridge(RtpConnectionPtr src, RtpConnectionPtr destination_c
 
 			rtp_source->cn_format   = source_connection->cn_format;
 			rtp_source->dtmf_format = source_connection->dtmf_format;
+			rtp_source->handler		= source_connection->handler;
 
 			if (rtp_source == NULL)
 			{

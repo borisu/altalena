@@ -206,7 +206,7 @@ namespace ivrworx
 		}
 
 		RtpProxySessionPtr media_call_ptr =
-			RtpProxySessionPtr(new RtpProxySession(service_handle_id));
+			RtpProxySessionPtr(new RtpProxySession(*(CTX_FIELD(_forking)),service_handle_id));
 
 		Luna<rtpproxy>::PushObject(L, new rtpproxy(media_call_ptr));
 

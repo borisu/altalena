@@ -23,19 +23,20 @@
 
 namespace ivrworx
 {
-	RtpProxySession::RtpProxySession(HandleId handle_id):
+	RtpProxySession::RtpProxySession(ScopedForking &forking,HandleId handle_id):
 	_rtpProxyHandleId(handle_id),
 	_handle(IW_UNDEFINED),
-	_bridgedHandle(IW_UNDEFINED)
+	_bridgedHandle(IW_UNDEFINED),
+	_handlerPair(HANDLE_PAIR),
+	_dtmfChannel(new LpHandle())
 	{
+		StartActiveObjectLwProc(forking,_handlerPair,"RtpProxySession Session Handler");
 	}
 
 	RtpProxySession::~RtpProxySession(void)
 	{
 		TearDown();
 	}
-
-	
 
 	ApiErrorCode 
 	RtpProxySession::Allocate(const AbstractOffer &remoteOffer)
@@ -50,9 +51,9 @@ namespace ivrworx
 		DECLARE_NAMED_HANDLE_PAIR(session_handler_pair);
 
 		MsgRtpProxyAllocateReq *msg = new MsgRtpProxyAllocateReq();
-		msg->offer = remoteOffer;
-		
-		
+		msg->offer		= remoteOffer;
+		msg->handler	= _handlerPair.inbound;
+
 
 		IwMessagePtr response = NULL_MSG;
 		ApiErrorCode res = GetCurrRunningContext()->DoRequestResponseTransaction(
@@ -170,6 +171,60 @@ namespace ivrworx
 		return _handle;
 	}
 
+	void 
+	RtpProxySession::CleanDtmfBuffer()
+	{
+		FUNCTRACKER;
+
+		// the trick we are using
+		// to clean the buffer is just replace the handle
+		// with  new one
+		_dtmfChannel->Poison();
+		_dtmfChannel = LpHandlePtr(new LpHandle());
+
+	}
+
+
+	ApiErrorCode 
+	RtpProxySession::WaitForDtmf(OUT string &signal, IN const Time timeout)
+	{
+		FUNCTRACKER;
+
+		// just proxy the event
+		int handle_index= IW_UNDEFINED;
+		IwMessagePtr response = NULL_MSG;
+
+		ApiErrorCode res = GetCurrRunningContext()->WaitForTxnResponse(
+			assign::list_of(_dtmfChannel),
+			handle_index,
+			response, 
+			timeout);
+
+		if (IW_FAILURE(res))
+		{
+			return res;
+		}
+
+		shared_ptr<MsgRtpProxyDtmfEvt> dtmf_evt = 
+			dynamic_pointer_cast<MsgRtpProxyDtmfEvt> (response);
+
+		signal = dtmf_evt->signal;
+
+		LogDebug("RtpProxySession::WaitForDtmf received signal:" << signal);
+
+		return API_SUCCESS;
+
+	}
+
+	void 
+	RtpProxySession::UponDtmfEvt(IN IwMessagePtr ptr)
+	{
+		FUNCTRACKER;
+
+		// just proxy the event
+		_dtmfChannel->Send(ptr);
+	}
+
 	ApiErrorCode 
 	RtpProxySession::Bridge(IN const RtpProxySession &dest)
 	{
@@ -222,7 +277,27 @@ namespace ivrworx
 				return API_FAILURE;
 			}
 		}
+	}
 
+	void 
+	RtpProxySession::UponActiveObjectEvent(IwMessagePtr ptr)
+	{
+		FUNCTRACKER;
+
+		switch (ptr->message_id)
+		{
+		case MSG_RTP_PROXY_DTMF_EVT:
+			{
+				UponDtmfEvt(ptr);
+				break;
+			}
+		default:
+			{
+
+			}
+		}
+
+		ActiveObject::UponActiveObjectEvent(ptr);
 
 	}
 

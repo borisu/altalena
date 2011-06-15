@@ -31,6 +31,8 @@ namespace ivrworx
 		method(rtpproxy, bridge),
 		method(rtpproxy, localoffer),
 		method(rtpproxy, remoteoffer),
+		method(rtpproxy, waitfordtmf),
+		method(rtpproxy, cleandtmfbuffer),
 		{0,0}
 	};
 
@@ -46,6 +48,55 @@ namespace ivrworx
 	rtpproxy::~rtpproxy(void)
 	{
 		
+	}
+
+	int
+	rtpproxy::cleandtmfbuffer(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		if (!_rtpProxySession)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		_rtpProxySession->CleanDtmfBuffer();
+		lua_pushnumber (L, API_SUCCESS);
+
+		return 1;
+
+	}
+
+
+	int
+	rtpproxy::waitfordtmf(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		if (!_rtpProxySession)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		int timeout = 3;
+		if (GetTableNumberParam(L,-1,&timeout,"timeout",3000))
+		{
+			timeout *= 1000;
+		}
+
+		ApiErrorCode res = API_SUCCESS;
+
+		string signal;
+
+		res = 	_rtpProxySession->WaitForDtmf(signal, MilliSeconds(timeout));
+
+		lua_pushnumber(L, res);
+		lua_pushstring(L, signal.c_str());
+
+		return 2;
+
 	}
 
 	// Lua interface

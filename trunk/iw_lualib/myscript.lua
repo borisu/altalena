@@ -23,6 +23,12 @@ r1:allocate{sdp=dummyoffer};
 
 c = sipcall:new();
 c:makecall{dest = "sip:24001@192.168.150.3", sdp=r1:localoffer()}
+
+x,y = r1:waitfordtmf()
+
+l:loginfo("x:"..x);						
+l:loginfo("y:"..y);						
+
 c:waitforhangup();
 
 l:loginfo("=== END ===");						
