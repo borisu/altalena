@@ -37,6 +37,9 @@ namespace ivrworx
 		int bridge(lua_State *L);
 		int localoffer(lua_State *L);
 		int remoteoffer(lua_State *L);
+
+		int waitfordtmf(lua_State *L);
+		int cleandtmfbuffer(lua_State *L);
 		
 
 		static const char className[];

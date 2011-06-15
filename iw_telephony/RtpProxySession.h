@@ -20,6 +20,7 @@
 #pragma once
 
 #include "Telephony.h"
+#include "ActiveObject.h"
 
 namespace ivrworx
 {
@@ -28,6 +29,7 @@ namespace ivrworx
 		MSG_RTP_PROXY_ALLOCATE_REQ = RTP_PROXY_MSG_BASE,
 		MSG_RTP_PROXY_ACK,
 		MSG_RTP_PROXY_NACK,
+		MSG_RTP_PROXY_DTMF_EVT,
 		MSG_RTP_PROXY_BRIDGE_REQ,
 		MSG_RTP_PROXY_MODIFY_REQ,
 		MSG_RTP_PROXY_DEALLOCATE_REQ,
@@ -42,7 +44,22 @@ namespace ivrworx
 		RtpProxyMixin():rtp_proxy_handle(IW_UNDEFINED){};
 		RtpProxyHandle rtp_proxy_handle;
 		AbstractOffer offer;
-	};		
+	};	
+
+	class IW_TELEPHONY_API MsgRtpProxyDtmfEvt:
+		public IwMessage
+	{
+	public:
+		MsgRtpProxyDtmfEvt():IwMessage(MSG_RTP_PROXY_DTMF_EVT, 
+			NAME(MSG_RTP_PROXY_DTMF_EVT)){}
+
+		string signal;
+
+		string duration;
+
+		string volume;
+
+	};
 
 
 	class IW_TELEPHONY_API MsgRtpProxyAllocateReq:
@@ -53,6 +70,8 @@ namespace ivrworx
 		MsgRtpProxyAllocateReq():
 		  MsgRequest(MSG_RTP_PROXY_ALLOCATE_REQ, 
 			  NAME(MSG_RTP_PROXY_ALLOCATE_REQ)){};
+
+		   LpHandlePtr handler;
 
 	};
 
@@ -100,9 +119,6 @@ namespace ivrworx
 		  IwMessage(MSG_RTP_PROXY_NACK, 
 			  NAME(MSG_RTP_PROXY_NACK))
 		  {};
-
-
-
 	};
 
 	class IW_TELEPHONY_API MsgRtpProxyModifyReq:
@@ -116,11 +132,12 @@ namespace ivrworx
 
 	};
 
-	class IW_TELEPHONY_API RtpProxySession
+	class IW_TELEPHONY_API RtpProxySession:
+		public ActiveObject
 	{
 	public:
 
-		RtpProxySession(HandleId handle_id);
+		RtpProxySession(ScopedForking &forking,HandleId handle_id);
 
 		virtual ~RtpProxySession(void);
 
@@ -138,6 +155,16 @@ namespace ivrworx
 
 		virtual RtpProxyHandle RtpHandle();
 
+		virtual void UponDtmfEvt(IN IwMessagePtr ptr);
+
+		virtual void CleanDtmfBuffer();
+
+		virtual ApiErrorCode WaitForDtmf(
+			OUT string &signal, 
+			IN const Time timeout);
+
+		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
+
 	private:
 
 		AbstractOffer _remoteOffer;
@@ -149,6 +176,10 @@ namespace ivrworx
 		RtpProxyHandle _bridgedHandle;
 
 		HandleId _rtpProxyHandleId;
+
+		LpHandlePtr _dtmfChannel;
+
+		LpHandlePair _handlerPair;
 
 	};
 
