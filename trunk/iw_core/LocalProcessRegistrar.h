@@ -75,8 +75,6 @@ namespace ivrworx
 
 	private:
 
-		mutex _mutex;
-
 		typedef 
 		map<int,LpHandlePtr> LocalProcessesMap;
 		LocalProcessesMap _locProcessesMap;
@@ -89,7 +87,7 @@ namespace ivrworx
 		map<ProcId, string> ServicesMap;
 		ServicesMap _servicesMap;
 
-		
+		void doUnReliableShutdownAll();
 
 	public:
 
@@ -118,7 +116,11 @@ namespace ivrworx
 			IN int channel_id, 
 			IN const string &qpath);
 
+		void UnReliableShutdownAll();
+
 		LpHandlePtr GetHandle(IN const string &service_regex);
+
+		friend class ProcShutemAll;
 	};
 
 	IW_CORE_API void AddShutdownListener(

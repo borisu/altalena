@@ -49,6 +49,10 @@ int LUA_API close(lua_State *L)
 
 		ShutdownModules(g_procHandlePairs,g_conf);
 	}
+
+
+	LocalProcessRegistrar().Instance().UnReliableShutdownAll();
+
 	delete g_forking;
 	g_forking = NULL;
 	return 0;

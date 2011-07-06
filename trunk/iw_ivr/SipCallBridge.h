@@ -20,10 +20,12 @@
 #pragma once
 
 #include "Luna.h"
+#include "LuaObject.h"
 
 namespace ivrworx
 {
-	class sipcall
+	class sipcall: 
+		public luaobject
 	{
 	public:
 
@@ -66,6 +68,8 @@ namespace ivrworx
 		int unsubscribe(lua_State *L);
 		int waitfornotify(lua_State *L);
 		int cleannotifybuffer(lua_State *L);
+
+		virtual shared_ptr<ActiveObject> get_active_object();
 
 		static const char className[];
 		static Luna<sipcall>::RegType methods[];

@@ -19,11 +19,13 @@
 
 #pragma once
 #include "Luna.h"
+#include "LuaObject.h"
 
 
 namespace ivrworx
 {
-	class mrcpsession
+	class mrcpsession: 
+		public luaobject
 	{
 	public:
 
@@ -40,6 +42,8 @@ namespace ivrworx
 		int remoteoffer(lua_State *L);
 		int recognize(lua_State *L);
 		int waitforrecogresult(lua_State *L);
+
+		virtual shared_ptr<ActiveObject> get_active_object();
 
 
 		static const char className[];

@@ -87,6 +87,11 @@ namespace ivrworx
 	DWORD	 g_logMask		= IW_LOG_MASK_CONSOLE;
 	BOOL	 g_LogSyncMode  = FALSE;
 
+#define IW_MAX_FILE_NAME 1024
+	char g_filename[IW_MAX_FILE_NAME];
+	BOOL g_override = TRUE;
+	FILE *g_file	= NULL;
+
 // 	__declspec( thread ) debug_dostream *tls_logger = NULL;
 // 
 // 	__declspec( thread ) BOOL script_log = FALSE;
@@ -232,6 +237,19 @@ namespace ivrworx
 
 		openlog(conf->GetString("syslogd_host").c_str(),conf->GetInt("syslogd_port"),"ivrworx",0,LOG_USER );
 
+		// file preparation 
+		g_filename[0] = '\0';
+		string filename = conf->GetString("log_file_name");
+		::strcpy_s(g_filename,IW_MAX_FILE_NAME,filename.c_str());
+
+		if (g_logMask & IW_LOG_MASK_FILE)
+		{
+			g_file = ::fopen(g_filename, (g_override ? "w" : "a"));
+		}
+
+		g_override = conf->GetBool("log_override");
+
+
 		if (conf->GetBool("sync_log"))
 		{
 			return TRUE;
@@ -344,6 +362,12 @@ error:
 			g_IocpLogger = NULL;
 		}
 
+// 		if (g_file)
+// 		{
+// 			g_file = NULL;
+// 			::fclose(g_file);
+// 		}
+
 	}
 
 	void
@@ -401,6 +425,12 @@ error:
 		if (found != string::npos)
 		{
 			mask |= IW_LOG_MASK_SYSLOG;
+		}
+
+		found = mask_str.find("file");
+		if (found != string::npos)
+		{
+			mask |= IW_LOG_MASK_FILE;
 		}
 
 		SetLogMask(mask);
@@ -663,6 +693,18 @@ error:
 		if (g_logMask & IW_LOG_MASK_SYSLOG)	
 		{ 
 			syslog(0,"%s",formatted_log_str); 
+		};
+
+		if ((g_logMask & IW_LOG_MASK_FILE) && g_file)	
+		{ 
+			int n = ::fprintf(g_file,"%s",formatted_log_str); 
+			::fflush(g_file);
+			if (n <= 0)
+			{
+				int res = ::GetLastError();
+				cout << "res" << res<< endl;
+
+			}
 		};
 
 		delete lb;

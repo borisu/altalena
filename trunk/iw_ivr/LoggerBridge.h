@@ -19,10 +19,12 @@
 
 #pragma once
 #include "Luna.h"
+#include "LuaObject.h"
 
 namespace ivrworx
 {
-	class LoggerBridge
+	class LoggerBridge: 
+		public luaobject
 	{
 	public:
 

@@ -103,6 +103,7 @@ namespace ivrworx
 		ivrworxTable.AddFunction("sleep",LuaWait);
 		ivrworxTable.AddFunction("wait",LuaWait);
 		ivrworxTable.AddFunction("run",LuaRunLongOperation);
+		ivrworxTable.AddFunction("waitforevent",LuaWaitForEvent);
 
 
 		//
@@ -156,6 +157,140 @@ namespace ivrworx
 
 		handleId = handle->GetObjectUid();
 		return API_SUCCESS;
+
+	}
+
+	int
+	LuaWaitForEvent(lua_State *L)
+	{
+		
+		int n = lua_gettop(L);
+		if (n !=1)
+		{
+			lua_pushnumber(L,API_WRONG_PARAMETER);
+			return 1;
+		}
+
+		if (lua_istable(L,-1) == FALSE)
+		{
+			lua_pushnumber(L,API_WRONG_PARAMETER);
+			return 1;
+		}
+
+		int timeout = 35;
+		GetTableNumberParam(L,-1,&timeout,"timeout",35);
+
+		// find named parameter "actors" and ensure it is table
+		lua_pushstring(L, "actors");
+		lua_gettable(L, -2);
+		if (lua_istable(L,-1) == FALSE)
+		{
+			lua_pop(L,1);
+			lua_pushnumber(L,API_WRONG_PARAMETER);
+			return 1;
+		}
+
+		
+		int actors_table_si = -1;
+		
+		struct ao_slot
+		{
+			ActiveObjectPtr ao;
+			LpHandlePtr		h;
+			int				param_index;
+		};
+		
+		map<HandleId, ao_slot> handle_map;
+		int param_counter = 0;
+
+		HandlesVector hv;
+
+		lua_pushnil(L);
+		while(lua_next( L, actors_table_si - 1)) 
+		{
+			int curr_param_index = ++param_counter;
+			if (lua_isstring(L,-2))
+			{
+				string key = lua_tostring(L,-2);
+				switch (lua_type(L,-1))
+				{
+					case LUA_TUSERDATA:
+						{
+
+							userdataType *x = (userdataType *)lua_touserdata(L,-1);
+							luaobject *lo = x->lo;
+
+							if (lo->get_active_object())
+							{
+								
+								ao_slot slot;
+								slot.h  = LpHandlePtr(new LpHandle());
+								slot.ao = lo->get_active_object();
+								slot.param_index = curr_param_index;
+
+								handle_map[slot.h->GetObjectUid()] = slot;
+								hv.push_back(slot.h);
+
+								lo->get_active_object()->AddEventListener(slot.h);
+
+							}
+
+						}
+
+					case LUA_TNUMBER:
+					case LUA_TBOOLEAN:
+					case LUA_TSTRING:
+					case LUA_TNIL:
+					case LUA_TTABLE:
+					case LUA_TFUNCTION:
+					case LUA_TTHREAD:
+					case LUA_TLIGHTUSERDATA:
+					default:{}
+				}
+
+			}
+
+			lua_pop(L, 1);
+		}
+
+		// pop the table from the stack
+		lua_pop(L,1);
+
+		if (hv.size() == 0)
+		{
+			lua_pushnumber(L,API_WRONG_PARAMETER);
+			return 1;
+		}
+		
+		ApiErrorCode err	= API_SUCCESS;
+		int selected_index  = -1;
+
+		IwMessagePtr event;
+		err = SelectFromChannels(
+			hv, 
+			MilliSeconds(timeout),
+			selected_index,
+			event);
+
+		lua_pushnumber(L,err);
+
+		if (IW_SUCCESS(err))
+		{
+			ao_slot aos = handle_map[hv[selected_index]->GetObjectUid()];
+			aos.ao->RemoveEventListener(aos.h);
+			lua_pushnumber(L,aos.param_index);
+
+		} 
+		else
+		{
+			lua_pushnumber(L,-1);
+		};
+
+		// unset listeners
+		
+		
+		
+		return 2;
 
 	}
 

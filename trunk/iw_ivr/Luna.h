@@ -1,4 +1,6 @@
 #pragma once
+#include "LuaObject.h"
+
 #define method(class, name) {#name, &class::name}
 
 enum LUA_RT_CONTROL
@@ -9,9 +11,11 @@ enum LUA_RT_CONTROL
 	LUA_RT_ALLOW_ALL  = LUA_RT_ALLOW_GC | LUA_RT_ALLOW_NEW
 };
 
+typedef struct { void *pT; luaobject *lo;} userdataType;
+
 template <typename T> class Luna {
 	public:
-	typedef struct { T *pT; } userdataType;
+	
 
 	typedef int (T::*mfp)(lua_State *L);
 	typedef struct { const char *name; mfp mfunc; } RegType;
@@ -23,6 +27,7 @@ template <typename T> class Luna {
 		userdataType *ud =
 			static_cast<userdataType*>(lua_newuserdata(L, sizeof(userdataType)));
 		ud->pT = obj;  // store pointer to object in userdata
+		ud->lo = static_cast<luaobject*>(obj);
 
 		luaL_getmetatable(L, T::className);  // lookup metatable in Lua registry
 		lua_setmetatable(L, -2);
@@ -44,6 +49,7 @@ template <typename T> class Luna {
 		userdataType *ud =
 			static_cast<userdataType*>(lua_newuserdata(L, sizeof(userdataType)));
 		ud->pT = obj;  // store pointer to object in userdata
+		ud->lo = static_cast<luaobject*>(obj);
 
 		
 		i = lua_gettop(L);
@@ -86,11 +92,21 @@ template <typename T> class Luna {
 		lua_settable(L, metatable);
 
 		// borisu added to recognize the class
-		// see bridgemacros for usage
+		// see bridge macros for usage
+		if (boost::is_base_of<T,ActiveObject>::value == true)
+		{
+			printf("ok");
+		}
+
 		lua_pushstring(L, "className");
 		lua_pushstring(L, T::className);
 		lua_settable(L, metatable);
 
+		lua_pushstring(L, "activeobject");
+		lua_pushboolean(L, is_base_of<luaobject,T>::value);
+		lua_settable(L, metatable);
+		
+		
 		if (luartcontrol | LUA_RT_ALLOW_GC)
 		{
 			lua_pushliteral(L, "__gc");
@@ -130,7 +146,7 @@ template <typename T> class Luna {
 		userdataType *ud =
 			static_cast<userdataType*>(luaL_checkudata(L, narg, T::className));
 		if(!ud) luaL_typerror(L, narg, T::className);
-		return ud->pT;  // pointer to T object
+		return static_cast<T*>(ud->pT);  // pointer to T object
 	}
 
 private:
@@ -156,6 +172,7 @@ private:
 		userdataType *ud =
 			static_cast<userdataType*>(lua_newuserdata(L, sizeof(userdataType)));
 		ud->pT = obj;  // store pointer to object in userdata
+		ud->lo = static_cast<luaobject*>(obj);
 		luaL_getmetatable(L, T::className);  // lookup metatable in Lua registry
 		lua_setmetatable(L, -2);
 		return 1;  // userdata containing pointer to T object
@@ -164,7 +181,7 @@ private:
 	// garbage collection metamethod
 	static int gc_T(lua_State *L) {
 		userdataType *ud = static_cast<userdataType*>(lua_touserdata(L, 1));
-		T *obj = ud->pT;
+		T *obj = static_cast<T*>(ud->pT);
 		delete obj;  // call destructor for T objects
 		return 0;
 	}
@@ -172,7 +189,7 @@ private:
 	static int tostring_T (lua_State *L) {
 		char buff[32];
 		userdataType *ud = static_cast<userdataType*>(lua_touserdata(L, 1));
-		T *obj = ud->pT;
+		T *obj = static_cast<T*>(ud->pT);
 		sprintf_s(buff, 32,"%p", obj);
 		lua_pushfstring(L, "%s (%s)", T::className, buff);
 		return 1;

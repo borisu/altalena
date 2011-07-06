@@ -18,10 +18,12 @@
 */
 #pragma once
 #include "Luna.h"
+#include "LuaObject.h"
 
 namespace ivrworx
 {
-	class ConfBridge
+	class ConfBridge : 
+		public luaobject
 	{
 	public:
 		

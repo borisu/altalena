@@ -53,6 +53,8 @@ namespace ivrworx
 
 	int LuaCreateStreamer( lua_State *L);
 
-	int LuaCreateRtspSession( lua_State *L);
+	int LuaCreateRtspSession(lua_State *L);
+
+	int LuaWaitForEvent(lua_State *L);
 }
 

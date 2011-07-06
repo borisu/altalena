@@ -381,6 +381,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LuaObject.h"
+				>
+			</File>
+			<File
 				RelativePath=".\LuaStaticApi.cpp"
 				>
 			</File>

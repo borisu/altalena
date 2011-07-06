@@ -68,8 +68,8 @@ namespace ivrworx
 	};
 
 
-	class IW_CORE_API IwMessage :
-	public boost::noncopyable // must not be copied but only passed as shared pointer or serialized via network
+	class IW_CORE_API IwMessage:
+		public boost::noncopyable // must not be copied but only passed as shared pointer or serialized via network
 	{
 		protected:
 
