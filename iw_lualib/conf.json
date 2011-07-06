@@ -20,10 +20,22 @@
 	"debug_level"  : "TRC",
 
 	"__" : "VALUES:", 
-	"__" : "comma separated - debug|console|syslog ",
+	"__" : "comma separated - debug|console|syslog|file",
 	"__" : "DESCRIPTION:",
-	"__" : "debug -> debugview, console->console, syslog -> syslog server",
-	"debug_outputs" : "console",
+	"__" : "debug -> debugview, console->console, syslog->syslog server, file->file",
+	"debug_outputs" : "console,file",
+	
+	"__" : "VALUES:", 
+	"__" : "string",
+	"__" : "DESCRIPTION:",
+	"__" : "log file name to open",
+	"log_file_name" : "iwlog.txt",
+	
+	"__" : "VALUES:", 
+	"__" : "true|false",
+	"__" : "DESCRIPTION:",
+	"__" : "append to existing file or override",
+	"log_override" : true,
 
 	"__" : "VALUES:", 
 	"__" : "ip address",

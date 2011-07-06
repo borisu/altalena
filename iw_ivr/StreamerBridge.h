@@ -19,10 +19,12 @@
 #pragma once
 
 #include "Luna.h"
+#include "LuaObject.h"
 
 namespace ivrworx
 {
-	class streamer
+	class streamer: 
+		public luaobject
 	{
 	public:
 
@@ -39,6 +41,7 @@ namespace ivrworx
 		int remoteoffer(lua_State *L);
 		int stop(lua_State *L);
 
+		shared_ptr<ActiveObject> get_active_object();
 
 		static const char className[];
 		static Luna<streamer>::RegType methods[];

@@ -710,6 +710,12 @@ error_param:
 	return 1;
 }
 
+shared_ptr<ActiveObject> 
+sipcall::get_active_object()
+{
+	return dynamic_pointer_cast <ActiveObject>(_call);
+}
+
 
 int
 sipcall::sendinfo(lua_State *L)

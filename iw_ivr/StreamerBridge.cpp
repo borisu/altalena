@@ -184,6 +184,12 @@ namespace ivrworx
 		lua_pushstring(L, _streamingSessionPtr->LocalOffer().body.c_str());
 		return 1;
 	}
+
+	shared_ptr<ActiveObject>
+	streamer::get_active_object()
+	{
+		return dynamic_pointer_cast <ActiveObject>(_streamingSessionPtr);
+	}
 	
 
 

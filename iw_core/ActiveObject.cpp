@@ -85,19 +85,30 @@ namespace ivrworx
 	}
 
 	void 
-	ActiveObject::SetEventListener(IN int msg_id, IN LpHandlePtr listener_handle)
+	ActiveObject::RemoveEventListener(IN LpHandlePtr listener_handle)
 	{
-		_listenersMap[msg_id] = listener_handle;
+		if (!listener_handle)
+			return;
+
+		for( EventListenersMap::iterator iter = _listenersMap.begin(); iter != _listenersMap.end(); iter++)
+		{
+			if ((*iter)->GetObjectUid() == listener_handle->GetObjectUid())
+				_listenersMap.erase(iter);
+		}
+	}
+
+	void 
+	ActiveObject::AddEventListener(IN LpHandlePtr listener_handle)
+	{
+		_listenersMap.push_back(listener_handle);
 	}
 
 	void
 	ActiveObject::UponActiveObjectEvent(IN IwMessagePtr ptr)
 	{
-		EventListenersMap::iterator iter = _listenersMap.find(ptr->message_id);
-		if (iter != _listenersMap.end())
-		{
-			iter->second->Send(ptr);
-		}
+		for( EventListenersMap::iterator iter = _listenersMap.begin(); iter != _listenersMap.end(); iter++)
+		   (*iter)->Send(ptr);
+
 	}
 
 	ProcEventListener::ProcEventListener(
@@ -145,6 +156,8 @@ namespace ivrworx
 				}
 			}
 		}
+
+		_activeObject._started = false;
 	}
 }
 

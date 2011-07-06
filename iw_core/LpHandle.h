@@ -179,6 +179,8 @@ namespace ivrworx
 
 		virtual void Poison();
 
+		virtual BOOL PoisonedForWrite();
+
 	private:
 
 		void inline CheckReader();

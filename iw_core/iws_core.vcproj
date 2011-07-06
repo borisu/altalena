@@ -24,7 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine=""
+				CommandLine="protoc.exe --cpp_out=. core.proto"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -404,6 +404,10 @@
 			</File>
 			<File
 				RelativePath=".\ActiveObject.h"
+				>
+			</File>
+			<File
+				RelativePath=".\core.proto"
 				>
 			</File>
 			<File

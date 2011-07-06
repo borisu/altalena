@@ -37,9 +37,10 @@ namespace ivrworx
 
 	void IW_CORE_API ExitLog();
 
-	#define IW_LOG_MASK_CONSOLE		0x001
-	#define IW_LOG_MASK_DEBUGVIEW	0x010
-	#define IW_LOG_MASK_SYSLOG		0x100
+	#define IW_LOG_MASK_CONSOLE		0x0001
+	#define IW_LOG_MASK_DEBUGVIEW	0x0010
+	#define IW_LOG_MASK_SYSLOG		0x0100
+	#define IW_LOG_MASK_FILE		0x1000
 
 	void
 	SetLogMask(IN int mask);

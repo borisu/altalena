@@ -236,6 +236,20 @@ namespace ivrworx
 		return API_SUCCESS;
 	}
 
+	BOOL 
+	LpHandle::PoisonedForWrite()
+	{
+		try 
+		{
+			_channel.reader().checkPoison();
+		} catch(exception)
+		{
+			return TRUE;
+		}
+		
+		return FALSE;
+	}
+
 
 
 	void

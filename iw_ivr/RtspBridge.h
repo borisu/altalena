@@ -1,9 +1,11 @@
 #pragma once
 #include "Luna.h"
+#include "LuaObject.h"
 
 namespace ivrworx
 {
-	class rtspsession
+	class rtspsession :
+		public luaobject
 	{
 	public:
 		rtspsession(RtspSessionPtr rtspSession);

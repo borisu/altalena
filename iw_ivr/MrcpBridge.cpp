@@ -250,6 +250,13 @@ namespace ivrworx
 
 	}
 
+	shared_ptr<ActiveObject> 
+	mrcpsession::get_active_object() 
+	{
+		return dynamic_pointer_cast<ActiveObject>(_mrcpSession);
+
+	}
+
 	int 
 	mrcpsession::teardown(lua_State *L)
 	{

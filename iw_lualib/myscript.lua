@@ -4,32 +4,34 @@ local l	= assert(iw.LOGGER, "assert:iw.LOGGER")
 
 l:loginfo("=== START ===");
 
-dummyoffer=[[
-v=0
-o=alice 2890844526 2890844526 IN IP4 0.0.0.0
-s=
-c=IN IP4 192.168.100.164
-t=0 0
-m=audio 60000 RTP/AVP 8 101
-a=rtpmap:8 PCMA/8000
-a=rtpmap:101 telephone-event/8000
-]]
-
---
--- set up first media call
---
-r1 = rtpproxy:new();
-r1:allocate{sdp=dummyoffer};
-
 c = sipcall:new();
-c:makecall{dest = "sip:24001@192.168.150.3", sdp=r1:localoffer()}
 
-x,y = r1:waitfordtmf()
+l:loginfo("running 5");
+iw.waitforevent{actors={c}, timeout=15};
+if (index == nil) then index = -1; end;
+l:loginfo("5. res:"..res.." index:"..index);	
 
-l:loginfo("x:"..x);						
-l:loginfo("y:"..y);						
+l:loginfo("running 1");
+res, index = iw.waitforevent();
+if (index == nil) then index = -1; end;
+l:loginfo("1. res:"..res.." index:"..index);	
 
-c:waitforhangup();
+l:loginfo("running 2");
+res, index = iw.waitforevent(c);
+if (index == nil) then index = -1; end;
+l:loginfo("2. res:"..res.." index:"..index);	
+
+l:loginfo("running 3");
+res, index = iw.waitforevent{actors="fff"};
+if (index == nil) then index = -1; end;
+l:loginfo("3. res:"..res.." index:"..index);	
+
+l:loginfo("running 4");
+res, index = iw.waitforevent{actors={}};
+if (index == nil) then index = -1; end;
+l:loginfo("4. res:"..res.." index:"..index);	
+
+
 
 l:loginfo("=== END ===");						
 

@@ -27,7 +27,7 @@ using namespace std;
 
 namespace ivrworx
 {
-	typedef map<int,LpHandlePtr> EventListenersMap;
+	typedef list<LpHandlePtr> EventListenersMap;
 
 	class IW_CORE_API ActiveObject: 
 		public boost::noncopyable
@@ -42,7 +42,9 @@ namespace ivrworx
 
 		virtual void UponActiveObjectEvent(IN IwMessagePtr ptr);
 
-		virtual void SetEventListener(IN int ccu_msg_id, IN LpHandlePtr listener_handle);
+		virtual void AddEventListener(IN LpHandlePtr listener_handle);
+
+		virtual void RemoveEventListener(IN LpHandlePtr listener_handle);
 
 		virtual ~ActiveObject(void);
 
@@ -61,6 +63,8 @@ namespace ivrworx
 		friend class ProcEventListener;
 	};
 
+	typedef shared_ptr<ActiveObject> 
+	ActiveObjectPtr;
 
 	class ProcEventListener:
 		public LightweightProcess

@@ -74,13 +74,10 @@ BOOL GetLunaUserData(lua_State *L, int tableIndex, T **value, char *name)
 
 	}
 	
-	
+	userdataType *ut_mf = static_cast<userdataType*>(lua_touserdata(L,-1));
 
-	Luna<T>::userdataType *ut_mf = static_cast<Luna<T>::userdataType*>(lua_touserdata(L,-1));
-
-	*value = ut_mf->pT;
+	*value = static_cast<T*>(ut_mf->pT);
 	return TRUE;
-
 
 }
 

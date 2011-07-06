@@ -166,6 +166,8 @@ namespace ivrworx
 				}; 
 			case MSG_PROC_SHUTDOWN_REQ:
 				{ 
+					shutdown_flag = TRUE;
+					SendResponse(msg,new MsgShutdownAck());
 					break; 
 				}; 
 			default:

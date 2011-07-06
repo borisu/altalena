@@ -19,10 +19,12 @@
 
 #pragma once
 #include "Luna.h"
+#include "LuaObject.h"
 
 namespace ivrworx
 {
-	class rtpproxy
+	class rtpproxy: 
+		public luaobject
 	{
 	public:
 		rtpproxy(lua_State *L);

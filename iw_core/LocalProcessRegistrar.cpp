@@ -2,12 +2,31 @@
 #include "LocalProcessRegistrar.h"
 #include "Logger.h"
 #include "IwBase.h"
+#include "LightweightProcess.h"
 
 using namespace boost;
 
 namespace ivrworx
 {
 
+class ProcShutemAll: 
+	public LightweightProcess
+{
+public:
+	ProcShutemAll(): LightweightProcess(HANDLE_PAIR, "ProcShutemAll")
+	{
+		FUNCTRACKER;
+		
+	};
+
+	void real_run()
+	{
+		FUNCTRACKER;
+		LocalProcessRegistrar::Instance().doUnReliableShutdownAll();
+
+	}
+
+};
 
 
 LocalProcessRegistrar *
@@ -52,28 +71,54 @@ LocalProcessRegistrar::Instance()
 	mutex::scoped_lock lock(_instanceMutex);
 
 	if (_instance == NULL)
-	{
 		_instance = new LocalProcessRegistrar();
-	}
 
 	return *_instance;
 
+}
+
+void 
+LocalProcessRegistrar::doUnReliableShutdownAll()
+{
+	FUNCTRACKER;
+	mutex::scoped_lock lock(_instanceMutex);
+	for (LocalProcessesMap::iterator i = _locProcessesMap.begin();
+		i != _locProcessesMap.end();
+		i++)
+	{
+		LpHandlePtr h =(*i).second; 
+		h->PoisonedForWrite();
+
+		if (h && !(h->PoisonedForWrite()))
+			h->Send(new MsgShutdownReq()) ;
+	}
+
+}
+
+
+void 
+LocalProcessRegistrar::UnReliableShutdownAll()
+{
+	FUNCTRACKER;
+	{
+		ScopedForking f;
+		ProcShutemAll *proc = new ProcShutemAll();
+		f.fork(proc);
+	}
 }
 
 void
 LocalProcessRegistrar::RegisterChannel(IN int handle_id, IN LpHandlePtr ptr, IN const string& service_id)
 {
 	
+	FUNCTRACKER;
 	if (handle_id == IW_UNDEFINED)
-	{
 		return;
-	}
 	
-	mutex::scoped_lock lock(_mutex);
+	mutex::scoped_lock lock(_instanceMutex);
 	if ( _locProcessesMap.find(handle_id) != _locProcessesMap.end())
-	{
 		throw critical_exception("trying to register the same process twice");
-	}
+
 
 	_locProcessesMap[handle_id] = ptr;
 	_servicesMap[handle_id] = service_id;
@@ -86,12 +131,12 @@ LocalProcessRegistrar::RegisterChannel(IN int handle_id, IN LpHandlePtr ptr, IN 
 void
 LocalProcessRegistrar::UnregisterChannel(IN int handle_id)
 {
-	if (handle_id == IW_UNDEFINED)
-	{
-		return;
-	}
 	
-	mutex::scoped_lock lock(_mutex);
+	FUNCTRACKER;
+	if (handle_id == IW_UNDEFINED)
+		return;
+	
+	mutex::scoped_lock lock(_instanceMutex);
 	if (_locProcessesMap.find(handle_id) == _locProcessesMap.end())
 	{
 		return;
@@ -127,14 +172,13 @@ LpHandlePtr
 LocalProcessRegistrar::GetHandle(IN int procId)
 {
 	return GetHandle(procId,"");
-
 }
 
 void
 LocalProcessRegistrar::AddShutdownListener(IN int procId, IN LpHandlePtr channel)
 {
 	
-	mutex::scoped_lock lock(_mutex);
+	mutex::scoped_lock lock(_instanceMutex);
 
 	//
 	// Create new list if needed.
@@ -152,16 +196,13 @@ LocalProcessRegistrar::AddShutdownListener(IN int procId, IN LpHandlePtr channel
 LpHandlePtr
 LocalProcessRegistrar::GetHandle(IN int procId, IN const string &qpath)
 {
-	mutex::scoped_lock lock(_mutex);
+	mutex::scoped_lock lock(_instanceMutex);
 
 	LocalProcessesMap::iterator i = 
 		_locProcessesMap.find(procId);
 
 	if (i != _locProcessesMap.end())
-	{
 		return (*i).second;
-	}
-
 	
 	return IW_NULL_HANDLE;
 	
@@ -171,7 +212,7 @@ LocalProcessRegistrar::GetHandle(IN int procId, IN const string &qpath)
 LpHandlePtr
 LocalProcessRegistrar::GetHandle( IN const string &regex)
 {
-	mutex::scoped_lock lock(_mutex);
+	mutex::scoped_lock lock(_instanceMutex);
 
 	boost::regex e(regex);
 
