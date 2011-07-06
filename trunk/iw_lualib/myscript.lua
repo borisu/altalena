@@ -7,8 +7,9 @@ l:loginfo("=== START ===");
 c = sipcall:new();
 
 l:loginfo("running 5");
-iw.waitforevent{actors={c}, timeout=15};
+res, index = iw.waitforevent{actors={c}, timeout=15};
 if (index == nil) then index = -1; end;
+if (res == nil) then res = -1; end;
 l:loginfo("5. res:"..res.." index:"..index);	
 
 l:loginfo("running 1");

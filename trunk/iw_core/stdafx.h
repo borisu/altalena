@@ -40,7 +40,7 @@
 #include "json_spirit.h"
 #include "CmdLine.h"
 #include "cppcsp.h"
-#include "google/protobuf/message.h"
+
 
 
 #pragma warning( pop )
