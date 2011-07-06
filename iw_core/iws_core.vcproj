@@ -24,7 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="protoc.exe --cpp_out=. core.proto"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
