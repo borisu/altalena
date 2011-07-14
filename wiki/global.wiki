@@ -1,0 +1,21 @@
+<wiki:toc max_depth="3" />
+
+= Introduction =
+
+global api
+
+== `:sleep(timeout)` ==
+
+sleeps timeout milliseconds. It is important to use this API instead of os sleep, as it does not block active objects events.
+
+== `:waitforobjects(string)` ==
+
+logs WARN level message
+
+== `:logcrit(string)` ==
+
+logs CRIT level message
+
+== `:logdebug(string)` ==
+
+logs DEBUG level message
