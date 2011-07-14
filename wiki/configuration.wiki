@@ -8,12 +8,8 @@ it always supplied as global ivrworx member after initialization.
 
 {{{
 require "ivrworx"
-iw=ivrworx
 
---
--- Init ivrworx infrastructure
---
-iw.init("c:\ivrwox.json")
+
 conf = assert(iw.CONF)
 
 }}}
