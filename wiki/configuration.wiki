@@ -1,13 +1,49 @@
-#summary One-sentence summary of this page.
+<wiki:toc max_depth="3" />
 
 = Introduction =
 
-Add your content here.
+ConfBridge is the object representing current ivrworx configuration.
+
+it always supplied as global ivrworx member after initialization.
+
+{{{
+require "ivrworx"
+iw=ivrworx
+
+--
+-- Init ivrworx infrastructure
+--
+iw.init("c:\ivrwox.json")
+conf = assert(iw.CONF)
+
+}}}
+
+You may access underlying configuration in a hierarchical manner, by using slashes notations. This is only works for object JSON type as parent . For example for following configuration file:-
+{{{
+{
+	
+    "sqlite" : {
+	"uri" : "sql,sqlite"
+    }
+}
+}}}
+
+you may access the property by 
+*`ivrworx.CONF.getstring("sqlite/uri")`*
 
 
-= Details =
+== `:getstring(string)` ==
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+gets string value from configuration object
+
+== `:getboolean(string)` ==
+
+gets boolean value from configuration object
+
+== `:getint(string)` ==
+
+gets  int value from configuration object
+
+== `:getarray(string)` ==
+
+gets  int value from configuration object
