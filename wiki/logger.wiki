@@ -2,7 +2,7 @@
 
 = Introduction =
 
-LoggerBridge is the object representing current ivrworx logging infrastructure. It is always supplied as global ivrworx member after initialization.
+iw.LOGGER is the object representing current ivrworx logging infrastructure. It is always supplied as global ivrworx member after initialization.
 
 {{{
 require "ivrworx"
