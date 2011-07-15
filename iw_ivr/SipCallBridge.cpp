@@ -49,6 +49,7 @@ Luna<sipcall>::RegType sipcall::methods[] = {
 	method(sipcall, waitfornotify),
 	method(sipcall, cleannotifybuffer),
 	method(sipcall, cleaninfobuffer),
+	method(sipcall, dtmfbuffer),
 	{0,0}
 };
 
@@ -133,6 +134,21 @@ sipcall::accept(lua_State *L)
 	return 1;
 
 
+}
+
+int
+sipcall::dtmfbuffer(lua_State *L)
+{
+	FUNCTRACKER;
+
+	if (!_call)
+	{
+		lua_pushnumber (L, API_WRONG_STATE);
+		return 1;
+	}
+
+	lua_pushstring(L, _call->DtmfBuffer().c_str());
+	return 1;
 }
 
 

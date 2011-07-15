@@ -33,6 +33,7 @@ namespace ivrworx
 		method(rtpproxy, remoteoffer),
 		method(rtpproxy, waitfordtmf),
 		method(rtpproxy, cleandtmfbuffer),
+		method(rtpproxy, dtmfbuffer),
 		{0,0}
 	};
 
@@ -66,6 +67,21 @@ namespace ivrworx
 
 		return 1;
 
+	}
+
+	int
+	rtpproxy::dtmfbuffer(lua_State *L)
+	{
+		FUNCTRACKER;
+
+		if (!_rtpProxySession)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		lua_pushstring(L, _rtpProxySession->DtmfBuffer().c_str());
+		return 1;
 	}
 
 
@@ -141,7 +157,10 @@ namespace ivrworx
 			return 1;
 		}
 
-		ApiErrorCode res  = _rtpProxySession->Bridge(*(other->_rtpProxySession));
+		string duplex;
+		GetTableStringParam(L,-1,duplex, "duplex","half");
+	
+		ApiErrorCode res  = _rtpProxySession->Bridge(*(other->_rtpProxySession),(duplex == "full"));
 		lua_pushnumber (L, res);
 
 		return 1;
@@ -162,6 +181,15 @@ namespace ivrworx
 		return 1;
 
 	}
+
+	ActiveObjectPtr 
+	rtpproxy::get_active_object()
+	{
+
+		return dynamic_pointer_cast <ActiveObject>(_rtpProxySession);
+
+	}
+
 
 	int 
 	rtpproxy::modify(lua_State *L)

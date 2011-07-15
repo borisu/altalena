@@ -212,39 +212,39 @@ namespace ivrworx
 			
 			switch (lua_type(L,-1))
 			{
-				case LUA_TUSERDATA:
+			case LUA_TUSERDATA:
+				{
+					userdataType *x = (userdataType *)lua_touserdata(L,-1);
+					luaobject *lo = x->lo;
+
+					if (lo->get_active_object())
 					{
-						userdataType *x = (userdataType *)lua_touserdata(L,-1);
-						luaobject *lo = x->lo;
+						
+						ao_slot slot;
+						slot.h  = LpHandlePtr(new LpHandle());
+						slot.ao = lo->get_active_object();
+						slot.param_index = curr_param_index;
 
-						if (lo->get_active_object())
-						{
-							
-							ao_slot slot;
-							slot.h  = LpHandlePtr(new LpHandle());
-							slot.ao = lo->get_active_object();
-							slot.param_index = curr_param_index;
+						handle_map[slot.h->GetObjectUid()] = slot;
+						hv.push_back(slot.h);
 
-							handle_map[slot.h->GetObjectUid()] = slot;
-							hv.push_back(slot.h);
+						lo->get_active_object()->AddEventListener(slot.h);
 
-							lo->get_active_object()->AddEventListener(slot.h);
-
-						}
 					}
-				case LUA_TNUMBER:
-				case LUA_TBOOLEAN:
-				case LUA_TSTRING:
-				case LUA_TNIL:
-				case LUA_TTABLE:
-				case LUA_TFUNCTION:
-				case LUA_TTHREAD:
-				case LUA_TLIGHTUSERDATA:
-				default:{}
+				}
+			case LUA_TNUMBER:
+			case LUA_TBOOLEAN:
+			case LUA_TSTRING:
+			case LUA_TNIL:
+			case LUA_TTABLE:
+			case LUA_TFUNCTION:
+			case LUA_TTHREAD:
+			case LUA_TLIGHTUSERDATA:
+			default:{}
 			}
 			lua_pop(L, 1);
 		}
-
+		
 		// pop the actors table from the stack
 		lua_pop(L,1);
 
@@ -266,10 +266,15 @@ namespace ivrworx
 
 		lua_pushnumber(L,err);
 
+		for (map<HandleId, ao_slot>::iterator iter = handle_map.begin(); iter != handle_map.end(); ++iter)
+		{
+			ao_slot &slot = (*iter).second;
+			slot.ao->RemoveEventListener(slot.h);
+		}
+
 		if (IW_SUCCESS(err))
 		{
 			ao_slot aos = handle_map[hv[selected_index]->GetObjectUid()];
-			aos.ao->RemoveEventListener(aos.h);
 			lua_pushnumber(L,aos.param_index);
 
 		} 

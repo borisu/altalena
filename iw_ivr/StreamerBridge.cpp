@@ -78,7 +78,7 @@ namespace ivrworx
 
 		AbstractOffer offer;
 		BOOL paramres = GetTableStringParam(L,-1,offer.body,"sdp");
-		offer.type = "sdp";
+		offer.type = "application/sdp";
 	
 		RcvDeviceType rcv_type = RCV_DEVICE_NONE;
 		GetTableEnumParam(L,-1,&rcv_type,"rcv");
