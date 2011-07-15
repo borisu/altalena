@@ -9,7 +9,16 @@ global api
 sleeps timeout milliseconds. It is important to use this API instead of os sleep, as it does not block active objects events.
 
 {{{
+require "ivrworx"
+
+local l = assert(iw.LOGGER, "assert:iw.LOGGER")
+
+l:loginfo("=== SCRIPT START ===");
+
 iw.sleep(5000)
+
+l:loginfo("=== SCRIPT END ===");
+
 }}}
 
 == `:waitforobjects()` ==
