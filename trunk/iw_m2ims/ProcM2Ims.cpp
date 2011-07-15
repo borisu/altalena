@@ -676,9 +676,8 @@ namespace ivrworx
 				"s=m2session\r\n"			<<
 				"c=IN IP4 "	<< ::inet_ntoa(_localInAddr) << "\r\n" <<
 				"t=0 0\r\n"	<<
-				"m=audio "  << ctx->stream->session->rtp.loc_port << " RTP/AVP"   << idx << "\r\n"
-				<< "a=rtpmap:" << idx << " " << pt->mime_type
-				<< "\r\n";
+				"m=audio "  << ctx->stream->session->rtp.loc_port << " RTP/AVP "   << idx << "\r\n"
+				<< "a=rtpmap:" << idx << " " << pt->mime_type << "/" <<  pt->clock_rate		<< "\r\n";
 
 		}
 
@@ -1359,6 +1358,8 @@ error:
 				hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);
 				if (hFind == INVALID_HANDLE_VALUE) 
 				{
+					LogDebug("file:" << filename << " not found. Trying relative path...");
+
 					// relative path?
 					filename = _conf->GetString("m2ims/sounds_dir")+ "\\" + req->file_name;
 					hFind = ::FindFirstFileA(filename.c_str(), &FindFileData);
@@ -1403,8 +1404,10 @@ error:
 					return;
 				}
 
+				
 				filename = buffer;
-				LogDebug("StartPlayback:: Play file name:" << filename << ", loop:" << req->loop << ", imsh:" << req->streamer_handle);
+				LogDebug("StartPlayback:: Play file name:" << filename << ", loop:" << req->loop << ", imsh:" << req->streamer_handle 
+					<< ", dst:" << ::inet_ntoa(ctx->stream->session->rtp.rem_addr.sin_addr)<< ":" << ::ntohs(ctx->stream->session->rtp.rem_addr.sin_port));
 
 				
 
