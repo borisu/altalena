@@ -450,6 +450,8 @@ namespace ivrworx
 		virtual void UponDtmfEvt(
 			IN IwMessagePtr ptr);
 
+		virtual string DtmfBuffer();
+
 		virtual int StackCallHandle() const;
 
 	protected:
@@ -481,6 +483,8 @@ namespace ivrworx
 		shared_ptr<MsgMakeCallOk> _answerMsg;
 
 		BOOL _uac;
+
+		stringstream _dtmfBuffer;
 
 	};
 }

@@ -176,6 +176,8 @@ namespace ivrworx
 	{
 		FUNCTRACKER;
 
+		_dtmfBuffer.str("");
+
 		// the trick we are using
 		// to clean the buffer is just replace the handle
 		// with  new one
@@ -216,21 +218,31 @@ namespace ivrworx
 
 	}
 
+	string  
+	RtpProxySession::DtmfBuffer()
+	{
+		return _dtmfBuffer.str().c_str();
+	}
+
 	void 
 	RtpProxySession::UponDtmfEvt(IN IwMessagePtr ptr)
 	{
 		FUNCTRACKER;
 
+		shared_ptr<MsgRtpProxyDtmfEvt> dtmf_evt = 
+			dynamic_pointer_cast<MsgRtpProxyDtmfEvt> (ptr);
+
+		_dtmfBuffer << dtmf_evt->signal;
 		// just proxy the event
 		_dtmfChannel->Send(ptr);
 	}
 
 	ApiErrorCode 
-	RtpProxySession::Bridge(IN const RtpProxySession &dest)
+	RtpProxySession::Bridge(IN const RtpProxySession &dest, BOOL fullDuplex)
 	{
 		FUNCTRACKER;
 
-		LogDebug("RtpProxySession::Bridge src:" << _handle << ", dst:" << dest._handle);
+		LogDebug("RtpProxySession::Bridge src:" << _handle << ", dst:" << dest._handle << ", fullduplex:" << fullDuplex);
 
 		if (_handle == IW_UNDEFINED)
 		{
@@ -244,6 +256,7 @@ namespace ivrworx
 		MsgRtpProxyBridgeReq *msg = new MsgRtpProxyBridgeReq();
 		msg->output_conn = dest._handle;
 		msg->rtp_proxy_handle = _handle;
+		msg->full_duplex = fullDuplex;
 
 
 		IwMessagePtr response = NULL_MSG;

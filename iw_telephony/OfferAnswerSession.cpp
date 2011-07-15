@@ -397,10 +397,22 @@ GenericOfferAnswerSession::~GenericOfferAnswerSession(void)
 
 }
 
+string 
+GenericOfferAnswerSession::DtmfBuffer()
+{
+	return _dtmfBuffer.str();
+
+}
+
 void 
 GenericOfferAnswerSession::UponDtmfEvt(IwMessagePtr ptr)
 {
 	FUNCTRACKER;
+
+	shared_ptr<MsgCallDtmfEvt> dtmf_evt = 
+		dynamic_pointer_cast<MsgCallDtmfEvt> (ptr);
+
+	_dtmfBuffer << dtmf_evt->signal;
 
 	// just proxy the event
 	_dtmfChannel->Send(ptr);
@@ -411,6 +423,8 @@ void
 GenericOfferAnswerSession::CleanDtmfBuffer()
 {
 	FUNCTRACKER;
+
+	_dtmfBuffer.str("");
 
 	// the trick we are using
 	// to clean the buffer is just replace the handle
