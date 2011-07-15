@@ -1,8 +1,6 @@
 <wiki:toc max_depth="3" />
 
-rtpproxy session. Currently only half duplex mode is supported.
-
-We are working on DTMF detection - stay tuned!!!
+rtpproxy session - brdiges RTP traffic. Also detects rfc2833 dtmf see waitforevent example.
 
 
 == `:new(...)` ==
@@ -28,6 +26,7 @@ bridges the rtp streams
 
 || *named parameter* || *description* ||
 || other || other connection object to half duplex ||
+|| duplex (1.0.10)|| half | full  ||
 
 
 == `:teardown(...)` ==
