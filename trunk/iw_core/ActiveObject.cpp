@@ -93,7 +93,11 @@ namespace ivrworx
 		for( EventListenersMap::iterator iter = _listenersMap.begin(); iter != _listenersMap.end(); iter++)
 		{
 			if ((*iter)->GetObjectUid() == listener_handle->GetObjectUid())
-				_listenersMap.erase(iter);
+			{
+				iter = _listenersMap.erase(iter);
+				if (iter == _listenersMap.end())
+					break;
+			}
 		}
 	}
 

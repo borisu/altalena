@@ -78,6 +78,8 @@ namespace ivrworx
 
 	mutex		g_loggerMutex;
 
+	
+
 	HANDLE		g_queueSemaphore = NULL;
 
 	HANDLE		g_IocpLogger	= NULL;
@@ -91,6 +93,8 @@ namespace ivrworx
 	char g_filename[IW_MAX_FILE_NAME];
 	BOOL g_override = TRUE;
 	FILE *g_file	= NULL;
+
+	char	g_hostname[IW_MAX_FILE_NAME];
 
 // 	__declspec( thread ) debug_dostream *tls_logger = NULL;
 // 
@@ -229,6 +233,10 @@ namespace ivrworx
 	InitLog(ConfigurationPtr conf)
 	{
 		mutex::scoped_lock scoped_lock(g_loggerMutex);
+
+		int res = ::gethostname(g_hostname,1024);
+		if (res != 0)
+			g_hostname[0] = '\0';
 
 		SetLogLevelFromString(conf->GetString("debug_level"));
 		SetLogMaskFromString(conf->GetString("debug_outputs"));
@@ -697,7 +705,18 @@ error:
 
 		if ((g_logMask & IW_LOG_MASK_FILE) && g_file)	
 		{ 
-			int n = ::fprintf(g_file,"%s",formatted_log_str); 
+			SYSTEMTIME st, lt;
+
+			GetSystemTime(&st);
+			GetLocalTime(&lt);
+
+			char buf[1024];
+			sprintf_s(buf,"%02d/%02d/%02d %02d:%02d:%02d,%04d %s",
+				st.wYear, st.wMonth, st.wDay,
+				st.wHour, st.wMinute, st.wSecond,st.wMilliseconds,g_hostname );
+
+
+			int n = ::fprintf(g_file,"%s %s", buf, formatted_log_str); 
 			::fflush(g_file);
 			if (n <= 0)
 			{
