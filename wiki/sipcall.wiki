@@ -66,15 +66,16 @@ returns raw local offer
 == `:waitfordtmf(...)` ==
 
 || *named parameter* || *description* ||
-|| timeout || timeout to wait for next DTMF signal ||
+|| timeout || timeout to wait for next DTMF/INFO signal ||
 
 
 == `:gatherdigits(...)` ==
 
 wrapper method 
 || *named parameter* || *description* ||
-|| timeout || timeout to wait for next DTMF signal ||
+|| timeout || timeout to wait for next DTMF/INFO signal ||
 || pattern || lua pattern to match for all gathered digits ||
+
 
 === example 1 - Gathering digits===
 {{{
@@ -100,9 +101,13 @@ res, dtmf = caller:gatherdigits{pattern="%d#", timeout=15}
 l:loginfo(res.."=res".."signal="..dtmf)
 }}}
 
+== `:dtmfbuffer(...)` ==
+
+return dtmf/INFO buffer
+
 == `:cleandtmfbuffer(...)` ==
 
-cleans dtmf buffer 
+cleans dtmf/INFO buffer 
 
 == `:ani(...)` ==
 
