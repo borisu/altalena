@@ -95,9 +95,11 @@ namespace ivrworx
 	public:
 		MsgRtpProxyBridgeReq():
 		  MsgRequest(MSG_RTP_PROXY_BRIDGE_REQ, 
-			  NAME(MSG_RTP_PROXY_BRIDGE_REQ)),output_conn(IW_UNDEFINED){};
+			  NAME(MSG_RTP_PROXY_BRIDGE_REQ)),output_conn(IW_UNDEFINED),full_duplex(FALSE){};
 
 		RtpProxyHandle output_conn;
+
+		BOOL full_duplex;
 	};
 
 
@@ -147,7 +149,7 @@ namespace ivrworx
 
 		virtual ApiErrorCode Modify(const AbstractOffer &remoteOffer);
 
-		virtual ApiErrorCode Bridge(IN const RtpProxySession &dest);
+		virtual ApiErrorCode Bridge(IN const RtpProxySession &dest, BOOL fullDuplex = FALSE);
 
 		virtual AbstractOffer LocalOffer();
 
@@ -162,6 +164,8 @@ namespace ivrworx
 		virtual ApiErrorCode WaitForDtmf(
 			OUT string &signal, 
 			IN const Time timeout);
+
+		virtual string DtmfBuffer();
 
 		virtual void UponActiveObjectEvent(IwMessagePtr ptr);
 
@@ -180,6 +184,9 @@ namespace ivrworx
 		LpHandlePtr _dtmfChannel;
 
 		LpHandlePair _handlerPair;
+
+		stringstream _dtmfBuffer;
+
 
 	};
 
