@@ -22,6 +22,6 @@
 class luaobject
 {
 public:
-	virtual shared_ptr<ActiveObject> get_active_object() { return shared_ptr<ActiveObject>();};
+	virtual ActiveObjectPtr get_active_object() { return ActiveObjectPtr();};
 
 };

@@ -42,6 +42,9 @@ namespace ivrworx
 
 		int waitfordtmf(lua_State *L);
 		int cleandtmfbuffer(lua_State *L);
+		int dtmfbuffer(lua_State *L);
+
+		ActiveObjectPtr get_active_object();
 		
 
 		static const char className[];
@@ -50,6 +53,8 @@ namespace ivrworx
 		private:
 
 		RtpProxySessionPtr _rtpProxySession;
+
+	
 
 	};
 

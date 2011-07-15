@@ -40,6 +40,7 @@ namespace ivrworx
 
 		int answer(lua_State *L);
 		int cleandtmfbuffer(lua_State *L);
+		int dtmfbuffer(lua_State *L);
 		int waitfordtmf(lua_State *L);
 		int waitforhangup(lua_State *L);
 		int ani(lua_State *L);
