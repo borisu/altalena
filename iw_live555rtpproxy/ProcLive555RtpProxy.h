@@ -29,10 +29,11 @@ namespace ivrworx
 {
 	enum CONNECTION_STATE
 	{
-		CONNECTION_STATE_AVAILABLE,
-		CONNECTION_STATE_ALLOCATED,
-		CONNECTION_STATE_INPUT,
-		CONNECTION_STATE_OUTPUT
+		CONNECTION_STATE_AVAILABLE     = 0x00,
+		CONNECTION_STATE_ALLOCATED     = 0x01,
+		CONNECTION_STATE_INPUT		   = 0x03,
+		CONNECTION_STATE_OUTPUT		   = 0x05,
+		CONNECTION_STATE_FULLDUPLEX    = 0x07,
 	};
 
 	struct IwSimpleRTPSource :
@@ -64,6 +65,8 @@ namespace ivrworx
 		unsigned _lastTimestamp;
 
 		LpHandlePtr handler;
+
+		BOOL _packetLogged;
 
 	};
 
@@ -135,10 +138,16 @@ namespace ivrworx
 	private:
 
 		ApiErrorCode
-		Bridge(RtpConnectionPtr src, RtpConnectionPtr dst);
+		Bridge(RtpConnectionPtr src, RtpConnectionPtr dst, BOOL fullDuplex);
+
+		ApiErrorCode
+		DoBridge(RtpConnectionPtr src, RtpConnectionPtr dst);
 		
 		ApiErrorCode 
 		Unbridge(RtpConnectionPtr msg);
+
+		ApiErrorCode 
+		DoUnbridge(RtpConnectionPtr src, RtpConnectionPtr dst);
 
 		ConfigurationPtr _conf;
 

@@ -29,7 +29,7 @@ namespace ivrworx
 
 RtpConnection::RtpConnection()
 :connection_id(NULL),
-state(CONNECTION_STATE_AVAILABLE),
+state(CONNECTION_STATE_ALLOCATED),
 source(NULL),
 sink(NULL),
 rtcp_instance(NULL)
@@ -123,6 +123,13 @@ IwSimpleRTPSource::processUnknownPayload(BufferedPacket* packet)
 	if (!handler)
 		return False;
 
+	if (!_packetLogged )
+	{
+		_packetLogged = TRUE;
+		LogDebug("IwSimpleRTPSource::processUnknownPayload received RTP timestamp:" << packet->RTPTimestamp() << ", ssrc: 0x" << hex << SSRC());
+
+	}
+
 	unsigned char payload = packet->header()[1];
 
 	if (payload == dtmf_format.sdp_mapping() && 
@@ -139,7 +146,21 @@ IwSimpleRTPSource::processUnknownPayload(BufferedPacket* packet)
 			MsgRtpProxyDtmfEvt *evt = new MsgRtpProxyDtmfEvt();
 			char buffer[32];
 			buffer[0] = '\0';
-			evt->signal = ::itoa(event_field,buffer,10);
+
+			switch (event_field)
+			{
+				case 10: evt->signal = "*"; break;
+				case 11: evt->signal = "#"; break;
+				case 12: evt->signal = "A"; break;
+				case 13: evt->signal = "B"; break;
+				case 14: evt->signal = "C"; break;
+				case 15: evt->signal = "D"; break;
+				case 16: evt->signal = "E"; break;
+				case 17: evt->signal = "F"; break;
+				default:
+					evt->signal = ::itoa(event_field,buffer,10);
+			}
+				
 			handler->Send(evt);
 
 		}
@@ -161,7 +182,8 @@ IwSimpleRTPSource::IwSimpleRTPSource(UsageEnvironment& env,
 		rtpTimestampFrequency,
 		mimeTypeString, 
 		offset,
-		doNormalMBitRule)
+		doNormalMBitRule),
+		_packetLogged(FALSE)
 {
 	_lastTimestamp = 0;
 }
@@ -406,7 +428,7 @@ ProcLive555RtpProxy::UponAllocateReq(IwMessagePtr msg)
 	
 	LogDebug("ProcLive555RtpProxy::UponAllocateReq allocated rtph:" << candidate->connection_id );
 
-	if (IW_FAILURE(Bridge(candidate, RtpConnectionPtr())))
+	if (IW_FAILURE(Bridge(candidate, RtpConnectionPtr(),FALSE)))
 	{
 		delete ack;
 		SendResponse(req, new MsgRtpProxyNack());
@@ -530,7 +552,28 @@ ProcLive555RtpProxy::UponModifyReq(IwMessagePtr msg)
 	SendResponse(req, new MsgRtpProxyAck());
 
 }
+ApiErrorCode
+ProcLive555RtpProxy::DoUnbridge(RtpConnectionPtr src, RtpConnectionPtr dst)
+{
+	FUNCTRACKER;
 
+	if (src && src->source)
+	{
+		src->source->stopGettingFrames();
+		src->state = (CONNECTION_STATE) (src->state & (!CONNECTION_STATE_INPUT));
+		src->destination_conn = RtpConnectionPtr();
+	}
+
+	if (dst && dst->sink)
+	{
+		dst->sink->stopPlaying();
+		dst->state = (CONNECTION_STATE) (dst->state & (!CONNECTION_STATE_OUTPUT));
+		dst->source_conn = RtpConnectionPtr();
+	}
+
+	return API_SUCCESS;
+
+}
 
 ApiErrorCode
 ProcLive555RtpProxy::Unbridge(RtpConnectionPtr conn)
@@ -554,55 +597,68 @@ ProcLive555RtpProxy::Unbridge(RtpConnectionPtr conn)
 		}
 	case CONNECTION_STATE_INPUT:
 		{
-			source_conn = conn;
-			dest_conn = conn->destination_conn;
+			DoUnbridge(conn,conn->destination_conn);
 			break;
 		}
 	case CONNECTION_STATE_OUTPUT:
 		{
-			source_conn = conn->source_conn;
-			dest_conn = conn;
+			DoUnbridge(conn->destination_conn,conn);
+			break;
+		}
+
+	case CONNECTION_STATE_FULLDUPLEX:
+		{
+			DoUnbridge(conn,conn->destination_conn);
+			DoUnbridge(conn->destination_conn,conn);
 			break;
 		}
 	}
 
-	source_conn->source->stopGettingFrames();
-	source_conn->state = CONNECTION_STATE_ALLOCATED;
-	source_conn->destination_conn = RtpConnectionPtr();
-
-	dest_conn->sink->stopPlaying();
-	dest_conn->state = CONNECTION_STATE_ALLOCATED;
-	dest_conn->source_conn = RtpConnectionPtr();
-
 	return API_SUCCESS;
 
 }
-
 ApiErrorCode
-ProcLive555RtpProxy::Bridge(RtpConnectionPtr src, RtpConnectionPtr destination_connection)
-{
-	RtpConnectionPtr source_connection = src;
+ProcLive555RtpProxy::Bridge(RtpConnectionPtr source_connection, RtpConnectionPtr destination_connection, BOOL fullDuplex)
+{	
 	Unbridge(source_connection);
 
-
-	BOOL using_dummy_sink = FALSE;
 	// Find destination
 	if (destination_connection) 
-	{
 		Unbridge(destination_connection);
-	} 
-	else
+
+	ApiErrorCode res = DoBridge(source_connection,destination_connection);
+	if (IW_FAILURE(res)) 
+		return res;
+
+	if (fullDuplex && destination_connection)
+		res = DoBridge(destination_connection,source_connection);
+
+	if (IW_FAILURE(res))
+		Unbridge(source_connection);
+	
+	return res;
+
+}
+
+
+ApiErrorCode
+ProcLive555RtpProxy::DoBridge(RtpConnectionPtr src, RtpConnectionPtr destination_connection)
+{
+	
+	RtpConnectionPtr source_connection = src;
+	
+	BOOL using_dummy_sink = FALSE;
+	// Find destination
+	if (!destination_connection) 
 	{
 		using_dummy_sink = TRUE;
 		destination_connection = RtpConnectionPtr(new RtpConnection());
 	}
-	
-	
 
 	//
 	// source
 	//
-	IwSimpleRTPSource *rtp_source		      = source_connection->source;
+	IwSimpleRTPSource *rtp_source		  = source_connection->source;
 	RTCPInstance    *source_rtcp_instance = source_connection->rtcp_instance;
 
 	MediaSink		*rtp_sink			  = destination_connection->sink;
@@ -703,12 +759,12 @@ ProcLive555RtpProxy::Bridge(RtpConnectionPtr src, RtpConnectionPtr destination_c
 			} // rtcp creation
 		}// non dummy sink
 
-		source_connection->state			= CONNECTION_STATE_INPUT;
+		source_connection->state			= (CONNECTION_STATE) (source_connection->state | CONNECTION_STATE_INPUT);
 		source_connection->source			= rtp_source;
 		source_connection->destination_conn = destination_connection;
 		source_connection->rtcp_instance	= source_rtcp_instance;
 
-		destination_connection->state			= CONNECTION_STATE_OUTPUT;
+		destination_connection->state			= (CONNECTION_STATE)( destination_connection->state |CONNECTION_STATE_OUTPUT);
 		destination_connection->sink			= rtp_sink;
 		destination_connection->source_conn		= source_connection;
 		destination_connection->rtcp_instance	= sink_rtcp_instance;
@@ -718,14 +774,13 @@ ProcLive555RtpProxy::Bridge(RtpConnectionPtr src, RtpConnectionPtr destination_c
 			LogWarn("ProcLive555RtpProxy::UponBridgeReq error: startPlaying");
 			goto error;
 		}
-
-		LogDebug(
-			source_connection->remote_cnx_ino << " -> " <<
-			source_connection->local_cnx_ino  << 
-			" (rtph:" << source_connection->connection_id << ") ==> (" <<
-			"rtph:" << destination_connection->connection_id << ") " <<
-			destination_connection->local_cnx_ino << " ->" <<
-			destination_connection->remote_cnx_ino );
+		LogDebug( 
+			    source_connection->remote_cnx_ino << " -> " << source_connection->local_cnx_ino  
+			<< " (rtph:" << source_connection->connection_id << "," << source_connection->state 
+			<< ") ==> (" 
+			<<	"rtph:" << destination_connection->connection_id << "," << destination_connection->state << ")" 
+			<< destination_connection->local_cnx_ino << " ->" 
+			<< destination_connection->remote_cnx_ino );
 
 	}
 	;
@@ -807,7 +862,7 @@ ProcLive555RtpProxy::UponBridgeReq(IwMessagePtr msg)
 		return;
 	}
 
-	if (IW_FAILURE(Bridge(source_connection, destination_connection)))
+	if (IW_FAILURE(Bridge(source_connection, destination_connection,bridge_req->full_duplex)))
 	{
 		SendResponse(bridge_req, new MsgRtpProxyNack());
 		return;
