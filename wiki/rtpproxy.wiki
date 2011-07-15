@@ -86,6 +86,11 @@ r2:modify{sdp=caller2:remoteoffer()}
 --
 r1:bridge{other=r2}
 
+--
+-- full duplex the calls
+--
+-- r1:bridge{other=r2 , duplex="full"}
+
 caller1:waitforhangup();
 caller2:hangup();
 
