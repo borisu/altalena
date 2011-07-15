@@ -92,6 +92,10 @@ int LUA_API init(lua_State *L)
 		{
 			cerr << "init:g_conf file is NULL using conf.json" << endl;
 			conffile = "conf.json";
+		} else
+		{
+			cout << "loading " << conffile << "..." << endl;
+
 		}
  
  		ApiErrorCode err_code = API_SUCCESS;
