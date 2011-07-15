@@ -1,6 +1,6 @@
 <wiki:toc max_depth="3" />
 
-rtpproxy session - brdiges RTP traffic. Also detects rfc2833 dtmf see waitforevent example.
+rtpproxy session - brdiges RTP traffic. Also detects rfc2833 dtmf see waitforevent in global example for more info.
 
 
 == `:new(...)` ==
@@ -8,7 +8,7 @@ _ctor_
 creates rtpproxyobject
 
 == `:allocate(...)` ==
-allocates rtp connenction
+allocates rtp connection
 
 || *named parameter* || *description* ||
 || sdp || remote side offer (this is used to build local offer) ||
@@ -32,6 +32,19 @@ bridges the rtp streams
 == `:teardown(...)` ==
 deallocates the connection 
 
+
+== `:dtmfbuffer==
+returns dtmf buffer
+
+== `:cleanbuffer==
+cleans dtmf buffer
+
+== `:waitfordtmf==
+
+|| *named parameter* || *description* ||
+|| timeout || timeout||
+
+return result and dtmf 
 
 === example: Bridging two calls ===
 {{{
