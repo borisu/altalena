@@ -33,13 +33,13 @@ bridges the rtp streams
 deallocates the connection 
 
 
-== `:dtmfbuffer==
+== `:dtmfbuffer(...)` ==
 returns dtmf buffer
 
-== `:cleanbuffer==
+== `:cleanbuffer(...)`==
 cleans dtmf buffer
 
-== `:waitfordtmf==
+== `:waitfordtmf(...)`==
 
 || *named parameter* || *description* ||
 || timeout || timeout||
