@@ -98,11 +98,3 @@ l:loginfo("=== SCRIPT END ===");
 
 
 }}}
-
-== `:logcrit(string)` ==
-
-logs CRIT level message
-
-== `:logdebug(string)` ==
-
-logs DEBUG level message
