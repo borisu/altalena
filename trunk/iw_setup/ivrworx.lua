@@ -93,12 +93,17 @@ local function getopt(arg, options)
     return opt, optind
 end
 
-local argtable = assert(getopt(arg,"conf"), "assert:no-conf-parse")
-local conffile = assert(argtable.conf,"assert:no-conf")
+
+
+
+if (getopt(arg,"conf") ~= nil) then 
+	conffile = arg.conf
+else
+    conffile = "conf.json"
+end    
+	
 
 success(iw.init(conffile), "assert:iw.init")
-
-iw.LOGGER:loginfo("===ivrworx start===");
 
 function sipcall:gatherdigits(arg)
 	if (arg == nil or arg.pattern == nil) then 

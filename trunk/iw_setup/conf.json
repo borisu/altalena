@@ -22,8 +22,20 @@
 	"__" : "VALUES:", 
 	"__" : "comma separated - debug|console|syslog ",
 	"__" : "DESCRIPTION:",
-	"__" : "debug -> debugview, console->console, syslog -> syslog server",
-	"debug_outputs" : "console",
+	"__" : "debug -> debugview, console->console, syslog->syslog server, file->file",
+	"debug_outputs" : "console,file",
+	
+	"__" : "VALUES:", 
+	"__" : "string",
+	"__" : "DESCRIPTION:",
+	"__" : "log file name to open",
+	"log_file_name" : "iwlog.txt",
+	
+	"__" : "VALUES:", 
+	"__" : "true|false",
+	"__" : "DESCRIPTION:",
+	"__" : "append to existing file or override",
+	"log_override" : true,
 
 	"__" : "VALUES:", 
 	"__" : "ip address",
@@ -86,8 +98,8 @@
 	"__" : "Resiprocate SIP stack  ",
 	"__" : "-----------------------",
 	"resip" :  {
-		"#outbound_proxy" : "sip:192.168.100.242:5080",
-		"resip_log" : "DUM,DBG",
+		"--outbound_proxy" : "sip:192.168.100.242:5080",
+		"resip_log" : "",
 		"uri"	: "sip,resip",
 		"from_id" : "ivrworx",
 		"from_display_name": "ivrworx",
@@ -117,7 +129,8 @@
 		"rtp_proxy_top_port" : 7000,
 		"rtp_proxy_num_of_connections" : 100,
 		"rtp_proxy_ip" : "$COMPUTERNAME",
-		"default_static_payloads":"0 8 18"
+		"default_static_payloads":"0 8 18",
+		"log_first_packet" : true
 	},
 
 
