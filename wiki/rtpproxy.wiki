@@ -82,18 +82,18 @@ caller2:hangup();
 deallocates the connection 
 
 
-== `:dtmfbuffer(...)` ==
+== `:dtmfbuffer(...)` (1.0.10)==
 returns dtmf buffer
 
 == `:cleanbuffer(...)`==
 cleans dtmf buffer
 
-== `:waitfordtmf(...)`==
+== `:waitfordtmf(...)`  (1.0.10)==
 
 || *named parameter* || *description* ||
 || timeout || timeout||
 
-return result and dtmf 
+return result and rfcd2833 dtmf 
 {{{
 require "ivrworx"
 
