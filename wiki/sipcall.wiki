@@ -101,11 +101,11 @@ res, dtmf = caller:gatherdigits{pattern="%d#", timeout=15}
 l:loginfo(res.."=res".."signal="..dtmf)
 }}}
 
-== `:dtmfbuffer(...)` ==
+== `:dtmfbuffer(...)` (1.0.10) ==
 
 return dtmf/INFO buffer
 
-== `:cleandtmfbuffer(...)` ==
+== `:cleandtmfbuffer(...)` (1.0.10) ==
 
 cleans dtmf/INFO buffer 
 
