@@ -25,7 +25,7 @@ You may access underlying configuration in a hierarchical manner, by using slash
 }}}
 
 you may access the property by 
-*`ivrworx.CONF.getstring("sqlite/uri")`*
+*`ivrworx.CONF:getstring("sqlite/uri")`*
 
 
 == `:getstring(string)` ==
