@@ -1,5 +1,5 @@
 require "iw_lualib"
-require "sdphelper"
+--require "sdphelper"
 
 iw=assert(ivrworx)
 
@@ -8,10 +8,10 @@ iw=assert(ivrworx)
 --
 local shutdownproxy = newproxy(true)  -- create proxy object with new metatable
 assert(type(shutdownproxy) == 'userdata')
-getmetatable(shutdownproxy).__gc = function() 
+getmetatable(shutdownproxy).__gc = function()
 		if ((ivrworx ~= nil) and (ivrworx.LOGGER ~= nil)) then
-			ivrworx.LOGGER:loginfo("ivrworx: shutting down ..."); 
-			ivrworx.close(); 
+			ivrworx.LOGGER:loginfo("ivrworx: shutting down ...");
+			ivrworx.close();
 		else
 			print("error loading ivrworx");
 		end
@@ -21,9 +21,9 @@ getmetatable(shutdownproxy).__gc = function()
 -- assrert function has returned iw.API_SUCCESS
 --
 function success(x,y)
-	if (x==nil or type(x) ~= "number" or x ~= iw.API_SUCCESS) then 
+	if (x==nil or type(x) ~= "number" or x ~= iw.API_SUCCESS) then
 		print(y);
-		error(y); 
+		error(y);
 	end;
 	return x;
 end
@@ -94,33 +94,32 @@ local function getopt(arg, options)
 end
 
 
-
-
-if (getopt(arg,"conf") ~= nil) then 
-	conffile = arg.conf
+args = getopt(arg,"conf")
+if (args.conf ~= nil) then
+	conffile = args.conf
 else
     conffile = "conf.json"
-end    
-	
+end
+
 
 success(iw.init(conffile), "assert:iw.init")
 
 function sipcall:gatherdigits(arg)
-	if (arg == nil or arg.pattern == nil) then 
+	if (arg == nil or arg.pattern == nil) then
 		return iw.API_WRONG_PARAMETER, ""
 	end
-	
+
 	local digits = "";
 	local res = iw.API_SUCCESS
 	local pattern = arg.pattern;
-	
+
 	while (string.find(digits, pattern)==nil and res == iw.API_SUCCESS) do
 		res, signal = self:waitfordtmf(arg);
 		digits = digits..signal;
-	end		
-		
-	return res, digits	
- 
+	end
+
+	return res, digits
+
 end
 
 

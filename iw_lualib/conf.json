@@ -130,8 +130,8 @@
 		"rtp_proxy_top_port" : 7000,
 		"rtp_proxy_num_of_connections" : 100,
 		"rtp_proxy_ip" : "$COMPUTERNAME",
-		"default_static_payloads":"0 8 18",
-		"log_first_packet" : true
+		"preferred_rtp_size": 1000,
+		"max_rtp_size" : 1448
 	},
 
 	"m2ims" :  {
