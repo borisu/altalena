@@ -260,7 +260,15 @@ namespace ivrworx
 	int 
 	mrcpsession::teardown(lua_State *L)
 	{
-		return 0;
+		if (!_mrcpSession)
+		{
+			lua_pushnumber (L, API_WRONG_STATE);
+			return 1;
+		}
+
+		_mrcpSession->TearDown();
+		lua_pushnumber (L, API_SUCCESS);
+		return 1;
 
 	}
 
