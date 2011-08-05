@@ -68,13 +68,6 @@ int LUA_API init(lua_State *L)
 
 	GetVersionEx(&osvi);
 
-// 	if ( osvi.dwMajorVersion  < 6)
-// 	{
-// 		cerr << ("The system does not meet the requirements.\n");
-// 		return 1;
-// 	}
-
-
 	if (g_Ctx != NULL)
 	{
 		cerr << "init - cannot initialize the library twice" << endl;
