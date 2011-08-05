@@ -143,16 +143,15 @@ namespace ivrworx
 
 		if (_eventsHandle)
 		{
-			LogWarn("Only one listener suported curently");
-			GetCurrRunningContext()->SendResponse(subscribe_req, 
-				new MsgCallSubscribeNack());
+			LogDebug("Only one subscriber is supported - replacing previous one.");
+// 			GetCurrRunningContext()->SendResponse(subscribe_req, 
+// 				new MsgCallSubscribeNack());
 		}
-		else
-		{
-			_eventsHandle = subscribe_req->listener_handle;
-			GetCurrRunningContext()->SendResponse(subscribe_req, 
-				new MsgCallSubscribeAck());
-		}
+		
+		_eventsHandle = subscribe_req->listener_handle;
+		GetCurrRunningContext()->SendResponse(subscribe_req, 
+			new MsgCallSubscribeAck());
+	
 	
 
 	}
