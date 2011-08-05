@@ -248,29 +248,33 @@ namespace ivrworx
 	JSONConfiguration::InitFromFile(IN const string &filename)
 	{
 		
-		cout << "Dumping Configuration...\n";
-		ifstream is1(filename.c_str());
-		if (is1.is_open())
-		{
-			string line;
-			while ( is1.good() )
-			{
-				getline (is1,line);
-				cout << line << endl;
-
-			}
-			is1.close();
-		} else
-		{
-			cerr << "Error reading json configuration file '" << filename << "'. Check that file exists ans accessible." << endl;
-			return API_FAILURE;
-		}
-
 		ifstream  is(filename.c_str());
 		if (read(is, _rootValue) == false)
 		{
 			cerr << "Error reading json configuration file '" << filename << "'. Check that file exists, accessible and JSON valid." << endl;
 			return API_FAILURE;
+		}
+		is.close();
+
+		if (HasOption("dump_configuration") && GetBool("dump_configuration") == TRUE)
+		{
+			cout << "Dumping Configuration...\n";
+			ifstream is1(filename.c_str());
+			if (is1.is_open())
+			{
+				string line;
+				while ( is1.good() )
+				{
+					getline (is1,line);
+					cout << line << endl;
+
+				}
+				is1.close();
+			} else
+			{
+				cerr << "Error dumping  '" << filename << "'. Check that file exists and accessible." << endl;
+				return API_FAILURE;
+			}
 		}
 
 		return API_SUCCESS;
