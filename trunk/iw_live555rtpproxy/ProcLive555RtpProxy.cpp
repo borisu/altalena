@@ -737,6 +737,10 @@ ProcLive555RtpProxy::DoBridge(RtpConnectionPtr src, RtpConnectionPtr destination
 					LogWarn("ProcLive555RtpProxy::UponBridgeReq - Cannot create sink instance");
 					goto error;
 				}
+
+				((SimpleRTPSink*)rtp_sink)->setPacketSizes(
+					_conf->GetInt("preferred_rtp_size"),
+					_conf->GetInt("max_rtp_size"));
 			}// rtp_sink creation
 
 
