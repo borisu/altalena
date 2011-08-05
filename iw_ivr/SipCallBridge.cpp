@@ -95,9 +95,10 @@ sipcall::accept(lua_State *L)
 	}
 
 	DECLARE_NAMED_HANDLE(listener_handle);
-	if (IW_FAILURE(SubscribeToIncomingCalls(service_handle,listener_handle)))
+	ApiErrorCode res = SubscribeToIncomingCalls(service_handle,listener_handle);
+	if (IW_FAILURE(res))
 	{
-		lua_pushnumber (L, API_FAILURE);
+		lua_pushnumber (L, res);
 		return 1;
 	}
 
@@ -105,11 +106,14 @@ sipcall::accept(lua_State *L)
 	//
 	// Message Loop
 	// 
-	ApiErrorCode res = API_SUCCESS;
+	res = API_SUCCESS;
 	IwMessagePtr msg = listener_handle->Wait(Seconds(timeout),res);
 
 	if (IW_FAILURE(res))
-		return res;
+	{
+		lua_pushnumber (L, res);
+		return 1;
+	}
 
 	switch (msg->message_id)
 	{
