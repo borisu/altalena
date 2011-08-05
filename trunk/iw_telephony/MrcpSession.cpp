@@ -419,7 +419,7 @@ MrcpSession::Allocate(IN MrcpResource rsc,
 
 			_remoteOffers[rsc] = ack->offer;
 
-			LogDebug("MrcpSession::Allocate - Mrcp session allocated successfully, mrcp handle=[" << _mrcpSessionHandle << "]");
+			LogDebug("MrcpSession::Allocate - Mrcp session allocated successfully, rsc:" <<  rsc << ", mrcph:" << _mrcpSessionHandle << ", sdp:" << ack->offer.body);
 
 			break;
 
