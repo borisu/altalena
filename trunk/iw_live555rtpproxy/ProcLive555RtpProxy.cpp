@@ -739,8 +739,8 @@ ProcLive555RtpProxy::DoBridge(RtpConnectionPtr src, RtpConnectionPtr destination
 				}
 
 				((SimpleRTPSink*)rtp_sink)->setPacketSizes(
-					_conf->GetInt("preferred_rtp_size"),
-					_conf->GetInt("max_rtp_size"));
+					_conf->GetInt("live555rtpproxy/preferred_rtp_size"),
+					_conf->GetInt("live555rtpproxy/max_rtp_size"));
 			}// rtp_sink creation
 
 
