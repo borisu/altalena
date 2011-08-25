@@ -1,4 +1,4 @@
-#summary Development Environment Setup Guidelines.
+#summary Development environment setup guidelines.
 
 = Introduction =
 
@@ -76,7 +76,7 @@ cppcsp.h(167) : warning C4005: '_WIN32_WINNT' : macro redefinition
 
 =Start= 
 
-Configuration file is located in '<project root>\iw_run\conf.json'. Test script is located in '<project root>\altalena\iw_run\scripts\test.lua'. Inspect the files and change them accordingly to your environment.
+Configuration file is located in '<project root>\iw_run\conf.json'. Test script is located in '<project root>\altalena\iw_run\scripts\myscript.lua'. Inspect the files and change them accordingly to your environment.
 
 All files needed to run are copied to '<project root>\solutions\altalena_all\<compile configuration>' directory. 
 
