@@ -1,4 +1,5 @@
 <wiki:toc max_depth="3" />
+#summary SIP functionality interface description
 
 Encapsulates SIP call functionality
 
