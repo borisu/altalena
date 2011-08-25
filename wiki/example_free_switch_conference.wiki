@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary example of proxying the calls to freeswitch conference roomo.
 
 = Introduction =
 
