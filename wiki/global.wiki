@@ -22,7 +22,7 @@ l:loginfo("=== SCRIPT END ===");
 
 }}}
 
-== `.dtmfmenu()` (1.0.10)==
+== `.dtmfmenu()`==
 
 wait for events on some object. See example of IVR which playes prompt and plays back caller's dtmfs
 
