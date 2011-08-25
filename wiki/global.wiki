@@ -46,17 +46,16 @@ for complete example see polly the parrot application
 {{{
 
 local f_greeting, f_noresponse, f_stop, f_fail;
-	f_greeting   = function () synth:speak{sentence="Welcome to Polly Application. Please enter your four digits user ID."} end;
-	f_noresponse = function () synth:speak{sentence="I have not received your response. Please enter your four digits user ID."} end;
-	f_stop       = function () synth:stopspeak() end;
-	f_fail 		 = function () synth:speak{sentence="Thanks for using Polly application. Good Bye!", sync=true}; end;
+f_greeting   = function () synth:speak{sentence="Welcome to Polly Application. Please enter your four digits user ID."} end;
+f_noresponse = function () synth:speak{sentence="I have not received your response. Please enter your four digits user ID."} end;
+f_stop       = function () synth:stopspeak() end;
+f_fail 		 = function () synth:speak{sentence="Thanks for using Polly application. Good Bye!", sync=true}; end;
 
-	local input, username, pin, cookieid;
-	username = iw.dtmfmenu(f_greeting,f_noresponse,f_stop,f_fail, 10, 30, r1, caller, "%d%d%d%d", true);
-	if (username == nil) then
-		caller:hangup();
-		synth:teardown();
-		return;
-	end;
-
+local input, username, pin, cookieid;
+username = iw.dtmfmenu(f_greeting,f_noresponse,f_stop,f_fail, 10, 30, r1, caller, "%d%d%d%d", true);
+if (username == nil) then
+	caller:hangup();
+	synth:teardown();
+	return;
+end;
 }}}
