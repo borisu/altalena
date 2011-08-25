@@ -18,9 +18,10 @@
 	"__" : "DESCRIPTION:",
 	"__" : "Debug level. Trace level must be run with special libraries.",
 	"debug_level"  : "INF",
+	"dump_configuration": false,
 
-	"__" : "VALUES:", 
-	"__" : "comma separated - debug|console|syslog ",
+	"__" : "VALUES:",
+	"__" : "comma separated - debug|console|syslog|file",
 	"__" : "DESCRIPTION:",
 	"__" : "debug -> debugview, console->console, syslog->syslog server, file->file",
 	"debug_outputs" : "console,file",
@@ -99,7 +100,7 @@
 	"__" : "-----------------------",
 	"resip" :  {
 		"--outbound_proxy" : "sip:192.168.100.242:5080",
-		"resip_log" : "",
+		"resip_log" :  "DUM,OFF|SIP,OFF|TRANSPORT,OFF",
 		"uri"	: "sip,resip",
 		"from_id" : "ivrworx",
 		"from_display_name": "ivrworx",
@@ -129,8 +130,8 @@
 		"rtp_proxy_top_port" : 7000,
 		"rtp_proxy_num_of_connections" : 100,
 		"rtp_proxy_ip" : "$COMPUTERNAME",
-		"default_static_payloads":"0 8 18",
-		"log_first_packet" : true
+		"preferred_rtp_size": 224,
+		"max_rtp_size" : 256
 	},
 
 

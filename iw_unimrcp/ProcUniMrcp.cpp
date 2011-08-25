@@ -206,6 +206,8 @@ namespace ivrworx
 
 			//IX_PROFILE_CHECK_INTERVAL(10000);
 
+			LogDebug("ProcUniMrcp::real_run - completion_key:" << completion_key);
+
 			// error during overlapped I/O?
 			int last_err = ::GetLastError();
 			if (res == FALSE)

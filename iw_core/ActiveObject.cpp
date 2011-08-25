@@ -90,7 +90,7 @@ namespace ivrworx
 		if (!listener_handle)
 			return;
 
-		for( EventListenersMap::iterator iter = _listenersMap.begin(); iter != _listenersMap.end(); iter++)
+		for( EventListenersList::iterator iter = _listenersMap.begin(); iter != _listenersMap.end(); iter++)
 		{
 			if ((*iter)->GetObjectUid() == listener_handle->GetObjectUid())
 			{
@@ -104,13 +104,15 @@ namespace ivrworx
 	void 
 	ActiveObject::AddEventListener(IN LpHandlePtr listener_handle)
 	{
+		// don't add the same handle twice
+		RemoveEventListener(listener_handle);
 		_listenersMap.push_back(listener_handle);
 	}
 
 	void
 	ActiveObject::UponActiveObjectEvent(IN IwMessagePtr ptr)
 	{
-		for( EventListenersMap::iterator iter = _listenersMap.begin(); iter != _listenersMap.end(); iter++)
+		for( EventListenersList::iterator iter = _listenersMap.begin(); iter != _listenersMap.end(); iter++)
 		   (*iter)->Send(ptr);
 
 	}

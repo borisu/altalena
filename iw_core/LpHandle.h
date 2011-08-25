@@ -143,6 +143,9 @@ namespace ivrworx
 	typedef 
 	vector<LpHandlePtr> HandlesVector;
 
+	typedef
+	shared_ptr<HandlesVector> HandlesVectorPtr;
+
 	class IW_CORE_API LpHandle :
 	public UIDOwner
 	{
@@ -181,6 +184,8 @@ namespace ivrworx
 
 		virtual BOOL PoisonedForWrite();
 
+		virtual int  Size();
+
 	private:
 
 		void inline CheckReader();
@@ -200,6 +205,8 @@ namespace ivrworx
 		InterruptorPtr _interruptor;
 
 		string _name;
+
+		int _size;
 
 		friend ostream& operator << (ostream &ostream, const LpHandle *lpHandlePtr);
 

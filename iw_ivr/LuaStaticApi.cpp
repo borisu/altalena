@@ -25,6 +25,7 @@
 #include "RTPProxyBridge.h"
 #include "LuaRestoreStack.h"
 #include "StreamerBridge.h"
+#include "SelectorBridge.h"
 #include "LuaTable.h"
 #include "MrcpBridge.h"
 #include "RtspBridge.h"
@@ -73,6 +74,9 @@ namespace ivrworx
 
 	};
 
+	
+
+
 	IW_IVR_API BOOL
 	InitStaticTypes(lua_State *L, LuaTable &ivrworxTable, const Context *ctx)
 	{
@@ -103,7 +107,6 @@ namespace ivrworx
 		ivrworxTable.AddFunction("sleep",LuaWait);
 		ivrworxTable.AddFunction("wait",LuaWait);
 		ivrworxTable.AddFunction("run",LuaRunLongOperation);
-		ivrworxTable.AddFunction("waitforevent",LuaWaitForEvent);
 
 
 		//
@@ -128,6 +131,7 @@ namespace ivrworx
 		Luna<streamer>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateStreamer);
 		Luna<mrcpsession>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateMrcp);
 		Luna<rtspsession>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateRtspSession);
+		Luna<selector>::RegisterType(L,LUA_RT_ALLOW_ALL,&LuaCreateSelector);
 
 
 	
@@ -160,134 +164,6 @@ namespace ivrworx
 
 	}
 
-	int
-	LuaWaitForEvent(lua_State *L)
-	{
-		
-		int n = lua_gettop(L);
-		if (n !=1)
-		{
-			lua_pushnumber(L,API_WRONG_PARAMETER);
-			return 1;
-		}
-
-		if (lua_istable(L,-1) == FALSE)
-		{
-			lua_pushnumber(L,API_WRONG_PARAMETER);
-			return 1;
-		}
-
-		int timeout = 35;
-		GetTableNumberParam(L,-1,&timeout,"timeout",35);
-
-		// find named parameter "actors" and ensure it is table
-		lua_pushstring(L, "actors");
-		lua_gettable(L, -2);
-		if (lua_istable(L,-1) == FALSE)
-		{
-			lua_pop(L,1);
-			lua_pushnumber(L,API_WRONG_PARAMETER);
-			return 1;
-		}
-
-		
-		int actors_table_si = -1;
-		
-		struct ao_slot
-		{
-			ActiveObjectPtr ao;
-			LpHandlePtr		h;
-			int				param_index;
-		};
-		
-		map<HandleId, ao_slot> handle_map;
-		int param_counter = 0;
-
-		HandlesVector hv;
-
-		lua_pushnil(L);
-		while(lua_next( L,-2)) 
-		{
-			int curr_param_index = ++param_counter;
-			
-			switch (lua_type(L,-1))
-			{
-			case LUA_TUSERDATA:
-				{
-					userdataType *x = (userdataType *)lua_touserdata(L,-1);
-					luaobject *lo = x->lo;
-
-					if (lo->get_active_object())
-					{
-						
-						ao_slot slot;
-						slot.h  = LpHandlePtr(new LpHandle());
-						slot.ao = lo->get_active_object();
-						slot.param_index = curr_param_index;
-
-						handle_map[slot.h->GetObjectUid()] = slot;
-						hv.push_back(slot.h);
-
-						lo->get_active_object()->AddEventListener(slot.h);
-
-					}
-				}
-			case LUA_TNUMBER:
-			case LUA_TBOOLEAN:
-			case LUA_TSTRING:
-			case LUA_TNIL:
-			case LUA_TTABLE:
-			case LUA_TFUNCTION:
-			case LUA_TTHREAD:
-			case LUA_TLIGHTUSERDATA:
-			default:{}
-			}
-			lua_pop(L, 1);
-		}
-		
-		// pop the actors table from the stack
-		lua_pop(L,1);
-
-		if (hv.size() == 0)
-		{
-			lua_pushnumber(L,API_WRONG_PARAMETER);
-			return 1;
-		}
-		
-		ApiErrorCode err	= API_SUCCESS;
-		int selected_index  = -1;
-
-		IwMessagePtr event;
-		err = SelectFromChannels(
-			hv, 
-			Seconds(timeout),
-			selected_index,
-			event);
-
-		lua_pushnumber(L,err);
-
-		for (map<HandleId, ao_slot>::iterator iter = handle_map.begin(); iter != handle_map.end(); ++iter)
-		{
-			ao_slot &slot = (*iter).second;
-			slot.ao->RemoveEventListener(slot.h);
-		}
-
-		if (IW_SUCCESS(err))
-		{
-			ao_slot aos = handle_map[hv[selected_index]->GetObjectUid()];
-			lua_pushnumber(L,aos.param_index);
-
-		} 
-		else
-		{
-			lua_pushnumber(L,-1);
-		};
-
-		// unset listeners
-
-		return 2;
-
-	}
 
 	int
 	LuaCreateMrcp(lua_State *L)
@@ -304,7 +180,6 @@ namespace ivrworx
 		Luna<mrcpsession>::PushObject(L,new mrcpsession(call_ptr));
 
 		return 1;
-
 
 	}
 
@@ -378,7 +253,14 @@ namespace ivrworx
 		return 1;
 	}
 
+	
 
+	int LuaCreateSelector(lua_State *L)
+	{
+		
+		Luna<selector>::PushObject(L, new selector(L));
+		return 1;
+	}
 
 	int
 	LuaWait(lua_State *state)

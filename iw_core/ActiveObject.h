@@ -27,7 +27,7 @@ using namespace std;
 
 namespace ivrworx
 {
-	typedef list<LpHandlePtr> EventListenersMap;
+	typedef list<LpHandlePtr> EventListenersList;
 
 	class IW_CORE_API ActiveObject: 
 		public boost::noncopyable
@@ -52,7 +52,7 @@ namespace ivrworx
 
 		LpHandlePair _handlePair;
 
-		EventListenersMap _listenersMap;
+		EventListenersList _listenersMap;
 
 		BucketPtr _listenerBucket;
 
