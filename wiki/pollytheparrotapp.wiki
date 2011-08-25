@@ -31,7 +31,7 @@ function handle_call(caller)
 
 	--
 	-- Allocate mrcp and rtp connection.
-	-- Use caller's local offer temporarily, to set
+	-- Use caller-s local offer temporarily, to set
 	-- correct codec set.
 	--
 	local r2 = assert(rtpproxy:new());
