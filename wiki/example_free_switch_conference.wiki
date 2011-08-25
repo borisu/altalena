@@ -1,4 +1,4 @@
-#summary example of proxying the calls to freeswitch conference roomo.
+#summary example of proxying the calls to freeswitch(R) conference room.
 
 = Introduction =
 
