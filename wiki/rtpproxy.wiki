@@ -1,3 +1,4 @@
+#summary Simple RTP Proxy API description.
 <wiki:toc max_depth="3" />
 
 rtpproxy session - brdiges RTP traffic. Also detects rfc2833 dtmf see waitforevent in global example for more info.
