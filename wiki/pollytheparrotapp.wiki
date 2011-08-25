@@ -1,0 +1,17 @@
+#summary Polly the parrot application.
+
+This is simple IVR application written in ivrworx. Its purpose to server as telephone notebook. Each user has its associated memo and key to it. after simple authentication process, user is asked to enter the key to memo and the application reads it to user.
+
+Application assumes MRCP server. Sample db is attached. User should also install luasql dll in <HOME>/luasql directory.
+
+= Introduction =
+
+Add your content here.
+
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
