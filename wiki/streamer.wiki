@@ -1,3 +1,4 @@
+#summary Wav files streamer API description.
 Simple built-in streamer
 
 == `:new(...)` ==
