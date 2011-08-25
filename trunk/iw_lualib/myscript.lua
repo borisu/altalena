@@ -1,84 +1,185 @@
 require "ivrworx"
+require "luasql.sqlite3"
 
-local l	= assert(iw.LOGGER, "assert:iw.LOGGER")
-
-l:loginfo("=== SCRIPT START ===");
-
-dummyoffer=[[
-v=0
-o=alice 2890844526 2890844526 IN IP4 0.0.0.0
-s=
-c=IN IP4 0.0.0.0
-t=0 0
-m=audio 0 RTP/AVP 0 101
-a=rtpmap:0 PCMU/8000
-a=rtpmap:101 telephone-event/8000
-]]
-
----
---- allocate connection
----
-r1 = rtpproxy:new();
-r1:allocate{sdp=dummyoffer};
-
---
--- set up first media call
---
-caller1 = sipcall:new();
-caller1:makecall{dest="sip:24001@192.168.150.3",sdp=r1:localoffer()}
-r1:modify{sdp=caller1:remoteoffer()}
+iw=assert(ivrworx)
 
 
----
---- set up streamer connection
----
----
-r2 = rtpproxy:new();
-r2:allocate{sdp=dummyoffer};
+function handle_call(caller)
+	--
+	-- Allocate caller rtp connection.
+	--
+	local r1, res;
 
-streamer1 = streamer:new();
-streamer1:allocate{rcv=iw.RCV_DEVICE_NONE, snd=iw.SND_DEVICE_TYPE_FILE,sdp=r2:localoffer()}
-r2:modify{sdp=streamer1:localoffer()}
 
-r2:bridge{other=r1, duplex="full"};
+	r1 = assert(rtpproxy:new(), "rtpproxy:new");
 
-streamer1:play{file="C:\\sounds\\greeting.wav"}
+	res = r1:allocate{sdp=caller:remoteoffer()};
+	assert(res  == iw.API_SUCCESS, "rtpconn:allocate");
 
-NO_INPUT_TIMEOUT = 20
-timeout_val=NO_INPUT_TIMEOUT
+	--
+	-- Answer call.
+	--
+	res = caller:answer{sdp=r1:localoffer()};
+	assert(res  == iw.API_SUCCESS, "caller:answer");
 
-while (true) do
-    --
-    -- wait for hangup or dtmf
-    --
-	wait_start = os.clock();
-	res,i = iw.waitforevent{actors={r1,caller1,streamer1}, timeout=timeout_val};
-	wait_end = os.clock();
+	--
+	-- Allocate mrcp and rtp connection.
+	-- Use caller's local offer temporarily, to set
+	-- correct codec set.
+	--
+	local r2 = assert(rtpproxy:new());
+	res = r2:allocate{sdp=r1:localoffer()};
+	assert(res  == iw.API_SUCCESS, "r2:allocate");
 
-	l:loginfo ("waitforevent -  res:"..res..", i:"..i);
 
-	if (res == iw.API_TIMEOUT) then
-		streamer1:play{file="C:\\sounds\\no_response.wav"};
-		timeout_val = NO_INPUT_TIMEOUT;
-	elseif (i==1) then
-		dtb = r1:dtmfbuffer();
-		if (dtb ~= "") then
-			streamer1:play{file="C:\\sounds\\"..dtb:sub(1,1)..".wav"};
-		end
-		r1:cleandtmfbuffer();
-		timeout_val = 20;
-	elseif (i==2) then
-		break;
-	elseif (i==3) then
-		timeout_val = NO_INPUT_TIMEOUT - (wait_end - wait_start);
-		l:loginfo ("delta:"..(wait_end - wait_start));
-		if (timeout_val <=0) then
-			timeout_val = NO_INPUT_TIMEOUT
-		end
+	--
+	-- Allocate MRCP session
+	--
+	local synth = assert(mrcpsession:new());
+	res = synth:allocate{resource=iw.SYNTHESIZER, sdp=r2:localoffer()};
+	assert(res  == iw.API_SUCCESS, "synth:allocate");
+
+	--
+	-- Modify rtp connection according to MRCP sdp.
+	--
+	res = r2:modify{sdp=synth:remoteoffer{resource=iw.SYNTHESIZER}};
+	assert(res  == iw.API_SUCCESS, "r2:modify");
+
+
+	res = r1:bridge{other=r2 , duplex="full"}
+	l:loginfo("bridge:" ..res);
+	assert(res == iw.API_SUCCESS, "r2:bridge");
+
+
+
+	--
+	-- Gather user id
+	--
+
+	local f_greeting, f_noresponse, f_stop, f_fail;
+	f_greeting   = function () synth:speak{sentence="Welcome to Polly Application. Please enter your four digits user ID."} end;
+	f_noresponse = function () synth:speak{sentence="I have not received your response. Please enter your four digits user ID."} end;
+	f_stop       = function () synth:stopspeak() end;
+	f_fail 		 = function () synth:speak{sentence="Thanks for using Polly application. Good Bye!", sync=true}; end;
+
+	local input, username, pin, cookieid;
+	username = iw.dtmfmenu(f_greeting,f_noresponse,f_stop,f_fail, 10, 30, r1, caller, "%d%d%d%d", true);
+	if (username == nil) then
+		caller:hangup();
+		synth:teardown();
+		return;
+	end;
+
+
+	--
+	-- Gather secret code
+	--
+	f_greeting   = function () synth:speak{sentence="Please enter your four digits secret code."} end;
+	f_noresponse = function () synth:speak{sentence="I have not received your response. Please enter your four digits secret code."} end;
+
+	pin = iw.dtmfmenu(f_greeting, f_noresponse, f_stop, f_fail, 10 , 30, r1, caller, "%d%d%d%d", true);
+	if (pin == nil) then
+		synth:teardown();
+		caller:hangup();
+		return;
+	end;
+
+	---
+	--- Match user name and password
+	---
+	local query, cur, row;
+	query = "SELECT password from users where id like '"..username.."'";
+	l:logdebug(query);
+
+	cur = conn:execute(query)
+	if (cur == null) then
+		 synth:speak{sentence="Cannot match username or secret code. Please redial.", sync=true}
+		 synth:teardown();
+		 caller:hangup();
+		 return;
 	end
+
+	row = cur:fetch ({}, "a")
+	if (row == null or row.password ~= pin) then
+		 synth:speak{sentence="Secret code is incorrect. Please redial.", sync=true}
+		 synth:teardown();
+		 caller:hangup();
+		 return;
+	end
+
+	--
+	--  Get the cookie
+	--
+	f_greeting   = function () synth:speak{sentence="Please enter cookie ID. Then press pound key."} end;
+	f_noresponse = function () synth:speak{sentence="I have not received your response. Please enter cookie ID. Then press pound key."} end;
+	cookieid = iw.dtmfmenu(f_greeting, f_noresponse, f_stop, f_fail, 10 , 30, r1, caller, "%d*#", true, 20);
+	if (cookieid == nil) then
+		synth:teardown();
+		caller:hangup();
+		return;
+	end;
+
+	cookieid, occurencies = string.gsub(cookieid, "#", "");
+
+	query = "SELECT value from cookies where id like '"..cookieid.."' AND userid LIKE '"..username.."'";
+	l:logdebug(query);
+
+	cur = conn:execute(query)
+	row = cur:fetch ({}, "a")
+	if (row == null) then
+	 synth:speak{sentence="Couldn't find cookie. Please redial.", sync=true}
+	 synth:teardown();
+	 caller:hangup();
+	 return;
+	end
+
+	local cookievalue = row.value;
+	synth:speak{sentence="Your cookie is : " .. cookievalue, sync=true}
+
+	synth:teardown();
+	caller:hangup();
 
 end
 
 
-l:loginfo("=== SCRIPT END ===");
+--
+-- Initate database connection.
+--
+env = assert(luasql.sqlite3())
+l	= assert(iw.LOGGER, "assert:iw.LOGGER")
+
+
+l:loginfo("== Polly The Parrot == ");
+
+conn = assert(env:connect("polly.sqlite"), "env:connect");
+
+--
+-- Wait for someone to call.
+--
+while (true) do
+
+	local caller, res;
+
+	caller = assert(sipcall:new(), "sipcall:new");
+	
+	repeat
+
+	 res = caller:accept{service="sip,resip", timeout=10};
+	 l:loginfo("caller:accept res:"..res);
+
+	 assert((res == iw.API_TIMEOUT) or (res == iw.API_SUCCESS), "error accepting calls");
+
+	 if (res == iw.API_TIMEOUT) then
+	  l:loginfo("Timeout waiting for call.");
+	 end
+
+	until (res ~= iw.API_TIMEOUT)
+
+
+
+	handle_call(caller);
+
+end
+
+
 

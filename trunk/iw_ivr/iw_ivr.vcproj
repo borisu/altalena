@@ -417,6 +417,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SelectorBridge.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SelectorBridge.h"
+				>
+			</File>
+			<File
 				RelativePath=".\SipCallBridge.cpp"
 				>
 			</File>

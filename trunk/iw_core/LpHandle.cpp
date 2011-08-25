@@ -170,7 +170,8 @@ namespace ivrworx
 	_channel(_bufferFactory),
 	_direction(MSG_DIRECTION_UNDEFINED),
 	_threadId(IW_UNDEFINED),
-	_fiberId(NULL)
+	_fiberId(NULL),
+	_size(0)
 	{
 
 	}
@@ -219,6 +220,7 @@ namespace ivrworx
 		try 
 		{
 			_channel.writer() << message;
+			_size++;
 			if (_interruptor != NULL)
 			{
 				_interruptor->SignalDataIn();
@@ -282,6 +284,7 @@ namespace ivrworx
 		try 
 		{
 			_channel.reader() >> ptr;
+			_size--;
 			if (_interruptor != NULL)
 			{
 				_interruptor->SignalDataOut();
@@ -387,8 +390,14 @@ read:
 		return ostream 
 			<< lpHandlePtr->GetObjectUid()
 			<< "," << (lpHandlePtr->Direction() == MSG_DIRECTION_INBOUND ? "in":"out") 
-			<< "," << lpHandlePtr->HandleName(); 
+			<< "," << lpHandlePtr->HandleName() << ", size:" << lpHandlePtr->_size; 
 	
+	}
+
+	int 
+	LpHandle::Size()
+	{
+		return _size;
 	}
 
 #define MAX_NUM_OF_CHANNELS_IN_SELECT 10
@@ -468,7 +477,7 @@ read:
 
 	LpHandlePair::LpHandlePair(IN LpHandlePtr inbound, IN LpHandlePtr outbound)
 	{
-		this->inbound = inbound;
+		this->inbound  = inbound;
 		this->outbound = outbound;
 	}
 #pragma endregion LpHandlePair

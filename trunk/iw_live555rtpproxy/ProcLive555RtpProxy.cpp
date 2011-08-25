@@ -117,7 +117,12 @@ IwSimpleRTPSource::createNew(UsageEnvironment& env,
 }
 
 Boolean 
-IwSimpleRTPSource::processUnknownPayload(BufferedPacket* packet)
+IwSimpleRTPSource::processUnknownPayload( unsigned rtpHdr,
+										  Boolean rtpMarkerBit, 
+										  unsigned rtpTimestamp,
+										  unsigned rtpSSRC, 
+										  unsigned char rtpPtType,
+										  BufferedPacket* packet)
 {
 	
 	if (!handler)
@@ -126,23 +131,21 @@ IwSimpleRTPSource::processUnknownPayload(BufferedPacket* packet)
 	if (!_packetLogged )
 	{
 		_packetLogged = TRUE;
-		LogDebug("IwSimpleRTPSource::processUnknownPayload received RTP timestamp:" << packet->RTPTimestamp() << ", ssrc: 0x" << hex << SSRC());
+		LogDebug("IwSimpleRTPSource::processUnknownPayload received RTP timestamp:" << rtpTimestamp << ", ssrc: 0x" << hex << SSRC());
 
 	}
 
-	unsigned char payload = packet->header()[1];
-
-	if (payload == dtmf_format.sdp_mapping() && 
-		_lastTimestamp != packet->RTPTimestamp())
+	if (rtpPtType == dtmf_format.sdp_mapping() && 
+		_lastTimestamp != rtpTimestamp)
 	{
 		char event_field	= packet->data()[0];
 		char ervolume_field = packet->data()[1];
 		int  duration		= *(&(packet->data()[2]));
-		
+
 		// edge
 		if (ervolume_field & 0x80)
 		{
-			_lastTimestamp = packet->RTPTimestamp();
+			_lastTimestamp = rtpTimestamp;
 			MsgRtpProxyDtmfEvt *evt = new MsgRtpProxyDtmfEvt();
 			char buffer[32];
 			buffer[0] = '\0';

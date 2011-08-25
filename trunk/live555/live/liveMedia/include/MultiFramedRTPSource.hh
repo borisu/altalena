@@ -38,7 +38,12 @@ protected:
       // virtual base class
   virtual ~MultiFramedRTPSource();
 
-  virtual Boolean processUnknownPayload(BufferedPacket* packet) {return False;};
+  virtual Boolean processUnknownPayload(unsigned rtpHdr,
+										Boolean rtpMarkerBit, 
+										unsigned rtpTimestamp,
+										unsigned rtpSSRC,
+										unsigned char rtpPtType,
+										BufferedPacket* packet) {return False;};
 
   virtual Boolean processSpecialHeader(BufferedPacket* packet,
 				       unsigned& resultSpecialHeaderSize);

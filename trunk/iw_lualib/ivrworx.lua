@@ -122,6 +122,65 @@ function sipcall:gatherdigits(arg)
 
 end
 
+function iw.dtmfmenu(f_greeting, f_noresponse, f_stop , f_fail, noinputtimeout, maxtimeout, rtpsrc, signalingsrc, pattern, cleandtmfbuffer, maxdigits)
+
+
+	local res,i,timeout_val,dtb, s;
+
+	--
+	-- start collecting digits
+	--
+	s = selector:new();
+	res,i = s:select{actors={rtpsrc, signalingsrc}, timeout=0};
+
+	f_greeting();
+
+	wait_start  = os.clock();
+
+	while (true) do
+		--
+		-- wait for hangup or dtmf
+		--
+		res,i = s:select{timeout=noinputtimeout};
+		wait_end = os.clock();
+
+
+		l:loginfo ("select -  res:"..res..", i:"..i);
+
+		if (res == iw.API_TIMEOUT) then
+
+			f_noresponse();
+
+			if (wait_end - wait_start > maxtimeout) then
+			  break;
+			end
+
+		elseif (i==1) then
+
+			f_stop();
+
+			dtb = rtpsrc:dtmfbuffer();
+			l:loginfo ("full buffer:"..dtb);
+
+			dtb = string.sub(dtb, 1, maxdigits);
+			l:loginfo ("pattern:"..pattern..", dtmf buffer:"..dtb);
+
+			if (string.find(dtb, pattern)) then
+				if (cleandtmfbuffer) then
+					rtpsrc:cleandtmfbuffer();
+				end
+				return dtb;
+			end
+
+		elseif (i==2) then
+			break;
+		end
+	end
+
+	f_fail();
+
+end
+
 
 
 

@@ -147,17 +147,9 @@ namespace ivrworx
 	{
 		LPVOID res = NULL;
 		if (GetCoreData(TLS_COMPLETION_PORT,&res))
-		{
 			return (HANDLE)res;
-
-		}
 		else
-		{
-			StoreCoreData(TLS_COMPLETION_PORT, NULL);
-			return  GetTlsCompletionPort();
-		}
-
-
+			return NULL;
 
 	}
 
@@ -166,18 +158,9 @@ namespace ivrworx
 	{
 		LPVOID res = NULL;
 		if (GetCoreData(QUEUE_SEMAPHORE_SLOT,&res))
-		{
 			return (HANDLE)res;
-
-		}
 		else
-		{
-			StoreCoreData(QUEUE_SEMAPHORE_SLOT, NULL);
-			return  GetTlsQueueSemaphore();
-		}
-
-
-
+			return NULL;
 	}
 
 #define TLS_SYNC_MODE_SLOT 5
@@ -590,12 +573,12 @@ error:
 			return;
 		}
 
-		HANDLE queue_handle = GetTlsQueueSemaphore();
+		HANDLE tls_queue_handle = NULL;
 		int res  = ::DuplicateHandle(
 						::GetCurrentProcess(), 
 						g_queueSemaphore, 
 						::GetCurrentProcess(),
-						&queue_handle, 
+						&tls_queue_handle, 
 						0,
 						FALSE,
 						DUPLICATE_SAME_ACCESS);
@@ -607,12 +590,14 @@ error:
 			throw std::exception(msg.c_str());
 		}
 
-		HANDLE io_handle = GetTlsQueueSemaphore();
+		StoreCoreData(QUEUE_SEMAPHORE_SLOT,tls_queue_handle);
+
+		HANDLE tls_io_handle = NULL;
 		res  = ::DuplicateHandle(
 			::GetCurrentProcess(), 
 			g_IocpLogger, 
 			::GetCurrentProcess(),
-			&io_handle, 
+			&tls_io_handle, 
 			0,
 			FALSE,
 			DUPLICATE_SAME_ACCESS);
@@ -623,6 +608,7 @@ error:
 			string msg = "Cannot initiate logging (g_IocpLogger) GetLastError=" + os_res;
 			throw exception(msg.c_str());
 		}
+		StoreCoreData(TLS_COMPLETION_PORT,tls_io_handle);
 
 	};
 
@@ -727,8 +713,6 @@ error:
 		};
 
 		delete lb;
-
-		
 
 	}
 

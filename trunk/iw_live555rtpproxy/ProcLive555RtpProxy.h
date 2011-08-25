@@ -56,7 +56,12 @@ namespace ivrworx
 			char const* mimeTypeString, unsigned offset,
 			Boolean doNormalMBitRule);
 
-		Boolean processUnknownPayload(BufferedPacket* packet);
+		Boolean processUnknownPayload(unsigned rtpHdr,
+			Boolean rtpMarkerBit, 
+			unsigned rtpTimestamp,
+			unsigned rtpSSRC,
+			unsigned char rtpPtType,
+			BufferedPacket* packet);
 
 		MediaFormat dtmf_format;
 

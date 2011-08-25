@@ -263,9 +263,9 @@ void MultiFramedRTPSource::networkReadHandler(MultiFramedRTPSource* source,
       bPacket->removePadding(numPaddingBytes);
     }
     // Check the Payload Type.
-    if ((unsigned char)((rtpHdr&0x007F0000)>>16)
-	!= source->rtpPayloadFormat()) {
-	   if (!source->processUnknownPayload(bPacket))
+	unsigned char rtpPtType = (unsigned char)((rtpHdr&0x007F0000)>>16);
+    if (rtpPtType != source->rtpPayloadFormat()) {
+	   if (!source->processUnknownPayload(rtpHdr, rtpMarkerBit, rtpTimestamp, rtpSSRC, rtpPtType, bPacket))
 		break;
     }
 

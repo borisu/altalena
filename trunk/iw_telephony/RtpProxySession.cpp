@@ -284,7 +284,6 @@ namespace ivrworx
 
 				return API_SUCCESS;
 			}
-
 		default:
 			{
 				return API_FAILURE;

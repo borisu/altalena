@@ -18,42 +18,33 @@
 */
 
 #pragma once
-#include "LuaVirtualMachine.h"
-#include "LuaTable.h"
-#include "IvrDllApi.h"
 
-#define CTX_FIELD(F) (dynamic_cast<Context*>(GetCurrRunningContext()->GetAppData()))->F
+#include "Luna.h"
+#include "LuaObject.h"
 
 namespace ivrworx
 {
-	class IW_IVR_API Context: 
-		public AppData
+	struct AOSlot
 	{
-	public:
-		ConfigurationPtr _conf;
-
-		ScopedForking *_forking;
-
+		ActiveObjectPtr ao;
+		LpHandlePtr		h;
 	};
 
-	IW_IVR_API BOOL InitStaticTypes(lua_State *L, LuaTable &ivrworxTable, const Context *ctx);
+	class selector: 
+		public luaobject
+	{
+	public:
+		selector(lua_State *L);
 
-	int LuaWait(lua_State *L);
+		int select(lua_State *L);
 
-	int LuaRunLongOperation(lua_State *L);
+		virtual ~selector(void);
 
-	int LuaFork(lua_State *L);
+		HandlesVectorPtr _hv;
 
-	int LuaCreateSip(lua_State *L);
+		list<AOSlot> _slots;
 
-	int LuaCreateMrcp(lua_State *L);
-
-	int LuaCreateRtpProxy(lua_State *L);
-
-	int LuaCreateStreamer( lua_State *L);
-
-	int LuaCreateRtspSession(lua_State *L);
-
-	int LuaCreateSelector(lua_State *L);
+		static const char className[];
+		static Luna<selector>::RegType methods[];
+	};
 }
-
