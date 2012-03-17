@@ -1245,6 +1245,8 @@ error:
 				LogWarn("erro parsing sdp imsh:" << ctx->streamer_handle);
 				goto error;
 			}
+
+			LogDebug("ProcM2Ims::ModifySession medium connection:" << medium.connection.ipporttos());
 		}
 
 		// update remote end for session

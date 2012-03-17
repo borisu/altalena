@@ -72,9 +72,7 @@
 	"__" : "List of implementation modules to load",
 	"modules":[
 		"iw_resip.dll",
-		"iw_live555rtpproxy.dll",
-		"iw_m2ims.dll",
-		"iw_unimrcp.dll"
+		"iw_m2ims.dll"
 	],
 
 	"__" : "VALUES:",
@@ -108,11 +106,11 @@
 	"__" : "-----------------------",
 	"resip" :  {
 		"__outbound_proxy" : "sip:192.168.100.242:5080",
-		"resip_log" : "DUM,OFF|SIP,OFF|TRANSPORT,OFF",
+		"resip_log" : "DUM,DBG|SIP,DBG|TRANSPORT,DBG",
 		"uri"	: "sip,resip",
 		"from_id" : "user1",
 		"from_display_name": "user1",
-		"sip_host": "192.168.100.198",
+		"sip_host": "10.116.100.76",
 		"sip_port": 5060,
 		"sip_session_timer_enabled" : true,
 		"sip_refresh_mode" : "prefer_local",
@@ -137,7 +135,7 @@
 		"rtp_proxy_base_port" : 6000,
 		"rtp_proxy_top_port" : 7000,
 		"rtp_proxy_num_of_connections" : 100,
-		"rtp_proxy_ip" : "192.168.100.198",
+		"rtp_proxy_ip" : "10.116.100.76",
 		"preferred_rtp_size": 224,
 		"max_rtp_size" : 256
 	},
@@ -148,7 +146,7 @@
 	"__" : "-----------------------",
 	"m2ims" :  {
 		"uri" : "stream,m2",
-		"local_ip": "192.168.100.198",
+		"local_ip": "10.116.100.76",
 		"sounds_dir" : "sounds",
 		"record_dir" : "recording"
 	},

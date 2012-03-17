@@ -177,6 +177,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ProcAsyncLive555RtspClient.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ProcLive555Rtsp.cpp"
 				>
 			</File>
@@ -208,6 +212,10 @@
 			>
 			<File
 				RelativePath=".\Live555RtspFactory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ProcAsyncLive555RtspClient.h"
 				>
 			</File>
 			<File
