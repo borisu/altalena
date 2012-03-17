@@ -211,10 +211,6 @@
 					/>
 				</FileConfiguration>
 			</File>
-			<File
-				RelativePath=".\sdphelper.lua"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="conf"
