@@ -1,0 +1,67 @@
+{
+	
+	"sync_log"  : false,
+	
+	"resip_log" : "",
+	
+	"debug_level"  : "INF",
+	"debug_outputs" : "debug,console",
+	
+	"syslogd_host" : "127.0.0.1",
+	"syslogd_port" : 515,
+    
+    "ivr_sip_host": "$COMPUTERNAME",
+    "ivr_sip_port": 5060,
+    
+    "registrar_host"     : "$COMPUTERNAME",
+    "registrar_port"     : 5060,
+    "registrar_username" : "ivrworx",
+    "registrar_username" : "1234",
+    
+    
+    "precompile" : false,
+    "super_script": "scripts\\super.lua",
+    "super_mode":   "sync",
+    
+    "sip_session_timer_enabled" : true,
+    "sip_refresh_mode" : "prefer_local",
+    "sip_default_session_time" : 180,
+    
+    "ring_timeout" : 20, 
+    
+    "from_id" : "ivrworx",
+    "from_display_name": "ivrworx",
+    
+     
+    "mrcp_enabled": false,
+    "unimrcp_conf_dir": "./unimrcp",
+    "unimrcp_client_profile": "MRCPv2-Default",
+    "unimrcp_log_file": "unimrcpclient",
+    
+    
+    "ims_enabled": true, 
+   
+    "rtsp_enabled": false,
+   
+    
+    "rtp_proxy_base_port" : 6000,
+    "rtp_proxy_top_port" : 7000,
+    "rtp_proxy_num_of_connections" : 100,
+    "rtp_proxy_ip" : "$COMPUTERNAME",
+    
+    "script_file" : "scripts\\test.lua",
+    
+    "sounds_dir" : "sounds",
+    
+    "codecs": [
+        {
+            "name": "PCMU" 
+        },
+        {
+            "name": "PCMA" 
+        }, 
+        {
+            "name": "SPEEX" 
+        } 
+    ]
+}
