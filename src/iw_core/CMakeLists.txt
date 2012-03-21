@@ -1,10 +1,13 @@
 include_directories(${ivrworx_SOURCE_DIR}/iw_core)
 link_directories(${ivrworx_BINARY_DIR}/iw_core)
 
-add_library(iw_core ActiveObject.cpp IwBase.cpp  Logger.cpp  Profiler.cpp 
-CmdLine.cpp               IwUtils.cpp                LpHandle.cpp          stdafx.cpp  
-Configuration.cpp         JSONConfiguration.cpp      Message.cpp           syslog-client.cpp 
-ConfigurationFactory.cpp  LightweightProcess.cpp     ProcHandleWaiter.cpp  UIDOwner.cpp 
-DllHelpers.cpp            LocalProcessRegistrar.cpp  ProcSipStack.cpp)
+set(iw_core_SOURCES ActiveObject.cpp          JSONConfiguration.cpp      ProcSipStack.cpp
+CmdLine.cpp               LightweightProcess.cpp     Profiler.cpp
+Configuration.cpp         LocalProcessRegistrar.cpp  StdAfx.cpp
+ConfigurationFactory.cpp  Logger.cpp                 syslog-client.cpp
+DllHelpers.cpp            LpHandle.cpp               UIDOwner.cpp
+IwBase.cpp                Message.cpp
+IwUtils.cpp               ProcHandleWaiter.cpp)
 
 
+add_library(iw_core ${iw_core_SOURCES})

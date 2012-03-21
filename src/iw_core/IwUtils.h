@@ -17,35 +17,38 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#pragma warning( push )
-#pragma warning (disable: 4311)
-#pragma warning (disable: 4312)
-#pragma warning (disable: 4345)
-#pragma warning (disable: 4996)
-#pragma warning (disable: 4267)
-#pragma warning (disable: 4018)
-#pragma warning (disable: 4099)
+#ifdef WIN32
 
-#ifndef _WIN32_WINNT		//Allow use of features specific to Windows XP or later.                   
-#define _WIN32_WINNT 0x0501	// Change this to the appropriate value to target other versions of Windows.
-#endif						
+ #pragma warning( push )
+ #pragma warning (disable: 4311)
+ #pragma warning (disable: 4312)
+ #pragma warning (disable: 4345)
+ #pragma warning (disable: 4996)
+ #pragma warning (disable: 4267)
+ #pragma warning (disable: 4018)
+ #pragma warning (disable: 4099)
+
+ #ifndef _WIN32_WINNT		//Allow use of features specific to Windows XP or later.                   
+ #define _WIN32_WINNT 0x0501	// Change this to the appropriate value to target other versions of Windows.
+ #endif						
 
 
-// windows
-#include <wchar.h>
-#include <WinSock2.h>
-#include <Mstcpip.h>
-#include <Windows.h>
+ // windows
+ #include <wchar.h>
+ #include <WinSock2.h>
+ #include <Mstcpip.h>
+ #include <Windows.h>
 
-// console
-#include "Console.h"
+ // console
+ #include "Console.h"
+ #include <strsafe.h>
+#endif
 
 // std
 #include <iostream>
 #include <fstream>
 #include <strstream>
 #include <string>
-#include <strsafe.h>
 #include <vector>
 
 // boost
