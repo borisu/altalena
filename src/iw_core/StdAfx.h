@@ -31,19 +31,22 @@
  #endif						
  #include <stdio.h>
  #include <tchar.h>
-#endif
 
+ // TODO: reference additional headers your program requires here
+ #include "IwUtils.h"
+ #include <ws2tcpip.h>
+ #include <stdarg.h>
+ #include "json_spirit.h"
+ #include "CmdLine.h"
+ #include "cppcsp.h"
 
-// TODO: reference additional headers your program requires here
-#include "IwUtils.h"
-#include <ws2tcpip.h>
-#include <stdarg.h>
-#include "json_spirit.h"
-#include "CmdLine.h"
-#include "cppcsp.h"
+#elif  __linux__
 
+ #include <stdio.h>
+ #include <stdarg.h>
+ #include "json_spirit.h"
+ #include "CmdLine.h"
+ #include "cppcsp.h"
 
-
-
-
+#endif 
 
