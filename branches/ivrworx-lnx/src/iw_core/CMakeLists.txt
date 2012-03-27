@@ -1,3 +1,4 @@
+include_directories(../json_spirit/json_spirit_v4.05/json_spirit)
 include_directories(. ../kentcsp ../kentcsp/src)
 #link_directories(${ivrworx_BINARY_DIR}/iw_core)
 
@@ -10,4 +11,5 @@ IwBase.cpp                Message.cpp
 IwUtils.cpp               ProcHandleWaiter.cpp)
 
 
+add_definitions(-H)
 add_library(iw_core SHARED ${iw_core_SOURCES})

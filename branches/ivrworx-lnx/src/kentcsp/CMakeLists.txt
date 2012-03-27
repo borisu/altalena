@@ -4,10 +4,13 @@ include(CheckTypeSize)
 include_directories(.)
 set(kentcsp_SOURCES src/cppcsp.cpp src/kernel.cpp src/process.cpp src/atomic.cpp src/alt.cpp)
 
-set(OS_TYPE "#define CPPCSP_LINUX")
 check_include_files(boost/version.hpp CPPCSP_BOOST)
 
 set(OS_MAJOR "#define CPPCSP_POSIX")
+set(OS_MINOR "#define CPPCSP_LINUX")
+set(OS_TYPE "${OS_MAJOR}
+${OS_MINOR}")
+
 set(SCHED_TYPE  "#define CPPCSP_LONGJMP")
 set(CONFIG_CPU_FLAGS "#define CPPCSP_X86")
 
