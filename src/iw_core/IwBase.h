@@ -22,7 +22,6 @@
 
 using namespace std;
 using namespace boost;
-using namespace boost::serialization;
 
 namespace ivrworx
 {
@@ -55,11 +54,18 @@ namespace ivrworx
 
 	typedef LARGE_INTEGER TimeStamp;
 
-	class IW_CORE_API critical_exception: public exception 
+	class IW_CORE_API critical_exception: public std::exception 
 	{
 	public:
 		critical_exception();
 		critical_exception(const char *);
+		
+		virtual ~critical_exception() throw();
+
+		virtual const char * what() const throw();
+				
+	private:
+		std::string m_what;
 	};
 
 	
@@ -136,7 +142,6 @@ namespace ivrworx
 		friend int operator == (const CnxInfo &right,const CnxInfo &left);
 
 	};
-
 	
 
 	typedef 

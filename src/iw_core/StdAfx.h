@@ -42,6 +42,7 @@
 
 #elif  __linux__
 
+ #include "IwUtils.h"
  #include <stdio.h>
  #include <stdarg.h>
  #include "json_spirit.h"

@@ -28,26 +28,40 @@
  #pragma warning (disable: 4018)
  #pragma warning (disable: 4099)
 
- #ifndef _WIN32_WINNT		//Allow use of features specific to Windows XP or later.                   
- #define _WIN32_WINNT 0x0501	// Change this to the appropriate value to target other versions of Windows.
- #endif						
-
-
  // windows
  #include <wchar.h>
- #include <WinSock2.h>
  #include <Mstcpip.h>
  #include <Windows.h>
 
  // console
  #include "Console.h"
  #include <strsafe.h>
+
+#elif __linux__
+
+ #define DWORD long
+ #define BOOL  int
+ #define HANLE void*
+ #define LPVOID void*
+ #define TRUE 1
+ #define FALSE 0
+ #define LARGE_INTEGER int64_t
+
+ #ifndef IN
+  #define IN
+ #endif
+ #ifndef OUT
+  #define OUT
+ #endif	
+
 #endif
+
+
 
 // std
 #include <iostream>
 #include <fstream>
-#include <strstream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -58,13 +72,7 @@
 #include <boost/any.hpp>
 #include <boost/variant/variant.hpp>
 #include <boost/assign/list_of.hpp>
-#include <boost/archive/text_woarchive.hpp>
-#include <boost/archive/text_wiarchive.hpp>
 #include <boost/archive/tmpdir.hpp>
-#include <boost/archive/xml_wiarchive.hpp>
-#include <boost/archive/xml_woarchive.hpp>
-#include <boost/serialization/export.hpp>
-#include <boost/serialization/nvp.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/bind.hpp>
@@ -74,7 +82,7 @@
 
 
 // Kent CSP
-#include <cppcsp.h>
+#include "cppcsp.h"
 
 #pragma warning( pop )
 

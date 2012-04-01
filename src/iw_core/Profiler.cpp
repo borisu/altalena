@@ -18,6 +18,7 @@
 */
 
 #include "StdAfx.h"
+#include "../../porttypes.h"
 #include "Profiler.h"
 #include "Logger.h"
 
@@ -33,22 +34,22 @@ namespace ivrworx
 {
 	struct ProfileData
 	{
-		__int64 hits;
+		int64_t hits;
 
-		__int64 all;
+		int64_t all;
 
-		__int64 avg;	
+		int64_t avg;	
 
-		__int64 counter;
+		int64_t counter;
 
-		__int64 history[MAX_PROFILE_HISTORY];
+		int64_t history[MAX_PROFILE_HISTORY];
 		ProfileData()
 		{
 			hits = 0;
 			avg	 = 0;
 			all	 = 0;
 			counter = 0;
-			::memset(history,0,MAX_PROFILE_HISTORY*sizeof(__int64));
+			::memset(history,0,MAX_PROFILE_HISTORY*sizeof(int64_t));
 		}
 
 	} ;
@@ -56,19 +57,18 @@ namespace ivrworx
 	
 	typedef 
 	map<std::string,ProfileData*> ProfileMap;
-	__declspec(thread) ProfileMap *gt_ProfileMap = NULL;
 
-	__declspec(thread) LARGE_INTEGER gt_ticksPerSecond;
+	IW_THREAD_LOCAL ProfileMap *gt_ProfileMap = NULL;
 
-	__declspec(thread) __int64 gt_ticksPerUs;
+	IW_THREAD_LOCAL LARGE_INTEGER gt_ticksPerSecond;
 
-	__declspec(thread) __int64 gt_ProfLastCheck;
+	IW_THREAD_LOCAL int64_t gt_ticksPerUs;
 
-	__declspec(thread) __int64 gt_overhead[MAX_PROFILE_STACK_SIZE];
+	IW_THREAD_LOCAL int64_t gt_ProfLastCheck;
 
-	__declspec(thread) int gt_stackDepth;
+	IW_THREAD_LOCAL int64_t gt_overhead[MAX_PROFILE_STACK_SIZE];
 
-
+	IW_THREAD_LOCAL int gt_stackDepth;
 
 	boost::mutex gb_print_mutex;
 
@@ -98,7 +98,7 @@ namespace ivrworx
 #define  CALCULATE_DELTA(start, end) ((end.QuadPart - start.QuadPart)/gt_ticksPerUs)
 
 	
-	void CheckInterval(__int64 interval)
+	void CheckInterval(int64_t interval)
 	{
 		
 		PROFILE_INIT();
@@ -108,7 +108,7 @@ namespace ivrworx
 			return;
 		}
 		
-		__int64 currTime  = ::GetTickCount();
+		int64_t currTime  = ::GetTickCount();
 		if ( (currTime - gt_ProfLastCheck) >= interval)
 		{
 			PrintProfile();
@@ -169,7 +169,7 @@ namespace ivrworx
 			// prepare history string
 			//
 			stringstream s;
-			for (int x = 0; x< std::min(data->counter,(__int64)MAX_PROFILE_HISTORY); x++)
+			for (int x = 0; x< std::min(data->counter,(int64_t)MAX_PROFILE_HISTORY); x++)
 			{
 				s << data->history[x] << " ";
 				if (x < (MAX_PROFILE_HISTORY-1) )
@@ -222,7 +222,7 @@ namespace ivrworx
 		};
 
 		// add overhead of ctor
-		__int64 overhead = CALCULATE_DELTA(overhead_start, overhead_end);
+		int64_t overhead = CALCULATE_DELTA(overhead_start, overhead_end);
 		_myOverhead =overhead;
 
 		gt_stackDepth++;
@@ -265,23 +265,23 @@ namespace ivrworx
 		// debugging mode so I assign these values to local vars
    
 		 
-		__int64 *overhead_arr = gt_overhead;
+		int64_t *overhead_arr = gt_overhead;
 		int stack_depth = gt_stackDepth;
 
 		// add overhead of dtor unmeasured part of code takes app 5 us.
-		__int64 overhead = CALCULATE_DELTA(overhead_start, overhead_end);
+		int64_t overhead = CALCULATE_DELTA(overhead_start, overhead_end);
 		_myOverhead += overhead + 5;
 	
 		overhead_arr[stack_depth] += _myOverhead + overhead_arr[stack_depth+1];
 
-		__int64 delta = CALCULATE_DELTA(_start, end);
+		int64_t delta = CALCULATE_DELTA(_start, end);
 
 		// when you calculate delta of measured code 
 		// you have to reduce the overhead of calling
 		// scoped profiler itself and all overheads
 		// of nested profilers.
 
-		__int64 delta_without_overhead = delta  - _myOverhead - overhead_arr[stack_depth+1];
+		int64_t delta_without_overhead = delta  - _myOverhead - overhead_arr[stack_depth+1];
 
 		
 		delta_without_overhead = delta_without_overhead <  0 ? 0 : delta_without_overhead ;

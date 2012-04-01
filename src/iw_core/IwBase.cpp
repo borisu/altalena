@@ -17,7 +17,7 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "IwBase.h"
 #include "Profiler.h"
 #include "Configuration.h"
@@ -34,13 +34,17 @@ namespace ivrworx
 
 	}
 
-	critical_exception::critical_exception(const char *what):
-	std::exception(what)
+	critical_exception::critical_exception(const char *pwhat)
 	{
-		
+		m_what = pwhat;
 	}
-
 	
+	critical_exception::~critical_exception() throw() {}
+
+	const char * critical_exception::what() const throw()
+	{
+		return m_what.c_str();
+	}
 
 	IW_CORE_API ostream& operator << (ostream &ostream,  CnxInfo *ptr)
 	{
@@ -75,7 +79,6 @@ namespace ivrworx
 
 	}
 
-
 	CnxInfo::CnxInfo(IN const string &s, IN int p_port)
 	{
 		init_from_hostname(s.c_str(),p_port);
@@ -107,7 +110,11 @@ namespace ivrworx
 		
 		unsigned long ia = inet_addr(host_name);
 
+#ifdef WIN32
 		addr.sin_addr.S_un.S_addr = ia;
+#else 
+	    addr.sin_addr.s_addr = ia;
+#endif		
 		addr.sin_family = AF_INET;
 		addr.sin_port = ::htons(p_port);
 	

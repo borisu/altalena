@@ -67,7 +67,7 @@ namespace ivrworx
 
 	void PrintProfile();
 
-	void CheckInterval(__int64 interval);
+	void CheckInterval(int64_t interval);
 
 	void Flush();
 
@@ -80,14 +80,16 @@ namespace ivrworx
 
 	private:
 
+#ifdef WIN32
+
 		LARGE_INTEGER _start;
+#else
+		int64_t _start;
+#endif
 
 		string _funcName;
 
-		__int64 _myOverhead;
+		int64_t _myOverhead;
 	};
 
-	
-
 }
-
