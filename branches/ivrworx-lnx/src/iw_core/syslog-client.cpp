@@ -17,7 +17,7 @@
 
 /* define SYSLOG_CONF_DIR where syslog.host should be
  */
-#include "stdafx.h"
+#include "StdAfx.h"
 #include "syslog.h"
 
 #ifndef SYSLOG_CONF_DIR

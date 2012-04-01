@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "StdAfx.h"
 /*------------------------------------------------------
    CCmdLine
 
@@ -31,7 +31,7 @@
 ------------------------------------------------------*/
 
 // if you're using MFC, you'll need to un-comment this line
-// #include "stdafx.h"
+// #include "StdAfx.h"
 
 #include "CmdLine.h"
 #include "crtdbg.h"

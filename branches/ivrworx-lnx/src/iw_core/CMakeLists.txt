@@ -1,6 +1,6 @@
 include_directories(../json_spirit/json_spirit_v4.05/json_spirit)
-include_directories(. ../kentcsp ../kentcsp/src)
-#link_directories(${ivrworx_BINARY_DIR}/iw_core)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -iquote${PROJECT_SOURCE_DIR}/src/kentcsp -iquote${PROJECT_SOURCE_DIR}/src/kentcsp/src")
+
 
 set(iw_core_SOURCES ActiveObject.cpp JSONConfiguration.cpp ProcSipStack.cpp
 CmdLine.cpp               LightweightProcess.cpp     Profiler.cpp
@@ -11,5 +11,4 @@ IwBase.cpp                Message.cpp
 IwUtils.cpp               ProcHandleWaiter.cpp)
 
 
-add_definitions(-H)
 add_library(iw_core SHARED ${iw_core_SOURCES})

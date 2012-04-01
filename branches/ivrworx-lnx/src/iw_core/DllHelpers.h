@@ -19,12 +19,16 @@
 
 #pragma once
 
-#ifdef _DLL_IW_CORE // assume this is defined when we build the DLL
-#define IW_CORE_API  __declspec( dllexport)
-#else
-#define IW_CORE_API  __declspec( dllimport)
-#endif
 
+#ifdef WIN32
+ #ifdef _DLL_IW_CORE // assume this is defined when we build the DLL
+  #define IW_CORE_API  __declspec( dllexport)
+ #else
+  #define IW_CORE_API  __declspec( dllimport)
+ #endif
+#else
+ #define IW_CORE_API
+#endif
 
 
 IW_CORE_API
@@ -32,4 +36,3 @@ BOOL StoreCoreData(DWORD slotIndex, LPVOID slotValue);
 
 IW_CORE_API
 BOOL GetCoreData(DWORD slotIndex,LPVOID *pdw);
-
