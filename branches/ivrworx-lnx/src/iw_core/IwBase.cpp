@@ -38,7 +38,7 @@ namespace ivrworx
 	{
 		m_what = pwhat;
 	}
-	
+
 	critical_exception::~critical_exception() throw() {}
 
 	const char * critical_exception::what() const throw()
@@ -51,7 +51,7 @@ namespace ivrworx
 		if (ptr == NULL)
 		{
 			return ostream << "NULL";
-		} 
+		}
 
 		return ostream << ptr->ipporttos();
 	}
@@ -107,17 +107,17 @@ namespace ivrworx
 
 	void CnxInfo::init_from_hostname(const char *host_name,int p_port)
 	{
-		
+
 		unsigned long ia = inet_addr(host_name);
 
 #ifdef WIN32
 		addr.sin_addr.S_un.S_addr = ia;
-#else 
+#else
 	    addr.sin_addr.s_addr = ia;
-#endif		
+#endif
 		addr.sin_family = AF_INET;
 		addr.sin_port = ::htons(p_port);
-	
+
 		init_strings();
 
 	}
@@ -128,13 +128,13 @@ namespace ivrworx
 		return is_ip_valid() && is_port_valid();
 	}
 
-	BOOL 
+	BOOL
 	CnxInfo::is_ip_valid() const
 	{
 		return (addr.sin_addr.s_addr != INADDR_NONE );
 	}
 
-	BOOL 
+	BOOL
 	CnxInfo::is_port_valid() const
 	{
 		return (addr.sin_port != IW_UNDEFINED);
@@ -209,10 +209,11 @@ namespace ivrworx
 		char buffer[10];
 		buffer[0] = '\0';
 
-		if ( _itoa_s(port_ho(),buffer,10,10) != 0)
+
+		if (sprintf(buffer,"%d",port_ho()) == 0)
 		{
 			sport = "INVALID";
-		} 
+		}
 		else
 		{
 			sport = buffer;
@@ -233,7 +234,12 @@ namespace ivrworx
 		hostent *phe = ::gethostbyname(name);
 		if (phe == NULL)
 		{
+#ifdef WIN32
 			DWORD last_error = ::GetLastError();
+#else
+            DWORD last_error = errno;
+#endif
+
 			cerr << "::gethostbyname returned error for host:" << name << ", le:" << last_error;
 			throw configuration_exception();
 		}

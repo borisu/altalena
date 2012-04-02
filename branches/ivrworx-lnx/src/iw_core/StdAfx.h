@@ -26,9 +26,9 @@
 
 
 #ifdef WIN32
- #ifndef _WIN32_WINNT		// Allow use of features specific to Windows XP or later.                   
+ #ifndef _WIN32_WINNT		// Allow use of features specific to Windows XP or later.
   #define _WIN32_WINNT 0x0501	// Change this to the appropriate value to target other versions of Windows.
- #endif						
+ #endif
  #include <stdio.h>
  #include <tchar.h>
 
@@ -43,11 +43,14 @@
 #elif  __linux__
 
  #include "IwUtils.h"
+ #include <pthread.h>
  #include <stdio.h>
  #include <stdarg.h>
  #include "json_spirit.h"
  #include "CmdLine.h"
  #include "cppcsp.h"
+ #include <netdb.h>
+ #include <sys/socket.h>
 
-#endif 
+#endif
 

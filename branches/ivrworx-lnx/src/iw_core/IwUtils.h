@@ -40,6 +40,7 @@
 #elif __linux__
 
  #define DWORD long
+ #define LONG long
  #define BOOL  int
  #define HANLE void*
  #define LPVOID void*
@@ -52,7 +53,9 @@
  #endif
  #ifndef OUT
   #define OUT
- #endif	
+ #endif
+
+
 
 #endif
 
@@ -76,7 +79,7 @@
 #include <boost/static_assert.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/bind.hpp>
-#include <boost/assign/list_of.hpp> 
+#include <boost/assign/list_of.hpp>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -108,8 +111,8 @@ namespace ivrworx
 		"|  FIXME :  " #x "\n" \
 		" -------------------------------------------------\n" )
 
-	#define todo( x )  message( __FILE__LINE__" TODO :   " #x "\n" ) 
-	#define fixme( x )  message( __FILE__LINE__" FIXME:   " #x "\n" ) 
+	#define todo( x )  message( __FILE__LINE__" TODO :   " #x "\n" )
+	#define fixme( x )  message( __FILE__LINE__" FIXME:   " #x "\n" )
 
 	#define NAME(x) #x
 

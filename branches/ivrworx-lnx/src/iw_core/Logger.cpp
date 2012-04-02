@@ -37,12 +37,13 @@ namespace ivrworx
 	#define IW_MAX_MESSAGES_IN_QUEUE	1000
 
 
-	string 
-	FormatLastSysError(const char *lpszFunction) 
-	{ 
+	string
+	FormatLastSysError(const char *lpszFunction)
+	{
+#ifdef WIN32
 
 		// Retrieve the system error message for the last-error code
-		DWORD last_error = ::GetLastError(); 
+		DWORD last_error = ::GetLastError();
 
 		char translated_err_buffer[IW_MAX_SYSTEM_ERROR_MSG_LENGTH];
 		translated_err_buffer[0]='\0';
@@ -53,8 +54,8 @@ namespace ivrworx
 			NULL,
 			last_error,
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			translated_err_buffer, 
-			IW_MAX_SYSTEM_ERROR_MSG_LENGTH, 
+			translated_err_buffer,
+			IW_MAX_SYSTEM_ERROR_MSG_LENGTH,
 			NULL);
 
 		if (res == 0)
@@ -66,19 +67,23 @@ namespace ivrworx
 		char formatted_buffer[IW_MAX_SYSTEM_ERROR_MSG_LENGTH];
 
 		::StringCchPrintfA(
-			formatted_buffer, 
+			formatted_buffer,
 			IW_MAX_SYSTEM_ERROR_MSG_LENGTH,
-			"%s failed with error %d: %s", 
-			lpszFunction, 
-			last_error, 
-			translated_err_buffer); 
+			"%s failed with error %d: %s",
+			lpszFunction,
+			last_error,
+			translated_err_buffer);
 
 		return string(formatted_buffer);
+#else
+        return strerror(errno);
+#endif
+
 	}
 
 	mutex		g_loggerMutex;
 
-	
+
 
 	HANDLE		g_queueSemaphore = NULL;
 
@@ -90,22 +95,26 @@ namespace ivrworx
 	BOOL	 g_LogSyncMode  = FALSE;
 
 #define IW_MAX_FILE_NAME 1024
+
 	char g_filename[IW_MAX_FILE_NAME];
 	BOOL g_override = TRUE;
 	FILE *g_file	= NULL;
 
 	char	g_hostname[IW_MAX_FILE_NAME];
 
-// 	__declspec( thread ) debug_dostream *tls_logger = NULL;
-// 
-// 	__declspec( thread ) BOOL script_log = FALSE;
-// 
-// 	__declspec( thread ) HANDLE tls_completion_port = NULL;
-// 
-// 	__declspec( thread ) HANDLE tls_queue_semaphore = NULL;
-// 
-// 	__declspec( thread ) BOOL tls_sync_mode= FALSE;
-	
+#ifdef __linux__
+
+ 	__declspec( thread ) debug_dostream *tls_logger = NULL;
+
+ 	__declspec( thread ) BOOL script_log = FALSE;
+
+ 	__declspec( thread ) HANDLE tls_completion_port = NULL;
+
+ 	__declspec( thread ) HANDLE tls_queue_semaphore = NULL;
+
+ 	__declspec( thread ) BOOL tls_sync_mode= FALSE;
+#endif
+
 #define LOGGER_SLOT 1
 	IW_CORE_API debug_dostream *GetTlsLogger()
 	{
@@ -115,7 +124,7 @@ namespace ivrworx
 		{
 			::SetLastError(os_res);
 			return (debug_dostream *)res;
-			
+
 		}
 		else
 		{
@@ -139,7 +148,7 @@ namespace ivrworx
 			StoreCoreData(SCRIPT_LOG_SLOT, FALSE);
 			return  GetScriptLog();
 		}
-		
+
 	}
 
 #define TLS_COMPLETION_PORT 3
@@ -200,7 +209,7 @@ namespace ivrworx
 
 	DWORD WINAPI LoggerThread(LPVOID lpParam);
 
-	IW_CORE_API void 
+	IW_CORE_API void
 	IwStartScript()
 	{
 		StoreCoreData(SCRIPT_LOG_SLOT, (LPVOID)TRUE);
@@ -211,8 +220,8 @@ namespace ivrworx
 	{
 		StoreCoreData(SCRIPT_LOG_SLOT, (LPVOID)FALSE);
 	}
-	
-	BOOL 
+
+	BOOL
 	InitLog(ConfigurationPtr conf)
 	{
 		mutex::scoped_lock scoped_lock(g_loggerMutex);
@@ -228,7 +237,7 @@ namespace ivrworx
 
 		openlog(conf->GetString("syslogd_host").c_str(),conf->GetInt("syslogd_port"),"ivrworx",0,LOG_USER );
 
-		// file preparation 
+		// file preparation
 		g_filename[0] = '\0';
 		string filename = conf->GetString("log_file_name");
 		::strcpy_s(g_filename,IW_MAX_FILE_NAME,filename.c_str());
@@ -245,7 +254,7 @@ namespace ivrworx
 		{
 			return TRUE;
 		}
-		
+
 		if (g_IocpLogger != NULL)
 		{
 			return TRUE;
@@ -300,19 +309,19 @@ namespace ivrworx
 		return TRUE;
 error:
 
-		if (g_loggerThread) 
+		if (g_loggerThread)
 		{
 			::CloseHandle(g_loggerThread);
 			g_loggerThread = NULL;
 		};
 
-		if (g_IocpLogger) 
+		if (g_IocpLogger)
 		{
 			::CloseHandle(g_IocpLogger);
 			g_IocpLogger = NULL;
 		};
 
-		if (g_queueSemaphore) 
+		if (g_queueSemaphore)
 		{
 			::CloseHandle(g_queueSemaphore);
 			g_queueSemaphore = NULL;
@@ -340,14 +349,14 @@ error:
 
 		::Sleep(100);
 
-		if (g_loggerThread != NULL) 
+		if (g_loggerThread != NULL)
 		{
 			::TerminateThread(g_loggerThread, -1);
 			::CloseHandle(g_loggerThread);
 			g_loggerThread = NULL;
 		}
 
-		if (g_IocpLogger != NULL) 
+		if (g_IocpLogger != NULL)
 		{
 			::CloseHandle(g_IocpLogger);
 			g_IocpLogger = NULL;
@@ -481,10 +490,10 @@ error:
 
 		setlogmask(GetSyslogPri(log_level));
 
-		
+
 	}
 
-	void 
+	void
 	SetLogMask(IN int log_mask)
 	{
 		mutex::scoped_lock scoped_lock(g_loggerMutex);
@@ -492,7 +501,7 @@ error:
 		g_logMask = log_mask;
 	}
 
-	
+
 	basic_debugbuf::~basic_debugbuf()
 	{
 		sync();
@@ -501,10 +510,10 @@ error:
 	// forward declaration
 	void LogBucketAndDelete(LogBucket *lb);
 
-	int 
+	int
 	basic_debugbuf::sync()
 	{
-		
+
 		LogBucket *lb = new LogBucket();
 
 		lb->log_level  = log_level;
@@ -524,7 +533,7 @@ error:
 		}
 		else
 		{
-			if (GetTlsQueueSemaphore() == NULL || 
+			if (GetTlsQueueSemaphore() == NULL ||
 				GetTlsCompletionPort() == NULL)
 			{
 				return 0;
@@ -552,13 +561,13 @@ error:
 				lb);
 		}
 
-		    
+
 
 		return 0;
 	}
 
-	debug_dostream::debug_dostream() 
-		:char_stream(new basic_debugbuf()) 
+	debug_dostream::debug_dostream()
+		:char_stream(new basic_debugbuf())
 	{
 
 		mutex::scoped_lock scoped_lock(g_loggerMutex);
@@ -575,10 +584,10 @@ error:
 
 		HANDLE tls_queue_handle = NULL;
 		int res  = ::DuplicateHandle(
-						::GetCurrentProcess(), 
-						g_queueSemaphore, 
 						::GetCurrentProcess(),
-						&tls_queue_handle, 
+						g_queueSemaphore,
+						::GetCurrentProcess(),
+						&tls_queue_handle,
 						0,
 						FALSE,
 						DUPLICATE_SAME_ACCESS);
@@ -594,10 +603,10 @@ error:
 
 		HANDLE tls_io_handle = NULL;
 		res  = ::DuplicateHandle(
-			::GetCurrentProcess(), 
-			g_IocpLogger, 
 			::GetCurrentProcess(),
-			&tls_io_handle, 
+			g_IocpLogger,
+			::GetCurrentProcess(),
+			&tls_io_handle,
 			0,
 			FALSE,
 			DUPLICATE_SAME_ACCESS);
@@ -612,12 +621,12 @@ error:
 
 	};
 
-	debug_dostream::~debug_dostream() 
+	debug_dostream::~debug_dostream()
 	{
-		delete rdbuf(); 
+		delete rdbuf();
 	}
 
-	void 
+	void
 	LogBucketAndDelete(LogBucket *lb)
 	{
 		char formatted_log_str[IW_SINGLE_LOG_BUCKET_LENGTH];
@@ -630,7 +639,7 @@ error:
 			char membuf[IW_SINGLE_LOG_BUCKET_LENGTH];
 			membuf[0]='\0';
 
-			_snprintf_s(membuf,IW_SINGLE_LOG_BUCKET_LENGTH,IW_SINGLE_LOG_BUCKET_LENGTH,"Logger string too long, you may not log messages longer than %d bytes", 
+			_snprintf_s(membuf,IW_SINGLE_LOG_BUCKET_LENGTH,IW_SINGLE_LOG_BUCKET_LENGTH,"Logger string too long, you may not log messages longer than %d bytes",
 				IW_SINGLE_LOG_BUCKET_LENGTH),
 
 				lb->log_str = membuf;
@@ -645,8 +654,8 @@ error:
 			fiber_id,
 			lb->log_str.c_str());
 
-		if (g_logMask & IW_LOG_MASK_CONSOLE)   
-		{ 
+		if (g_logMask & IW_LOG_MASK_CONSOLE)
+		{
 			cout << ((lb->script_log == TRUE)? con::fg_yellow : con::fg_white);
 
 			switch(lb->log_level)
@@ -679,18 +688,18 @@ error:
 			std::cout << formatted_log_str << con::bg_black;
 		}
 
-		if (g_logMask & IW_LOG_MASK_DEBUGVIEW) 
-		{ 
+		if (g_logMask & IW_LOG_MASK_DEBUGVIEW)
+		{
 			::OutputDebugStringA(formatted_log_str);
 		};
 
-		if (g_logMask & IW_LOG_MASK_SYSLOG)	
-		{ 
-			syslog(0,"%s",formatted_log_str); 
+		if (g_logMask & IW_LOG_MASK_SYSLOG)
+		{
+			syslog(0,"%s",formatted_log_str);
 		};
 
-		if ((g_logMask & IW_LOG_MASK_FILE) && g_file)	
-		{ 
+		if ((g_logMask & IW_LOG_MASK_FILE) && g_file)
+		{
 			SYSTEMTIME st, lt;
 
 			GetSystemTime(&st);
@@ -702,7 +711,7 @@ error:
 				st.wHour, st.wMinute, st.wSecond,st.wMilliseconds,g_hostname );
 
 
-			int n = ::fprintf(g_file,"%s %s", buf, formatted_log_str); 
+			int n = ::fprintf(g_file,"%s %s", buf, formatted_log_str);
 			::fflush(g_file);
 			if (n <= 0)
 			{
@@ -717,7 +726,7 @@ error:
 	}
 
 
-	DWORD WINAPI 
+	DWORD WINAPI
 	LoggerThread(LPVOID lpParam)
 	{
 		DWORD number_of_bytes = 0;
@@ -757,14 +766,14 @@ error:
 
 			::ReleaseSemaphore(g_queueSemaphore,1,NULL);
 
-			
+
 		}
 
 		return 0;
-		
+
 	}
 
-	
+
 	LoggerTracker::LoggerTracker(IN char *log_function)
 	{
 		if (::InterlockedExchangeAdd((LONG*)&g_MaxLogLevel,0) < LOG_LEVEL_TRACE)
@@ -773,8 +782,8 @@ error:
 			return;
 		}
 
-		strncpy_s(_funcname, 
-			log_function, 
+		strncpy_s(_funcname,
+			log_function,
 			MAX_LENGTH);
 
 		COND_LOG(LOG_LEVEL_TRACE,_funcname << " Enters -->")
@@ -791,7 +800,7 @@ error:
 
 	}
 
-	ostream& 
+	ostream&
 	operator << (ostream& os, const Time &time)
 	{
 		return os << GetMilliSeconds(time) << " ms.";
