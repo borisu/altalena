@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "IwUtils.h"
 #include "IwBase.h"
 #include "Message.h"
 #include "UIDOwner.h"
@@ -27,7 +28,7 @@ using namespace csp;
 using namespace std;
 using namespace boost;
 
-namespace ivrworx 
+namespace ivrworx
 {
 
 	#define MAX_MESSAGES_IN_QUEUE 1000
@@ -38,15 +39,15 @@ namespace ivrworx
 
 
 	// iw messages come with this completion keys
-	#define IOCP_UNIQUE_COMPLETION_KEY 555 
+	#define IOCP_UNIQUE_COMPLETION_KEY 555
 
 
 
 	//
-	// Some classes are not csp-fibers and need to be 
+	// Some classes are not csp-fibers and need to be
 	// interrupted by setting some event or any other
-	// OS related measure while they are waiting. This 
-	// class IW_CORE_API represents the interface which wraps the OS 
+	// OS related measure while they are waiting. This
+	// class IW_CORE_API represents the interface which wraps the OS
 	// related facility which used to interrupt such a
 	// process and inform it that new message has arrived
 	//
@@ -59,11 +60,11 @@ namespace ivrworx
 		virtual void SignalDataOut() = 0;
 	};
 
-	typedef 
+	typedef
 	shared_ptr<WaitInterruptor> InterruptorPtr;
 
-	// use this interruptor if you want to receive messages 
-	// by waiting on specific HANDLE by means of WaitForMultipleObjects 
+	// use this interruptor if you want to receive messages
+	// by waiting on specific HANDLE by means of WaitForMultipleObjects
 	class IW_CORE_API SemaphoreInterruptor
 	:public WaitInterruptor, noncopyable
 	{
@@ -85,12 +86,12 @@ namespace ivrworx
 
 	};
 
-	typedef 
+	typedef
 	shared_ptr<SemaphoreInterruptor> SemaphoreInterruptorPtr;
 
 
-	// use this interruptor if you want to receive messages 
-	// by waiting on io completion port by  means of  GetQueuedCompletionStatus  
+	// use this interruptor if you want to receive messages
+	// by waiting on io completion port by  means of  GetQueuedCompletionStatus
 	class IW_CORE_API IocpInterruptor
 		:public WaitInterruptor, noncopyable
 	{
@@ -105,26 +106,26 @@ namespace ivrworx
 		virtual void SignalDataOut();
 
 		HANDLE WinHandle();
-		
+
 	private:
 
 		HANDLE _iocpHandle;
 
 	};
 
-	typedef 
+	typedef
 	shared_ptr<IocpInterruptor> IocpInterruptorPtr;
 
-	typedef 
+	typedef
 	BufferedAny2OneChannel<IwMessagePtr> CommChannel;
 
-	typedef 
+	typedef
 	shared_ptr<CommChannel> CommChannelPtr;
 
-	typedef 
+	typedef
 	FIFOBuffer<IwMessagePtr> IwFifoBuffer;
 
-	typedef 
+	typedef
 	SizedChannelBufferFactoryImpl<IwMessagePtr, IwFifoBuffer> IwBufferFactory;
 
 	enum HandleDirection
@@ -137,10 +138,10 @@ namespace ivrworx
 
 	class IW_CORE_API LpHandle;
 
-	typedef 
+	typedef
 	shared_ptr<LpHandle> LpHandlePtr;
 
-	typedef 
+	typedef
 	vector<LpHandlePtr> HandlesVector;
 
 	typedef
@@ -212,8 +213,8 @@ namespace ivrworx
 
 		IW_CORE_API friend ApiErrorCode SelectFromChannels(
 			IN  HandlesVector &map,
-			IN  Time timeout, 
-			OUT int &index, 
+			IN  Time timeout,
+			OUT int &index,
 			OUT IwMessagePtr &event);
 
 	};
@@ -222,8 +223,8 @@ namespace ivrworx
 
 	IW_CORE_API ApiErrorCode SelectFromChannels(
 		IN  HandlesVector &map,
-		IN  Time timeout, 
-		OUT int &index, 
+		IN  Time timeout,
+		OUT int &index,
 		OUT IwMessagePtr &event);
 
 

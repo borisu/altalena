@@ -160,7 +160,7 @@ BOOL GetCoreData(DWORD slotIndex,LPVOID *pdw)
 	if (lpvThreadData == NULL)
 		return FALSE;
 #else
-    ((void) pthread_once(&key_once, make_key);
+    (void) pthread_once(&key_once, make_key);
     lpvThreadData = pthread_getspecific(key);
     if (lpvThreadData == NULL)
     {
