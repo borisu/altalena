@@ -34,8 +34,9 @@
  #include <Windows.h>
 
  // console
- #include "Console.h"
  #include <strsafe.h>
+
+ #define ATOMIC_INC(x) ::InterlockedExchangeAdd((&x),1)
 
 #elif __linux__
 
@@ -55,11 +56,13 @@
   #define OUT
  #endif
 
+ #define ATOMIC_INC(x) __sync_fetch_and_add((&x),1)
+
 
 
 #endif
 
-
+#include "Console.h"
 
 // std
 #include <iostream>

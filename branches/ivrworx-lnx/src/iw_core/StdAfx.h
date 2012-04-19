@@ -33,8 +33,7 @@
  #include <tchar.h>
 
  // TODO: reference additional headers your program requires here
- #include "IwUtils.h"
- #include <ws2tcpip.h>
+  #include <ws2tcpip.h>
  #include <stdarg.h>
  #include "json_spirit.h"
  #include "CmdLine.h"
@@ -42,13 +41,9 @@
 
 #elif  __linux__
 
- #include "IwUtils.h"
  #include <pthread.h>
  #include <stdio.h>
  #include <stdarg.h>
- #include "json_spirit.h"
- #include "CmdLine.h"
- #include "cppcsp.h"
  #include <netdb.h>
  #include <sys/socket.h>
 

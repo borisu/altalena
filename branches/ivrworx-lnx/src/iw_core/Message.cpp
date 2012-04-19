@@ -17,7 +17,7 @@
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "StdAfx.h"
+#include "IwUtils.h"
 #include "Message.h"
 
 using namespace std;
@@ -29,14 +29,14 @@ namespace ivrworx
 	{
 		static long txn_counter = 0;
 
-		return ::InterlockedExchangeAdd(&txn_counter,1);
+		return ATOMIC_INC(txn_counter);
 
 	}
 
 	IpcAdddress::IpcAdddress():
 	handle_id(IW_UNDEFINED)
 	{
-		
+
 	}
 
 	IpcAdddress::IpcAdddress(IN const IpcAdddress& other)
@@ -50,7 +50,6 @@ namespace ivrworx
 
 	}
 
-	
 
 	IwMessage::IwMessage (IN int message_id, IN const string &message_id_str):
 	transaction_id(-1),
@@ -68,6 +67,6 @@ namespace ivrworx
 	}
 
 
-	
+
 }
 

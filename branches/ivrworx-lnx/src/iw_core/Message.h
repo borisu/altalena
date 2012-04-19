@@ -19,7 +19,9 @@
 
 #pragma once
 
+#include "IwUtils.h"
 #include "IwBase.h"
+
 
 using namespace std;
 using namespace boost;
@@ -103,8 +105,8 @@ namespace ivrworx
 		};
 
 	};
-	
-	typedef 
+
+	typedef
 	boost::shared_ptr<IwMessage> IwMessagePtr;
 
 	#define NULL_MSG IwMessagePtr((IwMessage*)NULL)
@@ -132,9 +134,7 @@ namespace ivrworx
 	};
 
 
-#pragma region Simpletons
-
-	class IW_CORE_API MsgAck : 
+	class IW_CORE_API MsgAck :
 		public MsgResponse
 	{
 	public:
@@ -143,7 +143,7 @@ namespace ivrworx
 	};
 
 
-	class IW_CORE_API MsgNack : 
+	class IW_CORE_API MsgNack :
 		public MsgResponse
 	{
 	public:
@@ -151,12 +151,8 @@ namespace ivrworx
 		  MsgResponse(MSG_NACK, NAME(MSG_NACK)){};
 	};
 
-#pragma endregion Simpletons
 
-
-#pragma region Process_Management_Events
-
-	class IW_CORE_API MsgPing : 
+	class IW_CORE_API MsgPing :
 		public MsgRequest
 	{
 	public:
@@ -165,8 +161,7 @@ namespace ivrworx
 		  MsgRequest(MSG_PING, NAME(MSG_PING)){};
 	};
 
-
-	class IW_CORE_API MsgPong : 
+	class IW_CORE_API MsgPong :
 		public MsgResponse
 	{
 	public:
@@ -175,7 +170,7 @@ namespace ivrworx
 	};
 
 
-	class IW_CORE_API MsgShutdownReq: 
+	class IW_CORE_API MsgShutdownReq:
 		public MsgRequest
 	{
 	public:
@@ -184,7 +179,7 @@ namespace ivrworx
 
 	};
 
-	class IW_CORE_API MsgShutdownAck: 
+	class IW_CORE_API MsgShutdownAck:
 		public MsgResponse
 	{
 	public:
@@ -197,11 +192,8 @@ namespace ivrworx
 	{
 	public:
 		MsgProcReady():
-		  IwMessage(MSG_PROC_READY, 
-			  NAME(MSG_PROC_READY)),
-			  thread_id(NULL){};
-
-		HANDLE thread_id;
+		  IwMessage(MSG_PROC_READY,
+			  NAME(MSG_PROC_READY)){};
 
 	};
 
@@ -210,12 +202,9 @@ namespace ivrworx
 	{
 	public:
 		MsgProcResume():
-		  IwMessage(MSG_PROC_RESUME, 
+		  IwMessage(MSG_PROC_RESUME,
 			  NAME(MSG_PROC_RESUME)){};
 	};
 
-
-
-#pragma endregion Process_Management_Events
 
 }

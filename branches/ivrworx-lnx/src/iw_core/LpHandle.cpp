@@ -29,7 +29,11 @@
 
 using namespace boost;
 
-namespace ivrworx 
+using namespace JadedHoboConsole;
+namespace con = JadedHoboConsole;
+
+
+namespace ivrworx
 {
 
 	string GetCurrLpName();
@@ -65,14 +69,14 @@ namespace ivrworx
 
 	}
 
-	void 
+	void
 	SemaphoreInterruptor::SignalDataOut()
 	{
 
 
 	}
 
-	HANDLE 
+	HANDLE
 	SemaphoreInterruptor::WinHnd()
 	{
 		return _handle;
@@ -111,7 +115,7 @@ namespace ivrworx
 		::CloseHandle(_iocpHandle);
 	}
 
-	HANDLE 
+	HANDLE
 	IocpInterruptor::WinHandle()
 	{
 		return _iocpHandle;
@@ -150,16 +154,16 @@ namespace ivrworx
 
 #pragma region Direction
 
-	HandleDirection 
-	LpHandle::Direction() const 
-	{ 
-		return _direction; 
+	HandleDirection
+	LpHandle::Direction() const
+	{
+		return _direction;
 	}
 
-	void 
-	LpHandle::Direction(IN HandleDirection val) 
-	{ 
-		_direction = val; 
+	void
+	LpHandle::Direction(IN HandleDirection val)
+	{
+		_direction = val;
 	}
 
 #pragma endregion Direction
@@ -176,7 +180,7 @@ namespace ivrworx
 
 	}
 
-	bool 
+	bool
 	LpHandle::InboundPending()
 	{
 		CheckReader();
@@ -184,13 +188,13 @@ namespace ivrworx
 		return _channel.reader().pending();
 	}
 
-	void 
+	void
 	LpHandle::HandleInterruptor(IN InterruptorPtr interruptor)
 	{
 		_interruptor = interruptor;
 	}
 
-	void 
+	void
 	LpHandle::Poison()
 	{
 		FUNCTRACKER;
@@ -200,24 +204,24 @@ namespace ivrworx
 	}
 
 
-	ApiErrorCode 
+	ApiErrorCode
 	LpHandle::Send(IN IwMessage *message)
 	{
 		return Send(IwMessagePtr(message));
 	}
 
-	ApiErrorCode 
+	ApiErrorCode
 	LpHandle::Send(IN IwMessagePtr message)
 	{
 		FUNCTRACKER;
 
 		::QueryPerformanceCounter(&message->enter_queue_timestamp);
 		if (message->source.handle_id == IW_UNDEFINED)
-		{	
+		{
 			message->source.handle_id = GetCurrLpId();
 		};
 
-		try 
+		try
 		{
 			_channel.writer() << message;
 			_size++;
@@ -225,7 +229,7 @@ namespace ivrworx
 			{
 				_interruptor->SignalDataIn();
 			}
-		} 
+		}
 		catch(PoisonException p)
 		{
 			LogWarn(this << " poisoned.");
@@ -238,17 +242,17 @@ namespace ivrworx
 		return API_SUCCESS;
 	}
 
-	BOOL 
+	BOOL
 	LpHandle::PoisonedForWrite()
 	{
-		try 
+		try
 		{
 			_channel.reader().checkPoison();
 		} catch(exception)
 		{
 			return TRUE;
 		}
-		
+
 		return FALSE;
 	}
 
@@ -281,7 +285,7 @@ namespace ivrworx
 		CheckReader();
 
 		IwMessagePtr ptr;
-		try 
+		try
 		{
 			_channel.reader() >> ptr;
 			_size--;
@@ -290,7 +294,7 @@ namespace ivrworx
 				_interruptor->SignalDataOut();
 			}
 
-		} 
+		}
 		catch(PoisonException p)
 		{
 			LogWarn(this << " poisoned.");
@@ -314,7 +318,7 @@ namespace ivrworx
 
 		LogTrace("Waiting on " << this << " " << csp::GetMilliSeconds(timeout) << " ms.");
 
-		// if user passed 0 as timeout and there are messages 
+		// if user passed 0 as timeout and there are messages
 		// pending csp will prefer to return TIMEOUT code.
 		if (GetMilliSeconds(timeout) == 0)
 		{
@@ -322,21 +326,21 @@ namespace ivrworx
 			{
 				case true:  goto read;
 				default:	goto timeout;
-			} 
-		} 
-		else 
+			}
+		}
+		else
 		{
-			
+
 			Guard * guards[2];
 			guards[0] = _channel.reader().inputGuard();
 			guards[1] = new RelTimeoutGuard(timeout);
 			Alternative alt(guards,2);
-			
+
 			switch (alt.priSelect())
 			{
 				case 0:  goto read;
 				default: goto timeout;
-			} 
+			}
 
 		}
 
@@ -355,16 +359,16 @@ read:
 
 	}
 
-	string 
-	LpHandle::HandleName() const 
-	{ 
-		return _name; 
+	string
+	LpHandle::HandleName() const
+	{
+		return _name;
 	}
 
-	void 
-	LpHandle::HandleName(IN const string &val) 
-	{ 
-		_name = val; 
+	void
+	LpHandle::HandleName(IN const string &val)
+	{
+		_name = val;
 	}
 
 	LpHandle::~LpHandle(void)
@@ -375,10 +379,10 @@ read:
 	LpHandlePair::LpHandlePair(const LpHandlePair &other)
 	{
 		this->inbound = other.inbound;
-		this->outbound = other.outbound;	
+		this->outbound = other.outbound;
 	}
 
-	ostream& 
+	ostream&
 	operator << (ostream &ostream, const LpHandle *lpHandlePtr)
 	{
 		if (lpHandlePtr == NULL)
@@ -387,14 +391,14 @@ read:
 
 		};
 
-		return ostream 
+		return ostream
 			<< lpHandlePtr->GetObjectUid()
-			<< "," << (lpHandlePtr->Direction() == MSG_DIRECTION_INBOUND ? "in":"out") 
-			<< "," << lpHandlePtr->HandleName() << ", size:" << lpHandlePtr->_size; 
-	
+			<< "," << (lpHandlePtr->Direction() == MSG_DIRECTION_INBOUND ? "in":"out")
+			<< "," << lpHandlePtr->HandleName() << ", size:" << lpHandlePtr->_size;
+
 	}
 
-	int 
+	int
 	LpHandle::Size()
 	{
 		return _size;
@@ -402,34 +406,34 @@ read:
 
 #define MAX_NUM_OF_CHANNELS_IN_SELECT 10
 
-	ApiErrorCode 
+	ApiErrorCode
 	SelectFromChannels(
 		IN  HandlesVector &param_handles_list,
-		IN  Time timeout, 
-		OUT int &res_index, 
+		IN  Time timeout,
+		OUT int &res_index,
 		OUT IwMessagePtr &res_event)
 	{
 		FUNCTRACKER;
 
 		size_t count = param_handles_list.size();
 
-		if (count == 0 || 
+		if (count == 0 ||
 			count > MAX_NUM_OF_CHANNELS_IN_SELECT)
 		{
 			return API_FAILURE;
 		}
 
-		
+
 		// +1 for timeout
 		Guard* guards[MAX_NUM_OF_CHANNELS_IN_SELECT+1];
 		LpHandlePtr handles[MAX_NUM_OF_CHANNELS_IN_SELECT];
-		
 
-		// First loop is to check that may be there are already 
+
+		// First loop is to check that may be there are already
 		// messages	so we won't do heavy operations.
 		//
 		int index = 0;
-		for (HandlesVector::iterator iter = param_handles_list.begin(); 
+		for (HandlesVector::iterator iter = param_handles_list.begin();
 			iter!= param_handles_list.end(); iter++)
 		{
 			LpHandlePtr ptr = (*iter);
@@ -453,7 +457,7 @@ read:
 
 		Alternative alt(guards,count+1);
 		int wait_res = alt.priSelect();
-		
+
 
 		// timeout
 		if (wait_res == count)
@@ -461,12 +465,12 @@ read:
 			LogTrace("Select timeout.");
 			res_index = IW_UNDEFINED;
 			return API_TIMEOUT;
-		} 
-		
+		}
+
 		res_index = wait_res;
 		res_event = handles[wait_res]->Read();
 		return API_SUCCESS;
-		
+
 	}
 
 #pragma region LpHandlePair
