@@ -327,6 +327,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\kentcsp\kentcsp\src\csptime.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\kentcsp\kentcsp\src\kernel.h"
 				>
 			</File>
@@ -343,7 +347,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\kentcsp\kentcsp\src\process.h"
+				RelativePath="..\..\..\kentcsp\kentcsp\src\process_base.h"
 				>
 			</File>
 			<File
@@ -352,10 +356,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\kentcsp\kentcsp\src\thread_local.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\kentcsp\kentcsp\src\time.h"
 				>
 			</File>
 		</Filter>

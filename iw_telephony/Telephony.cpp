@@ -295,9 +295,14 @@ namespace ivrworx
 			if (medium_iter != s.media().end())
 			{
 				const SdpContents::Session::Medium &medium = *medium_iter;
+				
 
 				int port =	medium.port();
-				res.connection = CnxInfo(addr_data.c_str(),port);
+
+				std::list<SdpContents::Session::Connection> conns = medium.getConnections();
+				res.connection = (conns.size() == 0) ?  CnxInfo(addr_data.c_str(),port) : 
+					CnxInfo(conns.front().getAddress().c_str() ,port);
+				
 
 				// send list of codecs to the main process
 				const list<Codec> &offered_codecs = medium.codecs();
