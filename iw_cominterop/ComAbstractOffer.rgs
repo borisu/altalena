@@ -1,0 +1,27 @@
+HKCR
+{
+	iw_cominterop.ComAbstractOffer.1 = s 'ComAbstractOffer Class'
+	{
+		CLSID = s '{BAA3251A-F75C-4D74-B5A9-5C60D5ABE631}'
+	}
+	iw_cominterop.ComAbstractOffer = s 'ComAbstractOffer Class'
+	{
+		CLSID = s '{BAA3251A-F75C-4D74-B5A9-5C60D5ABE631}'
+		CurVer = s 'iw_cominterop.ComAbstractOffer.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {BAA3251A-F75C-4D74-B5A9-5C60D5ABE631} = s 'ComAbstractOffer Class'
+		{
+			ProgID = s 'iw_cominterop.ComAbstractOffer.1'
+			VersionIndependentProgID = s 'iw_cominterop.ComAbstractOffer'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+			val AppID = s '%APPID%'
+			'TypeLib' = s '{64BFA26C-B548-490A-A2EC-65B0948708FE}'
+		}
+	}
+}

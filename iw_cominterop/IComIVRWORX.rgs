@@ -1,0 +1,27 @@
+HKCR
+{
+	iw_cominterop.IComIVRWORX.1 = s 'IComIVRWORX Class'
+	{
+		CLSID = s '{3D381FB1-C57E-4B74-9F86-3ED8B59549A7}'
+	}
+	iw_cominterop.IComIVRWORX = s 'IComIVRWORX Class'
+	{
+		CLSID = s '{3D381FB1-C57E-4B74-9F86-3ED8B59549A7}'
+		CurVer = s 'iw_cominterop.IComIVRWORX.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {3D381FB1-C57E-4B74-9F86-3ED8B59549A7} = s 'IComIVRWORX Class'
+		{
+			ProgID = s 'iw_cominterop.IComIVRWORX.1'
+			VersionIndependentProgID = s 'iw_cominterop.IComIVRWORX'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+			val AppID = s '%APPID%'
+			'TypeLib' = s '{64BFA26C-B548-490A-A2EC-65B0948708FE}'
+		}
+	}
+}
