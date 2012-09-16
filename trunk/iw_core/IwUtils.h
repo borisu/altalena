@@ -65,13 +65,19 @@
 #include <boost/static_assert.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/bind.hpp>
-#include <boost/assign/list_of.hpp> 
+#include <boost/assign/list_of.hpp>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string.hpp>
 
 
+#pragma push_macro ("_WIN32_WINNT")
 // Kent CSP
-#include <cppcsp.h>
+#pragma warning (disable: 4345)
+#include "cppcsp.h"
+#pragma pop_macro ("_WIN32_WINNT")
+
+
+
 
 #pragma warning( pop )
 

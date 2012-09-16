@@ -43,7 +43,7 @@
 				AdditionalOptions="/Zm200&#x0D;&#x0A;"
 				Optimization="0"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories="..\json_spirit\json_spirit_v2.06\json_spirit\;"
+				AdditionalIncludeDirectories="..\json_spirit\json_spirit_v2.06\json_spirit\;..\kentcsp\kentcsp\src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_DLL_IW_CORE;TRACE_FUNC_CALLS"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -102,6 +102,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
+			UseOfATL="2"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
