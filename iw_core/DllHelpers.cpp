@@ -138,3 +138,4 @@ BOOL GetCoreData(DWORD slotIndex,LPVOID *pdw)
 	(*pdw) = pData;
 	return TRUE;
 }
+
