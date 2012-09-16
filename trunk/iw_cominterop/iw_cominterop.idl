@@ -1,0 +1,228 @@
+// iw_cominterop.idl : IDL source for iw_cominterop
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (iw_cominterop.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+
+
+[uuid(E9A35B70-8738-4F38-A685-ECA5B2CBCA59),
+	object,
+	dual,
+	nonextensible,
+	helpstring("IComCollection Interface"),
+	pointer_default(unique)
+]
+interface IComMap: IDispatch
+{
+    [id(DISPID_NEWENUM), propget]
+	HRESULT _NewEnum([out, retval] IUnknown** ppUnk);
+
+	[id(DISPID_VALUE), propget]
+	HRESULT Item(
+					[in] VARIANT Index, 
+					[out, retval] VARIANT* pVal);
+
+	[id(0x00000001), propget]
+	HRESULT Count([out, retval] long * pVal);
+
+
+	[id(0x00000002)]
+	HRESULT Add(
+					[in] VARIANT Key,
+					[in] VARIANT Item
+					);
+
+
+	[id(0x00000003)]
+	HRESULT Remove([in] VARIANT Index);
+
+	[id(0x00000004)]
+	HRESULT Clear();
+
+};
+
+[uuid(BABCF77D-476B-4E79-8FC0-8EA14FB6AF8D),
+	object,
+	dual,
+	nonextensible,
+	helpstring("IComIVRWORX Interface"),
+	pointer_default(unique)
+]
+interface IComIVRWORX : IDispatch{
+};
+
+[uuid(90C8F27F-C8AF-4CF3-BCF4-9F838AC42A17),
+	object,
+	dual,
+	nonextensible,
+	helpstring("IComCredentials Interface"),
+	pointer_default(unique)
+]
+interface IComCredentials : IDispatch{
+	[propget] HRESULT User([out,retval] BSTR *value);
+	[propput] HRESULT User([in] BSTR *value);
+
+	[propget] HRESULT Password([out,retval] BSTR *value);
+	[propput] HRESULT Password([in] BSTR *value);
+
+	[propget] HRESULT Realm([out,retval] BSTR *value);
+	[propput] HRESULT Realm([in] BSTR *value);
+};
+
+[uuid(19E2D99B-3FE2-40BB-BF2E-08E89A3038C9),
+	object,
+	dual,
+	nonextensible,
+	helpstring("IComAbstractOffer Interface"),
+	pointer_default(unique)
+]
+interface IComAbstractOffer : IDispatch{
+	[propget] HRESULT Type([out,retval] BSTR *value);
+	[propput] HRESULT Type([in] BSTR *value);
+
+	[propget] HRESULT Body([out,retval] BSTR *value);
+	[propput] HRESULT Body([in] BSTR *value);
+}
+
+
+
+typedef enum IwErrorCode
+{
+	IW_SUCCESS = 0,
+	IW_FAILURE,
+	IW_SOCKET_INIT_FAILURE,
+	IW_TIMER_INIT_FAILURE,
+	IW_SERVER_FAILURE,
+	IW_TIMEOUT,
+	IW_WRONG_PARAMETER,
+	IW_WRONG_STATE,
+	IW_HANGUP,
+	IW_UNKNOWN_DESTINATION,
+	IW_FEATURE_DISABLED,
+	IW_UNKNOWN_RESPONSE,
+	IW_PENDING_OPERATION
+}IwErrorCode;
+
+
+
+
+[uuid(533A9932-E0F0-4B30-86CE-5B2BA3653E95),
+	object,
+	dual,
+	nonextensible,
+	helpstring("IComSIPCall Interface"),
+	pointer_default(unique)
+]
+interface IComSIPCall : IDispatch
+{
+
+	HRESULT WaitForDtmf(
+		[out] const BSTR * signal, 
+		[in] long timeout,
+		[out, retval] IwErrorCode *errCode);
+
+	HRESULT RejectCall(
+		[out, retval] IwErrorCode *errCode);
+
+	HRESULT HangupCall(
+		[out, retval] IwErrorCode *errCode);
+
+	HRESULT BlindXfer(
+		[in,ref] const BSTR * destination_uri,
+		[out, retval] IwErrorCode *errCode);
+
+	HRESULT WaitTillHangup();
+
+	HRESULT Dnis(
+		[in,ref] const BSTR * destination_uri);
+
+	HRESULT Ani(
+		[in,ref] const BSTR * destination_uri);
+
+	HRESULT LocalOffer(
+		[out, retval]IComAbstractOffer **localOffer);
+
+	HRESULT RemoteOffer(
+		[out, retval]IComAbstractOffer **localOffer);
+
+	HRESULT MakeCall(
+		[in,ref] const BSTR * destinationUri, 
+		[in] IComAbstractOffer  *localOffer,
+		[in] IComCredentials	*credentials, 
+		[in] IComMap *keyValueMap,
+		[in] long				ringTimeout,
+		[out, retval]  IwErrorCode *errCode);
+
+	HRESULT ReOffer(
+		[in] IComAbstractOffer  *localOffer,
+		[in] IComMap			*keyValueMap,
+		[in] long  ringTimeout,
+		[out, retval]  IwErrorCode *errCode);
+
+	HRESULT Answer(
+		[in] IComAbstractOffer  *localOffer,
+		[in] IComMap			*keyValueMap,
+		[in] long ringTimeout,
+		[out, retval]  IwErrorCode *errCode);
+
+	HRESULT DtmfBuffer(
+		[out, retval]  IwErrorCode *dtmfBuffer);
+
+};
+
+
+
+
+[uuid(64BFA26C-B548-490A-A2EC-65B0948708FE),
+		version(1.0),
+		helpstring("iw_cominterop 1.0 Type Library")
+	]
+library iw_cominteropLib
+{
+	importlib("stdole2.tlb");
+	[uuid(1089F4B2-CE41-42E0-ACFC-F5DF2857279B),
+	helpstring("ComSIPCall Class")
+	]
+	coclass ComSIPCall
+	{
+		[default] interface IComSIPCall;
+	};
+
+	[uuid(BAA3251A-F75C-4D74-B5A9-5C60D5ABE631),
+		helpstring("ComAbstractOffer Class")
+	]
+	coclass ComAbstractOffer
+	{
+		[default] interface IComAbstractOffer;
+	};
+
+
+	[uuid(016E3F43-B0D7-4AA5-B081-2E9BC829CBDE),
+		helpstring("ComCredentials Class")
+	]
+	coclass ComCredentials
+	{
+		[default] interface IComCredentials;
+	};
+
+
+	[uuid(6D221A60-7DA4-4472-B1A8-84CE0ECD9BC3),
+		helpstring("ComCollection Class")
+	]
+	coclass ComMap
+	{
+		[default] interface IComMap;
+	};
+	[
+		uuid(3D381FB1-C57E-4B74-9F86-3ED8B59549A7),
+		helpstring("IComIVRWORX Class")
+	]
+	coclass ComIVRWORX
+	{
+		[default] interface IComIVRWORX;
+	};
+};
