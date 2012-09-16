@@ -26,7 +26,7 @@ using namespace boost;
 
 namespace ivrworx
 {
-	class configuration_exception: 	public exception 
+	class configuration_exception: 	public std::exception 
 	{
 	public:
 		configuration_exception();
