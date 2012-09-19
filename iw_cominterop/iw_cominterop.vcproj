@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			UseOfATL="2"
@@ -79,6 +79,7 @@
 				Name="VCLinkerTool"
 				RegisterOutput="true"
 				IgnoreImportLibrary="true"
+				AdditionalDependencies="comsuppw.lib"
 				LinkIncremental="2"
 				ModuleDefinitionFile=".\iw_cominterop.def"
 				GenerateDebugInformation="true"
@@ -225,15 +226,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ComIVRWORX.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ComSIPCall.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\ComUtils.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IComIVRWORX.cpp"
 				>
 			</File>
 			<File
@@ -287,15 +288,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ComIVRWORX.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ComSIPCall.h"
 				>
 			</File>
 			<File
 				RelativePath=".\ComUtils.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IComIVRWORX.h"
 				>
 			</File>
 			<File
@@ -325,11 +326,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ComSIPCall.rgs"
+				RelativePath=".\ComIVRWORX.rgs"
 				>
 			</File>
 			<File
-				RelativePath=".\IComIVRWORX.rgs"
+				RelativePath=".\ComSIPCall.rgs"
 				>
 			</File>
 			<File

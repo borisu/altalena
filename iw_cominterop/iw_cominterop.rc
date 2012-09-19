@@ -96,7 +96,7 @@ IDR_COMSIPCALL          REGISTRY                "ComSIPCall.rgs"
 IDR_COMABSTRACTOFFER    REGISTRY                "ComAbstractOffer.rgs"
 IDR_COMCREDENTIALS      REGISTRY                "ComCredentials.rgs"
 IDR_COMCOLLECTION       REGISTRY                "ComCollection.rgs"
-IDR_ICOMIVRWORX         REGISTRY                "IComIVRWORX.rgs"
+IDR_COMIVRWORX			REGISTRY                "ComIVRWORX.rgs"
 
 /////////////////////////////////////////////////////////////////////////////
 //
