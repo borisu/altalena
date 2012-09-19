@@ -27,8 +27,8 @@ namespace ivrworx
 {
 
 
-SipMediaCall::SipMediaCall(IN ScopedForking &forking, IN HandleId handle_id):
-	GenericOfferAnswerSession(forking, handle_id),
+SipMediaCall::SipMediaCall(IN ScopedForking &forking, IN HandleId stack_handle_id):
+	GenericOfferAnswerSession(forking, stack_handle_id),
 	_stackRegistrationHandle(IW_UNDEFINED),
 	_stackSubscribeHandle(IW_UNDEFINED),
 	_notifyChannel(new LpHandle()),
