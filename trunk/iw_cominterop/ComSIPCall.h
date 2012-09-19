@@ -48,59 +48,57 @@ END_COM_MAP()
 public:
 
 
-	STDMETHOD(CleanDtmfBuffer)();
+	 HRESULT STDMETHODCALLTYPE WaitForDtmf( 
+		/* [out] */ BSTR *signal,
+		/* [in] */ long timeout,
+		/* [retval][out] */ IwErrorCode *errCode);
 
-	STDMETHOD(WaitForDtmf)(
-		OUT BSTR * signal, 
-		IN  long timeout,
-		OUT enum ApiErrorCode *errCode);
+	 HRESULT STDMETHODCALLTYPE RejectCall( 
+		/* [retval][out] */ IwErrorCode *errCode);
 
-// 	virtual ApiErrorCode RejectCall();
-// 
-// 	virtual void UponCallTerminated(
-// 		IN IwMessagePtr ptr);
-// 
-// 	virtual void UponActiveObjectEvent(
-// 		IN IwMessagePtr ptr);
-// 
-// 	virtual ApiErrorCode HangupCall();
-// 
-// 	virtual ApiErrorCode BlindXfer(
-// 		IN const string &destination_uri);
-// 
-// 	virtual void WaitTillHangup();
-// 
-// 	virtual const string& Dnis();
-// 
-// 	virtual const string& Ani();
-// 
-// 	virtual AbstractOffer LocalOffer();
-// 
-// 	virtual AbstractOffer RemoteOffer();
-// 
-// 	virtual ApiErrorCode MakeCall(
-// 		IN const string			&destinationUri, 
-// 		IN const AbstractOffer  &localOffer,
-// 		IN const Credentials	&credentials, 
-// 		IN OUT  MapOfAny		&keyValueMap,
-// 		IN csp::Time			ringTimeout);
-// 
-// 	virtual ApiErrorCode ReOffer(
-// 		IN const AbstractOffer  &localOffer,
-// 		IN OUT  MapOfAny		&keyValueMap,
-// 		IN csp::Time			ringTimeout);
-// 
-// 	virtual ApiErrorCode Answer(
-// 		IN const AbstractOffer  &localOffer,
-// 		IN const MapOfAny &keyValueMap,
-// 		IN csp::Time	  ringTimeout);
-// 
-// 	virtual void UponDtmfEvt(
-// 		IN IwMessagePtr ptr);
-// 
-// 	virtual string DtmfBuffer();
-// 
-// 	virtual int StackCallHandle() const;
+	 HRESULT STDMETHODCALLTYPE HangupCall( 
+		/* [retval][out] */ IwErrorCode *errCode);
+
+	 HRESULT STDMETHODCALLTYPE BlindXfer( 
+		/* [ref][in] */ const BSTR *destination_uri,
+		/* [retval][out] */ IwErrorCode *errCode);
+
+	 HRESULT STDMETHODCALLTYPE WaitTillHangup( void);
+
+	 HRESULT STDMETHODCALLTYPE Dnis( 
+		/* [ref][in] */ const BSTR *destination_uri);
+
+	 HRESULT STDMETHODCALLTYPE Ani( 
+		/* [ref][in] */ const BSTR *destination_uri);
+
+	 HRESULT STDMETHODCALLTYPE LocalOffer( 
+		/* [retval][out] */ IComAbstractOffer **localOffer);
+
+	 HRESULT STDMETHODCALLTYPE RemoteOffer( 
+		/* [retval][out] */ IComAbstractOffer **localOffer);
+
+	 HRESULT STDMETHODCALLTYPE MakeCall( 
+		/* [ref][in] */ const BSTR *destinationUri,
+		/* [in] */ IComAbstractOffer *localOffer,
+		/* [in] */ IComCredentials *credentials,
+		/* [in] */ IComMap *keyValueMap,
+		/* [in] */ long ringTimeout,
+		/* [retval][out] */ IwErrorCode *errCode);
+
+	 HRESULT STDMETHODCALLTYPE ReOffer( 
+		/* [in] */ IComAbstractOffer *localOffer,
+		/* [in] */ IComMap *keyValueMap,
+		/* [in] */ long ringTimeout,
+		/* [retval][out] */ IwErrorCode *errCode);
+
+	 HRESULT STDMETHODCALLTYPE Answer( 
+		/* [in] */ IComAbstractOffer *localOffer,
+		/* [in] */ IComMap *keyValueMap,
+		/* [in] */ long ringTimeout,
+		/* [retval][out] */ IwErrorCode *errCode);
+
+	 HRESULT STDMETHODCALLTYPE DtmfBuffer( 
+		/* [retval][out] */ IwErrorCode *dtmfBuffer);
 
 	
 	

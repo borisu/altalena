@@ -4,7 +4,7 @@
 
 
  /* File created by MIDL compiler version 6.00.0366 */
-/* at Sun Sep 16 12:08:26 2012
+/* at Wed Sep 19 10:27:22 2012
  */
 /* Compiler settings for .\iw_cominterop.idl:
     Oicf, W1, Zp8, env=Win32 (32b run)
@@ -406,6 +406,9 @@ EXTERN_C const IID IID_IComIVRWORX;
     IComIVRWORX : public IDispatch
     {
     public:
+        virtual HRESULT STDMETHODCALLTYPE Init( 
+            /* [in] */ BSTR conf_file) = 0;
+        
     };
     
 #else 	/* C style interface */
@@ -454,6 +457,10 @@ EXTERN_C const IID IID_IComIVRWORX;
             /* [out] */ EXCEPINFO *pExcepInfo,
             /* [out] */ UINT *puArgErr);
         
+        HRESULT ( STDMETHODCALLTYPE *Init )( 
+            IComIVRWORX * This,
+            /* [in] */ BSTR conf_file);
+        
         END_INTERFACE
     } IComIVRWORXVtbl;
 
@@ -490,11 +497,26 @@ EXTERN_C const IID IID_IComIVRWORX;
     (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)
 
 
+#define IComIVRWORX_Init(This,conf_file)	\
+    (This)->lpVtbl -> Init(This,conf_file)
+
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
+
+
+HRESULT STDMETHODCALLTYPE IComIVRWORX_Init_Proxy( 
+    IComIVRWORX * This,
+    /* [in] */ BSTR conf_file);
+
+
+void __RPC_STUB IComIVRWORX_Init_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
 
 
 
@@ -982,7 +1004,7 @@ EXTERN_C const IID IID_IComSIPCall;
     {
     public:
         virtual HRESULT STDMETHODCALLTYPE WaitForDtmf( 
-            /* [out] */ const BSTR *signal,
+            /* [out] */ BSTR *signal,
             /* [in] */ long timeout,
             /* [retval][out] */ IwErrorCode *errCode) = 0;
         
@@ -1083,7 +1105,7 @@ EXTERN_C const IID IID_IComSIPCall;
         
         HRESULT ( STDMETHODCALLTYPE *WaitForDtmf )( 
             IComSIPCall * This,
-            /* [out] */ const BSTR *signal,
+            /* [out] */ BSTR *signal,
             /* [in] */ long timeout,
             /* [retval][out] */ IwErrorCode *errCode);
         
@@ -1230,7 +1252,7 @@ EXTERN_C const IID IID_IComSIPCall;
 
 HRESULT STDMETHODCALLTYPE IComSIPCall_WaitForDtmf_Proxy( 
     IComSIPCall * This,
-    /* [out] */ const BSTR *signal,
+    /* [out] */ BSTR *signal,
     /* [in] */ long timeout,
     /* [retval][out] */ IwErrorCode *errCode);
 

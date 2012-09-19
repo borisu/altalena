@@ -8,7 +8,7 @@
 #define IDR_COMABSTRACTOFFER            103
 #define IDR_COMCREDENTIALS              104
 #define IDR_COMCOLLECTION               105
-#define IDR_ICOMIVRWORX                 106
+#define IDR_COMIVRWORX                 106
 
 // Next default values for new objects
 // 

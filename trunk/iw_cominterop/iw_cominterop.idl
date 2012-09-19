@@ -53,6 +53,9 @@ interface IComMap: IDispatch
 	pointer_default(unique)
 ]
 interface IComIVRWORX : IDispatch{
+	HRESULT Init(					
+		[in] BSTR conf_file
+		);
 };
 
 [uuid(90C8F27F-C8AF-4CF3-BCF4-9F838AC42A17),
@@ -121,7 +124,7 @@ interface IComSIPCall : IDispatch
 {
 
 	HRESULT WaitForDtmf(
-		[out] const BSTR * signal, 
+		[out] BSTR * signal, 
 		[in] long timeout,
 		[out, retval] IwErrorCode *errCode);
 

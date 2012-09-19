@@ -14,21 +14,21 @@
 
 // CIComIVRWORX
 
-class ATL_NO_VTABLE CIComIVRWORX :
+class ATL_NO_VTABLE CComIVRWORX :
 	public CComObjectRootEx<CComSingleThreadModel>,
-	public CComCoClass<CIComIVRWORX, &CLSID_IComIVRWORX>,
-	public IDispatchImpl<IIComIVRWORX, &IID_IIComIVRWORX, &LIBID_iw_cominteropLib, /*wMajor =*/ 1, /*wMinor =*/ 0>
+	public CComCoClass<CComIVRWORX, &CLSID_ComIVRWORX>,
+	public IDispatchImpl<IComIVRWORX, &IID_IComIVRWORX, &LIBID_iw_cominteropLib, /*wMajor =*/ 1, /*wMinor =*/ 0>
 {
 public:
-	CIComIVRWORX()
+	CComIVRWORX()
 	{
 	}
 
-DECLARE_REGISTRY_RESOURCEID(IDR_ICOMIVRWORX)
+DECLARE_REGISTRY_RESOURCEID(IDR_COMIVRWORX)
 
 
-BEGIN_COM_MAP(CIComIVRWORX)
-	COM_INTERFACE_ENTRY(IIComIVRWORX)
+BEGIN_COM_MAP(CComIVRWORX)
+	COM_INTERFACE_ENTRY(IComIVRWORX)
 	COM_INTERFACE_ENTRY(IDispatch)
 END_COM_MAP()
 
@@ -46,7 +46,11 @@ END_COM_MAP()
 	}
 
 public:
+	
+	virtual HRESULT STDMETHODCALLTYPE Init( 
+		/* [in] */ BSTR *conf_file);
+
 
 };
 
-OBJECT_ENTRY_AUTO(__uuidof(IComIVRWORX), CIComIVRWORX)
+OBJECT_ENTRY_AUTO(__uuidof(ComIVRWORX), CComIVRWORX)
