@@ -7,12 +7,13 @@ namespace csharpio
 {
     class Program
     {
+        
         static void Main(string[] args)
         {
+
+            IComIVRWORX x = new ComIVRWORX();
+            x.Init(@"conf.json");
             
-            IComMap x = new iw_cominteropLib.ComMap();
-            
-            x.Add(Object x, Object y);
             
         }
     }
