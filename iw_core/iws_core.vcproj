@@ -124,7 +124,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
-				AdditionalIncludeDirectories="..\json_spirit\json_spirit_v2.06\json_spirit\;"
+				AdditionalIncludeDirectories="..\json_spirit\json_spirit_v2.06\json_spirit\;..\kentcsp\kentcsp\src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_DLL_IW_CORE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"

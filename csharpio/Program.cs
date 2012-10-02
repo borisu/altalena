@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using iw_cominteropLib;
+using ivrworx;
 
 namespace csharpio
 {
@@ -10,9 +10,17 @@ namespace csharpio
         
         static void Main(string[] args)
         {
-
-            IComIVRWORX x = new ComIVRWORX();
-            x.Init(@"conf.json");
+            try
+            {
+                string fileName = "dotnet.json";
+                IvrWORX x = new IvrWORX(fileName);
+            }
+            catch (System.Exception e)
+            {
+                System.Console.Out.WriteLine(e);
+            	
+            }
+            
             
             
         }
