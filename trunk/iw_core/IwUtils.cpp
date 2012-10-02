@@ -24,7 +24,7 @@ using namespace std;
 namespace ivrworx
 {
 
-	wstring StringToWString(const string& s)
+	wstring IW_CORE_API StringToWString(const string& s)
 	{
 		wstring temp(s.length(),L' ');
 		copy(s.begin(), s.end(), temp.begin());
@@ -32,7 +32,7 @@ namespace ivrworx
 		return temp;
 	}
 
-	string WStringToString(const wstring& ws)
+	string IW_CORE_API WStringToString(const wstring& ws)
 	{
 		string temp(ws.begin(), ws.end());
 		temp.assign(ws.begin(), ws.end());
@@ -40,22 +40,22 @@ namespace ivrworx
 		return temp;
 	};
 
-	void StringToUpper(string strToConvert)
+	void IW_CORE_API StringToUpper(string strToConvert)
 	{
 		std::transform(strToConvert.begin(), strToConvert.end(), strToConvert.begin(), ::toupper);
 	}
 
-	void StringToLower(string strToConvert)
+	void IW_CORE_API StringToLower(string strToConvert)
 	{
 		std::transform(strToConvert.begin(), strToConvert.end(), strToConvert.begin(), ::tolower);
 	}
 
-	void WStringToUpper(wstring strToConvert)
+	void IW_CORE_API WStringToUpper(wstring strToConvert)
 	{
 		std::transform(strToConvert.begin(), strToConvert.end(), strToConvert.begin(), ::toupper);
 	}
 
-	void WStringToLower(wstring strToConvert)
+	void IW_CORE_API WStringToLower(wstring strToConvert)
 	{
 		std::transform(strToConvert.begin(), strToConvert.end(), strToConvert.begin(), ::tolower);
 	}

@@ -1,20 +1,25 @@
 require "ivrworx"
 
-s = streamer:new();
-s:allocate{rcv=iw.RCV_DEVICE_NONE, snd=iw.SND_DEVICE_TYPE_FILE}
+local l = assert(iw.LOGGER, "assert:iw.LOGGER")
 
-s1 = streamer:new();
-s1:allocate{rcv=iw.RCV_DEVICE_NONE, snd=iw.SND_DEVICE_TYPE_FILE}
+l:loginfo("=== START ===");
 
-caller = sipcall:new();
-caller:makecall{dest="sip:24001@10.116.100.79", timeout=60,sdp=s:localoffer()}
+--
+-- set registration session to receive events upon
+--
+s = sipcall:new()
+s:subscribe{
+        server="sip:user1@10.116.100.76:5070",
+        package="presence", 
+        user="6166",
+        password="6166",
+        realm="10.116.100.76",
+        interval=60,
+        refresh=180, 
+        timeout=300};
+        
+x,y,z = s:waitfornotify{timeout=15}
 
+l:loginfo(z);
 
-s:modify{sdp=caller:remoteoffer()}
-s:play{file="C:\\sounds\\GREETING.wav", loop=true}
-
-s1:modify{sdp=caller:remoteoffer()}
-s1:play{file="C:\\sounds\\GREETING.wav", loop=true}
-
-
-caller:waitforhangup();
+l:loginfo("=== END ===");          

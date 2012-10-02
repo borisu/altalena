@@ -83,6 +83,8 @@
 
 using namespace std;
 
+#include "DllHelpers.h"
+
 namespace ivrworx
 {
 
@@ -113,17 +115,17 @@ namespace ivrworx
 	#define FORK_IN_THIS_THREAD(x) forking.forkInThisThread( x )
 	#define END_FORKING_REGION }
 
-	wstring StringToWString(const string& s);
+	wstring IW_CORE_API StringToWString(const string& s);
 
-	string WStringToString(const wstring& ws);
+	string IW_CORE_API WStringToString(const wstring& ws);
 
-	void StringToUpper(string strToConvert);
+	void IW_CORE_API StringToUpper(string strToConvert);
 
-	void StringToLower(string strToConvert);
+	void IW_CORE_API StringToLower(string strToConvert);
 
-	void WStringToUpper(wstring strToConvert);
+	void IW_CORE_API WStringToUpper(wstring strToConvert);
 
-	void WStringToLower(wstring strToConvert);
+	void IW_CORE_API WStringToLower(wstring strToConvert);
 
 	#define  NON_FIBEROUS_THREAD ((PVOID)0x1E00)
 
