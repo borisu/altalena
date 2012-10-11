@@ -13,15 +13,15 @@ namespace csharpio
             try
             {
                 string fileName = "dotnet.json";
-                IvrWORX x = new IvrWORX(fileName);
+                using (IvrWORX x = new IvrWORX())
+                {
+                    x.Init(fileName);
+                }
             }
             catch (System.Exception e)
             {
                 System.Console.Out.WriteLine(e);
-            	
             }
-            
-            
             
         }
     }

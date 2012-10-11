@@ -173,7 +173,7 @@ namespace ivrworx
 	_fiberId(NULL),
 	_size(0)
 	{
-
+		LogTrace("LpHandle(" << this << ")");
 	}
 
 	bool 
@@ -369,6 +369,7 @@ read:
 
 	LpHandle::~LpHandle(void)
 	{
+		LogTrace("~LpHandle(" << this << ")");
 		Poison();
 	}
 
