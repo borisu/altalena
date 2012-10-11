@@ -8,16 +8,25 @@ using namespace System::Runtime::InteropServices;
 using namespace ivrworx;
 
 
-IvrWORX::IvrWORX(String ^dt_confFile):
+IvrWORX::IvrWORX():
 _threadId(::GetCurrentThreadId()),
 _configuration(NULL),
-_forking(NULL)
+_factoriesList(NULL),
+_procHandles (NULL),
+_shutdownHandles (NULL),
+_forking(NULL),
+_isDisposed(false)
 {
 	
+	
+}
+
+void IvrWORX::Init(String ^dt_confFile)
+{
 	int res = 0;
 	try
 	{
-		
+
 		std::string conffile;
 
 		if (System::String::IsNullOrEmpty(dt_confFile) == NULL)
@@ -25,18 +34,16 @@ _forking(NULL)
 			cerr << "init:g_conf file is NULL using conf.json" << endl;
 			dt_confFile = "conf.json";
 		} 
-		
+
 
 		pin_ptr<const wchar_t> wch = PtrToStringChars(dt_confFile);
-		std::wstring wconffile(wch);
+		std::wstring wconffile(wch);	
 		conffile = WStringToString(wconffile);
 
 		cout << "loading " << conffile << "..." << endl;
 
 		ApiErrorCode err_code = API_SUCCESS;
-
-		_configuration = new ConfigurationPtr();
-		*_configuration = ConfigurationFactory::CreateJsonConfiguration(conffile,err_code);
+		_configuration = new ConfigurationPtr(ConfigurationFactory::CreateJsonConfiguration(conffile,err_code));
 
 		if (IW_FAILURE(err_code))
 		{
@@ -55,57 +62,83 @@ _forking(NULL)
 		LogInfo(">>>>>> IVRWORX (.NET) START <<<<<<");
 		Start_CPPCSP();
 
-
-		_pair = new shared_ptr<LpHandlePair>(new HANDLE_PAIR);
-
-		_factoryList = new shared_ptr<FactoryPtrList>(new FactoryPtrList());
+		_factoriesList = new FactoryPtrList();
 		if (IW_FAILURE(LoadConfiguredModules(
 			*_configuration,
-			**_factoryList)))
+			*_factoriesList)))
 		{
 			goto error;
 		};
 
 		// this is something THAT IS NOT ADVISED by CSP
 		// but no way I can do it any other way
-		_forking = new shared_ptr<ScopedForking>(new ScopedForking());
-		_procHandles = new shared_ptr<HandlePairList>(new HandlePairList());
-		_shutdownHandles = new shared_ptr<HandlesVector>(new HandlesVector());
+		_procHandles	 = new HandlePairList();
+		_shutdownHandles = new HandlesVector();
+		_forking		 = new ScopedForking();
 
 		if (IW_FAILURE(BootModulesSimple(
 			*_configuration,
-			**_forking,
-			**_factoryList,
-			**_procHandles,
-			**_shutdownHandles)))
+			*_forking,
+			*_factoriesList,
+			*_procHandles,
+			*_shutdownHandles)))
 		{
 			goto error;
 		};
 
 	} 
-	catch (exception e)
+	catch (exception &e)
 	{
 		cerr << endl << "Exception caught during program execution e:" << e.what() << endl;
 		goto error;
 	}
 
 
-	return ;
+	return;
 
 error:
 
+	throw gcnew Exception("generic initialization failure");
 
-	End_CPPCSP();
-	LogInfo(">>>>>> IVRWORX END <<<<<<");
-	ExitLog();
-
-	throw gcnew Exception("generic initialization failure");;
 }
 
 
 IvrWORX::~IvrWORX()
 {
+	if (_isDisposed)
+		return;
 
 	
+	if (_threadId != ::GetCurrentThreadId())
+	{
+		throw gcnew Exception("Attempt to dispose the object in thread different that it was created in.");
+	}
 
+	_isDisposed = true;
+
+	if (_forking)
+		delete _forking;
+
+	if (_shutdownHandles)
+		delete _shutdownHandles;
+
+	if (_procHandles)
+		delete _procHandles;
+
+	if (_configuration)
+		delete _configuration;
+
+	try
+	{
+		End_CPPCSP();
+		LogInfo(">>>>>> IVRWORX END <<<<<<");
+		ExitLog();
+	}
+	catch (exception &e)
+	{
+		cerr << endl << "~IvrWORX::exception caught e:" << e.what() << endl;
+	}
+	
+	
 }
+

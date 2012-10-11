@@ -3,11 +3,13 @@
 
 namespace ivrworx
 {
-	public ref class IvrWORX
+	public ref class IvrWORX 
 	{
 	public:
 
-		IvrWORX(String ^confName);
+		IvrWORX();
+
+		void Init(String ^confName);
 
 		~IvrWORX();
 
@@ -15,18 +17,17 @@ namespace ivrworx
 
 		long _threadId;
 
-		CAutoNativePtr<ivrworx::ConfigurationPtr>  _configuration;
+		ConfigurationPtr  *_configuration;
 
-		CAutoNativePtr<shared_ptr<ScopedForking>>  _forking;
+		FactoryPtrList * _factoriesList;
 
-		CAutoNativePtr<shared_ptr<FactoryPtrList>> _factoryList;
+		HandlePairList * _procHandles ;
 
-		CAutoNativePtr<shared_ptr<LpHandlePair>>   _pair;
+		HandlesVector  * _shutdownHandles ;
 
-		CAutoNativePtr<shared_ptr<HandlePairList>> _procHandles;
+		ScopedForking  *_forking;
 
-		CAutoNativePtr<shared_ptr<HandlesVector>> _shutdownHandles;
-
+		bool _isDisposed;
 
 
 	};
