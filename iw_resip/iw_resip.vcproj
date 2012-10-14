@@ -43,7 +43,7 @@
 				AdditionalOptions="/Zm200&#x0D;&#x0A;"
 				Optimization="0"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories="..\resiprocate\resiprocate;..\iw_core;..\iw_telephony"
+				AdditionalIncludeDirectories="..\kentcsp\kentcsp\src;..\resiprocate\resiprocate;..\iw_core;..\iw_telephony"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_DLL_IW_RESIP;TRACE_FUNC_CALLS"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"

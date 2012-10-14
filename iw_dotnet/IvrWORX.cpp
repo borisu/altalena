@@ -10,7 +10,7 @@ using namespace ivrworx;
 
 IvrWORX::IvrWORX():
 _threadId(::GetCurrentThreadId()),
-_configuration(NULL),
+_conf(NULL),
 _factoriesList(NULL),
 _procHandles (NULL),
 _shutdownHandles (NULL),
@@ -43,7 +43,7 @@ void IvrWORX::Init(String ^dt_confFile)
 		cout << "loading " << conffile << "..." << endl;
 
 		ApiErrorCode err_code = API_SUCCESS;
-		_configuration = new ConfigurationPtr(ConfigurationFactory::CreateJsonConfiguration(conffile,err_code));
+		_conf = new ConfigurationPtr(ConfigurationFactory::CreateJsonConfiguration(conffile,err_code));
 
 		if (IW_FAILURE(err_code))
 		{
@@ -52,7 +52,7 @@ void IvrWORX::Init(String ^dt_confFile)
 		}
 
 
-		if (!InitLog(*_configuration))
+		if (!InitLog(*_conf))
 		{
 			cerr << "init:error initiating logging infrastructure:" << endl;
 			throw gcnew Exception("init:error initiating logging infrastructure");
@@ -62,9 +62,20 @@ void IvrWORX::Init(String ^dt_confFile)
 		LogInfo(">>>>>> IVRWORX (.NET) START <<<<<<");
 		Start_CPPCSP();
 
+
+		LpHandlePair _ctxPair = HANDLE_PAIR;
+
+		char buffer[1024];
+		::sprintf_s(buffer, 1024,".NET IvrWORX(%d)",_threadId);
+		
+		_ctx = new RunningContext(_ctxPair,buffer);
+
+		RegisterContext(_ctx);
+
+
 		_factoriesList = new FactoryPtrList();
 		if (IW_FAILURE(LoadConfiguredModules(
-			*_configuration,
+			*_conf,
 			*_factoriesList)))
 		{
 			goto error;
@@ -77,7 +88,7 @@ void IvrWORX::Init(String ^dt_confFile)
 		_forking		 = new ScopedForking();
 
 		if (IW_FAILURE(BootModulesSimple(
-			*_configuration,
+			*_conf,
 			*_forking,
 			*_factoriesList,
 			*_procHandles,
@@ -107,7 +118,6 @@ IvrWORX::~IvrWORX()
 {
 	if (_isDisposed)
 		return;
-
 	
 	if (_threadId != ::GetCurrentThreadId())
 	{
@@ -116,20 +126,27 @@ IvrWORX::~IvrWORX()
 
 	_isDisposed = true;
 
-	if (_forking)
-		delete _forking;
-
-	if (_shutdownHandles)
-		delete _shutdownHandles;
-
-	if (_procHandles)
-		delete _procHandles;
-
-	if (_configuration)
-		delete _configuration;
-
 	try
 	{
+		//shutdown known modules
+		ShutdownModules(*_procHandles,*_conf);
+	
+		// shutdown unknown modules
+		LocalProcessRegistrar().Instance().UnReliableShutdownAll();
+
+		if (_forking)
+			delete _forking;
+
+		if (_shutdownHandles)
+			delete _shutdownHandles;
+
+		if (_procHandles)
+			delete _procHandles;
+
+		if (_conf)
+			delete _conf;
+
+	
 		End_CPPCSP();
 		LogInfo(">>>>>> IVRWORX END <<<<<<");
 		ExitLog();

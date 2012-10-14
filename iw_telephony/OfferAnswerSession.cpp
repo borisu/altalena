@@ -1,6 +1,11 @@
 #include "StdAfx.h"
 #include "OfferAnswerSession.h"
 
+
+#pragma push_macro("SendMessage")
+#undef SendMessage
+
+
 using namespace ivrworx;
 
 namespace ivrworx
@@ -643,3 +648,4 @@ GenericOfferAnswerSession::BlindXfer(IN const string &destination_uri)
 
 }
 
+#pragma pop_macro("SendMessage")

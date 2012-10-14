@@ -24,6 +24,9 @@
 #include "Profiler.h"
 #include "DllHelpers.h"
 
+#pragma push_macro("SendMessage")
+#undef SendMessage
+
 namespace ivrworx
 {
 
@@ -161,6 +164,9 @@ namespace ivrworx
 		_serviceId = serviceId; 
 	}
 
+
+
+
 	ApiErrorCode
 	RunningContext::SendMessage(
 		IN ProcId qid, 
@@ -242,6 +248,7 @@ namespace ivrworx
 		return API_UNKNOWN_DESTINATION;
 
 	}
+
 
 	int
 	RunningContext::ProcessId()
@@ -979,4 +986,4 @@ exit:
 
 
 
-
+#pragma pop_macro("SendMessage")

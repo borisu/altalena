@@ -17,13 +17,15 @@ namespace ivrworx
 
 		long _threadId;
 
-		ConfigurationPtr  *_configuration;
+		ConfigurationPtr  *_conf;
 
 		FactoryPtrList * _factoriesList;
 
 		HandlePairList * _procHandles ;
 
 		HandlesVector  * _shutdownHandles ;
+
+		RunningContext *_ctx;
 
 		ScopedForking  *_forking;
 
