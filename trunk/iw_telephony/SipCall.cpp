@@ -20,6 +20,9 @@
 #include "StdAfx.h"
 #include "SipCall.h"
 
+#pragma push_macro("SendMessage")
+#undef SendMessage
+
 
 #define CALL_RESET_STATE(X) ResetState(X,#X)
 
@@ -421,3 +424,6 @@ SipMediaCall::UponActiveObjectEvent(IwMessagePtr ptr)
 }
 
 }
+
+#pragma pop_macro("SendMessage")
+

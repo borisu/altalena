@@ -23,6 +23,7 @@
 #include "LpHandle.h"
 #include "Configuration.h"
 
+
 using namespace csp;
 using namespace boost;
 using namespace std;
@@ -78,6 +79,8 @@ public:
 
 	virtual int ProcessId();
 
+#pragma push_macro("SendMessage")
+#undef SendMessage
 	virtual ApiErrorCode SendMessage(
 		IN ProcId dest_channel_id, 
 		IN IwMessage* message);
@@ -96,6 +99,7 @@ public:
 	virtual ApiErrorCode SendResponse(
 		IN IwMessagePtr request, 
 		IN IwMessage* response);
+#pragma pop_macro("SendMessage")
 
 	virtual BOOL HandleOOBMessage(
 		IN IwMessagePtr msg);

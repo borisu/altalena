@@ -20,6 +20,8 @@
 #include "StdAfx.h"
 #include "RtspSession.h"
 
+#pragma push_macro("SendMessage")
+#undef SendMessage
 
 namespace ivrworx
 {
@@ -239,3 +241,5 @@ namespace ivrworx
 
 
 }
+
+#pragma pop_macro("SendMessage")

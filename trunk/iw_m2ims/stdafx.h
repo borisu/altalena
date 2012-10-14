@@ -33,7 +33,7 @@
 #include "StreamingSession.h"
 
 
-
+#undef SendMessage
 
 
 

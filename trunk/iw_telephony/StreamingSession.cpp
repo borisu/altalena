@@ -20,6 +20,8 @@
 #include "StdAfx.h"
 #include "StreamingSession.h"
 
+#pragma push_macro("SendMessage")
+#undef SendMessage
 
 
 using namespace boost;
@@ -355,3 +357,5 @@ StreamingSession::TearDown()
 }
 
 }
+
+#pragma pop_macro("SendMessage")

@@ -20,6 +20,8 @@
 #include "StdAfx.h"
 #include "MrcpSession.h"
 
+#pragma push_macro("SendMessage")
+#undef SendMessage
 
 
 using namespace boost;
@@ -550,3 +552,5 @@ MrcpSession::LocalOffer(MrcpResource rsc)
 
 
 }
+
+#pragma pop_macro("SendMessage")

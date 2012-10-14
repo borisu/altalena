@@ -57,7 +57,11 @@ namespace ivrworx
 
 		LpHandlePtr waiter_inbound = ivrworx::GetHandle("__waiter__");
 
+#pragma push_macro("SendMessage")
+#undef SendMessage
 		ApiErrorCode res = GetCurrRunningContext()->SendMessage(waiter_inbound,IwMessagePtr(msg));
+#pragma pop_macro("SendMessage")
+
 		if (IW_FAILURE(res))
 		{
 			os_res = WAIT_FAILED;
