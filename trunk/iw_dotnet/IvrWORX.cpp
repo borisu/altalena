@@ -6,6 +6,7 @@
 using namespace System;
 using namespace System::Runtime::InteropServices;
 using namespace ivrworx;
+using namespace interop;
 
 
 IvrWORX::IvrWORX():
@@ -42,7 +43,7 @@ void IvrWORX::Init(String ^dt_confFile)
 
 		cout << "loading " << conffile << "..." << endl;
 
-		ApiErrorCode err_code = API_SUCCESS;
+		ivrworx::ApiErrorCode err_code = ivrworx::API_SUCCESS;
 		_conf = new ConfigurationPtr(ConfigurationFactory::CreateJsonConfiguration(conffile,err_code));
 
 		if (IW_FAILURE(err_code))
