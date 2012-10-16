@@ -392,6 +392,8 @@ namespace ivrworx
 	{
 	public:
 
+		GenericOfferAnswerSession(IN ScopedForking &forking);
+			
 		GenericOfferAnswerSession(IN ScopedForking &forking, 
 			IN HandleId stack_handle_id);
 
@@ -400,6 +402,8 @@ namespace ivrworx
 			IN shared_ptr<MsgCallOfferedReq> offered_msg);
 
 		virtual ~GenericOfferAnswerSession(void);
+
+		virtual void Accept(IN const string& service, csp::Time timeout);
 
 		virtual void CleanDtmfBuffer();
 
@@ -458,6 +462,10 @@ namespace ivrworx
 
 		void ResetState(CallState state, const char *stateName);
 
+		void Init(IN ScopedForking &forking,
+			IN HandleId stack_handle_id,
+			IN shared_ptr<MsgCallOfferedReq> offered_msg);
+
 		HandleId _serviceHandleId;
 
 		LpHandlePair _handlerPair;
@@ -485,6 +493,9 @@ namespace ivrworx
 		BOOL _uac;
 
 		stringstream _dtmfBuffer;
+
+		typedef map<string,LpHandlePtr> 
+		AcceptingHandlesMap;
 
 	};
 }

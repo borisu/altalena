@@ -204,7 +204,7 @@ namespace ivrworx
 	{
 	public:
 
-		SipMediaCall(IN ScopedForking &forking,IN HandleId handle_id);
+		SipMediaCall(IN ScopedForking &forking,IN HandleId stack_handle_id);
 
 		SipMediaCall(IN ScopedForking &forking,
 			 IN shared_ptr<MsgCallOfferedReq> offered_msg);
