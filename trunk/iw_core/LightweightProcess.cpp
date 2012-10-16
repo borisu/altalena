@@ -64,7 +64,7 @@ namespace ivrworx
 	_bucket(new Bucket()),
 	_transactionTimeout(5000),
 	_startSuspended(start_suspended),
-	_appData(NULL)
+	_appData(new AppData())
 	{
 		FUNCTRACKER;
 

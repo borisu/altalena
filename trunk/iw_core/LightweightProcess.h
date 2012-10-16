@@ -53,6 +53,24 @@ class IW_CORE_API AppData : boost::noncopyable
 {
 public:
 	virtual int getType();
+
+	typedef std::map<string,shared_ptr<void>>
+	AnyMap;
+
+	virtual shared_ptr<void> get(string key)
+	{
+		AnyMap::iterator iter; 
+		return ((iter = _map.find(key)) == _map.end()) ? shared_ptr<void>() : iter->second;
+	};
+
+	virtual void set(string key, shared_ptr<void> value)
+	{
+		_map[key] = value;
+	};
+
+private:
+
+	AnyMap _map;
 };
 
 class IW_CORE_API RunningContext
