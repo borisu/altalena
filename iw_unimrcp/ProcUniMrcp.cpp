@@ -3,6 +3,8 @@
 #include "Logger.h"
 #include "MrcpUtils.h"
 
+#pragma push_macro("SendMessage")
+#undef SendMessage
 
 // 5 secs
 #define IW_MRCP_CLIENT_TIMEOUT		5000
@@ -1283,3 +1285,4 @@ error:
 
 }
 
+#pragma pop_macro("SendMessage")

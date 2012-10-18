@@ -116,7 +116,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\resiprocate\resiprocate;..\iw_core"
+				AdditionalIncludeDirectories="..\kentcsp\kentcsp\src;..\resiprocate\resiprocate;..\iw_core"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_IW_TELEPHONY_API;TRACE_FUNC_CALLS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
