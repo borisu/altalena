@@ -24,14 +24,15 @@ GenerateCallHandle()
 };
 
 GenericOfferAnswerSession::GenericOfferAnswerSession(IN ScopedForking &forking):
-_serviceHandleId(IW_UNDEFINED),
-_iwCallHandle(IW_UNDEFINED),
-_hangupDetected(FALSE),
-_handlerPair(HANDLE_PAIR),
-_dtmfChannel(new LpHandle()),
-_hangupChannel(new LpHandle()),
-_callState(CALL_STATE_UNKNOWN),
-_uac(TRUE)
+	_serviceHandleId(IW_UNDEFINED),
+	_iwCallHandle(IW_UNDEFINED),
+	_hangupDetected(FALSE),
+	_handlerPair(HANDLE_PAIR),
+	_dtmfChannel(new LpHandle()),
+	_hangupChannel(new LpHandle()),
+	_callState(CALL_STATE_UNKNOWN),
+	_uac(TRUE),
+	_forking(forking)
 {
 	FUNCTRACKER;
 
@@ -50,7 +51,8 @@ GenericOfferAnswerSession::GenericOfferAnswerSession(IN ScopedForking &forking,
 	_dtmfChannel(new LpHandle()),
 	_hangupChannel(new LpHandle()),
 	_callState(CALL_STATE_UNKNOWN),
-	_uac(TRUE)
+	_uac(TRUE),
+	_forking(forking)
 {
 	FUNCTRACKER;
 
@@ -69,7 +71,17 @@ GenericOfferAnswerSession::GenericOfferAnswerSession(IN ScopedForking &forking,
 	_dtmfChannel(new LpHandle()),
 	_hangupChannel(new LpHandle()),
 	_callState(CALL_STATE_UNKNOWN),
-	_uac(FALSE)
+	_uac(FALSE),
+	_forking(forking)
+{
+	FUNCTRACKER;
+
+	InitFromIncoming(forking, offered_msg);
+
+}
+
+void 
+GenericOfferAnswerSession::InitFromIncoming(IN ScopedForking &forking, IN shared_ptr<MsgCallOfferedReq> offered_msg)
 {
 	FUNCTRACKER;
 
@@ -138,7 +150,7 @@ SubscribeToIncomingCalls(IN LpHandlePtr stackIncomingHandle, IN LpHandlePtr list
 
 
 IW_TELEPHONY_API ApiErrorCode  
-GenericOfferAnswerSession::Accept(IN const string& service, csp::Time timeout)
+GenericOfferAnswerSession::Accept(IN const string& service, IN csp::Time timeout)
 {
 	FUNCTRACKER;
 
@@ -146,7 +158,7 @@ GenericOfferAnswerSession::Accept(IN const string& service, csp::Time timeout)
 	// the pyrotechnics's is used not to miss any calls between
 	// object created.
 	AcceptingHandlesMap *handles_map = (AcceptingHandlesMap *)
-		GetCurrRunningContext()->GetAppData()->get("handles_map@GenericOfferAnswerSession::Accept");
+		GetCurrRunningContext()->GetAppData()->get("handles_map@GenericOfferAnswerSession::Accept").get();
 
     if (handles_map == NULL )
 	{
@@ -162,15 +174,17 @@ GenericOfferAnswerSession::Accept(IN const string& service, csp::Time timeout)
 	AcceptingHandlesMap::iterator iter  = 
 		handles_map->find(service);
 
+	DECLARE_NAMED_HANDLE(listener_handle);
+
+
 	if (iter == handles_map->end())
 	{
 		LpHandlePtr service_handle = ivrworx::GetHandle(service);
 
+		_serviceHandleId = service_handle->GetObjectUid();
+
 		if (!service_handle)
 			return API_UNKNOWN_DESTINATION;
-
-		DECLARE_NAMED_HANDLE(listener_handle);
-		
 
 		ApiErrorCode res = SubscribeToIncomingCalls(service_handle,listener_handle);
 		if (IW_FAILURE(res))
@@ -179,21 +193,17 @@ GenericOfferAnswerSession::Accept(IN const string& service, csp::Time timeout)
 			return res;
 		}
 
-		handles_map[service] = listener_handle;
+		(*handles_map)[service] = listener_handle;
 	}
-
-
 
 	//
 	// Message Loop
 	// 
 	ApiErrorCode res = API_SUCCESS;
-	IwMessagePtr msg = listener_handle->Wait(Seconds(timeout),res);
-
+	IwMessagePtr msg = listener_handle->Wait(timeout,res);
 	if (IW_FAILURE(res))
 	{
-		lua_pushnumber (L, res);
-		return 1;
+		return res;
 	}
 
 	switch (msg->message_id)
@@ -204,20 +214,15 @@ GenericOfferAnswerSession::Accept(IN const string& service, csp::Time timeout)
 			shared_ptr<MsgCallOfferedReq> call_offered = 
 				shared_polymorphic_cast<MsgCallOfferedReq> (msg);
 
-			_call.reset(new SipMediaCall(_forking,call_offered));
+			InitFromIncoming(_forking,call_offered);
 			break;
 		}
 	default:
 		{
-			lua_pushnumber (L, API_UNKNOWN_RESPONSE);
-			return 1;
+			return API_UNKNOWN_RESPONSE;
 		}
 	}
-
-
-	lua_pushnumber (L, API_SUCCESS);
-	return 1;
-
+	return  API_SUCCESS;
 }
 
 
