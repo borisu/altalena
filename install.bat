@@ -32,7 +32,10 @@ if %ERRORLEVEL% NEQ 0 GOTO Error
 copy /Y apr.vsprops .\unimrcp\unimrcp\build\vsprops 
 if %ERRORLEVEL% NEQ 0 GOTO Error
 
-copy /Y sofia.vsprops .\unimrcp\unimrcp\build\vsprops
+copy /Y sofiasip.vsprops .\unimrcp\unimrcp\build\vsprops
 if %ERRORLEVEL% NEQ 0 GOTO Error
 
+echo SUCCESS !!!
+exit
 :Error
+echo FAILURE !!!
