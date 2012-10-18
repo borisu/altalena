@@ -37,13 +37,9 @@ are either included into subversion tree completely or by means of subversion ex
 
  * Open <root project>\solutions\altalena_all\altalena_all.sln.
 
- * In Linker\General Change "Link Library Dependencies" option in libmsilbc, mediastreamer2, ortp projects to "No".
-
  * build unimrcp-deps first
 
  * build 'iw_setup' project 
-
-
 
 =Start= 
 
