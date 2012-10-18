@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\iw_core;..\iw_telephony;..\iw_live555rtsp;..\iw_sqlite;&quot;..\sqlite-amalgamation-3_6_17&quot;;..\lua5.1\include;..\luasql"
+				AdditionalIncludeDirectories="..\kentcsp\kentcsp\src;..\iw_core;..\iw_telephony;..\iw_live555rtsp;..\iw_sqlite;&quot;..\sqlite-amalgamation-3_6_17&quot;;..\lua5.1\include;..\luasql"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_DLL_IW_IVR;TRACE_FUNC_CALLS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\iw_core;..\iw_telephony;..\iw_live555rtsp;..\iw_sqlite;&quot;..\sqlite-amalgamation-3_6_17&quot;;..\lua5.1\include;..\luasql"
+				AdditionalIncludeDirectories="..\kentcsp\kentcsp\src;..\iw_core;..\iw_telephony;..\iw_live555rtsp;..\iw_sqlite;&quot;..\sqlite-amalgamation-3_6_17&quot;;..\lua5.1\include;..\luasql"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_DLL_IW_IVR;TRACE_FUNC_CALLS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
