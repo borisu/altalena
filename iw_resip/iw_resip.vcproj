@@ -122,7 +122,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm120"
-				AdditionalIncludeDirectories="..\resiprocate\resiprocate;..\iw_core;..\iw_telephony"
+				AdditionalIncludeDirectories="..\kentcsp\kentcsp\src;..\resiprocate\resiprocate;..\iw_core;..\iw_telephony"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_DLL_IW_RESIP;TRACE_FUNC_CALLS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
