@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\lua5.1\include;..\iw_core;..\iw_telephony;..\iw_ivr"
+				AdditionalIncludeDirectories="..\kentcsp\kentcsp\src;..\lua5.1\include;..\iw_core;..\iw_telephony;..\iw_ivr"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;IW_LUALIB_EXPORTS;LUA_BUILD_AS_DLL;LUA_LIB;TRACE_FUNC_CALLS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -125,7 +125,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\lua5.1\include;..\iw_core;..\iw_telephony;..\iw_ivr"
+				AdditionalIncludeDirectories="..\kentcsp\kentcsp\src;..\lua5.1\include;..\iw_core;..\iw_telephony;..\iw_ivr"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;IW_LUALIB_EXPORTS;LUA_BUILD_AS_DLL;LUA_LIB"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
