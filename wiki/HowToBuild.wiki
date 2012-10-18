@@ -33,25 +33,7 @@ are either included into subversion tree completely or by means of subversion ex
 
  * Checkout altalena code in '<project root>\altalena' - see instructions [http://code.google.com/p/altalena/source/checkout here]. Write to administrator if you want to become a member of development team. 
 
- * Add ;<project root>\kentcsp\kentcsp\src' to include library in IDE options tab. After all definitions, library and include IDE options should look something like this. Extras DirectSound libraries seems to be missing in pictures, please add.
-
-http://www.prettythingsflying.com/images/includes.gif
-
-http://www.prettythingsflying.com/images/library.gif
-
- * Unzip the 'mediastreamer2.zip' archive. Important! You should unzip it exactly in the same directory where it is located. ("Extract here" on most zip tools)
-
- * Unzip the 'unimrcp-deps.zip' archive. Important! You should unzip it exactly in the same directory where it is located. ("Extract here" on most zip tools)
-
-The following screenshot demonstrates correct project tree
-
-http://www.prettythingsflying.com/images/tree.gif
-
- * Replace '<root project>\mediastreamer2-antisip-4.3.3-rc2\mediastreamer2\build\win32native\mediastreamer2.def' with <root project>\mediastreamer2.def . 
-
- * Replace '<root project>\mediastreamer2-antisip-4.3.3-rc2\oRTP\build\win32native\ortp.def' with <root project>\ortp.def . 
-
- * Replace 'apr.vsprops' and 'sofia.vsprops' in <root project>\unimrcp\unimrcp\build\vsprops with the ones in <root project>.
+ * Run "configure.bat" ensure that it prints SUCCESS after run.
 
  * Open <root project>\solutions\altalena_all\altalena_all.sln.
 
@@ -59,22 +41,15 @@ http://www.prettythingsflying.com/images/tree.gif
 
  * build unimrcp-deps first
 
- * To exclude the following warning from compilation output:
+ * build 'iw_setup' project 
 
-{{{
-cppcsp.h(167) : warning C4005: '_WIN32_WINNT' : macro redefinition
-}}} 
-   Please enclose '\_WIN32\_WINNT' macro definition in 'cppcsp.h' file within '#ifdef' 
 
-{{{
-#ifndef _WIN32_WINNT
- #define _WIN32_WINNT 0x0403
-#endif
-}}}
-
- # build 'iw_lualib' project 
 
 =Start= 
+
+You can use dummy csharpio for compiliing .NET files or iw_lualib. 
+
+For both you will have to configure the solution directory 
 
 Configuration file is located in '<project root>\iw_run\conf.json'. Test script is located in '<project root>\altalena\iw_run\scripts\myscript.lua'. Inspect the files and change them accordingly to your environment.
 
