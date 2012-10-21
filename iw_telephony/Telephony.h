@@ -133,6 +133,8 @@ IW_TELEPHONY_API ostream& operator << (ostream &ostream, const MediaFormat &ptr)
 class IW_TELEPHONY_API AbstractOffer
 {
 public:
+	AbstractOffer(){};
+	AbstractOffer(const string &body_, const string &type_):body(body_),type(type_){};
 	string body;
 	string type;
 };
@@ -143,6 +145,12 @@ public:
 	string username;
 	string password;
 	string realm;
+
+	Credentials(){};
+	Credentials(const string &username_, const string &password_, const string &realm_)
+	:username(username_),
+	password(password_),
+	realm(realm_){};
 
 	bool isValid()
 	{

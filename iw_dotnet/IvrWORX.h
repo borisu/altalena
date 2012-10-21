@@ -27,9 +27,12 @@ namespace ivrworx
 {
 namespace interop
 {
-	typedef Dictionary<String^,Object^> MapOfAnyInterop; 
+	typedef Dictionary<String^,String^> MapOfAnyInterop; 
 	typedef System::Collections::Generic::LinkedList<String^> ListOfStrings;
-	
+
+	string MarshalToString ( const String ^ s); 
+
+	wstring MarshalToWString ( const String ^ s);
 
 
 	public enum ApiErrorCode

@@ -35,6 +35,7 @@
 #include "ActiveObject.h"
 #include "Configuration.h"
 #include "ConfigurationFactory.h"
+#include "Telephony.h"
 #pragma managed
 
 

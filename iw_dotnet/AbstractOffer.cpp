@@ -26,16 +26,31 @@ using namespace System::Runtime::InteropServices;
 using namespace ivrworx;
 using namespace interop;
 
-
-AbstractOffer::AbstractOffer()
+namespace ivrworx
 {
-
-
-};
-
-AbstractOffer::~AbstractOffer()
+namespace interop
 {
 
 
 
-};
+	AbstractOffer::AbstractOffer()
+	{
+
+
+	};
+
+	AbstractOffer::AbstractOffer(ivrworx::AbstractOffer &offer)
+	{
+		_body = gcnew String(offer.body.c_str());
+		_type = gcnew String(offer.type.c_str());
+	};
+
+	AbstractOffer::~AbstractOffer()
+	{
+
+
+
+	};
+
+}
+}

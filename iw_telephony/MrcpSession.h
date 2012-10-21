@@ -62,7 +62,7 @@ namespace ivrworx
 	typedef int 
 	MrcpHandle;
 
-	typedef map<string,boost::any>
+	typedef map<string,string>
 	MrcpParams;
 
 	class IW_TELEPHONY_API MrcpMixin 

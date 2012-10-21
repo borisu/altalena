@@ -29,6 +29,8 @@ namespace interop
 	public:
 		Credentials(void);
 
+		Credentials(ivrworx::Credentials &c);
+
 		property String^ User
 		{
 			String^ get() 

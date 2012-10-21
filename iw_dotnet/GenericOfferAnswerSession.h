@@ -36,7 +36,7 @@ namespace interop
 		 void CleanDtmfBuffer();
 
 		 ApiErrorCode WaitForDtmf(
-			OUT String ^signal, 
+			OUT String ^&signal, 
 			IN  Int32 timeout);
 
 		 ApiErrorCode RejectCall();
@@ -60,17 +60,17 @@ namespace interop
 			IN const String^					destinationUri, 
 			IN const AbstractOffer^				localOffer,
 			IN const Credentials^				credentials, 
-			IN OUT  Dictionary<String^,Object^>^	keyValueMap,
+			IN OUT  MapOfAnyInterop^			keyValueMap,
 			IN Int32							ringTimeout);
 
 		 ApiErrorCode ReOffer(
 			IN const AbstractOffer^				localOffer,
-			IN OUT  Dictionary<String^,Object^>^	keyValueMap,
+			IN OUT  MapOfAnyInterop^			keyValueMap,
 			IN Int32							ringTimeout);
 
 		 ApiErrorCode Answer(
 			IN const AbstractOffer^					 localOffer,
-			IN const OUT  Dictionary<String^,Object^>^ keyValueMap,
+			IN const OUT  MapOfAnyInterop^			keyValueMap,
 			IN Int32	  ringTimeout);
 
 		 String^ DtmfBuffer();
