@@ -138,7 +138,7 @@ BOOL GetTableBoolParam(lua_State *L, int tableIndex, bool *value, char *name, bo
 
 BOOL GetTableStringParam(lua_State *L, BOOL tableIndex, string &value, char *name, const string &defaultValue = "");
 
-BOOL FillTable(lua_State *L, int tableIndex, OUT map<string,any> &valuesmap);
+BOOL FillTable(lua_State *L, int tableIndex, OUT MapOfAny &valuesmap);
 
 }
 

@@ -22,6 +22,24 @@
 using namespace ivrworx;
 using namespace interop;
 
-Credentials::Credentials(void)
+namespace ivrworx
 {
+namespace interop
+{
+
+	Credentials::Credentials(ivrworx::Credentials &c)
+	{
+		_user	  = gcnew String(c.username.c_str());
+		_password = gcnew String(c.password.c_str());
+		_realm	  = gcnew String(c.realm.c_str());
+		
+
+	}
+
+	Credentials::Credentials(void)
+	{
+
+	}
+
+}
 }

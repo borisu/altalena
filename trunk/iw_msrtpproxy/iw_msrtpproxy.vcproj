@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\iw_core;..\iw_telephony"
+				AdditionalIncludeDirectories="..\kentcsp\kentcsp\src;..\iw_core;..\iw_telephony"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;IW_MSRTPPROXY_EXPORTS;_DLL_IW_MSRTPPROXY;TRACE_FUNC_CALLS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\iw_core;..\iw_telephony"
+				AdditionalIncludeDirectories="..\kentcsp\kentcsp\src;..\iw_core;..\iw_telephony"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;IW_MSRTPPROXY_EXPORTS;_DLL_IW_MSRTPPROXY"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"

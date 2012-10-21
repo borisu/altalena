@@ -666,8 +666,6 @@ namespace ivrworx
 				i != req->optional_params.end(); i++)
 			{
 				size_t pos = i->first.find("H_");
-				if ( pos != 0 || i->second.type() != typeid(string))
-					continue;
 				
 				string header_name  =  i->first.substr(2);
 				string header_value =  any_cast<string>(i->second);

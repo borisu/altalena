@@ -96,7 +96,7 @@ namespace ivrworx
 
 		  LpHandlePtr call_handler_inbound;
 
-		  map<string,any> optional_params;
+		  MapOfAny optional_params;
 
 	};
 

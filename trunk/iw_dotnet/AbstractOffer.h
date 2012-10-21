@@ -19,6 +19,7 @@
 #pragma once
 #include "AutoNative.h"
 
+
 namespace ivrworx
 {
 namespace interop
@@ -28,6 +29,8 @@ namespace interop
 	public:
 
 		AbstractOffer();
+
+		AbstractOffer(ivrworx::AbstractOffer&);
 
 		~AbstractOffer();
 

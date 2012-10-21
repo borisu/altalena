@@ -240,14 +240,6 @@
 				RelativePath=".\Credentials.h"
 				>
 			</File>
-			<File
-				RelativePath=".\IvrWORX.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IvrWORX.h"
-				>
-			</File>
 		</Filter>
 		<File
 			RelativePath=".\AssemblyInfo.cpp"
@@ -255,6 +247,14 @@
 		</File>
 		<File
 			RelativePath=".\AutoNative.h"
+			>
+		</File>
+		<File
+			RelativePath=".\IvrWORX.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\IvrWORX.h"
 			>
 		</File>
 		<File

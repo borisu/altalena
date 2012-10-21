@@ -23,6 +23,22 @@
 using namespace ivrworx;
 using namespace interop;
 
+string MarshalToString (const String ^ s) {
+	using namespace Runtime::InteropServices;
+	const char* chars = 
+		(const char*)(Marshal::StringToHGlobalAnsi((String ^)s).ToPointer());
+	return string(chars);
+
+	Marshal::FreeHGlobal(IntPtr((void*)chars));
+}
+
+wstring MarshalToWString (const  String ^ s) {
+	using namespace Runtime::InteropServices;
+	const wchar_t* chars = 
+		(const wchar_t*)(Marshal::StringToHGlobalUni((String ^)s)).ToPointer();
+	return  wstring(chars);
+	Marshal::FreeHGlobal(IntPtr((void*)chars));
+}
 
 IvrWORX::IvrWORX():
 _threadId(::GetCurrentThreadId()),

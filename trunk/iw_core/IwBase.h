@@ -143,7 +143,7 @@ namespace ivrworx
 	list<CnxInfo> CnxInfosList;
 
 	typedef
-	map<string, boost::any> MapOfAny;
+	map<string, string> MapOfAny;
 
 
 	IW_CORE_API ostream& operator << (ostream &ostream, const CnxInfo *ptr);

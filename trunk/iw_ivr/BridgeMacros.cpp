@@ -97,7 +97,7 @@ BOOL GetTableStringParam(lua_State *L, BOOL tableIndex, string &value, char *nam
 
 };
 
-BOOL FillTable(lua_State *L, int tableIndex, OUT map<string,any> &valuesmap)
+BOOL FillTable(lua_State *L, int tableIndex, OUT MapOfAny &valuesmap)
 {
 	if (L == NULL || !lua_istable(L,tableIndex))
 		return FALSE;
