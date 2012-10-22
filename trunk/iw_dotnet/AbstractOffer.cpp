@@ -41,8 +41,8 @@ namespace interop
 
 	AbstractOffer::AbstractOffer(ivrworx::AbstractOffer &offer)
 	{
-		_body = gcnew String(offer.body.c_str());
-		_type = gcnew String(offer.type.c_str());
+		Body = gcnew String(offer.body.c_str());
+		Type = gcnew String(offer.type.c_str());
 	};
 
 	AbstractOffer::~AbstractOffer()

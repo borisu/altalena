@@ -34,7 +34,7 @@ namespace ivrworx
 			virtual void CleanDtmfBuffer();
 
 			virtual ApiErrorCode WaitForDtmf(
-				OUT String ^&signal, 
+				OUT String ^%signal, 
 				IN  Int32 timeout);
 
 			virtual ApiErrorCode RejectCall();
@@ -42,7 +42,7 @@ namespace ivrworx
 			virtual ApiErrorCode HangupCall();
 
 			virtual ApiErrorCode BlindXfer(
-				IN const String ^destination_uri);
+				IN  String ^destination_uri);
 
 			virtual void WaitTillHangup();
 
@@ -55,26 +55,26 @@ namespace ivrworx
 			virtual AbstractOffer^ RemoteOffer();
 
 			virtual ApiErrorCode MakeCall(
-				IN const String^					destinationUri, 
-				IN const AbstractOffer^				localOffer,
-				IN const Credentials^				credentials, 
+				IN  String^					destinationUri, 
+				IN  AbstractOffer^				localOffer,
+				IN  Credentials^				credentials, 
 				IN OUT   MapOfAnyInterop^			keyValueMap,
 				IN Int32							ringTimeout);
 
 			virtual ApiErrorCode ReOffer(
-				IN const AbstractOffer^				localOffer,
+				IN  AbstractOffer^				localOffer,
 				IN OUT  MapOfAnyInterop^			keyValueMap,
 				IN Int32							ringTimeout);
 
 			virtual ApiErrorCode Answer(
-				IN const AbstractOffer^					 localOffer,
-				IN const OUT  MapOfAnyInterop^ keyValueMap,
+				IN  AbstractOffer^					 localOffer,
+				IN  OUT  MapOfAnyInterop^ keyValueMap,
 				IN Int32	  ringTimeout);
 
 			virtual String^ DtmfBuffer();
 
 			virtual ApiErrorCode SendInfo(
-				IN	const AbstractOffer	^offer, 
+				IN	 AbstractOffer	^offer, 
 				OUT AbstractOffer		^response, 
 				IN	bool async);
 
@@ -83,17 +83,17 @@ namespace ivrworx
 			virtual void CleanInfoBuffer();
 
 			virtual ApiErrorCode StartRegistration(
-				IN const ListOfStrings ^contacts, 
-				IN const String^		registrar,
-				IN const Credentials^   credentials, 
+				IN  ListOfStrings ^contacts, 
+				IN  String^		registrar,
+				IN  Credentials^   credentials, 
 				IN Int32				timeout);
 
 			virtual ApiErrorCode Subscribe(
-				IN const String^		eventserver,
-				IN const ListOfStrings^ contacts, 
-				IN const Credentials^	credentials, 
-				IN const AbstractOffer^	offer,
-				IN const String^		eventsPackage,
+				IN  String^		eventserver,
+				IN  ListOfStrings^ contacts, 
+				IN  Credentials^	credentials, 
+				IN  AbstractOffer^	offer,
+				IN  String^		eventsPackage,
 				IN Int32			refreshInterval,
 				IN Int32			subscriptionTime,
 				IN Int32			timeout);
@@ -102,13 +102,6 @@ namespace ivrworx
 				OUT AbstractOffer		^offer);
 
 			virtual void CleanNotifyBuffer();
-
-			virtual ApiErrorCode MakeCall(
-				IN const String			^destination_uri, 
-				IN const AbstractOffer	^offer,
-				IN const Credentials	^credentials,
-				IN OUT MapOfAnyInterop	^key_value_map,
-				IN Int32				^ring_timeout);
 
 		private:
 

@@ -26,6 +26,10 @@ namespace ivrworx
 {
 namespace interop
 {
+	Credentials::Credentials()
+	{
+
+	}
 
 	Credentials::Credentials(ivrworx::Credentials &c)
 	{
@@ -36,7 +40,7 @@ namespace interop
 
 	}
 
-	Credentials::Credentials(void)
+	Credentials::~Credentials(void)
 	{
 
 	}

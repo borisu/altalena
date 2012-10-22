@@ -37,9 +37,8 @@ void SipCall::CleanDtmfBuffer()
 }
 
 ApiErrorCode   
-SipCall::WaitForDtmf(
-						 OUT String ^&signal, 
-						 IN  Int32 timeout)
+SipCall::WaitForDtmf(OUT String ^%signal, 
+					 IN  Int32 timeout)
 {
 	string my_signal;
 
@@ -72,7 +71,7 @@ SipCall::HangupCall()
 }
 
 ApiErrorCode   
-SipCall::BlindXfer(IN const String ^destination_uri)
+SipCall::BlindXfer(IN String ^destination_uri)
 {
 	
 
@@ -120,55 +119,76 @@ SipCall::RemoteOffer()
 
 ApiErrorCode   
 SipCall::MakeCall(
-					  IN const String^						destinationUri, 
-					  IN const AbstractOffer^				localOffer,
-					  IN const Credentials^					credentials, 
-					  IN OUT  Dictionary<String^,String^>^	keyValueMap,
-					  IN Int32								ringTimeout)
+					  IN  String^						destinationUri, 
+					  IN  AbstractOffer^				localOffer,
+					  IN  Credentials^					credentials, 
+					  IN OUT  MapOfAnyInterop^			keyValueMap,
+					  IN Int32							ringTimeout)
 {
 
-	MapOfAny map;
-
-	for each (String^ key in keyValueMap->Keys)
-	{
-		map[MarshalToString(key)] = MarshalToString(keyValueMap[key]);
-	};
-
+	DECLARE_MAP_FROM_MANAGED(keyValueMap_,keyValueMap);
+	DECLARE_OFFER_FROM_MANAGED(localOffer_, localOffer);
+	DECLARE_CREDENTIALS_FROM_MANAGED(credentials_,credentials);
+	
 	localOffer->Body;
-
-	MarshalToString((const String^)localOffer->Body);
-
-	ivrworx::AbstractOffer offer(
-		MarshalToString(localOffer->Body), 
-		MarshalToString(localOffer->Type));
 
 	ivrworx::ApiErrorCode res = 
 		_impl->MakeCall(
 			MarshalToString(destinationUri), 
-			offer,
-			ivrworx::Credentials(MarshalToString(credentials->User), MarshalToString(credentials->Password), MarshalToString(credentials->Realm)),
-			map,
+			localOffer_,
+			credentials_,
+			keyValueMap_,
 			MilliSeconds(ringTimeout)
-			));
+			);
+
+	keyValueMap->Clear();
+	
+	MapOfAny::iterator iter;
+	for (iter = keyValueMap_.begin(); iter !=  keyValueMap_.end(); iter++)
+	{
+		keyValueMap[gcnew String(iter->first.c_str())] = 
+			gcnew String(iter->second.c_str());
+	}
 
 	return ivrworx::interop::ApiErrorCode(res);
 }
 
 ApiErrorCode   
 SipCall::ReOffer(
-					 IN const AbstractOffer^				localOffer,
-					 IN OUT  Dictionary<String^,Object^>^	keyValueMap,
+					 IN  AbstractOffer^				localOffer,
+					 IN OUT MapOfAnyInterop^	keyValueMap,
 					 IN Int32							ringTimeout)
 {
+	DECLARE_MAP_FROM_MANAGED(keyValueMap_,keyValueMap);
+	DECLARE_OFFER_FROM_MANAGED(offer, localOffer);
+
+	ivrworx::ApiErrorCode res = 
+		_impl->ReOffer(offer,keyValueMap_,MilliSeconds(ringTimeout));
+
+	MapOfAny::iterator iter;
+	for (iter = keyValueMap_.begin(); iter !=  keyValueMap_.end(); iter++)
+	{
+		keyValueMap[gcnew String(iter->first.c_str())] = 
+			gcnew String(iter->second.c_str());
+	}
+
+	return ivrworx::interop::ApiErrorCode(res);
 
 }
 
 ApiErrorCode   
-SipCall::Answer(
-					IN const AbstractOffer^					 localOffer,
-					IN const OUT  Dictionary<String^,Object^>^ keyValueMap,
+SipCall::Answer(	IN  AbstractOffer^					 localOffer,
+					IN  OUT MapOfAnyInterop^ keyValueMap,
 					IN Int32	  ringTimeout)
 {
+	DECLARE_MAP_FROM_MANAGED(map,keyValueMap);
+	DECLARE_OFFER_FROM_MANAGED(offer, localOffer);
+
+	ivrworx::ApiErrorCode res = 
+		_impl->ReOffer(offer,map,MilliSeconds(ringTimeout));
+
+	return ivrworx::interop::ApiErrorCode(res);
+
 
 }
 
@@ -176,19 +196,34 @@ String^
 SipCall::DtmfBuffer()
 {
 
+	return gcnew String(_impl->DtmfBuffer().c_str());
+
 }
 
 ApiErrorCode   
-SipCall::SendInfo(	IN	const AbstractOffer	^offer, 
-					OUT AbstractOffer		^response, 
+SipCall::SendInfo(	IN	 AbstractOffer	^offer, 
+					OUT AbstractOffer	^response, 
 					bool async)
 {
+	DECLARE_OFFER_FROM_MANAGED(offer_, offer);
+	DECLARE_OFFER_FROM_MANAGED(response_,response);
+
+	ivrworx::ApiErrorCode res = 
+		_impl->SendInfo(offer_,response_,async);
+
+	return ivrworx::interop::ApiErrorCode(res);
 
 }
 
 ApiErrorCode   
 SipCall::WaitForInfo(OUT AbstractOffer ^offer)
 {
+	DECLARE_OFFER_FROM_MANAGED(offer_, offer);
+
+	ivrworx::ApiErrorCode res = 
+		_impl->WaitForInfo(offer_);
+
+	return ivrworx::interop::ApiErrorCode(res);
 
 }
 
@@ -196,50 +231,77 @@ SipCall::WaitForInfo(OUT AbstractOffer ^offer)
 void 
 SipCall::CleanInfoBuffer()
 {
+	_impl->CleanDtmfBuffer();
 
 }
 
 ApiErrorCode   
-SipCall::StartRegistration( IN const ListOfStrings	^contacts, 
-							IN const String			^registrar,
-							IN const Credentials	^credentials, 
-							IN Int32				timeout)
+SipCall::StartRegistration( IN ListOfStrings	^contacts, 
+							IN String			^registrar,
+							IN Credentials		^credentials, 
+							IN Int32			 timeout)
 {
+
+	DECLARE_CONTACTSLIST_FROM_MANAGED(contacts_, contacts);
+	DECLARE_CREDENTIALS_FROM_MANAGED(credentials_, credentials);
+
+	ivrworx::ApiErrorCode res = 
+		_impl->StartRegistration(
+		contacts_, 
+		MarshalToString(registrar),
+		credentials_, 
+		MilliSeconds(timeout));
+
+	return ivrworx::interop::ApiErrorCode(res);
 
 }
 
 ApiErrorCode   
-SipCall::Subscribe(	IN const String			^eventserver,
-					IN const ListOfStrings 	^contacts, 
-					IN const Credentials	^credentials, 
-					IN const AbstractOffer	^offer,
-					IN const String			^eventsPackage,
-					IN Int32			refreshInterval,
-					IN Int32			subscriptionTime,
-					IN Int32			timeout)
+SipCall::Subscribe(	IN  String			^eventserver,
+					IN  ListOfStrings 	^contacts, 
+					IN  Credentials		^credentials, 
+					IN  AbstractOffer	^offer,
+					IN  String			^eventsPackage,
+					IN  Int32			 refreshInterval,
+					IN  Int32			 subscriptionTime,
+					IN  Int32			 timeout)
 {
+	DECLARE_CONTACTSLIST_FROM_MANAGED(contacts_, contacts);
+	DECLARE_CREDENTIALS_FROM_MANAGED(credentials_, credentials);
+	DECLARE_OFFER_FROM_MANAGED(offer_, offer);
+
+	ivrworx::ApiErrorCode res = 
+		_impl->Subscribe(
+			MarshalToString(eventserver),
+			contacts_, 
+			credentials_, 
+			offer_,
+			MarshalToString(eventsPackage),
+			refreshInterval,
+			subscriptionTime,
+			MilliSeconds(timeout)
+		);
+
+	return ivrworx::interop::ApiErrorCode(res);
+
 
 }
 
 ApiErrorCode   
-SipCall::WaitForNotify( OUT AbstractOffer		^offer)
+SipCall::WaitForNotify(OUT AbstractOffer ^offer)
 {
+	DECLARE_OFFER_FROM_MANAGED(offer_, offer);
 
+	ivrworx::ApiErrorCode res = 
+		_impl->WaitForNotify(offer_);
+
+	return ivrworx::interop::ApiErrorCode(res);
 }
 
 void 
 SipCall::CleanNotifyBuffer()
 {
-
-}
-
-ApiErrorCode   
-SipCall::MakeCall(	IN const String			^destination_uri, 
-					IN const AbstractOffer	^offer,
-					IN const Credentials		^credentials,
-					IN OUT MapOfAnyInterop	^key_value_map,
-					IN Int32					^ring_timeout)
-{
+	_impl->CleanNotifyBuffer();
 
 }
 

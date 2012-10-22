@@ -28,7 +28,6 @@ namespace ivrworx
 
 namespace interop 
 {
-
 	public interface class IGenericOfferAnswerSession 
 	{
 	public:
@@ -36,7 +35,7 @@ namespace interop
 		 void CleanDtmfBuffer();
 
 		 ApiErrorCode WaitForDtmf(
-			OUT String ^&signal, 
+			OUT String ^%signal, 
 			IN  Int32 timeout);
 
 		 ApiErrorCode RejectCall();
@@ -44,7 +43,7 @@ namespace interop
 		 ApiErrorCode HangupCall();
 
 		 ApiErrorCode BlindXfer(
-			IN const String ^destination_uri);
+			IN  String ^destination_uri);
 
 		 void WaitTillHangup();
 
@@ -57,21 +56,21 @@ namespace interop
 		 AbstractOffer^ RemoteOffer();
 
 		 ApiErrorCode MakeCall(
-			IN const String^					destinationUri, 
-			IN const AbstractOffer^				localOffer,
-			IN const Credentials^				credentials, 
-			IN OUT  MapOfAnyInterop^			keyValueMap,
-			IN Int32							ringTimeout);
+			IN  String^					destinationUri, 
+			IN  AbstractOffer^			localOffer,
+			IN  Credentials^			credentials, 
+			IN OUT  MapOfAnyInterop^	keyValueMap,
+			IN Int32					ringTimeout);
 
 		 ApiErrorCode ReOffer(
-			IN const AbstractOffer^				localOffer,
-			IN OUT  MapOfAnyInterop^			keyValueMap,
-			IN Int32							ringTimeout);
+			IN  AbstractOffer^			localOffer,
+			IN OUT  MapOfAnyInterop^	keyValueMap,
+			IN Int32					ringTimeout);
 
 		 ApiErrorCode Answer(
-			IN const AbstractOffer^					 localOffer,
-			IN const OUT  MapOfAnyInterop^			keyValueMap,
-			IN Int32	  ringTimeout);
+			IN  AbstractOffer^			localOffer,
+			IN  OUT  MapOfAnyInterop^	keyValueMap,
+			IN Int32					ringTimeout);
 
 		 String^ DtmfBuffer();
 

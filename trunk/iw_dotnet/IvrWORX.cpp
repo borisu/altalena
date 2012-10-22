@@ -23,6 +23,11 @@
 using namespace ivrworx;
 using namespace interop;
 
+namespace ivrworx
+{
+namespace interop
+{
+
 string MarshalToString (const String ^ s) {
 	using namespace Runtime::InteropServices;
 	const char* chars = 
@@ -194,3 +199,6 @@ IvrWORX::~IvrWORX()
 	
 }
 
+
+}
+}
