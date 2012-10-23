@@ -210,6 +210,32 @@ namespace ivrworx
 		return ostream << "name:" << ptr.sdp_name_tos()<< " rate:" << ptr.sampling_rate() << " payload:" << ptr.sdp_mapping();
 	}
 
+	IW_TELEPHONY_API string AbstractOffer::Type(const AbstractOffer &o)
+	{
+		return AbstractOffer::Type(o.type);
+	}
+
+	IW_TELEPHONY_API string AbstractOffer::SubType(const AbstractOffer &o)
+	{
+		int index = o.type.find_first_of("/");
+		return index ==  string::npos || index == o.type.length()? 
+			string("") : o.type.substr(index + 1, o.type.length() - (index+1));
+	}
+
+
+	IW_TELEPHONY_API string AbstractOffer::Type(const string &s)
+	{
+		int index = s.find_first_of("/");
+		return index ==  string::npos || index == 0 ? s : s.substr(0, index);
+	}
+
+	IW_TELEPHONY_API string AbstractOffer::SubType(const string &s)
+	{
+		int index = s.find_first_of("/");
+		return index ==  string::npos || index == s.length()? 
+			string("") : s.substr(index + 1, s.length() - (index+1));
+	}
+
 
 	struct SdpParserImpl : 	public SdpContents
 	{

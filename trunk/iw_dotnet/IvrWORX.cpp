@@ -58,6 +58,16 @@ _isDisposed(false)
 	
 }
 
+Int32 IvrWORX::GetServiceHandle(String^ handle)
+{
+	HandleId service_handle_id = IW_UNDEFINED;
+	if (IW_FAILURE(GetConfiguredServiceHandle(service_handle_id, MarshalToString(handle), *_conf)))
+	{
+		return 0;
+	}
+	return service_handle_id;
+}
+
 void IvrWORX::Init(String ^dt_confFile)
 {
 	int res = 0;

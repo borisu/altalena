@@ -23,16 +23,20 @@ using namespace ivrworx;
 
 #define DECLARE_MAP_FROM_MANAGED(M, D)  \
 	MapOfAny M; \
-	for each (String^ key in D->Keys) \
-	{ \
-		M[MarshalToString(key)] = MarshalToString(D[key]); \
-	}
+	if (D != nullptr) { \
+		for each (String^ key in D->Keys) \
+		{ \
+			M[MarshalToString(key)] = MarshalToString(D[key]); \
+		} \
+	} \
 
 #define DECLARE_CONTACTSLIST_FROM_MANAGED(M, D)  \
 	ContactsList M; \
-	for each (String^ key in D) \
-	{ \
-		M.push_back(MarshalToString(key)); \
+	if (D != nullptr) { \
+		for each (String^ key in D) \
+		{ \
+			M.push_back(MarshalToString(key)); \
+		} \
 	}
 
 #define DECLARE_OFFER_FROM_MANAGED(O, D) \
@@ -89,6 +93,7 @@ namespace interop
 			}
 		}
 
+		Int32 GetServiceHandle(String ^serviceName);
 
 	private:
 

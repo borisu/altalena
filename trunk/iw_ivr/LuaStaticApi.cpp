@@ -141,29 +141,7 @@ namespace ivrworx
 
 	
 
-	ApiErrorCode 
-	GetConfiguredServiceHandle(OUT HandleId &handleId, IN const string& serviceUri, ConfigurationPtr conf)
-	{
-
-		if (!conf->HasOption(serviceUri))
-		{
-			LogWarn("GetConfiguredServiceHandle - configuration value not found:" << serviceUri);
-			return API_FEATURE_DISABLED;
-		}
-
-		LpHandlePtr handle = ivrworx::GetHandle(conf->GetString(serviceUri));
-
-		if (!handle)
-		{
-			LogWarn("GetConfiguredServiceHandle - service not registered:" << serviceUri);
-			return API_FEATURE_DISABLED;
-		}
-
-		handleId = handle->GetObjectUid();
-		return API_SUCCESS;
-
-	}
-
+	
 
 	int
 	LuaCreateMrcp(lua_State *L)

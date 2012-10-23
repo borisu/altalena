@@ -199,6 +199,9 @@ namespace ivrworx
 	typedef
 	shared_ptr<SipMediaCall> SipMediaCallPtr;
 
+	typedef
+	list<string> ContactsList;
+
 	class IW_TELEPHONY_API SipMediaCall : 
 		public GenericOfferAnswerSession
 	{
@@ -221,14 +224,14 @@ namespace ivrworx
 		virtual void CleanInfoBuffer();
 
 		virtual ApiErrorCode StartRegistration(
-			IN const list<string>	&contacts, 
+			IN const ContactsList	&contacts, 
 			IN const string			&registrar,
 			IN const Credentials	&credentials, 
 			IN csp::Time			timeout);
 
 		virtual ApiErrorCode Subscribe(
 			IN const string			&eventserver,
-			IN const list<string>	&contacts, 
+			IN const ContactsList	&contacts, 
 			IN const Credentials	&credentials, 
 			IN const AbstractOffer	&offer,
 			IN const string			&eventsPackage,
