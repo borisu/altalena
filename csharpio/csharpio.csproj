@@ -9,6 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>csharpio</RootNamespace>
     <AssemblyName>csharpio</AssemblyName>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -54,29 +55,22 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>cho on
-
-echo. 2&gt;outputs.txt
-
-
-echo Copying mediastreamer2 libs
-copy ..\mediastreamer2-antisip-4.3.3-rc2\oRTP\build\win32native\$(ConfigurationName)\*.dll $(TargetDir)
-copy ..\mediastreamer2-antisip-4.3.3-rc2\mediastreamer2\build\win32native\$(ConfigurationName)\*.dll $(TargetDir)
-copy ..\mediastreamer2-antisip-4.3.3-rc2\win32-bin\lib\*.dll $(TargetDir)
+    <PostBuildEvent>echo Copying mediastreamer2 libs
+copy $(ProjectDir)..\mediastreamer2-antisip-4.3.3-rc2\oRTP\build\win32native\$(ConfigurationName)\*.dll $(TargetDir)
+copy $(ProjectDir)..\mediastreamer2-antisip-4.3.3-rc2\mediastreamer2\build\win32native\$(ConfigurationName)\*.dll $(TargetDir)
+copy $(ProjectDir)..\mediastreamer2-antisip-4.3.3-rc2\win32-bin\lib\*.dll $(TargetDir)
 
 echo Copying unimrcp libs
-copy ..\unimrcp-deps\libs\sofia-sip\win32\pthread\*.dll $(TargetDir)
-copy ..\unimrcp-deps\libs\apr\$(ConfigurationName)\*.dll $(TargetDir)
-copy ..\unimrcp-deps\libs\apr-util\$(ConfigurationName)\*.dll $(TargetDir)
-copy ..\unimrcp-deps\libs\sofia-sip\win32\libsofia-sip-ua\$(ConfigurationName)\*.dll $(TargetDir)
-copy ..\unimrcp-deps\libs\apr-util\Debug\$(ConfigurationName)\*.dll $(TargetDir)
+copy $(ProjectDir)..\unimrcp-deps\libs\sofia-sip\win32\pthread\*.dll $(TargetDir)
+copy $(ProjectDir)..\unimrcp-deps\libs\apr\$(ConfigurationName)\*.dll $(TargetDir)
+copy $(ProjectDir)..\unimrcp-deps\libs\apr-util\$(ConfigurationName)\*.dll $(TargetDir)
+copy $(ProjectDir)..\unimrcp-deps\libs\sofia-sip\win32\libsofia-sip-ua\$(ConfigurationName)\*.dll $(TargetDir)
+copy $(ProjectDir)..\unimrcp-deps\libs\apr-util\Debug\$(ConfigurationName)\*.dll $(OutDir)
 
-xcopy  unimrcp  "$(TargetDir)\unimrcp" /E /Y /I
+xcopy $(ProjectDir) unimrcp  "$(TargetDir)\unimrcp" /E /Y /I
 
 echo Copying configuration file 
-copy *.json $(TargetDir)
-
-
+copy $(ProjectDir)scripts\*.json $(TargetDir)
 </PostBuildEvent>
   </PropertyGroup>
 </Project>

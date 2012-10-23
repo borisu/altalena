@@ -19,6 +19,7 @@
 
 #pragma once
 #include "LpHandle.h"
+#include "Configuration.h"
 
 using namespace std;
 using namespace boost;
@@ -66,6 +67,9 @@ namespace ivrworx
 		int _aliasId;
 
 	};
+
+	IW_CORE_API ApiErrorCode 
+    GetConfiguredServiceHandle(OUT HandleId &handleId, IN const string& serviceUri, ConfigurationPtr conf);
 
 	class IW_CORE_API LocalProcessRegistrar
 	{

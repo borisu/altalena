@@ -137,6 +137,22 @@ public:
 	AbstractOffer(const string &body_, const string &type_):body(body_),type(type_){};
 	string body;
 	string type;
+
+	string GetType() const
+	{
+		return AbstractOffer::Type(*this);
+	}
+
+	string GetSubType() const
+	{
+		return AbstractOffer::SubType(*this);
+	}
+
+	static string Type(const AbstractOffer &o);
+	static string SubType(const AbstractOffer &o);
+
+	static string Type(const string &s);
+	static string SubType(const string &s);
 };
 
 class IW_TELEPHONY_API Credentials

@@ -336,7 +336,9 @@ GenericOfferAnswerSession::MakeCall(IN const string   &destination_uri,
 {
 	FUNCTRACKER;
 
-	LogDebug("GenericOfferAnswerSession::MakeCall dst:" << destination_uri <<", offer:\n" << offer.body);
+	LogDebug("GenericOfferAnswerSession::MakeCall dst:" << destination_uri 
+		<< ", type:" << offer.GetType() << ", subtype:" << offer.GetSubType() 
+		<< ", offer:\n" << offer.body );
 
 	if (_callState != CALL_STATE_UNKNOWN)
 	{

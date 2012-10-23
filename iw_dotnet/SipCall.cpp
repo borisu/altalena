@@ -27,7 +27,18 @@ namespace interop{
 SipCall::SipCall(IvrWORX ^threadCtx):
 _threadCtx(threadCtx)
 {
-	_impl = new SipMediaCall(*threadCtx->Forking);
+	
+
+	
+	HandleId service_handle_id = IW_UNDEFINED;
+	service_handle_id  = threadCtx->GetServiceHandle(gcnew String("ivr/sip_service"));
+
+	 if (service_handle_id ==  IW_UNDEFINED) 
+	 {
+		 throw gcnew Exception("Service not found");
+	 }
+	
+	_impl = new SipMediaCall(*threadCtx->Forking,service_handle_id);
 }
 
 void SipCall::CleanDtmfBuffer()
@@ -141,13 +152,16 @@ SipCall::MakeCall(
 			MilliSeconds(ringTimeout)
 			);
 
-	keyValueMap->Clear();
-	
-	MapOfAny::iterator iter;
-	for (iter = keyValueMap_.begin(); iter !=  keyValueMap_.end(); iter++)
+	if (keyValueMap!= nullptr)
 	{
-		keyValueMap[gcnew String(iter->first.c_str())] = 
-			gcnew String(iter->second.c_str());
+		keyValueMap->Clear();
+	
+		MapOfAny::iterator iter;
+		for (iter = keyValueMap_.begin(); iter !=  keyValueMap_.end(); iter++)
+		{
+			keyValueMap[gcnew String(iter->first.c_str())] = 
+				gcnew String(iter->second.c_str());
+		}
 	}
 
 	return ivrworx::interop::ApiErrorCode(res);

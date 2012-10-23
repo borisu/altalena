@@ -177,7 +177,7 @@ SipMediaCall::StopRegistration()
 }
 
 ApiErrorCode
-SipMediaCall::StartRegistration(IN const list<string> &contacts, 
+SipMediaCall::StartRegistration(IN const ContactsList &contacts, 
 								IN const string		  &registrar,
 								IN const Credentials  &credentials, 
 								IN csp::Time timeout)
@@ -266,7 +266,7 @@ SipMediaCall::CleanInfoBuffer()
 
 ApiErrorCode
 SipMediaCall::Subscribe(IN const string			&eventserver,
-						IN const list<string>	&contacts, 
+						IN const ContactsList	&contacts, 
 						IN const Credentials	&credentials, 
 						IN const AbstractOffer	&offer,
 						IN const string			&eventsPackage,

@@ -4,16 +4,16 @@
 namespace ivrworx
 {
 	FreeContent::FreeContent(const string &body, const string &type):
-	Contents(Mime("application", type.c_str())),
-	_body(body),
-	_type(type)
+	Contents(Mime(AbstractOffer::Type(type).c_str(), AbstractOffer::SubType(type).c_str())),
+		_body(body),
+		_type(type)
 	{
 		
 		
 	}
 
 	FreeContent::FreeContent(const AbstractOffer &offer):
-	Contents(Mime("application", offer.type.c_str())),
+	Contents(Mime(AbstractOffer::Type(offer.type).c_str(), AbstractOffer::SubType(offer.type).c_str())),
 		_body(offer.body),
 		_type(offer.type)
 	{
