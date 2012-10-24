@@ -31,6 +31,8 @@ namespace ivrworx
 		public:
 			SipCall(IvrWORX ^threadCtx);
 
+			~SipCall();
+
 			virtual void CleanDtmfBuffer();
 
 			virtual ApiErrorCode WaitForDtmf(

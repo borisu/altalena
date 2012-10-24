@@ -21,6 +21,8 @@
 
 using namespace ivrworx;
 
+#define SAFE_ACCESS(X,Y) ((X != nullptr) ? X->Y : nullptr)
+
 #define DECLARE_MAP_FROM_MANAGED(M, D)  \
 	MapOfAny M; \
 	if (D != nullptr) { \
@@ -40,11 +42,11 @@ using namespace ivrworx;
 	}
 
 #define DECLARE_OFFER_FROM_MANAGED(O, D) \
-	ivrworx::AbstractOffer O(MarshalToString(D->Body),  MarshalToString(D->Type))
+	ivrworx::AbstractOffer O(MarshalToString(SAFE_ACCESS(D,Body)),  MarshalToString(SAFE_ACCESS(D,Type)))
 
 
 #define DECLARE_CREDENTIALS_FROM_MANAGED(C, D) \
-	ivrworx::Credentials C(MarshalToString(D->User),MarshalToString(D->Password), MarshalToString(D->Realm))
+	ivrworx::Credentials C(MarshalToString(SAFE_ACCESS(D,User)),MarshalToString(SAFE_ACCESS(D,Password)), MarshalToString(SAFE_ACCESS(D,Realm)))
 
 namespace ivrworx
 {
@@ -58,7 +60,7 @@ namespace interop
 	wstring MarshalToWString ( const String ^ s);
 
 
-	public enum ApiErrorCode
+	public enum struct ApiErrorCode
 	{
 		API_SUCCESS = 0,
 		API_FAILURE,
