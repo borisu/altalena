@@ -241,6 +241,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="streamer"
+			>
+			<File
+				RelativePath=".\StreamerSession.h"
+				>
+			</File>
+			<File
+				RelativePath=".\StreamerSessoin.cpp"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\AssemblyInfo.cpp"
 			>

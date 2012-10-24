@@ -41,6 +41,13 @@ _threadCtx(threadCtx)
 	_impl = new SipMediaCall(*threadCtx->Forking,service_handle_id);
 }
 
+SipCall::~SipCall()
+{
+	if (_impl)
+		_impl->HangupCall();
+}
+
+
 void SipCall::CleanDtmfBuffer()
 {
 	return _impl->CleanDtmfBuffer();

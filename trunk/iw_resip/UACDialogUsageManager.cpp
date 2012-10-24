@@ -600,7 +600,7 @@ namespace ivrworx
 				 
 			if (param_iter != req->optional_params.end())
 			{
-				int registration_id = any_cast<int>(param_iter->second);
+				int registration_id = ::atoi(param_iter->second.c_str());
 				LogDebug("UACDialogUsageManager::UponMakeCallReq - the call has registration id:" << registration_id << ". re-use its user profile");
 				IwHandlesMap::iterator iter = _iwHandlesMap.find(registration_id);
 				if (iter == _iwHandlesMap.end())
@@ -666,10 +666,12 @@ namespace ivrworx
 				i != req->optional_params.end(); i++)
 			{
 				size_t pos = i->first.find("H_");
-				
-				string header_name  =  i->first.substr(2);
-				string header_value =  any_cast<string>(i->second);
 
+				if (pos == string::npos)
+					continue;
+		
+				string header_name  =  i->first.substr(2);
+				string header_value = i->second;
 
 				
 				Headers::Type header_type  = Headers::getType(header_name.c_str(), header_name.length());

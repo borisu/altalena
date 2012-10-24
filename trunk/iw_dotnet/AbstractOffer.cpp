@@ -33,7 +33,9 @@ namespace interop
 
 
 
-	AbstractOffer::AbstractOffer()
+	AbstractOffer::AbstractOffer():
+	_body(nullptr),
+	_type(nullptr)
 	{
 
 

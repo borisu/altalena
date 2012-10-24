@@ -319,6 +319,8 @@ GenericOfferAnswerSession::ReOffer(
 	shared_ptr<MsgCallReofferAck> make_call_ok = 
 		dynamic_pointer_cast<MsgCallReofferAck>(response);
 
+	LogDebug("GenericOfferAnswerSession::ReOffer remote:" << make_call_ok->remoteOffer.body);
+
 	_remoteOffer = make_call_ok->remoteOffer;
 	
 	CALL_RESET_STATE(CALL_STATE_CONNECTED);
@@ -409,6 +411,8 @@ GenericOfferAnswerSession::MakeCall(IN const string   &destination_uri,
 
 	shared_ptr<MsgMakeCallOk> make_call_ok = 
 		dynamic_pointer_cast<MsgMakeCallOk>(response);
+
+	LogDebug("GenericOfferAnswerSession::MakeCall remote:" << make_call_ok->remoteOffer.body);
 
 	_remoteOffer = make_call_ok->remoteOffer;
 	_iwCallHandle = make_call_ok->stack_call_handle;

@@ -29,6 +29,8 @@ namespace interop
 {
 
 string MarshalToString (const String ^ s) {
+	if (s==nullptr)
+		return "";
 	using namespace Runtime::InteropServices;
 	const char* chars = 
 		(const char*)(Marshal::StringToHGlobalAnsi((String ^)s).ToPointer());
@@ -38,6 +40,8 @@ string MarshalToString (const String ^ s) {
 }
 
 wstring MarshalToWString (const  String ^ s) {
+	if (s==nullptr)
+		return L"";
 	using namespace Runtime::InteropServices;
 	const wchar_t* chars = 
 		(const wchar_t*)(Marshal::StringToHGlobalUni((String ^)s)).ToPointer();
