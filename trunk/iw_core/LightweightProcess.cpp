@@ -839,6 +839,14 @@ exit:
 		conf->GetArray("modules",modules);
 
 		list<HMODULE> modules_list;
+		for (ListOfAny::iterator iter = modules.begin(); 
+			iter!=modules.end();
+			++iter)
+		{
+			string &module_name = 
+				any_cast<string>(*iter);
+			LogInfo("LoadConfiguredModules - configured module_name:" << module_name);
+		}
 
 		
 		for (ListOfAny::iterator iter = modules.begin(); 

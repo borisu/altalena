@@ -19,7 +19,7 @@
 
 #pragma once
 #include "GenericOfferAnswerSession.h"
-#include "..\iw_telephony\SipCall.h"
+
 
 namespace ivrworx
 {
