@@ -79,13 +79,11 @@ void IvrWORX::Init(String ^dt_confFile)
 	{
 
 		std::string conffile;
-
-		if (System::String::IsNullOrEmpty(dt_confFile) == NULL)
+		if (System::String::IsNullOrEmpty(dt_confFile) == true)
 		{
 			cerr << "init:g_conf file is NULL using conf.json" << endl;
 			dt_confFile = "conf.json";
 		} 
-
 
 		pin_ptr<const wchar_t> wch = PtrToStringChars(dt_confFile);
 		std::wstring wconffile(wch);	
@@ -111,6 +109,9 @@ void IvrWORX::Init(String ^dt_confFile)
 
 		// from here you may use generic clean up routine
 		LogInfo(">>>>>> IVRWORX (.NET) START <<<<<<");
+		LogInfo("Loaded from " << MarshalToString(System::IO::Path::GetFullPath(
+			gcnew String(conffile.c_str()))));
+
 		Start_CPPCSP();
 
 

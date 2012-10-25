@@ -253,6 +253,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="rtpproxy"
+			>
+			<File
+				RelativePath=".\RtpProxySession.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\RtpProxySession.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\AssemblyInfo.cpp"
 			>
