@@ -36,6 +36,7 @@
 #include "Configuration.h"
 #include "ConfigurationFactory.h"
 #include "Telephony.h"
+#include "..\iw_telephony\RtspSession.h"
 #include "..\iw_telephony\SipCall.h"
 #include "..\iw_telephony\RtpProxySession.h"
 #include "..\iw_telephony\StreamingSession.h"

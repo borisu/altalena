@@ -9,7 +9,8 @@ namespace ivrworx
 namespace interop
 {
 
-RtpProxySession::RtpProxySession(IvrWORX ^threadCtx)
+RtpProxySession::RtpProxySession(IvrWORX ^threadCtx):
+_impl(NULL)
 {
 	HandleId service_handle_id = IW_UNDEFINED;
 	service_handle_id  = threadCtx->GetServiceHandle(gcnew String("ivr/rtpproxy_service"));
@@ -27,6 +28,8 @@ RtpProxySession::~RtpProxySession(void)
 {
 	if (_impl)
 		_impl->TearDown();
+
+	delete _impl;
 
 }
 
