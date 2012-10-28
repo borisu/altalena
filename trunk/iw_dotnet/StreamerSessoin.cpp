@@ -13,7 +13,8 @@ namespace interop
 
 
 StreamerSession::StreamerSession(IvrWORX ^threadCtx):
-_threadCtx(threadCtx)
+_threadCtx(threadCtx),
+_impl(NULL)
 {
 	HandleId service_handle_id = IW_UNDEFINED;
 	service_handle_id  = threadCtx->GetServiceHandle(gcnew String("ivr/stream_service"));
@@ -28,6 +29,10 @@ _threadCtx(threadCtx)
 
 StreamerSession::~StreamerSession(void)
 {
+	if (_impl)
+		_impl->TearDown();
+
+	delete _impl;
 }
 
 

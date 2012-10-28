@@ -265,6 +265,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="rtsp"
+			>
+			<File
+				RelativePath=".\RtspSession.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\RtspSession.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\AssemblyInfo.cpp"
 			>
