@@ -162,8 +162,6 @@ namespace ivrworx
 				result = rtspClient->describeURL(url);
 		}
 
-		unsigned statusCode = 0;
-		statusCode = rtspClient->describeStatus();
 		return result;
 	}
 
