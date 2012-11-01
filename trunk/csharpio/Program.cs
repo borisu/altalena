@@ -139,9 +139,159 @@ namespace csharpio
             Console.WriteLine("MakeCall res=" + res);
         }
 
+        static void test3()
+        {
+
+            IvrWORX x = new IvrWORX();
+            x.Init("dotnet.json");
+
+            //
+            // Allocate RTP endpoint for RTSP session.
+            //
+            RtpProxySession rtspRtpSession = new RtpProxySession(x);
+            AbstractOffer dummyOffer = new AbstractOffer();
+            dummyOffer.Type = "application/sdp";
+            dummyOffer.Body = @"v=0" + "\n"
+                            + "o=alice 2890844526 2890844526 IN IP4 0.0.0.0" + "\n"
+                            + "s=" + "\n"
+                            + "c=IN IP4 0.0.0.0" + "\n"
+                            + "t=0 0" + "\n"
+                            + "m=audio 0 RTP/AVP 8" + "\n"
+                            + "a=rtpmap:0 PCMA/8000" + "\n\n"; ;
+
+            ApiErrorCode res = rtspRtpSession.Allocate(dummyOffer);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("RtpProxySession(1) Allocated failed err:" + res);
+
+
+            //
+            // Set up RTSP session and update its RTP endpoint.
+            // 
+            RtspSession rtsp = new RtspSession(x);
+            res = rtsp.Setup("rtsp://10.116.100.78/IvrScript.wav", rtspRtpSession.LocalOffer());
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("RtspSession Setup failed err:" + res);
+
+            res = rtspRtpSession.Modify(rtsp.RemoteOffer());
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("RtspSession Modify failed err:" + res);
+
+
+            //
+            // Allocate sip RTP session
+            // 
+            RtpProxySession sipRtpSession = new RtpProxySession(x);
+            res = sipRtpSession.Allocate(dummyOffer);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("RtpProxySession(1) Allocated failed err:" + res);
+
+
+            //
+            // Make call
+            //
+            SipCall sipCall = new SipCall(x);
+            res = sipCall.MakeCall("sip:6051@10.116.24.21", sipRtpSession.LocalOffer(), null, null, 15000);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("MakeCall failed err:" + res);
+
+            sipRtpSession.Modify(sipCall.RemoteOffer());
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("Modify failed err:" + res);
+
+            rtspRtpSession.Bridge(sipRtpSession, false);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("Bridge failed err:" + res);
+
+
+
+            res = rtsp.Play(0.0,0.0,1);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("RtpProxySession(1) Allocated failed err:" + res);
+
+            Thread.Sleep(10000);
+
+
+            sipCall.Dispose();
+
+            Console.WriteLine("MakeCall res=" + res);
+
+            
+        }
+
+        static void test4()
+        {
+            IvrWORX x = new IvrWORX();
+            x.Init("dotnet.json");
+
+            //
+            // Allocate RTP endpoint for RTSP session.
+            //
+            RtpProxySession call1RtpSession = new RtpProxySession(x);
+            AbstractOffer dummyOffer = new AbstractOffer();
+            dummyOffer.Type = "application/sdp";
+            dummyOffer.Body = @"v=0" + "\n"
+                            + "o=alice 2890844526 2890844526 IN IP4 0.0.0.0" + "\n"
+                            + "s=" + "\n"
+                            + "c=IN IP4 0.0.0.0" + "\n"
+                            + "t=0 0" + "\n"
+                            + "m=audio 0 RTP/AVP 8" + "\n"
+                            + "a=rtpmap:0 PCMA/8000" + "\n\n"; ;
+
+            ApiErrorCode res = call1RtpSession.Allocate(dummyOffer);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("RtpProxySession(1) Allocated failed err:" + res);
+
+
+            //
+            // Allocate sip RTP session
+            // 
+            RtpProxySession call2RtpSession = new RtpProxySession(x);
+            res = call2RtpSession.Allocate(dummyOffer);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("RtpProxySession(1) Allocated failed err:" + res);
+
+
+            //
+            // Make call1
+            //
+            SipCall sipCall1 = new SipCall(x);
+            res = sipCall1.MakeCall("sip:6051@10.116.24.21", call1RtpSession.LocalOffer(), null, null, 15000);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("MakeCall failed err:" + res);
+
+
+            call1RtpSession.Modify(sipCall1.RemoteOffer());
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("Modify failed err:" + res);
+
+            //
+            // Make call2
+            //
+            SipCall sipCall2 = new SipCall(x);
+            res = sipCall2.MakeCall("sip:6050@10.116.24.21", call2RtpSession.LocalOffer(), null, null, 15000);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("MakeCall failed err:" + res);
+
+
+            call1RtpSession.Bridge(call2RtpSession, true);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("Bridge failed err:" + res);
+
+
+
+            Thread.Sleep(30000);
+            sipCall1.Dispose();
+            sipCall2.Dispose();
+
+            Console.WriteLine("MakeCall res=" + res);
+
+          
+        }
+        
+        
         static void Main(string[] args)
         {
-            test2();
+            test4();
             
         }
        }
