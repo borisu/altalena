@@ -271,6 +271,7 @@ namespace csharpio
             res = sipCall2.MakeCall("sip:6050@10.116.24.21", call2RtpSession.LocalOffer(), null, null, 15000);
             if (res != ApiErrorCode.API_SUCCESS)
                 throw new Exception("MakeCall failed err:" + res);
+            call2RtpSession.Modify(sipCall2.RemoteOffer());
 
 
             call1RtpSession.Bridge(call2RtpSession, true);
@@ -287,11 +288,25 @@ namespace csharpio
 
           
         }
+
+        static void test5()
+        {
+
+            IvrWORX x = new IvrWORX();
+            x.Init("dotnet.json");
+
+            MrcpSession sesion = 
+                new MrcpSession(x);
+
+            
+
+
+        }
         
         
         static void Main(string[] args)
         {
-            test4();
+            test5();
             
         }
        }

@@ -23,15 +23,6 @@ using namespace ivrworx;
 
 #define SAFE_ACCESS(X,Y) ((X != nullptr) ? X->Y : nullptr)
 
-#define DECLARE_MAP_FROM_MANAGED(M, D)  \
-	MapOfAny M; \
-	if (D != nullptr) { \
-		for each (String^ key in D->Keys) \
-		{ \
-			M[MarshalToString(key)] = MarshalToString(D[key]); \
-		} \
-	} \
-
 #define DECLARE_CONTACTSLIST_FROM_MANAGED(M, D)  \
 	ContactsList M; \
 	if (D != nullptr) { \
@@ -45,6 +36,11 @@ using namespace ivrworx;
 	ivrworx::AbstractOffer O(MarshalToString(SAFE_ACCESS(D,Body)),  MarshalToString(SAFE_ACCESS(D,Type)))
 
 
+#define DECLARE_MAPOFANY_FROM_MANAGED(O, D) \
+	ivrworx::MapOfAny O; \
+	FillTable(D,O); 
+
+
 #define DECLARE_CREDENTIALS_FROM_MANAGED(C, D) \
 	ivrworx::Credentials C(MarshalToString(SAFE_ACCESS(D,User)),MarshalToString(SAFE_ACCESS(D,Password)), MarshalToString(SAFE_ACCESS(D,Realm)))
 
@@ -52,12 +48,18 @@ namespace ivrworx
 {
 namespace interop
 {
-	typedef Dictionary<String^,String^> MapOfAnyInterop; 
+	typedef Dictionary<String^,Object^> MapOfAnyInterop; 
 	typedef System::Collections::Generic::LinkedList<String^> ListOfStrings;
 
 	string MarshalToString ( const String ^ s); 
 
 	wstring MarshalToWString ( const String ^ s);
+
+	void 
+	FillTable(ivrworx::interop::MapOfAnyInterop IN ^inMap, ivrworx::MapOfAny OUT &outMap);
+
+	void 
+	FillManagedTable(ivrworx::interop::MapOfAnyInterop IN ^inMap, const ivrworx::MapOfAny OUT &outMap);
 
 
 	public enum struct ApiErrorCode

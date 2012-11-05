@@ -210,18 +210,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="mediacall"
-			>
-			<File
-				RelativePath=".\GenericOfferAnswerSession.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\GenericOfferAnswerSession.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="telephony"
 			>
 			<File
@@ -238,6 +226,14 @@
 			</File>
 			<File
 				RelativePath=".\Credentials.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GenericOfferAnswerSession.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GenericOfferAnswerSession.h"
 				>
 			</File>
 		</Filter>
@@ -274,6 +270,18 @@
 			</File>
 			<File
 				RelativePath=".\RtspSession.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="mrcp"
+			>
+			<File
+				RelativePath=".\MrcpSession.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MrcpSession.h"
 				>
 			</File>
 		</Filter>

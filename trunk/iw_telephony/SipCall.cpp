@@ -140,11 +140,8 @@ SipMediaCall::MakeCall(IN const string   &destination_uri,
 	
 	
 	if (_stackRegistrationHandle  != IW_UNDEFINED)
-	{
-		char buffer[1024];
-		key_value_map["registration_id"] =  ::itoa(_stackRegistrationHandle,buffer,10);
+		key_value_map["registration_id"] =  _stackRegistrationHandle;
 
-	}
 	return GenericOfferAnswerSession::MakeCall(destination_uri, offer, credentials, key_value_map, ring_timeout);
 
 }
