@@ -44,7 +44,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="scripts\dotnet.json" />
+    <None Include="conf\dotnet.json" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -70,7 +70,7 @@ copy $(ProjectDir)..\unimrcp-deps\libs\apr-util\Debug\$(ConfigurationName)\*.dll
 xcopy $(ProjectDir) unimrcp  "$(TargetDir)\unimrcp" /E /Y /I
 
 echo Copying configuration file 
-copy $(ProjectDir)scripts\*.json $(TargetDir)
+copy $(ProjectDir)conf\*.json $(TargetDir)
 </PostBuildEvent>
   </PropertyGroup>
 </Project>
