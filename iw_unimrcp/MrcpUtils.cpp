@@ -34,9 +34,21 @@ namespace ivrworx {
 		if (iter == params->end())
 			return;
 
-		string &v = iter->second;
+		any &v = iter->second;
 
-		*dest = ::atoi(v.c_str());
+		if (v.type() == typeid(float))
+		{
+			*dest =  (unsigned int)any_cast<float>(v);
+		}
+		else if (v.type() == typeid(double))
+		{
+			*dest =  (unsigned int)any_cast<double>(v);
+
+		}else if (v.type() == typeid(int))
+		{
+			*dest =  (unsigned int)any_cast<int>(v);
+
+		}
 		(generic_resource ? mrcp_generic_header_property_add: mrcp_resource_header_property_add)
 			(mrcp_message,header_key);
 
@@ -58,9 +70,21 @@ namespace ivrworx {
 
 		
 
-		string &v = iter->second;
+		any &v = iter->second;
 
-		*dest = (float)::atof(v.c_str());
+		if (v.type() == typeid(float))
+		{
+			*dest =  (float)any_cast<float>(v);
+		}
+		else if (v.type() == typeid(double))
+		{
+			*dest =  (float)any_cast<double>(v);
+
+		}else if (v.type() == typeid(int))
+		{
+			*dest =  (float)any_cast<int>(v);
+
+		}
 	
 		(generic_resource ? mrcp_generic_header_property_add: mrcp_resource_header_property_add)
 			(mrcp_message,header_key);

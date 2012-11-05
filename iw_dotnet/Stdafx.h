@@ -40,6 +40,7 @@
 #include "..\iw_telephony\SipCall.h"
 #include "..\iw_telephony\RtpProxySession.h"
 #include "..\iw_telephony\StreamingSession.h"
+#include "..\iw_telephony\MrcpSession.h"
 #pragma managed
 
 

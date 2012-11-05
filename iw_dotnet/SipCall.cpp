@@ -144,9 +144,10 @@ SipCall::MakeCall(
 					  IN Int32							ringTimeout)
 {
 
-	DECLARE_MAP_FROM_MANAGED(keyValueMap_,keyValueMap);
+	DECLARE_MAPOFANY_FROM_MANAGED(keyValueMap_,keyValueMap);
 	DECLARE_OFFER_FROM_MANAGED(localOffer_, localOffer);
 	DECLARE_CREDENTIALS_FROM_MANAGED(credentials_,credentials);
+	
 	
 	localOffer->Body;
 
@@ -159,40 +160,28 @@ SipCall::MakeCall(
 			MilliSeconds(ringTimeout)
 			);
 
-	if (keyValueMap!= nullptr)
-	{
-		keyValueMap->Clear();
-	
-		MapOfAny::iterator iter;
-		for (iter = keyValueMap_.begin(); iter !=  keyValueMap_.end(); iter++)
-		{
-			keyValueMap[gcnew String(iter->first.c_str())] = 
-				gcnew String(iter->second.c_str());
-		}
-	}
+	keyValueMap->Clear();
+	FillManagedTable(keyValueMap,keyValueMap_);
 
 	return ivrworx::interop::ApiErrorCode(res);
 }
 
 ApiErrorCode   
 SipCall::ReOffer(
-					 IN  AbstractOffer^				localOffer,
+					 IN  AbstractOffer^			localOffer,
 					 IN OUT MapOfAnyInterop^	keyValueMap,
-					 IN Int32							ringTimeout)
+					 IN Int32					ringTimeout)
 {
-	DECLARE_MAP_FROM_MANAGED(keyValueMap_,keyValueMap);
+	DECLARE_MAPOFANY_FROM_MANAGED(keyValueMap_,keyValueMap);
 	DECLARE_OFFER_FROM_MANAGED(offer, localOffer);
 
 	ivrworx::ApiErrorCode res = 
 		_impl->ReOffer(offer,keyValueMap_,MilliSeconds(ringTimeout));
 
-	MapOfAny::iterator iter;
-	for (iter = keyValueMap_.begin(); iter !=  keyValueMap_.end(); iter++)
-	{
-		keyValueMap[gcnew String(iter->first.c_str())] = 
-			gcnew String(iter->second.c_str());
-	}
+	keyValueMap->Clear();
+	FillManagedTable(keyValueMap,keyValueMap_);
 
+	
 	return ivrworx::interop::ApiErrorCode(res);
 
 }
@@ -202,11 +191,14 @@ SipCall::Answer(	IN  AbstractOffer^					 localOffer,
 					IN  OUT MapOfAnyInterop^ keyValueMap,
 					IN Int32	  ringTimeout)
 {
-	DECLARE_MAP_FROM_MANAGED(map,keyValueMap);
+	DECLARE_MAPOFANY_FROM_MANAGED(keyValueMap_,keyValueMap);
 	DECLARE_OFFER_FROM_MANAGED(offer, localOffer);
 
 	ivrworx::ApiErrorCode res = 
-		_impl->ReOffer(offer,map,MilliSeconds(ringTimeout));
+		_impl->ReOffer(offer,keyValueMap_,MilliSeconds(ringTimeout));
+
+	keyValueMap->Clear();
+	FillManagedTable(keyValueMap,keyValueMap_);
 
 	return ivrworx::interop::ApiErrorCode(res);
 

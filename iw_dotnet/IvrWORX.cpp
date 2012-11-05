@@ -39,6 +39,62 @@ string MarshalToString (const String ^ s) {
 	Marshal::FreeHGlobal(IntPtr((void*)chars));
 }
 
+void 
+FillTable(ivrworx::interop::MapOfAnyInterop IN ^inMap, ivrworx::MapOfAny OUT &outMap)
+{
+	for each(String ^key in inMap->Keys)
+	{
+		Object ^value = inMap[key];
+
+		if (dynamic_cast<String^>(value) != nullptr )
+		{
+			outMap[MarshalToString(key)] = MarshalToString(dynamic_cast<String^>(value));
+		}  
+		else if (dynamic_cast<Int32^>(value) != nullptr )
+		{
+			int x = (int)(value);
+			outMap[MarshalToString(key)] = x;
+		}
+		else if (dynamic_cast<Boolean^>(value) != nullptr )
+		{
+			bool x = (bool)(value);
+			outMap[MarshalToString(key)] = x;
+		}
+	}
+}
+
+
+void 
+FillManagedTable(ivrworx::interop::MapOfAnyInterop IN ^inMap, const ivrworx::MapOfAny OUT &outMap)
+{
+	
+	
+	for(ivrworx::MapOfAny::const_iterator iter  = outMap.begin(); 
+		iter != outMap.end(); 
+		iter++)
+	{
+		const any &v = iter->second;
+		const string &key = iter->first;
+
+		if (v.type() == typeid(float))
+		{
+			unsigned int value = (unsigned int)any_cast<float>(v);
+			inMap[gcnew String(key.c_str())] = value;
+		}
+		else if (v.type() == typeid(double))
+		{
+			inMap[gcnew String(key.c_str())]	= (unsigned int)any_cast<double>(v);
+
+		}
+		else if (v.type() == typeid(int))
+		{
+			inMap[gcnew String(key.c_str())]	= (unsigned int)any_cast<int>(v);
+		}
+
+	}
+}
+
+
 wstring MarshalToWString (const  String ^ s) {
 	if (s==nullptr)
 		return L"";
