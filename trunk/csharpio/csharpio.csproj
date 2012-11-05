@@ -67,7 +67,7 @@ copy $(ProjectDir)..\unimrcp-deps\libs\apr-util\$(ConfigurationName)\*.dll $(Tar
 copy $(ProjectDir)..\unimrcp-deps\libs\sofia-sip\win32\libsofia-sip-ua\$(ConfigurationName)\*.dll $(TargetDir)
 copy $(ProjectDir)..\unimrcp-deps\libs\apr-util\Debug\$(ConfigurationName)\*.dll $(OutDir)
 
-xcopy $(ProjectDir) unimrcp  "$(TargetDir)\unimrcp" /E /Y /I
+xcopy $(ProjectDir)unimrcp  "$(TargetDir)\unimrcp" /E /Y /I
 
 echo Copying configuration file 
 copy $(ProjectDir)conf\*.json $(TargetDir)
