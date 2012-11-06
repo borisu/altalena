@@ -7,7 +7,7 @@
     <!-- SIP MRCPv2 settings -->
     <sip-settings id="Nuance-SIP-Settings">
       <!-- Server address should be explicitly specified, it defaults to "ip" address set in the properties. -->
-      <server-ip>192.168.100.189</server-ip> 
+      <server-ip>10.116.103.189</server-ip> 
       <server-port>5060</server-port>
       <!-- <force-destination>true</force-destination> -->
     </sip-settings>

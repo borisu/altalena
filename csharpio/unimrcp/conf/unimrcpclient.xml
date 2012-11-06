@@ -11,7 +11,7 @@
     <ip type="auto"/>
     <!-- <ip>10.10.0.1</ip> -->
     <!-- <ext-ip>a.b.c.d</ext-ip> -->
-    <server-ip>192.168.100.189</server-ip>
+    <server-ip>10.116.103.189</server-ip>
   </properties>
 
   <components>
@@ -116,7 +116,7 @@
     
      <sip-settings id="UniMRCP-SIP-Settings">
       <!-- Server address should be explicitly specified, it defaults to <server-ip> address set in the properties. -->
-      <server-ip>192.168.100.189</server-ip>
+      <server-ip>10.116.103.189</server-ip>
       <server-port>5060</server-port>
       <!-- <force-destination>true</force-destination> -->
     </sip-settings>

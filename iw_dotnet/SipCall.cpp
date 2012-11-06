@@ -148,8 +148,6 @@ SipCall::MakeCall(
 	DECLARE_OFFER_FROM_MANAGED(localOffer_, localOffer);
 	DECLARE_CREDENTIALS_FROM_MANAGED(credentials_,credentials);
 	
-	
-	localOffer->Body;
 
 	ivrworx::ApiErrorCode res = 
 		_impl->MakeCall(
@@ -160,7 +158,9 @@ SipCall::MakeCall(
 			MilliSeconds(ringTimeout)
 			);
 
-	keyValueMap->Clear();
+	if (keyValueMap != nullptr)
+		keyValueMap->Clear();
+
 	FillManagedTable(keyValueMap,keyValueMap_);
 
 	return ivrworx::interop::ApiErrorCode(res);
@@ -178,7 +178,8 @@ SipCall::ReOffer(
 	ivrworx::ApiErrorCode res = 
 		_impl->ReOffer(offer,keyValueMap_,MilliSeconds(ringTimeout));
 
-	keyValueMap->Clear();
+	if (keyValueMap != nullptr)
+		keyValueMap->Clear();
 	FillManagedTable(keyValueMap,keyValueMap_);
 
 	
@@ -195,9 +196,11 @@ SipCall::Answer(	IN  AbstractOffer^					 localOffer,
 	DECLARE_OFFER_FROM_MANAGED(offer, localOffer);
 
 	ivrworx::ApiErrorCode res = 
-		_impl->ReOffer(offer,keyValueMap_,MilliSeconds(ringTimeout));
+		_impl->Answer(offer,keyValueMap_,MilliSeconds(ringTimeout));
 
-	keyValueMap->Clear();
+	if (keyValueMap != nullptr)
+		keyValueMap->Clear();
+
 	FillManagedTable(keyValueMap,keyValueMap_);
 
 	return ivrworx::interop::ApiErrorCode(res);

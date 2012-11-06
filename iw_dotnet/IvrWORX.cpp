@@ -42,6 +42,9 @@ string MarshalToString (const String ^ s) {
 void 
 FillTable(ivrworx::interop::MapOfAnyInterop IN ^inMap, ivrworx::MapOfAny OUT &outMap)
 {
+	if (inMap == nullptr)
+		return;
+
 	for each(String ^key in inMap->Keys)
 	{
 		Object ^value = inMap[key];
@@ -68,7 +71,9 @@ void
 FillManagedTable(ivrworx::interop::MapOfAnyInterop IN ^inMap, const ivrworx::MapOfAny OUT &outMap)
 {
 	
-	
+	if (inMap == nullptr)
+		return;
+
 	for(ivrworx::MapOfAny::const_iterator iter  = outMap.begin(); 
 		iter != outMap.end(); 
 		iter++)

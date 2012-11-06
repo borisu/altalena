@@ -9,6 +9,8 @@ namespace csharpio
 {
     class Program
     {
+        static int DEFAULT_TIMEOUT = 15000;
+
         static string GetLocalIP()
         {
             IPHostEntry host;
@@ -56,13 +58,13 @@ namespace csharpio
                 contactList,
                 "sip:7777@10.116.24.21",
                 c,
-                15000);
+                DEFAULT_TIMEOUT);
 
             if (res != ApiErrorCode.API_SUCCESS)
                 throw new Exception("Registration failed err:" + res);
 
 
-            res = sipCall.MakeCall("sip:6051@10.116.24.21", streamer.LocalOffer(), c, null, 15000);
+            res = sipCall.MakeCall("sip:6051@10.116.24.21", streamer.LocalOffer(), c, null, DEFAULT_TIMEOUT);
 
 
             streamer.ModifyConnection(sipCall.RemoteOffer());
@@ -120,7 +122,7 @@ namespace csharpio
 
 
             res = 
-                sipCall.MakeCall("sip:6051@10.116.24.21", sipRtpSession.LocalOffer(), null, null, 15000);
+                sipCall.MakeCall("sip:6051@10.116.24.21", sipRtpSession.LocalOffer(), null, null, DEFAULT_TIMEOUT);
             if (res != ApiErrorCode.API_SUCCESS)
                 throw new Exception("MakeCall failed err:" + res);
 
@@ -190,7 +192,7 @@ namespace csharpio
             // Make call
             //
             SipCall sipCall = new SipCall(x);
-            res = sipCall.MakeCall("sip:6051@10.116.24.21", sipRtpSession.LocalOffer(), null, null, 15000);
+            res = sipCall.MakeCall("sip:6051@10.116.24.21", sipRtpSession.LocalOffer(), null, null, DEFAULT_TIMEOUT);
             if (res != ApiErrorCode.API_SUCCESS)
                 throw new Exception("MakeCall failed err:" + res);
 
@@ -255,7 +257,7 @@ namespace csharpio
             // Make call1
             //
             SipCall sipCall1 = new SipCall(x);
-            res = sipCall1.MakeCall("sip:6051@10.116.24.21", call1RtpSession.LocalOffer(), null, null, 15000);
+            res = sipCall1.MakeCall("sip:6051@10.116.24.21", call1RtpSession.LocalOffer(), null, null, DEFAULT_TIMEOUT);
             if (res != ApiErrorCode.API_SUCCESS)
                 throw new Exception("MakeCall failed err:" + res);
 
@@ -268,7 +270,7 @@ namespace csharpio
             // Make call2
             //
             SipCall sipCall2 = new SipCall(x);
-            res = sipCall2.MakeCall("sip:6050@10.116.24.21", call2RtpSession.LocalOffer(), null, null, 15000);
+            res = sipCall2.MakeCall("sip:6050@10.116.24.21", call2RtpSession.LocalOffer(), null, null, DEFAULT_TIMEOUT);
             if (res != ApiErrorCode.API_SUCCESS)
                 throw new Exception("MakeCall failed err:" + res);
             call2RtpSession.Modify(sipCall2.RemoteOffer());
@@ -291,14 +293,82 @@ namespace csharpio
 
         static void test5()
         {
+            
 
             IvrWORX x = new IvrWORX();
             x.Init("dotnet.json");
 
-            MrcpSession sesion = 
-                new MrcpSession(x);
+            SipCall caller = new SipCall(x);
+            ApiErrorCode res = caller.MakeCall("sip:6050@10.116.24.21",null,null,null, DEFAULT_TIMEOUT); 
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("MakeCall err:" + res);
+
+            MrcpSession recog = 
+                new MrcpSession(x);;
+
+            recog.Allocate(MrcpResource.RECOGNIZER, caller.RemoteOffer(),DEFAULT_TIMEOUT);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("Allocate err:" + res);
+
+            caller.Answer(recog.RemoteOffer(MrcpResource.RECOGNIZER), null, DEFAULT_TIMEOUT);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("Allocate err:" + res);
 
             
+
+            MrcpSession synth = new MrcpSession(x);
+            synth.Allocate(MrcpResource.SYNTHESIZER, caller.RemoteOffer(),DEFAULT_TIMEOUT);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("Allocate(SYNTHESIZER) err:" + res);
+
+
+            Thread.Sleep(1000);
+            synth.SimpleSpeak(null,"Please choose red pill, or blue pill",true);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("Speak err:" + res);
+
+
+            String pillgrammar=@"
+            <?xml version=""1.0"" encoding=\""UTF-8\""?>
+            <!-- the default grammar language is US English -->
+            <grammar xmlns=""http://www.w3.org/2001/06/grammar""
+                     xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
+                     xml:lang=""en-US"" version=""1.0"" root=""pill"">
+              <rule id=""pill"">
+                <one-of>
+                  <item>red</item>
+                  <item>blue</item>
+                </one-of> 
+              </rule> 
+            </grammar>";
+
+            Dictionary<String,Object> p = 
+                new Dictionary<String,Object>();
+
+            p["cancel_if_queue"]=true; 
+            p["content_id"]="<grammar1-borisu@form-level.store>";
+            p["content_type"]="application/srgs+xml";
+            p["no_input_timeout"]=20000;
+            p["confidence_threshhold"] = 0.9;    
+            p["start_input_timers"] = true;
+
+
+
+            String answer;
+            res = recog.Recognize(
+                p,
+                pillgrammar,
+                DEFAULT_TIMEOUT,
+                true,
+                out answer);
+                                                            
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("Speak err:" + res);
+
+            
+            Console.Out.WriteLine(answer);                                              
+            
+            caller.WaitTillHangup();
 
 
         }
