@@ -328,19 +328,18 @@ namespace csharpio
                 throw new Exception("Speak err:" + res);
 
 
-            String pillgrammar=@"
-            <?xml version=""1.0"" encoding=\""UTF-8\""?>
-            <!-- the default grammar language is US English -->
-            <grammar xmlns=""http://www.w3.org/2001/06/grammar""
-                     xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-                     xml:lang=""en-US"" version=""1.0"" root=""pill"">
-              <rule id=""pill"">
-                <one-of>
-                  <item>red</item>
-                  <item>blue</item>
-                </one-of> 
-              </rule> 
-            </grammar>";
+            String pillgrammar=@"<?xml version=""1.0"" encoding=""UTF-8""?>
+<!-- the default grammar language is US English -->
+<grammar xmlns=""http://www.w3.org/2001/06/grammar""
+         xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
+         xml:lang=""en-US"" version=""1.0"" root=""pill"">
+  <rule id=""pill"">
+    <one-of>
+      <item>red</item>
+      <item>blue</item>
+    </one-of> 
+  </rule> 
+</grammar>";
 
             Dictionary<String,Object> p = 
                 new Dictionary<String,Object>();
@@ -358,9 +357,10 @@ namespace csharpio
             res = recog.Recognize(
                 p,
                 pillgrammar,
-                DEFAULT_TIMEOUT,
+                DEFAULT_TIMEOUT*10000,
                 true,
                 out answer);
+
                                                             
             if (res != ApiErrorCode.API_SUCCESS)
                 throw new Exception("Speak err:" + res);

@@ -193,10 +193,10 @@ SipCall::Answer(	IN  AbstractOffer^					 localOffer,
 					IN Int32	  ringTimeout)
 {
 	DECLARE_MAPOFANY_FROM_MANAGED(keyValueMap_,keyValueMap);
-	DECLARE_OFFER_FROM_MANAGED(offer, localOffer);
+	DECLARE_OFFER_FROM_MANAGED(localOffer_, localOffer);
 
 	ivrworx::ApiErrorCode res = 
-		_impl->Answer(offer,keyValueMap_,MilliSeconds(ringTimeout));
+		_impl->Answer(localOffer_,keyValueMap_,MilliSeconds(ringTimeout));
 
 	if (keyValueMap != nullptr)
 		keyValueMap->Clear();

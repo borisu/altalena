@@ -346,7 +346,7 @@ MrcpSession::Recognize(IN const MrcpParams &p,
 			shared_ptr<MsgMrcpRecognizeNack> nack = 
 				shared_polymorphic_cast<MsgMrcpRecognizeNack>(response);
 
-			LogWarn("MrcpSession::Recognize - Error allocating Mrcp session , mrcph:" << _mrcpSessionHandle << " error:" << nack->response_error_code);
+			LogWarn("MrcpSession::Recognize - Error while recognition , mrcph:" << _mrcpSessionHandle << " error:" << nack->response_error_code);
 			res = API_SERVER_FAILURE;
 			break;
 		}

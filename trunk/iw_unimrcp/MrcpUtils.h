@@ -34,8 +34,10 @@ namespace ivrworx
 		if (iter == params->end())
 			return;
 
-
+		LogDebug("copy_param::p=" <<key);
 		*dest =  any_cast<T>(iter->second);
+		
+
 
 		(generic_resource ? mrcp_generic_header_property_add: mrcp_resource_header_property_add)
 			(mrcp_message,header_key);

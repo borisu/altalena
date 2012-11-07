@@ -856,14 +856,14 @@ allocate_error:
 		shared_ptr<MrcpOverlapped> guard(olap);
 
 		MrcpHandle handle = olap->mrcp_handle_id;
-		LogDebug("ProcUniMrcp::UponMessageReceived mrcph:" <<  olap->mrcp_handle_id << ", status:" << olap->status << ", request-line:" << olap->message->start_line.method_name.buf);
+		LogDebug("ProcUniMrcp::onMrcpMessageReceived mrcph:" <<  olap->mrcp_handle_id << ", status:" << olap->status << ", request-line:" << olap->message->start_line.method_name.buf);
 
 
 		MrcpCtxMap::iterator iter =  _mrcpCtxMap.find(handle);
 		if (iter == _mrcpCtxMap.end())
 		{
 			//mrcp_application_session_destroy(olap->session);
-			LogWarn("ProcUniMrcp::UponMessageReceived mrcph:" << handle << " not found.");
+			LogWarn("ProcUniMrcp::onMrcpMessageReceived mrcph:" << handle << " not found.");
 			return;
 		}
 
@@ -1099,26 +1099,27 @@ allocate_error:
 					break;
 				}
 
-				// we assume that server agrred for the sinlge codec suggested
+				// we assume that server agreed for the sinlge codec suggested
 				stringstream sdps;
-				sdps << "v=0\r\n"
-					<< "o=mrcp " << time << " " << time <<" IN IP4 " << info.iptoa() << "\r\n"
-					<< "s=mrcp\r\n"	
-					<< "c=IN IP4 "	<< info.iptoa() << "\r\n" 
-					<< "t=0 0\r\n"	
+				sdps << "v=0" << endl
+					<< "o=mrcp " << time << " " << time <<" IN IP4 " << info.iptoa() << endl
+					<< "s=mrcp"	<< endl
+					<< "c=IN IP4 "	<< info.iptoa() << endl 
+					<< "t=0 0"	<< endl
 					<< "m=audio "  << info.port_ho() << " RTP/AVP " << ctx->media_format.sdp_mapping();
 					if (dtmf_descriptor)
 						sdps << " " << (int)dtmf_descriptor->payload_type;
-				sdps <<  "\r\n";
-				sdps << ctx->media_format.get_sdp_a() << "\r\n";
+				sdps <<  endl;
+				sdps << ctx->media_format.get_sdp_a() << endl;
 				if (dtmf_descriptor)
 				{
-					sdps << "a=rtpmap:" << (int)dtmf_descriptor->payload_type<< " "<< dtmf_str << "/" << dtmf_descriptor->sampling_rate << "\r\n";
-					sdps << "a=fmtp:"   << (int)dtmf_descriptor->payload_type<< " 0-15" << "\r\n";
+					sdps << "a=rtpmap:" << (int)dtmf_descriptor->payload_type<< " "<< dtmf_str << "/" << dtmf_descriptor->sampling_rate << endl;
+					sdps << "a=fmtp:"   << (int)dtmf_descriptor->payload_type<< " 0-15" << endl;
 				}
 					
 		
 				rsp->mrcp_handle = handle;
+				rsp->offer.type = "application/sdp";
 				rsp->offer.body = sdps.str();
 				
 				SendResponse(ctx->last_user_request,rsp);
