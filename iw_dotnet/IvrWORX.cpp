@@ -49,7 +49,11 @@ FillTable(ivrworx::interop::MapOfAnyInterop IN ^inMap, ivrworx::MapOfAny OUT &ou
 	{
 		Object ^value = inMap[key];
 
-		if (dynamic_cast<String^>(value) != nullptr )
+		if (dynamic_cast<Boolean^>(value) != nullptr )
+		{
+			bool x = (bool)(value);
+			outMap[MarshalToString(key)] = x == true ? TRUE : FALSE;
+		} else if (dynamic_cast<String^>(value) != nullptr )
 		{
 			outMap[MarshalToString(key)] = MarshalToString(dynamic_cast<String^>(value));
 		}  
@@ -57,10 +61,10 @@ FillTable(ivrworx::interop::MapOfAnyInterop IN ^inMap, ivrworx::MapOfAny OUT &ou
 		{
 			int x = (int)(value);
 			outMap[MarshalToString(key)] = x;
-		}
-		else if (dynamic_cast<Boolean^>(value) != nullptr )
+		}		
+		else if (dynamic_cast<Double^>(value) != nullptr )
 		{
-			bool x = (bool)(value);
+			double  x = (double)(value);
 			outMap[MarshalToString(key)] = x;
 		}
 	}
