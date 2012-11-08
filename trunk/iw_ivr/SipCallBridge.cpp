@@ -429,7 +429,7 @@ sipcall::reoffer(lua_State *L)
 	}
 	else
 	{
-		offer.type = "sdp";
+		offer.type = "application/sdp";
 	}
 
 	FillTable(L,-1,freemap);
@@ -489,7 +489,7 @@ sipcall::makecall(lua_State *L)
 	}
 	else
 	{
-		offer.type = "sdp";
+		offer.type = "application/sdp";
 	}
 
 	FillTable(L,-1,freemap);
@@ -707,7 +707,7 @@ sipcall::answer(lua_State *L)
 	}
 	else
 	{
-		offer.type = "sdp";
+		offer.type = "application/sdp";
 	}
 
 	if (offer.body.empty())

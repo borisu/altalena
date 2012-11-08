@@ -436,7 +436,8 @@ GenericOfferAnswerSession::Answer(IN const AbstractOffer &offer,
 {
 	FUNCTRACKER;
 
-	LogDebug("MediaCallSession::Answer iwh:" << _iwCallHandle);
+	LogDebug("enericOfferAnswerSession::Answer iwh:" << _iwCallHandle <<
+		" type=" << offer.type << ", body=" << offer.body);
 
 	if (_callState != CALL_STATE_INITIAL_OFFERED && 
 		_callState != CALL_STATE_REMOTE_OFFERED		)
