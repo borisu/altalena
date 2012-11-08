@@ -54,17 +54,17 @@ namespace csharpio
                 new LinkedList<string>();
             contactList.AddLast("sip:1234" + "@" + GetLocalIP());
 
-            ApiErrorCode res = sipCall.StartRegistration(
-                contactList,
-                "sip:7777@10.116.24.21",
-                c,
-                DEFAULT_TIMEOUT);
+//             ApiErrorCode res = sipCall.StartRegistration(
+//                 contactList,
+//                 "sip:7777@10.116.24.21",
+//                 c,
+//                 DEFAULT_TIMEOUT);
+// 
+//             if (res != ApiErrorCode.API_SUCCESS)
+//                 throw new Exception("Registration failed err:" + res);
 
-            if (res != ApiErrorCode.API_SUCCESS)
-                throw new Exception("Registration failed err:" + res);
 
-
-            res = sipCall.MakeCall("sip:6051@10.116.24.21", streamer.LocalOffer(), c, null, DEFAULT_TIMEOUT);
+            ApiErrorCode  res = sipCall.MakeCall("sip:6050@10.116.24.21", streamer.LocalOffer(), c, null, DEFAULT_TIMEOUT);
 
 
             streamer.ModifyConnection(sipCall.RemoteOffer());
@@ -450,7 +450,7 @@ a=rtpmap:101 telephone-event/8000
         
         static void Main(string[] args)
         {
-            test6();
+            test1();
             
         }
     }

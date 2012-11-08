@@ -373,7 +373,7 @@ namespace ivrworx
 
 		_localInAddr = convert_hname_to_addrin(input_address_str);
 		
-		LogDebug("ProcM2Ims::real_run -  bind is done 0.0.0.0, local_ip=" << m2_ip << ", wil be used in communication protocols.");
+		LogDebug("ProcM2Ims::real_run -  bind is done 0.0.0.0, local_ip=" << m2_ip << "(" << ::inet_ntoa(_localInAddr) << "), wil be used in communication protocols.");
 
 		//
 		// initialize ortp

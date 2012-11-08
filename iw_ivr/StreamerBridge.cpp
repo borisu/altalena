@@ -112,7 +112,7 @@ namespace ivrworx
 
 		AbstractOffer offer;
 		BOOL paramres = GetTableStringParam(L,-1,offer.body,"sdp");
-		offer.type = "sdp";
+		offer.type = "application/sdp";
 
 		if (!paramres)
 		{
