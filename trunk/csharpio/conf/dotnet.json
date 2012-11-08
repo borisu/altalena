@@ -71,6 +71,7 @@
 	"__" : "DESCRIPTION:",
 	"__" : "List of implementation modules to load",
 	"modules":[
+		"iw_live555rtpproxy.dll",
 		"iw_resip.dll",
 		"iw_unimrcp.dll"
 	],

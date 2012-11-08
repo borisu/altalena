@@ -19,6 +19,7 @@
 */
 #pragma once
 #include "IvrWORX.h"
+#include "IActiveObject.h"
 #include "AbstractOffer.h"
 
 
@@ -29,7 +30,8 @@ namespace ivrworx
 {
 	namespace interop
 	{
-		public ref class RtpProxySession
+		public ref class RtpProxySession :
+			public IActiveObject
 		{
 
 		public:
@@ -56,6 +58,11 @@ namespace ivrworx
 				IN Int32 timeout);
 
 			virtual String^ DtmfBuffer();
+
+			virtual ivrworx::ActiveObject *GetOpaqueObject()
+			{
+				return _impl;
+			}
 
 		private:
 

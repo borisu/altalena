@@ -18,7 +18,9 @@
 */
 #pragma once
 #include "IvrWORX.h"
+#include "IActiveObject.h"
 #include "AbstractOffer.h"
+
 
 namespace ivrworx
 {
@@ -34,8 +36,8 @@ namespace ivrworx
 		typedef MapOfAnyInterop 
 		MrcpParams;
 		
-
-		public ref class MrcpSession 
+		public ref class MrcpSession : 
+			public IActiveObject
 		{
 		public:
 			MrcpSession (IN IvrWORX ^forking);
@@ -86,6 +88,11 @@ namespace ivrworx
 			AbstractOffer^ RemoteOffer(MrcpResource rsc);
 
 			AbstractOffer^ LocalOffer(MrcpResource rsc);
+
+			virtual ivrworx::ActiveObject *GetOpaqueObject()
+			{
+				return _impl;
+			}
 
 		private:
 

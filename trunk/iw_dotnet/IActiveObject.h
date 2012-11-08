@@ -16,44 +16,21 @@
 *	License along with this library; if not, write to the Free Software
 *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-
 #pragma once
 #include "IvrWORX.h"
-#include "IActiveObject.h"
-#include "AbstractOffer.h"
 
-
-using namespace ivrworx;
-using namespace interop;
 
 namespace ivrworx
 {
-	namespace interop
+namespace interop
+{
+
+	public interface class IActiveObject
 	{
-		public ref class RtspSession 
-		{
-		public:
 
-			RtspSession(IvrWORX ^threadCtx);
+		ivrworx::ActiveObject *GetOpaqueObject();
 
-			virtual ~RtspSession(void);
+	};
 
-			virtual ApiErrorCode Setup(IN  String ^rtsp_url, IN  AbstractOffer ^offer);
-
-			virtual ApiErrorCode Play(double start_time, double duration, double scale);
-
-			virtual ApiErrorCode Pause();
-
-			virtual ApiErrorCode TearDown();
-
-			virtual AbstractOffer^ RemoteOffer();
-
-			virtual AbstractOffer^ LocalOffer();
-
-		protected:
-
-			ivrworx::RtspSession *_impl;
-
-		};
-	}
+}
 }
