@@ -294,6 +294,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\IActiveObject.h"
+			>
+		</File>
+		<File
 			RelativePath=".\IvrWORX.cpp"
 			>
 		</File>
@@ -307,6 +311,14 @@
 		</File>
 		<File
 			RelativePath=".\resource.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Selector.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Selector.h"
 			>
 		</File>
 		<File

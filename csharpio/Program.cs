@@ -77,7 +77,6 @@ namespace csharpio
             Console.WriteLine("MakeCall res=" + res);
         }
 
-
         static void test2()
         {
             IvrWORX x = new IvrWORX();
@@ -372,14 +371,89 @@ namespace csharpio
 
 
         }
-        
+
+        static void test6()
+        {
+            IvrWORX x = new IvrWORX();
+            x.Init("dotnet.json");
+
+            RtpProxySession rtpProxy = 
+                new RtpProxySession(x);
+
+            //
+            // Allocate RTP endpoint for RTSP session.
+            //
+            RtpProxySession call1RtpSession = new RtpProxySession(x);
+            AbstractOffer dummyOffer = new AbstractOffer();
+            dummyOffer.Type = "application/sdp";
+            dummyOffer.Body = @"v=0
+o=alice 2890844526 2890844526 IN IP4 0.0.0.0
+s=
+c=IN IP4 0.0.0.0
+t=0 0
+m=audio 0 RTP/AVP 8 101
+a=rtpmap:0 PCMA/8000
+a=rtpmap:101 telephone-event/8000
+
+";
+
+            ApiErrorCode res = call1RtpSession.Allocate(dummyOffer);
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("RtpProxySession(1) Allocated failed err:" + res);
+
+
+            SipCall caller = new SipCall(x);
+            res = caller.MakeCall("sip:6050@10.116.24.21", 
+                call1RtpSession.LocalOffer(), 
+                null, 
+                null, 
+                DEFAULT_TIMEOUT);
+
+            if (res != ApiErrorCode.API_SUCCESS)
+                throw new Exception("MakeCall err:" + res);
+
+            bool shutdown = false;
+            List<IActiveObject> actors = 
+                new List<IActiveObject>();
+            actors.Add(caller);
+            actors.Add(call1RtpSession);
+
+            while (!shutdown)
+            {
+                Selector s = new Selector();
+                int index = 0;
+                int event_id = 0;
+                res = s.Select(
+                    actors,
+                    DEFAULT_TIMEOUT,
+                    ref index,
+                    ref event_id);
+
+                String dtmfs = call1RtpSession.DtmfBuffer();
+
+                Console.Out.WriteLine("err=" + res + 
+                    ", index=" + index + 
+                    ", event=" + event_id + 
+                    ", dtmfs=" + dtmfs);
+
+                if (dtmfs.Contains("#") || index == 0)
+                    shutdown = true;
+                
+            }
+
+
+            caller.HangupCall();
+
+
+            
+        }
         
         static void Main(string[] args)
         {
-            test5();
+            test6();
             
         }
-       }
+    }
 }
 
 

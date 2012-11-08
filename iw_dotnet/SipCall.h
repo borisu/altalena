@@ -19,6 +19,7 @@
 
 #pragma once
 #include "GenericOfferAnswerSession.h"
+#include "IActiveObject.h"
 
 
 namespace ivrworx
@@ -26,7 +27,8 @@ namespace ivrworx
 	namespace interop 
 	{
 
-		public ref class SipCall : public IGenericOfferAnswerSession
+		public ref class SipCall : public IGenericOfferAnswerSession,
+			public IActiveObject
 		{
 		public:
 			SipCall(IvrWORX ^threadCtx);
@@ -104,6 +106,11 @@ namespace ivrworx
 				OUT AbstractOffer		^offer);
 
 			virtual void CleanNotifyBuffer();
+
+			virtual ivrworx::ActiveObject *GetOpaqueObject()
+			{
+				return _impl;
+			}
 
 		private:
 
