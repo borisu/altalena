@@ -1,5 +1,7 @@
 #summary Several examples n C# language
 
+=== The application is built for scripted and works in single thread enviroment ====
+
 {{{
 using System;
 using System.Collections.Generic;
